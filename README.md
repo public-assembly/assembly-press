@@ -13,4 +13,4 @@ This repo contains small implementations written in solidity that can be used to
 3. install [Foundry](https://github.com/foundry-rs/foundry)
 4. `foundryup`
 5. `forge install`
-6. `forge test` to confirm folder + contents have been installed correctly
+6. `forge test` to confirm module folder + contents have been installed correctly
