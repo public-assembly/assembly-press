@@ -106,7 +106,7 @@ contract CustomPricingMinter is
                 revert WrongPrice();
             } 
 
-            nonBundleMint(zoraDrop, mintRecipient, quantity);
+            _nonBundleMint(zoraDrop, mintRecipient, quantity);
 
             return quantity;
         }
@@ -116,7 +116,7 @@ contract CustomPricingMinter is
             revert WrongPrice();
         } 
 
-        bundleMint(zoraDrop, mintRecipient, quantity);
+        _bundleMint(zoraDrop, mintRecipient, quantity);
 
         return quantity;
     }
@@ -129,7 +129,7 @@ contract CustomPricingMinter is
      *** ---------------------------------- ***
      ***/
 
-    function nonBundleMint(
+    function _nonBundleMint(
         address zoraDrop, 
         address mintRecipient,
         uint256 quantity
@@ -140,7 +140,7 @@ contract CustomPricingMinter is
         emit NonBundleMint(msg.sender, quantity, quantity * nonBundlePricePerToken);
     }
 
-    function bundleMint(
+    function _bundleMint(
         address zoraDrop, 
         address mintRecipient,
         uint256 quantity
@@ -161,27 +161,27 @@ contract CustomPricingMinter is
 
 
     /// @dev updates nonBundlePricePerToken variable
-    /// @param _newPrice new nonBundlePricePerToken value
-    function setNonBundlePricePerToken(uint256 _newPrice) public onlyOwner {
-        nonBundlePricePerToken = _newPrice;
+    /// @param newPrice new nonBundlePricePerToken value
+    function setNonBundlePricePerToken(uint256 newPrice) public onlyOwner {
+        nonBundlePricePerToken = newPrice;
 
-        emit NonBundlePricePerTokenUpdated(msg.sender, _newPrice);
+        emit NonBundlePricePerTokenUpdated(msg.sender, newPrice);
     } 
 
     /// @dev updates bundlePricePerToken variable
-    /// @param _newPrice new bundlePricePerToken value
-    function setBundlePricePerToken(uint256 _newPrice) public onlyOwner {
-        bundlePricePerToken = _newPrice;
+    /// @param newPrice new bundlePricePerToken value
+    function setBundlePricePerToken(uint256 newPrice) public onlyOwner {
+        bundlePricePerToken = newPrice;
 
-        emit BundlePricePerTokenUpdated(msg.sender, _newPrice);
+        emit BundlePricePerTokenUpdated(msg.sender, newPrice);
     }
 
     /// @dev updates bundleQuantity variable
-    /// @param _newQuantity new bundleQuantity value
-    function setBundleQuantity(uint256 _newQuantity) public onlyOwner {
-        bundleQuantity = _newQuantity;
+    /// @param newQuantity new bundleQuantity value
+    function setBundleQuantity(uint256 newQuantity) public onlyOwner {
+        bundleQuantity = newQuantity;
 
-        emit BundleQuantityUpdated(msg.sender, _newQuantity);
+        emit BundleQuantityUpdated(msg.sender, newQuantity);
     }         
 
     /**
