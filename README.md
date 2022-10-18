@@ -1,10 +1,10 @@
 # Onchain Modules ⧉⥇⧉
 
 ## Overview
-This repo contains small implementations writtin in solidity that can be used to augment existing onchain infrastructure    
+This repo contains small implementations written in solidity that can be used to augment existing onchain infrastructure.
 
 ## Contents
-**zora-tiered-pricing-minter**: custom minting module extending standard functionality provided by the [zora-drops-contracts](https://github.com/ourzora/zora-drops-contracts) to allow for different pricing tiers based on mint quantity
+**zora-tiered-pricing-minter**: custom minting module extending standard functionality provided by the [zora-drops-contracts](https://github.com/ourzora/zora-drops-contracts) to allow for different pricing tiers based on mint quantity.
 
 ## Local Development
 
