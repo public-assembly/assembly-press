@@ -7,15 +7,12 @@ import {ERC721DropMinterInterface} from "./ERC721DropMinterInterface.sol";
 
 /**
  * @notice Adds custom pricing tier logic to standard ZORA Drop contracts
- * @dev Only compatible with ZORA Drop contracts that inherit ERC721Drop 
+ * @dev Only compatible with ZORA Drop contracts that inherit ERC721Drop
  * @author max@ourzora.com
  *
  */
 
-contract CustomPricingMinter is 
-    Ownable,
-    ReentrancyGuard
-{
+contract CustomPricingMinter is Ownable, ReentrancyGuard {
     // ===== ERRORS =====
     /// @notice Action is unable to complete because msg.value is incorrect
     error WrongPrice();
@@ -23,41 +20,29 @@ contract CustomPricingMinter is
     /// @notice Action is unable to complete because minter contract has not recieved minting role
     error MinterNotAuthorized();
 
+    /// @notice Funds transfer not successful to drops contract
+    error TransferNotSuccessful();
+
     // ===== EVENTS =====
     /// @notice mint with quantity below bundle cutoff has occurred
-    event NonBundleMint (
-        address minter,
-        uint256 quantity,
-        uint256 totalPrice
-    );
+    event NonBundleMint(address minter, uint256 quantity, uint256 totalPrice);
 
     /// @notice mint with quantity at or above bundle cutoff has occurred
-    event BundleMint (
-        address minter,
-        uint256 quantity,
-        uint256 totalPrice
-    );
+    event BundleMint(address minter, uint256 quantity, uint256 totalPrice);
 
     /// @notice nonBundle price per token has been updated
-    event NonBundlePricePerTokenUpdated (
-        address owner,
-        uint256 newPrice
-    );
+    event NonBundlePricePerTokenUpdated(address owner, uint256 newPrice);
 
     /// @notice bundle price per token has been updated
-    event BundlePricePerTokenUpdated (
-        address owner,
-        uint256 newPrice
-    );
+    event BundlePricePerTokenUpdated(address owner, uint256 newPrice);
 
     /// @notice bundleQuantity cutoff has been updated
-    event BundleQuantityUpdated (
-        address owner,
-        uint256 newQuantity
-    );        
+    event BundleQuantityUpdated(address owner, uint256 newQuantity);
 
     // ===== CONSTANTS =====
     bytes32 public immutable MINTER_ROLE = keccak256("MINTER");
+    bytes32 public immutable DEFAULT_ADMIN_ROLE = 0x00;
+    uint256 public immutable FUNDS_SEND_GAS_LIMIT = 300_000;
 
     // ===== PUBLIC VARIABLES =====
     uint256 public nonBundlePricePerToken;
@@ -67,8 +52,8 @@ contract CustomPricingMinter is
     // ===== CONSTRUCTOR =====
     constructor(
         uint256 _nonBundlePricePerToken,
-        uint256 _bundlePricePerToken, 
-        uint256 _bundleQuantity 
+        uint256 _bundlePricePerToken,
+        uint256 _bundleQuantity
     ) {
         nonBundlePricePerToken = _nonBundlePricePerToken;
         bundlePricePerToken = _bundlePricePerToken;
@@ -88,23 +73,26 @@ contract CustomPricingMinter is
     /// @param mintRecipient address to recieve minted tokens
     /// @param quantity number of tokens to mint
     function flexibleMint(
-        address zoraDrop, 
-        address mintRecipient, 
+        address zoraDrop,
+        address mintRecipient,
         uint256 quantity
     ) external payable nonReentrant returns (uint256) {
-
-        // check if CustomPricingMinter contract has MINTER_ROLE on target ZORA Drop contract 
-        if (!ERC721DropMinterInterface(zoraDrop).hasRole(MINTER_ROLE, address(this))) {
+        // check if CustomPricingMinter contract has MINTER_ROLE on target ZORA Drop contract
+        if (
+            !ERC721DropMinterInterface(zoraDrop).hasRole(
+                MINTER_ROLE,
+                address(this)
+            )
+        ) {
             revert MinterNotAuthorized();
         }
 
         // check if mint quantity is below bundleQuantity cutoff
         if (quantity < bundleQuantity) {
-
             // check if total mint price is correct for nonBundle quantities
             if (msg.value != quantity * nonBundlePricePerToken) {
                 revert WrongPrice();
-            } 
+            }
 
             _nonBundleMint(zoraDrop, mintRecipient, quantity);
 
@@ -114,9 +102,15 @@ contract CustomPricingMinter is
         // check if total mint price is correct for bundle quantities
         if (msg.value != quantity * bundlePricePerToken) {
             revert WrongPrice();
-        } 
+        }
 
         _bundleMint(zoraDrop, mintRecipient, quantity);
+
+        // Transfer funds to zora drop contract
+        (bool success, ) = zoraDrop.call{value: msg.value}("");
+        if (!success) {
+            revert TransferNotSuccessful();
+        }
 
         return quantity;
     }
@@ -130,26 +124,32 @@ contract CustomPricingMinter is
      ***/
 
     function _nonBundleMint(
-        address zoraDrop, 
+        address zoraDrop,
         address mintRecipient,
         uint256 quantity
     ) internal {
-
         // call admintMint function on target ZORA contract
         ERC721DropMinterInterface(zoraDrop).adminMint(mintRecipient, quantity);
-        emit NonBundleMint(msg.sender, quantity, quantity * nonBundlePricePerToken);
+        emit NonBundleMint(
+            msg.sender,
+            quantity,
+            quantity * nonBundlePricePerToken
+        );
     }
 
     function _bundleMint(
-        address zoraDrop, 
+        address zoraDrop,
         address mintRecipient,
         uint256 quantity
     ) internal {
-
         // call admintMint function on target ZORA contract
         ERC721DropMinterInterface(zoraDrop).adminMint(mintRecipient, quantity);
-        emit NonBundleMint(msg.sender, quantity, quantity * bundlePricePerToken);
-    }    
+        emit NonBundleMint(
+            msg.sender,
+            quantity,
+            quantity * bundlePricePerToken
+        );
+    }
 
     /**
      *** ---------------------------------- ***
@@ -159,14 +159,13 @@ contract CustomPricingMinter is
      *** ---------------------------------- ***
      ***/
 
-
     /// @dev updates nonBundlePricePerToken variable
     /// @param newPrice new nonBundlePricePerToken value
     function setNonBundlePricePerToken(uint256 newPrice) public onlyOwner {
         nonBundlePricePerToken = newPrice;
 
         emit NonBundlePricePerTokenUpdated(msg.sender, newPrice);
-    } 
+    }
 
     /// @dev updates bundlePricePerToken variable
     /// @param newPrice new bundlePricePerToken value
@@ -182,7 +181,7 @@ contract CustomPricingMinter is
         bundleQuantity = newQuantity;
 
         emit BundleQuantityUpdated(msg.sender, newQuantity);
-    }         
+    }
 
     /**
      *** ---------------------------------- ***
@@ -191,9 +190,8 @@ contract CustomPricingMinter is
      ***                                    ***
      *** ---------------------------------- ***
      ***/
-    
+
     function fullBundlePrice() external view returns (uint256) {
         return bundlePricePerToken * bundleQuantity;
     }
-
 }

@@ -257,5 +257,31 @@ contract CustomPricingMinterTest is DSTest {
         assertEq(zoraNFTBase.saleDetails().totalMinted, ((defaultBundleQuantity * 2) + newBundleQuantity));
         assertEq(flexibleMintCaller.balance, 1 ether - 
             (bundlePrice * defaultBundleQuantity) - (nonBundlePrice * defaultBundleQuantity) - (bundlePrice * newBundleQuantity));                
-    }        
+    }
+
+    function test_WithdrawFunds() public setupZoraNFTBase(15) {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        CustomPricingMinter minterContract = new CustomPricingMinter(
+            nonBundlePrice,
+            bundlePrice,
+            defaultBundleQuantity
+        );
+        zoraNFTBase.grantRole(zoraNFTBase.MINTER_ROLE(), address(minterContract));
+        vm.stopPrank();
+
+        uint256 initialFunds = address(zoraNFTBase).balance;
+
+        address flexibleMintCaller = address(1);
+        vm.deal(flexibleMintCaller, 1 ether);
+        vm.startPrank(flexibleMintCaller);
+        minterContract.flexibleMint{
+            value: bundlePrice * defaultBundleQuantity 
+        }(address(zoraNFTBase), flexibleMintCaller, defaultBundleQuantity);
+        assertEq(zoraNFTBase.saleDetails().totalMinted, defaultBundleQuantity);
+        uint256 mintedCost = (bundlePrice * defaultBundleQuantity);
+        assertEq(flexibleMintCaller.balance, 1 ether - mintedCost);
+        vm.stopPrank();
+
+        assertEq(address(zoraNFTBase).balance, initialFunds + mintedCost);
+    }
 }
