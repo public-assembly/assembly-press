@@ -96,6 +96,12 @@ contract CustomPricingMinter is Ownable, ReentrancyGuard {
 
             _nonBundleMint(zoraDrop, mintRecipient, quantity);
 
+            // Transfer funds to zora drop contract
+            (bool nonBundleSuccess, ) = zoraDrop.call{value: msg.value}("");
+            if (!nonBundleSuccess) {
+                revert TransferNotSuccessful();
+            }            
+
             return quantity;
         }
 
@@ -107,8 +113,8 @@ contract CustomPricingMinter is Ownable, ReentrancyGuard {
         _bundleMint(zoraDrop, mintRecipient, quantity);
 
         // Transfer funds to zora drop contract
-        (bool success, ) = zoraDrop.call{value: msg.value}("");
-        if (!success) {
+        (bool bundleSuccess, ) = zoraDrop.call{value: msg.value}("");
+        if (!bundleSuccess) {
             revert TransferNotSuccessful();
         }
 
