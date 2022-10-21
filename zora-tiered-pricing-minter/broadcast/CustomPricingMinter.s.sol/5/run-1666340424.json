@@ -23,44 +23,13 @@
       "additionalContracts": []
     }
   ],
-  "receipts": [
-    {
-      "transactionHash": "0xb7dd684417bfd91ba0ea582cc6c1fa80836f09d7cb7e9e63a6957a050e50a447",
-      "transactionIndex": "0x7",
-      "blockHash": "0x73e0bcc9719bbcdc0bc9c1ced73b22e0b83bfe544a503144c269512199497e6c",
-      "blockNumber": "0x77213f",
-      "from": "0xE7746f79bF98e685e6a1ac80D74d2935431041d5",
-      "to": null,
-      "cumulativeGasUsed": "0x17d0d8",
-      "gasUsed": "0xcb4f7",
-      "contractAddress": "0x8EbA2f3Da35e71359F8D1CD22DAB32271Cdf8e44",
-      "logs": [
-        {
-          "address": "0x8EbA2f3Da35e71359F8D1CD22DAB32271Cdf8e44",
-          "topics": [
-            "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "0x000000000000000000000000e7746f79bf98e685e6a1ac80d74d2935431041d5"
-          ],
-          "data": "0x",
-          "blockHash": "0x73e0bcc9719bbcdc0bc9c1ced73b22e0b83bfe544a503144c269512199497e6c",
-          "blockNumber": "0x77213f",
-          "transactionHash": "0xb7dd684417bfd91ba0ea582cc6c1fa80836f09d7cb7e9e63a6957a050e50a447",
-          "transactionIndex": "0x7",
-          "logIndex": "0xd",
-          "removed": false
-        }
-      ],
-      "status": "0x1",
-      "logsBloom": "0x00000000000000000000000000000000000000080000000000800000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000008000000000000000001000000000000000000000000000000000000020000000000000000000800000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000040010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000020000000000000000000000000000000000000000000000000000000000000000000",
-      "type": "0x2",
-      "effectiveGasPrice": "0xf8783e90f"
-    }
-  ],
+  "receipts": [],
   "libraries": [],
-  "pending": [],
+  "pending": [
+    "0xb7dd684417bfd91ba0ea582cc6c1fa80836f09d7cb7e9e63a6957a050e50a447"
+  ],
   "path": "/Users/maximbochman/Desktop/CODE/custom-pricing-minter/zora-tiered-pricing-minter/broadcast/CustomPricingMinter.s.sol/5/run-latest.json",
   "returns": {},
-  "timestamp": 1666340474,
+  "timestamp": 1666340424,
   "commit": "144db90"
 }
