@@ -33,5 +33,6 @@ contract DeployCore is Script {
 
 // ======= DEPLOY SCRIPTS =====
 
+// source .env
 // forge script script/CustomPricingMinter.s.sol:DeployCore --rpc-url $GOERLI_RPC_URL --broadcast --verify  -vvvv
 
