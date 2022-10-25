@@ -7,9 +7,9 @@ import {CustomPricingMinter} from "../src/CustomPricingMinter.sol";
 contract DeployCore is Script {
 
     // ===== CONSTRUCTOR INPUTS =====
-    uint256 public nonBundlePricePerToken = 10000000000000000; // 0.01 ETH
-    uint256 public bundlePricePerToken = 5000000000000000; // 0.005 ETH
-    uint256 public bundleQuantity = 10;  
+    uint256 public nonBundlePricePerToken = 22000000000000000; // 0.022 ETH
+    uint256 public bundlePricePerToken = 10000000000000000; // 0.01 ETH (.01 * 22 = 0.22 full bundle price)
+    uint256 public bundleQuantity = 22;  
 
     function setUp() public {}
 
@@ -35,4 +35,5 @@ contract DeployCore is Script {
 
 // source .env
 // forge script script/CustomPricingMinter.s.sol:DeployCore --rpc-url $GOERLI_RPC_URL --broadcast --verify  -vvvv
+// forge script script/CustomPricingMinter.s.sol:DeployCore --rpc-url $MAINNET_RPC_URL --broadcast --verify  -vvvv
 
