@@ -1,0 +1,10 @@
+@openzeppelin/contracts-upgradeable/=lib/zora-drops-contracts/lib/openzeppelin-contracts-upgradeable/contracts/
+@openzeppelin/contracts/=lib/zora-drops-contracts/lib/openzeppelin-contracts/contracts/
+ERC721A-Upgradeable/=lib/zora-drops-contracts/lib/ERC721A-Upgradeable/contracts/
+base64/=lib/zora-drops-contracts/lib/base64/
+ds-test/=lib/ds-test/src/
+erc721a-upgradeable/=lib/zora-drops-contracts/lib/ERC721A-Upgradeable/contracts/
+forge-std/=lib/forge-std/src/
+openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/
+openzeppelin-contracts/=lib/openzeppelin-contracts/
+zora-drops-contracts/=lib/zora-drops-contracts/src/

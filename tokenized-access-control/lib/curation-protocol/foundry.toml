@@ -1,0 +1,9 @@
+[profile.default]
+auto_detect_solc = true
+fuzz_runs = 500
+libs = ['lib']
+optimizer = true
+optimizer_runs = 500000
+out = 'dist'
+src = 'src'
+extra_output = []
