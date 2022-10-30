@@ -61,7 +61,7 @@ contract Erc20AccessControl is IAccessControlRegistry {
     // WRITE FUNCTIONS
     //////////////////////////////////////////////////
 
-    /// @notice updates ERC721 address used to define curator access
+    /// @notice updates ERC20 address used to define curator access
     function updateCurator(address target, IERC20 newCuratorAccess) external {
         if (accessMapping[target].adminAccess.balanceOf(msg.sender) == 0) {
             revert Access_OnlyAdmin();
@@ -75,7 +75,7 @@ contract Erc20AccessControl is IAccessControlRegistry {
         });
     }
 
-    /// @notice updates ERC721 address used to define manager access
+    /// @notice updates ERC20 address used to define manager access
     function updateManagerAccess(address target, IERC20 newManagerAccess)
         external
     {
@@ -91,7 +91,7 @@ contract Erc20AccessControl is IAccessControlRegistry {
         });
     }
 
-    /// @notice updates ERC721 address used to define admin access
+    /// @notice updates ERC20 address used to define admin access
     function updateAdminAccess(address target, IERC20 newAdminAccess) external {
         if (accessMapping[target].adminAccess.balanceOf(msg.sender) == 0) {
             revert Access_OnlyAdmin();
@@ -102,7 +102,7 @@ contract Erc20AccessControl is IAccessControlRegistry {
         emit AdminAccessUpdated({target: target, adminAccess: newAdminAccess});
     }
 
-    /// @notice updates ERC721 address used to define curator, manager, and admin access
+    /// @notice updates ERC20 address used to define curator, manager, and admin access
     function updateAllAccess(
         address target,
         IERC20 newCuratorAccess,
@@ -126,7 +126,7 @@ contract Erc20AccessControl is IAccessControlRegistry {
     }
 
     /// @notice initializes mapping of token roles
-    /// @dev contract getting access control => erc721 addresses used for access control of different roles
+    /// @dev contract getting access control => ERC20 addresses used for access control of different roles
     /// @dev called by other contracts initiating access control
     /// @dev data format: curatorAccess, managerAccess, adminAccess
     function initializeWithData(bytes memory data) external {
@@ -186,7 +186,7 @@ contract Erc20AccessControl is IAccessControlRegistry {
         return accessMapping[addressToCheck];
     }
 
-    /// @notice returns the erc721 address being used for curator access control
+    /// @notice returns the ERC20 address being used for curator access control
     function getCuratorInfo(address addressToCheck)
         external
         view
@@ -195,7 +195,7 @@ contract Erc20AccessControl is IAccessControlRegistry {
         return accessMapping[addressToCheck].curatorAccess;
     }
 
-    /// @notice returns the erc721 address being used for manager access control
+    /// @notice returns the ERC20 address being used for manager access control
     function getManagerInfo(address addressToCheck)
         external
         view
@@ -204,7 +204,7 @@ contract Erc20AccessControl is IAccessControlRegistry {
         return accessMapping[addressToCheck].managerAccess;
     }
 
-    /// @notice returns the erc721 address being used for admin access control
+    /// @notice returns the ERC20 address being used for admin access control
     function getAdminInfo(address addressToCheck)
         external
         view
