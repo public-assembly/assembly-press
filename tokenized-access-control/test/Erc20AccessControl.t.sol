@@ -20,6 +20,8 @@ contract Erc20AccessControlTest is DSTest {
         payable(address(0x999));
     address payable public constant DEFAULT_NON_OWNER_ADDRESS =
         payable(address(0x888));
+    address payable public constant DEFAULT_ADMIN_ADDRESS =
+        payable(address(0x777));
 
     function setUp() public {
         // deploy NFT contract
@@ -136,5 +138,62 @@ contract Erc20AccessControlTest is DSTest {
         assertTrue(mockCurator.curatorAccessTest());
         assertTrue(mockCurator.managerAccessTest());
         assertTrue(mockCurator.adminAccessTest());
+    }
+
+    function test_updateCuratorAccess() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        uint256 tokenBalance = 1 ether;
+        erc20Admin.mint(DEFAULT_ADMIN_ADDRESS, tokenBalance);
+        erc20Curator.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
+        Erc20AccessControl e20AccessControl = new Erc20AccessControl();
+        MockCurator mockCurator = new MockCurator();
+        mockCurator.initializeAccessControl(
+            address(e20AccessControl),
+            address(erc20Curator),
+            address(erc20Manager),
+            address(erc20Admin)
+        );
+        Erc20AccessControl.AccessLevelInfo
+            memory newAccessLevel = e20AccessControl.getAccessInfo(
+                address(mockCurator)
+            );
+        assertEq(address(newAccessLevel.curatorAccess), address(erc20Curator));
+        expectIsCurator(mockCurator);
+
+        ERC20PresetMinterPauser newErc20Curator = new ERC20PresetMinterPauser(
+            "20Curator",
+            "20C"
+        );
+        vm.stopPrank();
+        vm.prank(DEFAULT_ADMIN_ADDRESS);
+        e20AccessControl.updateCuratorAccess(
+            address(mockCurator),
+            newErc20Curator
+        );
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+
+        newAccessLevel = e20AccessControl.getAccessInfo(address(mockCurator));
+        assertEq(
+            address(newAccessLevel.curatorAccess),
+            address(newErc20Curator)
+        );
+        expectNoAccess(mockCurator);
+    }
+
+    //////////////////////////////////////////////////
+    // INTERNAL HELPERS
+    //////////////////////////////////////////////////
+    function expectIsCurator(MockCurator mockCurator) internal {
+        assertTrue(mockCurator.getAccessLevelForUser() == 1);
+        assertTrue(mockCurator.curatorAccessTest());
+        assertTrue(!mockCurator.managerAccessTest());
+        assertTrue(!mockCurator.adminAccessTest());
+    }
+
+    function expectNoAccess(MockCurator mockCurator) internal {
+        assertTrue(mockCurator.getAccessLevelForUser() == 0);
+        assertTrue(!mockCurator.curatorAccessTest());
+        assertTrue(!mockCurator.managerAccessTest());
+        assertTrue(!mockCurator.adminAccessTest());
     }
 }

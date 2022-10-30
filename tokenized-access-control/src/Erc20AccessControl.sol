@@ -62,7 +62,9 @@ contract Erc20AccessControl is IAccessControlRegistry {
     //////////////////////////////////////////////////
 
     /// @notice updates ERC20 address used to define curator access
-    function updateCurator(address target, IERC20 newCuratorAccess) external {
+    function updateCuratorAccess(address target, IERC20 newCuratorAccess)
+        external
+    {
         if (accessMapping[target].adminAccess.balanceOf(msg.sender) == 0) {
             revert Access_OnlyAdmin();
         }
