@@ -34,69 +34,6 @@ contract Erc20MinBalAccessControlTest is DSTest {
         vm.stopPrank();
     }
 
-    function test_revertUpdateAllAccessByCurator() public {
-        vm.startPrank(DEFAULT_OWNER_ADDRESS);
-        uint256 tokenBalance = 1 ether;
-        erc20Curator.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
-        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
-        MockCurator mockCurator = new MockCurator();
-        mockCurator.initializeAccessControl(
-            address(e20AccessControl),
-            address(erc20Curator),
-            address(erc20Manager),
-            address(erc20Admin)
-        );
-        expectIsCurator(mockCurator);
-
-        vm.expectRevert();
-        e20AccessControl.updateAllAccess(
-            address(mockCurator),
-            erc20Curator,
-            erc20Manager,
-            erc20Admin,
-            8.08 ether,
-            8.08 ether,
-            8.08 ether
-        );
-    }
-
-    function test_updateAllAccess() public {
-        vm.startPrank(DEFAULT_OWNER_ADDRESS);
-        uint256 tokenBalance = 1 ether;
-        erc20Admin.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
-        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
-        MockCurator mockCurator = new MockCurator();
-        mockCurator.initializeAccessControl(
-            address(e20AccessControl),
-            address(erc20Curator),
-            address(erc20Manager),
-            address(erc20Admin)
-        );
-        expectIsAdmin(mockCurator);
-
-        e20AccessControl.updateAllAccess(
-            address(mockCurator),
-            erc20Curator,
-            erc20Manager,
-            erc20Admin,
-            8.08 ether,
-            8.08 ether,
-            8.08 ether
-        );
-
-        Erc20MinBalAccessControl.AccessLevelInfo
-            memory newAccessLevel = e20AccessControl.getAccessInfo(
-                address(mockCurator)
-            );
-        assertEq(address(newAccessLevel.curatorAccess), address(erc20Curator));
-        assertEq(address(newAccessLevel.managerAccess), address(erc20Manager));
-        assertEq(address(newAccessLevel.adminAccess), address(erc20Admin));
-        assertEq(newAccessLevel.curatorMinimumBalance, 8.08 ether);
-        assertEq(newAccessLevel.managerMinimumBalance, 8.08 ether);
-        assertEq(newAccessLevel.adminMinimumBalance, 8.08 ether);
-        expectNoAccess(mockCurator);
-    }
-
     function test_CuratorAccess() public {
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
         uint256 tokenBalance = 8.08 ether;
@@ -185,6 +122,105 @@ contract Erc20MinBalAccessControlTest is DSTest {
         vm.startPrank(DEFAULT_NON_OWNER_ADDRESS);
 
         expectIsAdmin(mockCurator);
+    }
+
+    function test_revertUpdateAllAccessByCurator() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        uint256 tokenBalance = 1 ether;
+        erc20Curator.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
+        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+        MockCurator mockCurator = new MockCurator();
+        mockCurator.initializeAccessControl(
+            address(e20AccessControl),
+            address(erc20Curator),
+            address(erc20Manager),
+            address(erc20Admin)
+        );
+        expectIsCurator(mockCurator);
+
+        vm.expectRevert();
+        e20AccessControl.updateAllAccess(
+            address(mockCurator),
+            erc20Curator,
+            erc20Manager,
+            erc20Admin,
+            8.08 ether,
+            8.08 ether,
+            8.08 ether
+        );
+    }
+
+    function test_updateAllAccess() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        uint256 tokenBalance = 1 ether;
+        erc20Admin.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
+        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+        MockCurator mockCurator = new MockCurator();
+        mockCurator.initializeAccessControl(
+            address(e20AccessControl),
+            address(erc20Curator),
+            address(erc20Manager),
+            address(erc20Admin)
+        );
+        expectIsAdmin(mockCurator);
+
+        e20AccessControl.updateAllAccess(
+            address(mockCurator),
+            erc20Curator,
+            erc20Manager,
+            erc20Admin,
+            8.08 ether,
+            8.08 ether,
+            8.08 ether
+        );
+
+        Erc20MinBalAccessControl.AccessLevelInfo
+            memory newAccessLevel = e20AccessControl.getAccessInfo(
+                address(mockCurator)
+            );
+        assertEq(address(newAccessLevel.curatorAccess), address(erc20Curator));
+        assertEq(address(newAccessLevel.managerAccess), address(erc20Manager));
+        assertEq(address(newAccessLevel.adminAccess), address(erc20Admin));
+        assertEq(newAccessLevel.curatorMinimumBalance, 8.08 ether);
+        assertEq(newAccessLevel.managerMinimumBalance, 8.08 ether);
+        assertEq(newAccessLevel.adminMinimumBalance, 8.08 ether);
+        expectNoAccess(mockCurator);
+    }
+
+    function test_updateCurator() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        uint256 tokenBalance = 1 ether;
+        erc20Admin.mint(DEFAULT_ADMIN_ADDRESS, tokenBalance);
+        erc20Curator.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
+        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+        MockCurator mockCurator = new MockCurator();
+        mockCurator.initializeAccessControl(
+            address(e20AccessControl),
+            address(erc20Curator),
+            address(erc20Manager),
+            address(erc20Admin)
+        );
+        Erc20MinBalAccessControl.AccessLevelInfo
+            memory newAccessLevel = e20AccessControl.getAccessInfo(
+                address(mockCurator)
+            );
+        assertEq(address(newAccessLevel.curatorAccess), address(erc20Curator));
+        assertEq(newAccessLevel.curatorMinimumBalance, 1);
+        expectIsCurator(mockCurator);
+
+        vm.stopPrank();
+        vm.prank(DEFAULT_ADMIN_ADDRESS);
+        e20AccessControl.updateCurator(
+            address(mockCurator),
+            erc20Curator,
+            8.08 ether
+        );
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+
+        newAccessLevel = e20AccessControl.getAccessInfo(address(mockCurator));
+        assertEq(address(newAccessLevel.curatorAccess), address(erc20Curator));
+        assertEq(newAccessLevel.curatorMinimumBalance, 8.08 ether);
+        expectNoAccess(mockCurator);
     }
 
     //////////////////////////////////////////////////

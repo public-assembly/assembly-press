@@ -68,12 +68,17 @@ contract Erc20MinBalAccessControl is IAccessControlRegistry {
     //////////////////////////////////////////////////
 
     /// @notice updates ERC721 address used to define curator access
-    function updateCurator(address target, IERC20 newCuratorAccess) external {
+    function updateCurator(
+        address target,
+        IERC20 newCuratorAccess,
+        uint256 newMinBalance
+    ) external {
         if (accessMapping[target].adminAccess.balanceOf(msg.sender) == 0) {
             revert Access_OnlyAdmin();
         }
 
         accessMapping[target].curatorAccess = newCuratorAccess;
+        accessMapping[target].curatorMinimumBalance = newMinBalance;
 
         emit CuratorAccessUpdated({
             target: target,
