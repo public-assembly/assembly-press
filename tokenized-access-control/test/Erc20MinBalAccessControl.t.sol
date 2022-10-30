@@ -21,6 +21,8 @@ contract Erc20MinBalAccessControlTest is DSTest {
         payable(address(0x999));
     address payable public constant DEFAULT_NON_OWNER_ADDRESS =
         payable(address(0x888));
+    address payable public constant DEFAULT_ADMIN_ADDRESS =
+        payable(address(0x777));
 
     function setUp() public {
         // deploy NFT contract
@@ -28,21 +30,8 @@ contract Erc20MinBalAccessControlTest is DSTest {
         erc20Curator = new ERC20PresetMinterPauser("20Curator", "20C");
         erc20Manager = new ERC20PresetMinterPauser("20Manager", "20M");
         erc20Admin = new ERC20PresetMinterPauser("20Admin", "20AD");
+        erc20Admin.mint(DEFAULT_ADMIN_ADDRESS, 8.08 ether);
         vm.stopPrank();
-    }
-
-    function expectIsCurator(MockCurator mockCurator) internal {
-        assertTrue(mockCurator.getAccessLevelForUser() == 1);
-        assertTrue(mockCurator.curatorAccessTest());
-        assertTrue(!mockCurator.managerAccessTest());
-        assertTrue(!mockCurator.adminAccessTest());
-    }
-
-    function expectIsAdmin(MockCurator mockCurator) internal {
-        assertTrue(mockCurator.getAccessLevelForUser() == 3);
-        assertTrue(mockCurator.curatorAccessTest());
-        assertTrue(mockCurator.managerAccessTest());
-        assertTrue(mockCurator.adminAccessTest());
     }
 
     function test_revertUpdateAllAccessByCurator() public {
@@ -105,44 +94,81 @@ contract Erc20MinBalAccessControlTest is DSTest {
         assertEq(newAccessLevel.curatorMinimumBalance, 8.08 ether);
         assertEq(newAccessLevel.managerMinimumBalance, 8.08 ether);
         assertEq(newAccessLevel.adminMinimumBalance, 8.08 ether);
+        expectNoAccess(mockCurator);
+    }
+
+    function test_CuratorAccess() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        uint256 tokenBalance = 8.08 ether;
+        erc20Curator.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
+        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+
+        MockCurator mockCurator = new MockCurator();
+        mockCurator.initializeAccessControl(
+            address(e20AccessControl),
+            address(erc20Curator),
+            address(erc20Manager),
+            address(erc20Admin)
+        );
+        updateMinimumBalances(
+            e20AccessControl,
+            mockCurator,
+            DEFAULT_OWNER_ADDRESS
+        );
+        assertTrue(
+            mockCurator.accessControlProxy() == address(e20AccessControl)
+        );
+        expectIsCurator(mockCurator);
+
+        erc20Curator.transfer(DEFAULT_NON_OWNER_ADDRESS, tokenBalance);
+        expectNoAccess(mockCurator);
+
+        vm.stopPrank();
+        vm.startPrank(DEFAULT_NON_OWNER_ADDRESS);
+
+        expectIsCurator(mockCurator);
+    }
+
+    //////////////////////////////////////////////////
+    // INTERNAL HELPERS
+    //////////////////////////////////////////////////
+    function expectIsCurator(MockCurator mockCurator) internal {
+        assertTrue(mockCurator.getAccessLevelForUser() == 1);
+        assertTrue(mockCurator.curatorAccessTest());
+        assertTrue(!mockCurator.managerAccessTest());
+        assertTrue(!mockCurator.adminAccessTest());
+    }
+
+    function expectIsAdmin(MockCurator mockCurator) internal {
+        assertTrue(mockCurator.getAccessLevelForUser() == 3);
+        assertTrue(mockCurator.curatorAccessTest());
+        assertTrue(mockCurator.managerAccessTest());
+        assertTrue(mockCurator.adminAccessTest());
+    }
+
+    function expectNoAccess(MockCurator mockCurator) internal {
+        assertTrue(mockCurator.getAccessLevelForUser() == 0);
         assertTrue(!mockCurator.curatorAccessTest());
         assertTrue(!mockCurator.managerAccessTest());
         assertTrue(!mockCurator.adminAccessTest());
     }
 
-    // function test_CuratorAccess() public {
-    //     vm.startPrank(DEFAULT_OWNER_ADDRESS);
-    //     uint256 tokenBalance = 1 ether;
-    //     erc20Curator.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
-    //     Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
-
-    //     MockCurator mockCurator = new MockCurator();
-    //     mockCurator.initializeAccessControl(
-    //         address(e20AccessControl),
-    //         address(erc20Curator),
-    //         address(erc20Manager),
-    //         address(erc20Admin)
-    //     );
-    //     assertTrue(
-    //         mockCurator.accessControlProxy() == address(e20AccessControl)
-    //     );
-    //     assertTrue(mockCurator.getAccessLevelForUser() == 1);
-    //     assertTrue(mockCurator.curatorAccessTest());
-    //     assertTrue(!mockCurator.managerAccessTest());
-    //     assertTrue(!mockCurator.adminAccessTest());
-
-    //     erc20Curator.transfer(DEFAULT_NON_OWNER_ADDRESS, tokenBalance);
-    //     assertTrue(mockCurator.getAccessLevelForUser() == 0);
-    //     assertTrue(!mockCurator.curatorAccessTest());
-    //     assertTrue(!mockCurator.managerAccessTest());
-    //     assertTrue(!mockCurator.adminAccessTest());
-
-    //     vm.stopPrank();
-    //     vm.startPrank(DEFAULT_NON_OWNER_ADDRESS);
-
-    //     assertTrue(mockCurator.getAccessLevelForUser() == 1);
-    //     assertTrue(mockCurator.curatorAccessTest());
-    //     assertTrue(!mockCurator.managerAccessTest());
-    //     assertTrue(!mockCurator.adminAccessTest());
-    // }
+    function updateMinimumBalances(
+        Erc20MinBalAccessControl e20AccessControl,
+        MockCurator mockCurator,
+        address prankedAddress
+    ) internal {
+        vm.stopPrank();
+        vm.prank(DEFAULT_ADMIN_ADDRESS);
+        e20AccessControl.updateAllAccess(
+            address(mockCurator),
+            erc20Curator,
+            erc20Manager,
+            erc20Admin,
+            8.08 ether,
+            8.08 ether,
+            8.08 ether
+        );
+        vm.startPrank(prankedAddress);
+    }
 }
