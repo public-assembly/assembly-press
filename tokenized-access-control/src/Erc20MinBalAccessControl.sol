@@ -212,22 +212,22 @@ contract Erc20MinBalAccessControl is IAccessControlRegistry {
         AccessLevelInfo memory info = accessMapping[target];
 
         if (
-            info.adminAccess.balanceOf(addressToCheckLevel) >=
-            info.adminMinimumBalance
+            info.adminAccess.balanceOf(addressToCheckLevel) >
+            info.adminMinimumBalance - 1
         ) {
             return 3;
         }
 
         if (
-            info.managerAccess.balanceOf(addressToCheckLevel) >=
-            info.managerMinimumBalance
+            info.managerAccess.balanceOf(addressToCheckLevel) >
+            info.managerMinimumBalance - 1
         ) {
             return 2;
         }
 
         if (
-            info.curatorAccess.balanceOf(addressToCheckLevel) >=
-            info.curatorMinimumBalance
+            info.curatorAccess.balanceOf(addressToCheckLevel) >
+            info.curatorMinimumBalance - 1
         ) {
             return 1;
         }
