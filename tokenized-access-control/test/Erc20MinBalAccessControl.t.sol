@@ -110,11 +110,10 @@ contract Erc20MinBalAccessControlTest is DSTest {
             address(erc20Manager),
             address(erc20Admin)
         );
-        updateMinimumBalances(
-            e20AccessControl,
-            mockCurator,
-            DEFAULT_OWNER_ADDRESS
-        );
+        vm.stopPrank();
+        updateMinimumBalances(e20AccessControl, mockCurator);
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+
         assertTrue(
             mockCurator.accessControlProxy() == address(e20AccessControl)
         );
@@ -129,6 +128,35 @@ contract Erc20MinBalAccessControlTest is DSTest {
         expectIsCurator(mockCurator);
     }
 
+    function test_ManagerAccess() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        uint256 tokenBalance = 8.08 ether;
+        erc20Manager.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
+        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+
+        MockCurator mockCurator = new MockCurator();
+        mockCurator.initializeAccessControl(
+            address(e20AccessControl),
+            address(erc20Curator),
+            address(erc20Manager),
+            address(erc20Admin)
+        );
+        assertTrue(
+            mockCurator.accessControlProxy() == address(e20AccessControl)
+        );
+        vm.stopPrank();
+        updateMinimumBalances(e20AccessControl, mockCurator);
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        expectIsManager(mockCurator);
+
+        erc20Manager.transfer(DEFAULT_NON_OWNER_ADDRESS, tokenBalance);
+        expectNoAccess(mockCurator);
+
+        vm.stopPrank();
+        vm.startPrank(DEFAULT_NON_OWNER_ADDRESS);
+        expectIsManager(mockCurator);
+    }
+
     //////////////////////////////////////////////////
     // INTERNAL HELPERS
     //////////////////////////////////////////////////
@@ -136,6 +164,13 @@ contract Erc20MinBalAccessControlTest is DSTest {
         assertTrue(mockCurator.getAccessLevelForUser() == 1);
         assertTrue(mockCurator.curatorAccessTest());
         assertTrue(!mockCurator.managerAccessTest());
+        assertTrue(!mockCurator.adminAccessTest());
+    }
+
+    function expectIsManager(MockCurator mockCurator) internal {
+        assertTrue(mockCurator.getAccessLevelForUser() == 2);
+        assertTrue(mockCurator.curatorAccessTest());
+        assertTrue(mockCurator.managerAccessTest());
         assertTrue(!mockCurator.adminAccessTest());
     }
 
@@ -155,10 +190,8 @@ contract Erc20MinBalAccessControlTest is DSTest {
 
     function updateMinimumBalances(
         Erc20MinBalAccessControl e20AccessControl,
-        MockCurator mockCurator,
-        address prankedAddress
+        MockCurator mockCurator
     ) internal {
-        vm.stopPrank();
         vm.prank(DEFAULT_ADMIN_ADDRESS);
         e20AccessControl.updateAllAccess(
             address(mockCurator),
@@ -169,6 +202,5 @@ contract Erc20MinBalAccessControlTest is DSTest {
             8.08 ether,
             8.08 ether
         );
-        vm.startPrank(prankedAddress);
     }
 }
