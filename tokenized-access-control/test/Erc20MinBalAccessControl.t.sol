@@ -291,6 +291,25 @@ contract Erc20MinBalAccessControlTest is DSTest {
         expectNoAccess(mockCurator);
     }
 
+    function test_getAccessLevel() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+        MockCurator mockCurator = new MockCurator();
+        mockCurator.initializeAccessControl(
+            address(e20AccessControl),
+            address(erc20Curator),
+            address(erc20Manager),
+            address(erc20Admin)
+        );
+        expectNoAccess(mockCurator);
+        erc20Curator.mint(DEFAULT_OWNER_ADDRESS, 1);
+        expectIsCurator(mockCurator);
+        erc20Manager.mint(DEFAULT_OWNER_ADDRESS, 1);
+        expectIsManager(mockCurator);
+        erc20Admin.mint(DEFAULT_OWNER_ADDRESS, 1);
+        expectIsAdmin(mockCurator);
+    }
+
     //////////////////////////////////////////////////
     // INTERNAL HELPERS
     //////////////////////////////////////////////////
