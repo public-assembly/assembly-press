@@ -140,6 +140,11 @@ contract Erc721AccessControlTest is DSTest {
         assertTrue(mockCurator.curatorAccessTest());
         assertTrue(mockCurator.managerAccessTest());
         assertTrue(mockCurator.adminAccessTest());        
-    }           
+    }       
+
+    function test_NameTest() public {
+        Erc721AccessControl e721AccessControl = new Erc721AccessControl();
+        assertEq(e721AccessControl.name(), "ERC721AccessControl");
+    }    
     
 }
