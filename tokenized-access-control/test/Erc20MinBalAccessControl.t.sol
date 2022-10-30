@@ -7,11 +7,11 @@ import {Vm} from "forge-std/Vm.sol";
 import {console} from "forge-std/console.sol";
 import {ERC20PresetMinterPauser} from "openzeppelin-contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import {IERC20} from "openzeppelin-contracts/token/ERC20/IERC20.sol";
-import {Erc20MinBalAccessControl} from "../src/Erc20MinBalAccessControl.sol";
+import {ERC20MinBalAccessControl} from "../src/ERC20MinBalAccessControl.sol";
 import {IAccessControlRegistry} from "../src/interfaces/IAccessControlRegistry.sol";
 import {MockCurator} from "./MockCurator.sol";
 
-contract Erc20MinBalAccessControlTest is DSTest {
+contract ERC20MinBalAccessControlTest is DSTest {
     // Init Variables
     ERC20PresetMinterPauser erc20Curator;
     ERC20PresetMinterPauser erc20Manager;
@@ -38,7 +38,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
         uint256 tokenBalance = 8.08 ether;
         erc20Curator.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
-        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+        ERC20MinBalAccessControl e20AccessControl = new ERC20MinBalAccessControl();
 
         MockCurator mockCurator = new MockCurator();
         mockCurator.initializeAccessControl(
@@ -69,7 +69,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
         uint256 tokenBalance = 8.08 ether;
         erc20Manager.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
-        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+        ERC20MinBalAccessControl e20AccessControl = new ERC20MinBalAccessControl();
 
         MockCurator mockCurator = new MockCurator();
         mockCurator.initializeAccessControl(
@@ -98,7 +98,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
         uint256 tokenBalance = 8.08 ether;
         erc20Admin.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
-        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+        ERC20MinBalAccessControl e20AccessControl = new ERC20MinBalAccessControl();
 
         MockCurator mockCurator = new MockCurator();
         mockCurator.initializeAccessControl(
@@ -128,7 +128,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
         uint256 tokenBalance = 1 ether;
         erc20Curator.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
-        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+        ERC20MinBalAccessControl e20AccessControl = new ERC20MinBalAccessControl();
         MockCurator mockCurator = new MockCurator();
         mockCurator.initializeAccessControl(
             address(e20AccessControl),
@@ -154,7 +154,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
         uint256 tokenBalance = 1 ether;
         erc20Admin.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
-        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+        ERC20MinBalAccessControl e20AccessControl = new ERC20MinBalAccessControl();
         MockCurator mockCurator = new MockCurator();
         mockCurator.initializeAccessControl(
             address(e20AccessControl),
@@ -174,7 +174,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
             8.08 ether
         );
 
-        Erc20MinBalAccessControl.AccessLevelInfo
+        ERC20MinBalAccessControl.AccessLevelInfo
             memory newAccessLevel = e20AccessControl.getAccessInfo(
                 address(mockCurator)
             );
@@ -192,7 +192,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
         uint256 tokenBalance = 1 ether;
         erc20Admin.mint(DEFAULT_ADMIN_ADDRESS, tokenBalance);
         erc20Curator.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
-        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+        ERC20MinBalAccessControl e20AccessControl = new ERC20MinBalAccessControl();
         MockCurator mockCurator = new MockCurator();
         mockCurator.initializeAccessControl(
             address(e20AccessControl),
@@ -200,7 +200,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
             address(erc20Manager),
             address(erc20Admin)
         );
-        Erc20MinBalAccessControl.AccessLevelInfo
+        ERC20MinBalAccessControl.AccessLevelInfo
             memory newAccessLevel = e20AccessControl.getAccessInfo(
                 address(mockCurator)
             );
@@ -228,7 +228,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
         uint256 tokenBalance = 1 ether;
         erc20Admin.mint(DEFAULT_ADMIN_ADDRESS, tokenBalance);
         erc20Manager.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
-        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+        ERC20MinBalAccessControl e20AccessControl = new ERC20MinBalAccessControl();
         MockCurator mockCurator = new MockCurator();
         mockCurator.initializeAccessControl(
             address(e20AccessControl),
@@ -236,7 +236,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
             address(erc20Manager),
             address(erc20Admin)
         );
-        Erc20MinBalAccessControl.AccessLevelInfo
+        ERC20MinBalAccessControl.AccessLevelInfo
             memory newAccessLevel = e20AccessControl.getAccessInfo(
                 address(mockCurator)
             );
@@ -263,7 +263,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
         uint256 tokenBalance = 1 ether;
         erc20Admin.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
-        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+        ERC20MinBalAccessControl e20AccessControl = new ERC20MinBalAccessControl();
         MockCurator mockCurator = new MockCurator();
         mockCurator.initializeAccessControl(
             address(e20AccessControl),
@@ -271,7 +271,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
             address(erc20Manager),
             address(erc20Admin)
         );
-        Erc20MinBalAccessControl.AccessLevelInfo
+        ERC20MinBalAccessControl.AccessLevelInfo
             memory newAccessLevel = e20AccessControl.getAccessInfo(
                 address(mockCurator)
             );
@@ -293,7 +293,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
 
     function test_getAccessLevel() public {
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
-        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+        ERC20MinBalAccessControl e20AccessControl = new ERC20MinBalAccessControl();
         MockCurator mockCurator = new MockCurator();
         mockCurator.initializeAccessControl(
             address(e20AccessControl),
@@ -342,7 +342,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
     }
 
     function updateMinimumBalances(
-        Erc20MinBalAccessControl e20AccessControl,
+        ERC20MinBalAccessControl e20AccessControl,
         MockCurator mockCurator
     ) internal {
         vm.prank(DEFAULT_ADMIN_ADDRESS);
