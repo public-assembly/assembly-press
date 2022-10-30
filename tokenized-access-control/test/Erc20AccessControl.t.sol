@@ -65,4 +65,40 @@ contract Erc20AccessControlTest is DSTest {
         assertTrue(!mockCurator.managerAccessTest());
         assertTrue(!mockCurator.adminAccessTest());
     }
+
+    function test_ManagerAccess() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        uint256 tokenBalance = 1 ether;
+        erc20Manager.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
+        Erc20AccessControl e20AccessControl = new Erc20AccessControl();
+
+        MockCurator mockCurator = new MockCurator();
+        mockCurator.initializeAccessControl(
+            address(e20AccessControl),
+            address(erc20Curator),
+            address(erc20Manager),
+            address(erc20Admin)
+        );
+        assertTrue(
+            mockCurator.accessControlProxy() == address(e20AccessControl)
+        );
+        assertTrue(mockCurator.getAccessLevelForUser() == 2);
+        assertTrue(mockCurator.curatorAccessTest());
+        assertTrue(mockCurator.managerAccessTest());
+        assertTrue(!mockCurator.adminAccessTest());
+
+        erc20Manager.transfer(DEFAULT_NON_OWNER_ADDRESS, tokenBalance);
+        assertTrue(mockCurator.getAccessLevelForUser() == 0);
+        assertTrue(!mockCurator.curatorAccessTest());
+        assertTrue(!mockCurator.managerAccessTest());
+        assertTrue(!mockCurator.adminAccessTest());
+
+        vm.stopPrank();
+        vm.startPrank(DEFAULT_NON_OWNER_ADDRESS);
+
+        assertTrue(mockCurator.getAccessLevelForUser() == 2);
+        assertTrue(mockCurator.curatorAccessTest());
+        assertTrue(mockCurator.managerAccessTest());
+        assertTrue(!mockCurator.adminAccessTest());
+    }
 }
