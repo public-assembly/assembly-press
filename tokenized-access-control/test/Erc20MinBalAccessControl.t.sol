@@ -210,7 +210,7 @@ contract Erc20MinBalAccessControlTest is DSTest {
 
         vm.stopPrank();
         vm.prank(DEFAULT_ADMIN_ADDRESS);
-        e20AccessControl.updateCurator(
+        e20AccessControl.updateCuratorAccess(
             address(mockCurator),
             erc20Curator,
             8.08 ether

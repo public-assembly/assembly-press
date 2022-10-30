@@ -80,7 +80,7 @@ contract Erc20MinBalAccessControl is IAccessControlRegistry {
     //////////////////////////////////////////////////
 
     /// @notice updates ERC20 address used to define curator access
-    function updateCurator(
+    function updateCuratorAccess(
         address target,
         IERC20 newCuratorAccess,
         uint256 newMinBalance
