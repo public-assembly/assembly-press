@@ -157,6 +157,36 @@ contract Erc20MinBalAccessControlTest is DSTest {
         expectIsManager(mockCurator);
     }
 
+    function test_AdminAccess() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        uint256 tokenBalance = 8.08 ether;
+        erc20Admin.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
+        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+
+        MockCurator mockCurator = new MockCurator();
+        mockCurator.initializeAccessControl(
+            address(e20AccessControl),
+            address(erc20Curator),
+            address(erc20Manager),
+            address(erc20Admin)
+        );
+        assertTrue(
+            mockCurator.accessControlProxy() == address(e20AccessControl)
+        );
+        vm.stopPrank();
+        updateMinimumBalances(e20AccessControl, mockCurator);
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        expectIsAdmin(mockCurator);
+
+        erc20Admin.transfer(DEFAULT_NON_OWNER_ADDRESS, tokenBalance);
+        expectNoAccess(mockCurator);
+
+        vm.stopPrank();
+        vm.startPrank(DEFAULT_NON_OWNER_ADDRESS);
+
+        expectIsAdmin(mockCurator);
+    }
+
     //////////////////////////////////////////////////
     // INTERNAL HELPERS
     //////////////////////////////////////////////////
