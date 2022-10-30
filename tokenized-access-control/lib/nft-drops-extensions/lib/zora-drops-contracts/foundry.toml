@@ -1,0 +1,9 @@
+[default]
+auto_detect_solc = true
+optimizer = true
+optimizer_runs = 5000
+out = 'dist/artifacts'
+test = 'test'
+src = 'src'
+libs = ['lib']
+gas_reports = ['*']

@@ -1,0 +1,15 @@
+[submodule "lib/forge-std"]
+	path = lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "lib/zora-drops-contracts"]
+	path = lib/zora-drops-contracts
+	url = https://github.com/ourzora/zora-drops-contracts
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "lib/curation-protocol"]
+	path = lib/curation-protocol
+	url = https://github.com/public-assembly/curation-protocol
+[submodule "lib/nft-drops-extensions"]
+	path = lib/nft-drops-extensions
+	url = https://github.com/ourzora/nft-drops-extensions
