@@ -31,7 +31,11 @@ contract Erc20MinBalAccessControl is IAccessControlRegistry {
     );
 
     /// @notice Event for updated adminAccess
-    event AdminAccessUpdated(address indexed target, IERC20 adminAccess);
+    event AdminAccessUpdated(
+        address indexed target,
+        IERC20 adminAccess,
+        uint256 adminMinimumBalance
+    );
 
     /// @notice Event for updated AccessLevelInfo
     event AllAccessUpdated(
@@ -116,14 +120,23 @@ contract Erc20MinBalAccessControl is IAccessControlRegistry {
     }
 
     /// @notice updates ERC721 address used to define admin access
-    function updateAdminAccess(address target, IERC20 newAdminAccess) external {
+    function updateAdminAccess(
+        address target,
+        IERC20 newAdminAccess,
+        uint256 newMinBalance
+    ) external {
         if (accessMapping[target].adminAccess.balanceOf(msg.sender) == 0) {
             revert Access_OnlyAdmin();
         }
 
         accessMapping[target].adminAccess = newAdminAccess;
+        accessMapping[target].adminMinimumBalance = newMinBalance;
 
-        emit AdminAccessUpdated({target: target, adminAccess: newAdminAccess});
+        emit AdminAccessUpdated({
+            target: target,
+            adminAccess: newAdminAccess,
+            adminMinimumBalance: newMinBalance
+        });
     }
 
     /// @notice updates ERC721 address used to define curator, manager, and admin access
