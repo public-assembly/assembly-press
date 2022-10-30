@@ -62,6 +62,8 @@ contract Erc721AccessControl is IAccessControlRegistry {
         IERC721Upgradeable adminAccess;
     }
 
+    string public constant name = "ERC721AccessControl";
+
     /// @notice access information mapping storage
     /// @dev curation contract => AccessLevelInfo struct
     mapping(address => AccessLevelInfo) public accessMapping;
