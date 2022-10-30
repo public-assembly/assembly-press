@@ -223,6 +223,42 @@ contract Erc20MinBalAccessControlTest is DSTest {
         expectNoAccess(mockCurator);
     }
 
+    function test_updateManager() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        uint256 tokenBalance = 1 ether;
+        erc20Admin.mint(DEFAULT_ADMIN_ADDRESS, tokenBalance);
+        erc20Manager.mint(DEFAULT_OWNER_ADDRESS, tokenBalance);
+        Erc20MinBalAccessControl e20AccessControl = new Erc20MinBalAccessControl();
+        MockCurator mockCurator = new MockCurator();
+        mockCurator.initializeAccessControl(
+            address(e20AccessControl),
+            address(erc20Curator),
+            address(erc20Manager),
+            address(erc20Admin)
+        );
+        Erc20MinBalAccessControl.AccessLevelInfo
+            memory newAccessLevel = e20AccessControl.getAccessInfo(
+                address(mockCurator)
+            );
+        assertEq(address(newAccessLevel.managerAccess), address(erc20Manager));
+        assertEq(newAccessLevel.managerMinimumBalance, 1);
+        expectIsManager(mockCurator);
+
+        vm.stopPrank();
+        vm.prank(DEFAULT_ADMIN_ADDRESS);
+        e20AccessControl.updateManagerAccess(
+            address(mockCurator),
+            erc20Manager,
+            8.08 ether
+        );
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+
+        newAccessLevel = e20AccessControl.getAccessInfo(address(mockCurator));
+        assertEq(address(newAccessLevel.managerAccess), address(erc20Manager));
+        assertEq(newAccessLevel.managerMinimumBalance, 8.08 ether);
+        expectNoAccess(mockCurator);
+    }
+
     //////////////////////////////////////////////////
     // INTERNAL HELPERS
     //////////////////////////////////////////////////

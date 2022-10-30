@@ -17,10 +17,18 @@ contract Erc20MinBalAccessControl is IAccessControlRegistry {
     //////////////////////////////////////////////////
 
     /// @notice Event for updated curatorAccess
-    event CuratorAccessUpdated(address indexed target, IERC20 curatorAccess);
+    event CuratorAccessUpdated(
+        address indexed target,
+        IERC20 curatorAccess,
+        uint256 curatorMinimumBalance
+    );
 
     /// @notice Event for updated managerAccess
-    event ManagerAccessUpdated(address indexed target, IERC20 managerAccess);
+    event ManagerAccessUpdated(
+        address indexed target,
+        IERC20 managerAccess,
+        uint256 managerMinimumBalance
+    );
 
     /// @notice Event for updated adminAccess
     event AdminAccessUpdated(address indexed target, IERC20 adminAccess);
@@ -82,23 +90,28 @@ contract Erc20MinBalAccessControl is IAccessControlRegistry {
 
         emit CuratorAccessUpdated({
             target: target,
-            curatorAccess: newCuratorAccess
+            curatorAccess: newCuratorAccess,
+            curatorMinimumBalance: newMinBalance
         });
     }
 
     /// @notice updates ERC721 address used to define manager access
-    function updateManagerAccess(address target, IERC20 newManagerAccess)
-        external
-    {
+    function updateManagerAccess(
+        address target,
+        IERC20 newManagerAccess,
+        uint256 newMinBalance
+    ) external {
         if (accessMapping[target].adminAccess.balanceOf(msg.sender) == 0) {
             revert Access_OnlyAdmin();
         }
 
         accessMapping[target].managerAccess = newManagerAccess;
+        accessMapping[target].managerMinimumBalance = newMinBalance;
 
         emit ManagerAccessUpdated({
             target: target,
-            managerAccess: newManagerAccess
+            managerAccess: newManagerAccess,
+            managerMinimumBalance: newMinBalance
         });
     }
 
