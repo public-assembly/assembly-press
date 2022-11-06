@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import {IAccessControlRegistry} from "../src/interfaces/IAccessControlRegistry.sol";
+import {IAccessControlRegistry} from "../../src/interfaces/IAccessControlRegistry.sol";
 import {Ownable} from "openzeppelin-contracts/access/ownable.sol";
 
-contract MockCurator is Ownable {
+contract ERC721AccessMockCurator is Ownable {
 
     error NO_AC_INITIALIZED();
 

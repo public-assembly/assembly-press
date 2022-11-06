@@ -8,7 +8,7 @@ import {console} from "forge-std/console.sol";
 import {ERC721PresetMinterPauserAutoId} from "openzeppelin-contracts/token/ERC721/presets/ERC721PresetMinterPauserAutoId.sol";
 import {Erc721AccessControl} from "../src/Erc721AccessControl.sol";
 import {IAccessControlRegistry} from "../src/interfaces/IAccessControlRegistry.sol";
-import {MockCurator} from "./MockCurator.sol";
+import {ERC721AccessMockCurator} from "./mocks/ERC721AccessMockCurator.sol";
 
 contract Erc721AccessControlTest is DSTest {
 
@@ -36,7 +36,7 @@ contract Erc721AccessControlTest is DSTest {
         erc721Curator.mint(DEFAULT_OWNER_ADDRESS);
         Erc721AccessControl e721AccessControl = new Erc721AccessControl();
 
-        MockCurator mockCurator = new MockCurator();
+        ERC721AccessMockCurator mockCurator = new ERC721AccessMockCurator();
         mockCurator.initializeAccessControl(
             address(e721AccessControl), 
             address(erc721Curator), 
@@ -73,7 +73,7 @@ contract Erc721AccessControlTest is DSTest {
         erc721Manager.mint(DEFAULT_OWNER_ADDRESS);
         Erc721AccessControl e721AccessControl = new Erc721AccessControl();
 
-        MockCurator mockCurator = new MockCurator();
+        ERC721AccessMockCurator mockCurator = new ERC721AccessMockCurator();
         mockCurator.initializeAccessControl(
             address(e721AccessControl), 
             address(erc721Curator), 
@@ -110,7 +110,7 @@ contract Erc721AccessControlTest is DSTest {
         erc721Admin.mint(DEFAULT_OWNER_ADDRESS);
         Erc721AccessControl e721AccessControl = new Erc721AccessControl();
 
-        MockCurator mockCurator = new MockCurator();
+        ERC721AccessMockCurator mockCurator = new ERC721AccessMockCurator();
         mockCurator.initializeAccessControl(
             address(e721AccessControl), 
             address(erc721Curator), 
@@ -141,6 +141,43 @@ contract Erc721AccessControlTest is DSTest {
         assertTrue(mockCurator.managerAccessTest());
         assertTrue(mockCurator.adminAccessTest());        
     }       
+
+    function test_noCuratorInitialized() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        erc721Curator.mint(DEFAULT_OWNER_ADDRESS);
+        Erc721AccessControl e721AccessControl = new Erc721AccessControl();
+
+        ERC721AccessMockCurator mockCurator = new ERC721AccessMockCurator();
+        mockCurator.initializeAccessControl(
+            address(e721AccessControl), 
+            address(0), 
+            address(erc721Manager), 
+            address(erc721Admin)
+        );
+        assertTrue(mockCurator.accessControlProxy() == address(e721AccessControl));
+        assertTrue(mockCurator.getAccessLevelForUser() == 0);
+        assertTrue(!mockCurator.curatorAccessTest());
+        assertTrue(!mockCurator.managerAccessTest());
+        assertTrue(!mockCurator.adminAccessTest());
+
+        erc721Curator.transferFrom(
+            DEFAULT_OWNER_ADDRESS, 
+            DEFAULT_NON_OWNER_ADDRESS, 
+            0
+        );
+        assertTrue(mockCurator.getAccessLevelForUser() == 0);
+        assertTrue(!mockCurator.curatorAccessTest());
+        assertTrue(!mockCurator.managerAccessTest());
+        assertTrue(!mockCurator.adminAccessTest());        
+
+        vm.stopPrank();
+        vm.startPrank(DEFAULT_NON_OWNER_ADDRESS);
+
+        assertTrue(mockCurator.getAccessLevelForUser() == 0);
+        assertTrue(!mockCurator.curatorAccessTest());
+        assertTrue(!mockCurator.managerAccessTest());
+        assertTrue(!mockCurator.adminAccessTest());        
+    }               
 
     function test_NameTest() public {
         Erc721AccessControl e721AccessControl = new Erc721AccessControl();
