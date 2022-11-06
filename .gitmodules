@@ -1,3 +1,0 @@
-[submodule "tokenized-access-control/lib/openzeppelin-contracts-upgradeable"]
-	path = tokenized-access-control/lib/openzeppelin-contracts-upgradeable
-	url = https://github.com/openzeppelin/openzeppelin-contracts-upgradeable
