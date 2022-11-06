@@ -11,6 +11,7 @@ contract Erc721AccessControl is IAccessControlRegistry {
 
     /// @notice Error for only admin access
     error Access_OnlyAdmin();
+    error AccessRole_NotInitialized();
 
     //////////////////////////////////////////////////
     // EVENTS
@@ -73,7 +74,7 @@ contract Erc721AccessControl is IAccessControlRegistry {
     //////////////////////////////////////////////////
 
     /// @notice updates ERC721 address used to define curator access
-    function updateCurator(address target, IERC721Upgradeable newCuratorAccess)
+    function updateCuratorAccess(address target, IERC721Upgradeable newCuratorAccess)
         external
     {
         if (accessMapping[target].adminAccess.balanceOf(msg.sender) == 0) {
@@ -185,16 +186,22 @@ contract Erc721AccessControl is IAccessControlRegistry {
 
         AccessLevelInfo memory info = accessMapping[target];
 
-        if (info.adminAccess.balanceOf(addressToCheckLevel) != 0) {
-            return 3;
+        if (address(info.adminAccess) != address(0)) {
+            if (info.adminAccess.balanceOf(addressToCheckLevel) != 0) {
+                return 3;
+            }        
         }
 
-        if (info.managerAccess.balanceOf(addressToCheckLevel) != 0) {
-            return 2;
+        if (address(info.managerAccess) != address(0)) {
+            if (info.managerAccess.balanceOf(addressToCheckLevel) != 0) {
+                return 2;
+            }
         }
 
-        if (info.curatorAccess.balanceOf(addressToCheckLevel) != 0) {
-            return 1;
+        if (address(info.curatorAccess) != address(0)) {
+            if (info.curatorAccess.balanceOf(addressToCheckLevel) != 0) {
+                return 1;
+            }
         }
 
         return 0;
