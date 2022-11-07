@@ -18,14 +18,14 @@ contract OnlyAdminAccessControl is IAccessControlRegistry {
 
     /// @notice Event for updated admin
     event AdminUpdated(
-        address indexed target,
+        address indexed accessMappingTarget,
         address newAdmin
     );
 
     /// @notice Event for a new access control initialized
     /// @dev admin function indexer feedback
     event AccessControlInitialized(
-        address indexed target,
+        address indexed accessMappingTarget,
         address admin
     );
 
@@ -44,17 +44,14 @@ contract OnlyAdminAccessControl is IAccessControlRegistry {
     //////////////////////////////////////////////////
 
     /// @notice updates admin address
-    function updateAdmin(
-        address target,
-        address newAdmin
-    ) external {
-        if (accessMapping[target] != msg.sender) {
+    function updateAdmin(address accessMappingTarget, address newAdmin) external {
+        if (accessMapping[accessMappingTarget] != msg.sender) {
             revert Access_OnlyAdmin();
         }
 
-        accessMapping[target] = newAdmin;
+        accessMapping[accessMappingTarget] = newAdmin;
 
-        emit AdminUpdated({target: target, newAdmin: newAdmin});
+        emit AdminUpdated({accessMappingTarget: accessMappingTarget, newAdmin: newAdmin});
     }
 
     /// @notice initializes mapping of access control
@@ -69,7 +66,7 @@ contract OnlyAdminAccessControl is IAccessControlRegistry {
         accessMapping[msg.sender] = admin;
 
         emit AccessControlInitialized({
-            target: msg.sender,
+            accessMappingTarget: msg.sender,
             admin: admin
         });
     }
@@ -80,26 +77,25 @@ contract OnlyAdminAccessControl is IAccessControlRegistry {
 
     /// @notice returns access level of a user address calling function
     /// @dev called via the external contract initializing access control
-    function getAccessLevel(address addressToCheckLevel)
+    function getAccessLevel(address accessMappingTarget, address addressToGetAccessFor)
         external
         view
         returns (uint256)
     {
-        address target = msg.sender;
 
-        if (accessMapping[target] == addressToCheckLevel) {
+        if (accessMapping[accessMappingTarget] == addressToGetAccessFor) {
             return 3;
         }
 
         return 0;
     }
 
-    /// @notice returns the erc721 address being used for admin access control
-    function getAdminInfo(address addressToCheck)
+    /// @notice returns the address declared as admin by a given contract
+    function getAdminInfo(address accessMappingTarget)
         external
         view
         returns (address)
     {
-        return accessMapping[addressToCheck];
+        return accessMapping[accessMappingTarget];
     }
 }

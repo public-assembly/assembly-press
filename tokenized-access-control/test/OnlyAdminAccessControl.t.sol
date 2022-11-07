@@ -7,7 +7,7 @@ import {Vm} from "forge-std/Vm.sol";
 import {console} from "forge-std/console.sol";
 import {OnlyAdminAccessControl} from "../src/OnlyAdminAccessControl.sol";
 import {IAccessControlRegistry} from "../src/interfaces/IAccessControlRegistry.sol";
-import {OnlyAdminMockCurator} from "./mocks/OnlyAdminMockCurator.sol";
+import {OnlyAdminMock} from "./mocks/OnlyAdminMock.sol";
 
 contract OnlyAdminAccessControlTest is DSTest {
 
@@ -28,9 +28,9 @@ contract OnlyAdminAccessControlTest is DSTest {
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
         OnlyAdminAccessControl adminAccessControl = new OnlyAdminAccessControl();
 
-        OnlyAdminMockCurator mockCurator = new OnlyAdminMockCurator();
+        OnlyAdminMock mockOnlyAdmin = new OnlyAdminMock();
         vm.expectRevert("admin cannot be zero address");
-        mockCurator.initializeAccessControl(
+        mockOnlyAdmin.initializeAccessControl(
             address(adminAccessControl), 
             address(0)
         );    
@@ -40,44 +40,44 @@ contract OnlyAdminAccessControlTest is DSTest {
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
         OnlyAdminAccessControl adminAccessControl = new OnlyAdminAccessControl();
 
-        OnlyAdminMockCurator mockCurator = new OnlyAdminMockCurator();
-        mockCurator.initializeAccessControl(
+        OnlyAdminMock mockOnlyAdmin = new OnlyAdminMock();
+        mockOnlyAdmin.initializeAccessControl(
             address(adminAccessControl), 
             address(DEFAULT_OWNER_ADDRESS)
         );
-        assertTrue(mockCurator.accessControlProxy() == address(adminAccessControl));
-        assertTrue(mockCurator.getAccessLevelForUser() == 3);
-        assertTrue(mockCurator.curatorAccessTest());
-        assertTrue(mockCurator.managerAccessTest());
-        assertTrue(mockCurator.adminAccessTest()); 
+        assertTrue(mockOnlyAdmin.accessControlProxy() == address(adminAccessControl));
+        assertTrue(mockOnlyAdmin.getAccessLevelForUser() == 3);
+        assertTrue(mockOnlyAdmin.userAccessTest());
+        assertTrue(mockOnlyAdmin.managerAccessTest());
+        assertTrue(mockOnlyAdmin.adminAccessTest()); 
     }        
 
     function test_ChangeAdminAccess() public {
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
         OnlyAdminAccessControl adminAccessControl = new OnlyAdminAccessControl();
 
-        OnlyAdminMockCurator mockCurator = new OnlyAdminMockCurator();
-        mockCurator.initializeAccessControl(
+        OnlyAdminMock mockOnlyAdmin = new OnlyAdminMock();
+        mockOnlyAdmin.initializeAccessControl(
             address(adminAccessControl), 
             address(DEFAULT_OWNER_ADDRESS)
         );
-        assertTrue(mockCurator.accessControlProxy() == address(adminAccessControl));
-        assertTrue(mockCurator.getAccessLevelForUser() == 3);
-        assertTrue(mockCurator.curatorAccessTest());
-        assertTrue(mockCurator.managerAccessTest());
-        assertTrue(mockCurator.adminAccessTest()); 
+        assertTrue(mockOnlyAdmin.accessControlProxy() == address(adminAccessControl));
+        assertTrue(mockOnlyAdmin.getAccessLevelForUser() == 3);
+        assertTrue(mockOnlyAdmin.userAccessTest());
+        assertTrue(mockOnlyAdmin.managerAccessTest());
+        assertTrue(mockOnlyAdmin.adminAccessTest()); 
 
-        adminAccessControl.updateAdmin(address(mockCurator), DEFAULT_NON_OWNER_ADDRESS);
-        assertTrue(adminAccessControl.getAdminInfo(address(mockCurator)) == DEFAULT_NON_OWNER_ADDRESS);
+        adminAccessControl.updateAdmin(address(mockOnlyAdmin), DEFAULT_NON_OWNER_ADDRESS);
+        assertTrue(adminAccessControl.getAdminInfo(address(mockOnlyAdmin)) == DEFAULT_NON_OWNER_ADDRESS);
         
         vm.stopPrank();
         vm.startPrank(DEFAULT_NON_OWNER_ADDRESS);
         
-        assertTrue(mockCurator.accessControlProxy() == address(adminAccessControl));
-        assertTrue(mockCurator.getAccessLevelForUser() == 3);
-        assertTrue(mockCurator.curatorAccessTest());
-        assertTrue(mockCurator.managerAccessTest());
-        assertTrue(mockCurator.adminAccessTest()); 
+        assertTrue(mockOnlyAdmin.accessControlProxy() == address(adminAccessControl));
+        assertTrue(mockOnlyAdmin.getAccessLevelForUser() == 3);
+        assertTrue(mockOnlyAdmin.userAccessTest());
+        assertTrue(mockOnlyAdmin.managerAccessTest());
+        assertTrue(mockOnlyAdmin.adminAccessTest()); 
     }          
 
     function test_NameTest() public {
