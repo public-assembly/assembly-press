@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {IAccessControlRegistry} from "./interfaces/IAccessControlRegistry.sol";
 
-contract Erc721AccessControl is IAccessControlRegistry {
+contract ERC721AccessControl is IAccessControlRegistry {
     //////////////////////////////////////////////////
     // ERRORS
     //////////////////////////////////////////////////
@@ -17,28 +17,28 @@ contract Erc721AccessControl is IAccessControlRegistry {
     // EVENTS
     //////////////////////////////////////////////////
 
-    /// @notice Event for updated curatorAccess
-    event CuratorAccessUpdated(
-        address indexed target,
-        IERC721Upgradeable curatorAccess
+    /// @notice Event for updated userAccess
+    event UserAccessUpdated(
+        address indexed accessMappingTarget,
+        IERC721Upgradeable userAccess
     );
 
     /// @notice Event for updated managerAccess
     event ManagerAccessUpdated(
-        address indexed target,
+        address indexed accessMappingTarget,
         IERC721Upgradeable managerAccess
     );
 
     /// @notice Event for updated adminAccess
     event AdminAccessUpdated(
-        address indexed target,
+        address indexed accessMappingTarget,
         IERC721Upgradeable adminAccess
     );
 
     /// @notice Event for updated AccessLevelInfo
     event AllAccessUpdated(
-        address indexed target,
-        IERC721Upgradeable curatorAccess,
+        address indexed accessMappingTarget,
+        IERC721Upgradeable userAccess,
         IERC721Upgradeable managerAccess,
         IERC721Upgradeable adminAccess
     );
@@ -46,8 +46,8 @@ contract Erc721AccessControl is IAccessControlRegistry {
     /// @notice Event for a new access control initialized
     /// @dev admin function indexer feedback
     event AccessControlInitialized(
-        address indexed target,
-        IERC721Upgradeable curatorAccess,
+        address indexed accessMappingTarget,
+        IERC721Upgradeable userAccess,
         IERC721Upgradeable managerAccess,
         IERC721Upgradeable adminAccess
     );
@@ -56,9 +56,9 @@ contract Erc721AccessControl is IAccessControlRegistry {
     // VARIABLES
     //////////////////////////////////////////////////
 
-    /// @notice struct that contains addresses which gate different levels of access to curation contract
+    /// @notice struct that contains addresses which gate different levels of access to initialized contracts
     struct AccessLevelInfo {
-        IERC721Upgradeable curatorAccess;
+        IERC721Upgradeable userAccess;
         IERC721Upgradeable managerAccess;
         IERC721Upgradeable adminAccess;
     }
@@ -66,78 +66,79 @@ contract Erc721AccessControl is IAccessControlRegistry {
     string public constant name = "ERC721AccessControl";
 
     /// @notice access information mapping storage
-    /// @dev curation contract => AccessLevelInfo struct
+    /// @dev initialized contract => AccessLevelInfo struct
     mapping(address => AccessLevelInfo) public accessMapping;
 
     //////////////////////////////////////////////////
     // WRITE FUNCTIONS
     //////////////////////////////////////////////////
 
-    /// @notice updates ERC721 address used to define curator access
-    function updateCuratorAccess(address target, IERC721Upgradeable newCuratorAccess)
+    /// @notice updates ERC721 address used to define user access
+    function updateUserAccess(address accessMappingTarget, IERC721Upgradeable newUserAccess)
         external
     {
-        if (accessMapping[target].adminAccess.balanceOf(msg.sender) == 0) {
+        if (accessMapping[accessMappingTarget].adminAccess.balanceOf(msg.sender) == 0) {
             revert Access_OnlyAdmin();
         }
 
-        accessMapping[target].curatorAccess = newCuratorAccess;
+        accessMapping[accessMappingTarget].userAccess = newUserAccess;
 
-        emit CuratorAccessUpdated({
-            target: target,
-            curatorAccess: newCuratorAccess
+        emit UserAccessUpdated({
+            accessMappingTarget: accessMappingTarget,
+            userAccess: newUserAccess
         });
     }
 
     /// @notice updates ERC721 address used to define manager access
-    function updateManagerAccess(
-        address target,
-        IERC721Upgradeable newManagerAccess
-    ) external {
-        if (accessMapping[target].adminAccess.balanceOf(msg.sender) == 0) {
+    function updateManagerAccess(address accessMappingTarget, IERC721Upgradeable newManagerAccess) 
+        external 
+    {
+        if (accessMapping[accessMappingTarget].adminAccess.balanceOf(msg.sender) == 0) {
             revert Access_OnlyAdmin();
         }
 
-        accessMapping[target].managerAccess = newManagerAccess;
+        accessMapping[accessMappingTarget].managerAccess = newManagerAccess;
 
         emit ManagerAccessUpdated({
-            target: target,
+            accessMappingTarget: accessMappingTarget,
             managerAccess: newManagerAccess
         });
     }
 
     /// @notice updates ERC721 address used to define admin access
-    function updateAdminAccess(
-        address target,
-        IERC721Upgradeable newAdminAccess
-    ) external {
-        if (accessMapping[target].adminAccess.balanceOf(msg.sender) == 0) {
+    function updateAdminAccess(address accessMappingTarget, IERC721Upgradeable newAdminAccess) 
+        external 
+    {
+        if (accessMapping[accessMappingTarget].adminAccess.balanceOf(msg.sender) == 0) {
             revert Access_OnlyAdmin();
         }
 
-        accessMapping[target].adminAccess = newAdminAccess;
+        accessMapping[accessMappingTarget].adminAccess = newAdminAccess;
 
-        emit AdminAccessUpdated({target: target, adminAccess: newAdminAccess});
+        emit AdminAccessUpdated({
+            accessMappingTarget: accessMappingTarget, 
+            adminAccess: newAdminAccess
+        });
     }
 
-    /// @notice updates ERC721 address used to define curator, manager, and admin access
+    /// @notice updates ERC721 address used to define user, manager, and admin access
     function updateAllAccess(
-        address target,
-        IERC721Upgradeable newCuratorAccess,
+        address accessMappingTarget,
+        IERC721Upgradeable newUserAccess,
         IERC721Upgradeable newManagerAccess,
         IERC721Upgradeable newAdminAccess
     ) external {
-        if (accessMapping[target].adminAccess.balanceOf(msg.sender) == 0) {
+        if (accessMapping[accessMappingTarget].adminAccess.balanceOf(msg.sender) == 0) {
             revert Access_OnlyAdmin();
         }
 
-        accessMapping[target].curatorAccess = newCuratorAccess;
-        accessMapping[target].managerAccess = newManagerAccess;
-        accessMapping[target].adminAccess = newAdminAccess;
+        accessMapping[accessMappingTarget].userAccess = newUserAccess;
+        accessMapping[accessMappingTarget].managerAccess = newManagerAccess;
+        accessMapping[accessMappingTarget].adminAccess = newAdminAccess;
 
         emit AllAccessUpdated({
-            target: target,
-            curatorAccess: newCuratorAccess,
+            accessMappingTarget: accessMappingTarget,
+            userAccess: newUserAccess,
             managerAccess: newManagerAccess,
             adminAccess: newAdminAccess
         });
@@ -146,10 +147,10 @@ contract Erc721AccessControl is IAccessControlRegistry {
     /// @notice initializes mapping of token roles
     /// @dev contract getting access control => erc721 addresses used for access control of different roles
     /// @dev called by other contracts initiating access control
-    /// @dev data format: curatorAccess, managerAccess, adminAccess
+    /// @dev data format: userAccess, managerAccess, adminAccess
     function initializeWithData(bytes memory data) external {
         (
-            IERC721Upgradeable curatorAccess,
+            IERC721Upgradeable userAccess,
             IERC721Upgradeable managerAccess,
             IERC721Upgradeable adminAccess
         ) = abi.decode(
@@ -158,14 +159,14 @@ contract Erc721AccessControl is IAccessControlRegistry {
             );
 
         accessMapping[msg.sender] = AccessLevelInfo({
-            curatorAccess: curatorAccess,
+            userAccess: userAccess,
             managerAccess: managerAccess,
             adminAccess: adminAccess
         });
 
         emit AccessControlInitialized({
-            target: msg.sender,
-            curatorAccess: curatorAccess,
+            accessMappingTarget: msg.sender,
+            userAccess: userAccess,
             managerAccess: managerAccess,
             adminAccess: adminAccess
         });
@@ -177,29 +178,28 @@ contract Erc721AccessControl is IAccessControlRegistry {
 
     /// @notice returns access level of a user address calling function
     /// @dev called via the external contract initializing access control
-    function getAccessLevel(address addressToCheckLevel)
+    function getAccessLevel(address accessMappingTarget, address addressToGetAccessFor)
         external
         view
         returns (uint256)
     {
-        address target = msg.sender;
 
-        AccessLevelInfo memory info = accessMapping[target];
+        AccessLevelInfo memory info = accessMapping[accessMappingTarget];
 
         if (address(info.adminAccess) != address(0)) {
-            if (info.adminAccess.balanceOf(addressToCheckLevel) != 0) {
+            if (info.adminAccess.balanceOf(addressToGetAccessFor) != 0) {
                 return 3;
             }        
         }
 
         if (address(info.managerAccess) != address(0)) {
-            if (info.managerAccess.balanceOf(addressToCheckLevel) != 0) {
+            if (info.managerAccess.balanceOf(addressToGetAccessFor) != 0) {
                 return 2;
             }
         }
 
-        if (address(info.curatorAccess) != address(0)) {
-            if (info.curatorAccess.balanceOf(addressToCheckLevel) != 0) {
+        if (address(info.userAccess) != address(0)) {
+            if (info.userAccess.balanceOf(addressToGetAccessFor) != 0) {
                 return 1;
             }
         }
@@ -207,39 +207,39 @@ contract Erc721AccessControl is IAccessControlRegistry {
         return 0;
     }
 
-    /// @notice returns the addresses being used for access control
-    function getAccessInfo(address addressToCheck)
+    /// @notice returns the addresses being used for access control by a given contract
+    function getAccessInfo(address accessMappingTarget)
         external
         view
         returns (AccessLevelInfo memory)
     {
-        return accessMapping[addressToCheck];
+        return accessMapping[accessMappingTarget];
     }
 
-    /// @notice returns the erc721 address being used for curator access control
-    function getCuratorInfo(address addressToCheck)
+    /// @notice returns the erc721 address being used for user access control by a given contract
+    function getUserInfo(address accessMappingTarget)
         external
         view
         returns (IERC721Upgradeable)
     {
-        return accessMapping[addressToCheck].curatorAccess;
+        return accessMapping[accessMappingTarget].userAccess;
     }
 
-    /// @notice returns the erc721 address being used for manager access control
-    function getManagerInfo(address addressToCheck)
+    /// @notice returns the erc721 address being used for manager access control by a given contract
+    function getManagerInfo(address accessMappingTarget)
         external
         view
         returns (IERC721Upgradeable)
     {
-        return accessMapping[addressToCheck].managerAccess;
+        return accessMapping[accessMappingTarget].managerAccess;
     }
 
-    /// @notice returns the erc721 address being used for admin access control
-    function getAdminInfo(address addressToCheck)
+    /// @notice returns the erc721 address being used for admin access control by a given contract
+    function getAdminInfo(address accessMappingTarget)
         external
         view
         returns (IERC721Upgradeable)
     {
-        return accessMapping[addressToCheck].adminAccess;
+        return accessMapping[accessMappingTarget].adminAccess;
     }
 }

@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import {IAccessControlRegistry} from "../../src/interfaces/IAccessControlRegistry.sol";
 import {Ownable} from "openzeppelin-contracts/access/ownable.sol";
 
-contract OnlyAdminMockCurator is Ownable {
+contract ERC721AccessMock is Ownable {
 
     error NO_AC_INITIALIZED();
 
@@ -12,18 +12,22 @@ contract OnlyAdminMockCurator is Ownable {
 
     function initializeAccessControl(
         address accessControl,
-        address admin
-    ) public onlyOwner returns (address) {
+        address curatorAccess,
+        address managerAccess,
+        address adminAccess
+    ) public onlyOwner returns (address, address, address) {
 
         bytes memory accessControlInit = abi.encode(
-            admin
+            curatorAccess,
+            managerAccess,
+            adminAccess
         );
 
         IAccessControlRegistry(accessControl).initializeWithData(accessControlInit);
 
         accessControlProxy = accessControl;
 
-        return(admin);
+        return(curatorAccess, managerAccess, adminAccess);
     }
 
     function getAccessLevelForUser() external view returns (uint256) {
@@ -32,16 +36,16 @@ contract OnlyAdminMockCurator is Ownable {
             revert NO_AC_INITIALIZED();
         }
 
-        return IAccessControlRegistry(accessControlProxy).getAccessLevel(msg.sender);
+        return IAccessControlRegistry(accessControlProxy).getAccessLevel(address(this), msg.sender);
     }
 
-    function curatorAccessTest() external view returns (bool) {
+    function userAccessTest() external view returns (bool) {
 
         if (accessControlProxy == address(0)) {
             revert NO_AC_INITIALIZED();
         }
 
-        if (IAccessControlRegistry(accessControlProxy).getAccessLevel(msg.sender) != 0) {
+        if (IAccessControlRegistry(accessControlProxy).getAccessLevel(address(this), msg.sender) != 0) {
             return true;
         }
 
@@ -54,7 +58,7 @@ contract OnlyAdminMockCurator is Ownable {
             revert NO_AC_INITIALIZED();
         }
 
-        if (IAccessControlRegistry(accessControlProxy).getAccessLevel(msg.sender) > 1) {
+        if (IAccessControlRegistry(accessControlProxy).getAccessLevel(address(this), msg.sender) > 1) {
             return true;
         }
 
@@ -67,7 +71,7 @@ contract OnlyAdminMockCurator is Ownable {
             revert NO_AC_INITIALIZED();
         }
 
-        if (IAccessControlRegistry(accessControlProxy).getAccessLevel(msg.sender) > 2) {
+        if (IAccessControlRegistry(accessControlProxy).getAccessLevel(address(this), msg.sender) > 2) {
             return true;
         }
 

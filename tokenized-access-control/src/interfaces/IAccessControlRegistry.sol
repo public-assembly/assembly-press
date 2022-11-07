@@ -7,6 +7,6 @@ interface IAccessControlRegistry {
     
     function initializeWithData(bytes memory initData) external;
     
-    function getAccessLevel(address) external view returns (uint256);
+    function getAccessLevel(address, address) external view returns (uint256);
     
 }

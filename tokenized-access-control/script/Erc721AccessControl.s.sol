@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
-import {Erc721AccessControl} from "../src/Erc721AccessControl.sol";
+import {ERC721AccessControl} from "../src/ERC721AccessControl.sol";
 
 contract DeployCore is Script {
 
@@ -15,7 +15,7 @@ contract DeployCore is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        new Erc721AccessControl();       
+        new ERC721AccessControl();       
 
         vm.stopBroadcast();
     }
@@ -25,6 +25,6 @@ contract DeployCore is Script {
 // ======= DEPLOY SCRIPTS =====
 
 // source .env
-// forge script script/Erc721AccessControl.s.sol:DeployCore --rpc-url $GOERLI_RPC_URL --broadcast --verify  -vvvv
-// forge script script/Erc721AccessControl.s.sol:DeployCore --rpc-url $MAINNET_RPC_URL --broadcast --verify  -vvvv
+// forge script script/ERC721AccessControl.s.sol:DeployCore --rpc-url $GOERLI_RPC_URL --broadcast --verify  -vvvv
+// forge script script/ERC721AccessControl.s.sol:DeployCore --rpc-url $MAINNET_RPC_URL --broadcast --verify  -vvvv
 
