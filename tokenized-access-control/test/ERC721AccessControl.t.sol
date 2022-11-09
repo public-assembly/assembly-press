@@ -184,4 +184,36 @@ contract ERC721AccessControlTest is DSTest {
         ERC721AccessControl e721AccessControl = new ERC721AccessControl();
         assertEq(e721AccessControl.name(), "ERC721AccessControl");
     }    
+
+    function test_UpdateUserAccess() public {
+        
+    }
+
+    function test_UpdateManagerAccess() public {
+        
+    }    
+
+    function test_UpdateAdminAccess() public {
+        
+    }      
+
+    function test_UpdateAllAccess() public {
+        
+    }     
+
+    function test_GetUserInfo() public {
+
+    }
+
+    function test_GetManagerInfo() public {
+        
+    }
+
+    function test_GetAdminInfo() public {
+        
+    }
+
+    function test_GetAccessInfo() public {
+        
+    }             
 }

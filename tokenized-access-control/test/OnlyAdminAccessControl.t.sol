@@ -84,4 +84,12 @@ contract OnlyAdminAccessControlTest is DSTest {
         OnlyAdminAccessControl adminAccessControl = new OnlyAdminAccessControl();
         assertEq(adminAccessControl.name(), "OnlyAdminAccessControl");
     }    
+
+    function test_UpdateAdmin() public {
+        
+    }      
+
+    function test_GetAdminInfo() public {
+        
+    }        
 }
