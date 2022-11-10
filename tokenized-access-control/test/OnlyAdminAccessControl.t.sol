@@ -85,11 +85,16 @@ contract OnlyAdminAccessControlTest is DSTest {
         assertEq(adminAccessControl.name(), "OnlyAdminAccessControl");
     }    
 
-    function test_UpdateAdmin() public {
-        
-    }      
-
     function test_GetAdminInfo() public {
-        
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        OnlyAdminAccessControl adminAccessControl = new OnlyAdminAccessControl();
+
+        OnlyAdminMock mockOnlyAdmin = new OnlyAdminMock();
+        mockOnlyAdmin.initializeAccessControl(
+            address(adminAccessControl), 
+            address(DEFAULT_OWNER_ADDRESS)
+        );
+        assertTrue(mockOnlyAdmin.accessControlProxy() == address(adminAccessControl));        
+        assertEq(adminAccessControl.getAdminInfo(address(mockOnlyAdmin)),  address(DEFAULT_OWNER_ADDRESS));
     }        
 }

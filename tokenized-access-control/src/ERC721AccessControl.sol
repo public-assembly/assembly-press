@@ -20,36 +20,36 @@ contract ERC721AccessControl is IAccessControlRegistry {
     /// @notice Event for updated userAccess
     event UserAccessUpdated(
         address indexed accessMappingTarget,
-        IERC721Upgradeable userAccess
+        address userAccess
     );
 
     /// @notice Event for updated managerAccess
     event ManagerAccessUpdated(
         address indexed accessMappingTarget,
-        IERC721Upgradeable managerAccess
+        address managerAccess
     );
 
     /// @notice Event for updated adminAccess
     event AdminAccessUpdated(
         address indexed accessMappingTarget,
-        IERC721Upgradeable adminAccess
+        address adminAccess
     );
 
     /// @notice Event for updated AccessLevelInfo
     event AllAccessUpdated(
         address indexed accessMappingTarget,
-        IERC721Upgradeable userAccess,
-        IERC721Upgradeable managerAccess,
-        IERC721Upgradeable adminAccess
+        address userAccess,
+        address managerAccess,
+        address adminAccess
     );
 
     /// @notice Event for a new access control initialized
     /// @dev admin function indexer feedback
     event AccessControlInitialized(
         address indexed accessMappingTarget,
-        IERC721Upgradeable userAccess,
-        IERC721Upgradeable managerAccess,
-        IERC721Upgradeable adminAccess
+        address userAccess,
+        address managerAccess,
+        address adminAccess
     );
 
     //////////////////////////////////////////////////
@@ -74,14 +74,14 @@ contract ERC721AccessControl is IAccessControlRegistry {
     //////////////////////////////////////////////////
 
     /// @notice updates ERC721 address used to define user access
-    function updateUserAccess(address accessMappingTarget, IERC721Upgradeable newUserAccess)
+    function updateUserAccess(address accessMappingTarget, address newUserAccess)
         external
     {
         if (accessMapping[accessMappingTarget].adminAccess.balanceOf(msg.sender) == 0) {
             revert Access_OnlyAdmin();
         }
 
-        accessMapping[accessMappingTarget].userAccess = newUserAccess;
+        accessMapping[accessMappingTarget].userAccess = IERC721Upgradeable(newUserAccess);
 
         emit UserAccessUpdated({
             accessMappingTarget: accessMappingTarget,
@@ -90,14 +90,14 @@ contract ERC721AccessControl is IAccessControlRegistry {
     }
 
     /// @notice updates ERC721 address used to define manager access
-    function updateManagerAccess(address accessMappingTarget, IERC721Upgradeable newManagerAccess) 
+    function updateManagerAccess(address accessMappingTarget, address newManagerAccess) 
         external 
     {
         if (accessMapping[accessMappingTarget].adminAccess.balanceOf(msg.sender) == 0) {
             revert Access_OnlyAdmin();
         }
 
-        accessMapping[accessMappingTarget].managerAccess = newManagerAccess;
+        accessMapping[accessMappingTarget].managerAccess = IERC721Upgradeable(newManagerAccess);
 
         emit ManagerAccessUpdated({
             accessMappingTarget: accessMappingTarget,
@@ -106,14 +106,14 @@ contract ERC721AccessControl is IAccessControlRegistry {
     }
 
     /// @notice updates ERC721 address used to define admin access
-    function updateAdminAccess(address accessMappingTarget, IERC721Upgradeable newAdminAccess) 
+    function updateAdminAccess(address accessMappingTarget, address newAdminAccess) 
         external 
     {
         if (accessMapping[accessMappingTarget].adminAccess.balanceOf(msg.sender) == 0) {
             revert Access_OnlyAdmin();
         }
 
-        accessMapping[accessMappingTarget].adminAccess = newAdminAccess;
+        accessMapping[accessMappingTarget].adminAccess = IERC721Upgradeable(newAdminAccess);
 
         emit AdminAccessUpdated({
             accessMappingTarget: accessMappingTarget, 
@@ -124,17 +124,17 @@ contract ERC721AccessControl is IAccessControlRegistry {
     /// @notice updates ERC721 address used to define user, manager, and admin access
     function updateAllAccess(
         address accessMappingTarget,
-        IERC721Upgradeable newUserAccess,
-        IERC721Upgradeable newManagerAccess,
-        IERC721Upgradeable newAdminAccess
+        address newUserAccess,
+        address newManagerAccess,
+        address newAdminAccess
     ) external {
         if (accessMapping[accessMappingTarget].adminAccess.balanceOf(msg.sender) == 0) {
             revert Access_OnlyAdmin();
         }
 
-        accessMapping[accessMappingTarget].userAccess = newUserAccess;
-        accessMapping[accessMappingTarget].managerAccess = newManagerAccess;
-        accessMapping[accessMappingTarget].adminAccess = newAdminAccess;
+        accessMapping[accessMappingTarget].userAccess = IERC721Upgradeable(newUserAccess);
+        accessMapping[accessMappingTarget].managerAccess = IERC721Upgradeable(newManagerAccess);
+        accessMapping[accessMappingTarget].adminAccess = IERC721Upgradeable(newAdminAccess);
 
         emit AllAccessUpdated({
             accessMappingTarget: accessMappingTarget,
@@ -150,18 +150,18 @@ contract ERC721AccessControl is IAccessControlRegistry {
     /// @dev data format: userAccess, managerAccess, adminAccess
     function initializeWithData(bytes memory data) external {
         (
-            IERC721Upgradeable userAccess,
-            IERC721Upgradeable managerAccess,
-            IERC721Upgradeable adminAccess
+            address userAccess,
+            address managerAccess,
+            address adminAccess
         ) = abi.decode(
                 data,
-                (IERC721Upgradeable, IERC721Upgradeable, IERC721Upgradeable)
+                (address, address, address)
             );
 
         accessMapping[msg.sender] = AccessLevelInfo({
-            userAccess: userAccess,
-            managerAccess: managerAccess,
-            adminAccess: adminAccess
+            userAccess: IERC721Upgradeable(userAccess),
+            managerAccess: IERC721Upgradeable(managerAccess),
+            adminAccess: IERC721Upgradeable(adminAccess)
         });
 
         emit AccessControlInitialized({
