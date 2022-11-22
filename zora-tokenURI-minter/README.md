@@ -5,6 +5,8 @@
 
 See screenshot below for how to use [abi.hashex.org](https://abi.hashex.org/) to create encoded init value for Zora Drop init:
 
+![metadata_init](https://user-images.githubusercontent.com/93691906/203407825-d3eb202d-a385-4185-9118-d5f5f4ae03b1.png)
+
 4. Grant "MINTER" role to TokenUriMinter from your Zora Drop Contract (ex: [Goerli txn](https://goerli.etherscan.io/tx/0x91589c65bb98d7a7517fdea482f754b57554c53edffe2f45e4310076bc0e72a2)) 
 5. Call "customMint" function on TokenUriMinter contract and pass in Zora Drop Contract you are interacting with, address you want to mint to, and an array of all the tokenURIs you want to mint. The number of URIs you pass in will be the number of mints you are calling. make sure that msg.value = mint price x number of mints. (ex: [Goerli txn](https://goerli.etherscan.io/tx/0x01ef2f508e8f482e71bf8c20e0c90b427da4bf4cdf7840944d142a3551fbe1c4))
 
