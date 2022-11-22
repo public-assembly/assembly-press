@@ -4,9 +4,9 @@
 This repo contains modular implementations written in solidity that can be used to augment existing onchain infrastructure.
 
 ## Contents
-**zora-tiered-pricing-minter**: custom minting module extending standard functionality provided by the [zora-drops-contracts](https://github.com/ourzora/zora-drops-contracts) to allow for different pricing tiers based on mint quantity.
-
 **tokenized-access-control**: custom modules for public curation mechanisms to allow any token to be the access control mechanism for curators.
+
+**zora-tiered-pricing-minter**: custom minting module extending standard functionality provided by the [zora-drops-contracts](https://github.com/ourzora/zora-drops-contracts) to allow for different pricing tiers based on mint quantity.
 
 **zora-tiered-pricing-minter**: custom minting module extending standard functionality provided by the [zora-drops-contracts](https://github.com/ourzora/zora-drops-contracts) to allow for initialization of token metadata upon mint rather than upon contract deploy
 
