@@ -15,10 +15,14 @@ import {FactoryUpgradeGate} from "zora-drops-contracts/FactoryUpgradeGate.sol";
 import {IMetadataRenderer} from "zora-drops-contracts/interfaces/IMetadataRenderer.sol";
 import {TokenUriMetadataRenderer} from "../src/TokenUriMetadataRenderer.sol";
 import {ITokenUriMetadataRenderer} from "../src/interfaces/ITokenUriMetadataRenderer.sol";
+import "zora-drops-contracts/ZoraNFTCreatorProxy.sol";
+import "zora-drops-contracts/ZoraNFTCreatorV1.sol";
+import {PACreatorV1} from "../src/PACreatorV1.sol";
 
 contract TokenUriMinterTest is DSTest {
 
-    // TokenUriMinter Defaults
+    // VM init + Base Defaults
+    Vm public constant vm = Vm(HEVM_ADDRESS);        
     uint256 public mintPrice = 100000000000000; // 0.001 ETH
     address public constant DEFAULT_WILDCARD_ADDRESS = address(0x111);
     address public constant SECONDARY_WILDCARD_ADDRESS = address(0x122);
@@ -28,273 +32,547 @@ contract TokenUriMinterTest is DSTest {
     string public tokenURIString2 = "test_tokenURI_2/";
     string public tokenURIString3 = "test_tokenURI_3/";
 
-    // ZORA Init Variables
-    ERC721Drop zoraNFTBase;
-    Vm public constant vm = Vm(HEVM_ADDRESS);    
+    // TokenURI Init
     TokenUriMetadataRenderer public tokenUriRenderer = new TokenUriMetadataRenderer();
     bytes public tokenUriRendererInit = abi.encode(contractURIString1, DEFAULT_WILDCARD_ADDRESS);
     bytes public tokenUriRendererBadInit = abi.encode("", DEFAULT_WILDCARD_ADDRESS);
-    ZoraFeeManager public feeManager;
-    FactoryUpgradeGate public factoryUpgradeGate;
-    address public constant DEFAULT_OWNER_ADDRESS = address(0x222);
-    address public constant DEFAULT_NON_OWNER_ADDRESS = address(0x333);
+    TokenUriMinter uriMinter = new TokenUriMinter(
+        address(tokenUriRenderer)
+    );
+    PACreatorV1 paCreator;
+
+    // ZORA Init
+    address public constant DEFAULT_OWNER_ADDRESS = address(0x23499);
+    address public constant DEFAULT_NON_OWNER_ADDRESS = address(0x478);
     address payable public constant DEFAULT_FUNDS_RECIPIENT_ADDRESS =
-        payable(address(0x444));
+        payable(address(0x21303));
     address payable public constant DEFAULT_ZORA_DAO_ADDRESS =
-        payable(address(0x555));
-    address public constant UPGRADE_GATE_ADMIN_ADDRESS = address(0x666);
-    address public constant marketFilterDAOAddress = address(0x777);
-    address public impl;    
+        payable(address(0x999));
+    ERC721Drop public dropImpl;
+    ZoraNFTCreatorV1 public creator;
+    EditionMetadataRenderer public editionMetadataRenderer;
+    DropMetadataRenderer public dropMetadataRenderer;
 
-    struct Configuration {
-        IMetadataRenderer metadataRenderer;
-        uint64 editionSize;
-        uint16 royaltyBPS;
-        address payable fundsRecipient;
-    }
-
-    modifier setupZoraNFTBase(uint64 editionSize) {
-        zoraNFTBase.initialize({
-            _contractName: "Test NFT",
-            _contractSymbol: "TNFT",
-            _initialOwner: DEFAULT_OWNER_ADDRESS,
-            _fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
-            _editionSize: editionSize,
-            _royaltyBPS: 800,
-            _metadataRenderer: tokenUriRenderer,
-            _metadataRendererInit: tokenUriRendererInit,
-            _salesConfig: IERC721Drop.SalesConfiguration({
-                publicSaleStart: 0,
-                publicSaleEnd: 50000000000,
-                presaleStart: 0,
-                presaleEnd: 0,
-                publicSalePrice: 0,
-                maxSalePurchasePerAddress: 0,
-                presaleMerkleRoot: bytes32(0)
-            })
-        });
-
-        _;
-    }    
-
-    modifier setupZoraNFTBaseBadInit(uint64 editionSize) {
-        vm.expectRevert();
-        zoraNFTBase.initialize({
-            _contractName: "Test NFT",
-            _contractSymbol: "TNFT",
-            _initialOwner: DEFAULT_OWNER_ADDRESS,
-            _fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
-            _editionSize: editionSize,
-            _royaltyBPS: 800,
-            _metadataRenderer: tokenUriRenderer,
-            _metadataRendererInit: tokenUriRendererBadInit,
-            _salesConfig: IERC721Drop.SalesConfiguration({
-                publicSaleStart: 0,
-                publicSaleEnd: 50000000000,
-                presaleStart: 0,
-                presaleEnd: 0,
-                publicSalePrice: 0,
-                maxSalePurchasePerAddress: 0,
-                presaleMerkleRoot: bytes32(0)
-            })
-        });
-        
-        _;
-    }    
-
-    // Sets up ZORA Drop architecture
+    // Sets up ZORA Drop + PACreator architecture
     function setUp() public {
         vm.prank(DEFAULT_ZORA_DAO_ADDRESS);
-        feeManager = new ZoraFeeManager(500, DEFAULT_ZORA_DAO_ADDRESS);
-        factoryUpgradeGate = new FactoryUpgradeGate(UPGRADE_GATE_ADMIN_ADDRESS);
+        ZoraFeeManager feeManager = new ZoraFeeManager(
+            500,
+            DEFAULT_ZORA_DAO_ADDRESS
+        );
         vm.prank(DEFAULT_ZORA_DAO_ADDRESS);
-        impl = address(
-            new ERC721Drop(feeManager, address(0x1234), factoryUpgradeGate, marketFilterDAOAddress)
+        dropImpl = new ERC721Drop(
+            feeManager,
+            address(1234),
+            FactoryUpgradeGate(address(0)),
+            address(0)
         );
-        address payable newDrop = payable(
-            address(new ERC721DropProxy(impl, ""))
+        editionMetadataRenderer = new EditionMetadataRenderer();
+        dropMetadataRenderer = new DropMetadataRenderer();
+        ZoraNFTCreatorV1 impl = new ZoraNFTCreatorV1(
+            address(dropImpl),
+            editionMetadataRenderer,
+            dropMetadataRenderer
         );
-        zoraNFTBase = ERC721Drop(newDrop);
+        creator = ZoraNFTCreatorV1(
+            address(new ZoraNFTCreatorProxy(address(impl), ""))
+        );
+        creator.initialize();  
     }
 
-    function test_MetadataRendererInit() public setupZoraNFTBase(15) { 
-        vm.startPrank(DEFAULT_OWNER_ADDRESS);    
-        assertEq(tokenUriRenderer.contractURIInfo(address(zoraNFTBase)), contractURIString1); 
-        assertEq(tokenUriRenderer.wildcardInfo(address(zoraNFTBase)), DEFAULT_WILDCARD_ADDRESS); 
+    function test_MetadataRendererInit() public  { 
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);   
+        PACreatorV1 paCreator = new PACreatorV1(
+            address(creator),
+            tokenUriRenderer,
+            address(uriMinter)
+        );
+        //  deploy + configure a ZORA drop w/ the token uri minter architecture
+        address configuredDrop = paCreator.deployAndConfigureDrop({
+            name: "Test NFT",
+            symbol: "TNFT",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 1000,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: bytes32(0)
+            }),
+            contractURI: contractURIString1,
+            wildcardAddress: DEFAULT_WILDCARD_ADDRESS,
+            mintPricePerToken: mintPrice   
+        });
+        assertEq(tokenUriRenderer.contractURIInfo(address(configuredDrop)), contractURIString1); 
+        assertEq(tokenUriRenderer.wildcardInfo(address(configuredDrop)), DEFAULT_WILDCARD_ADDRESS); 
     }
-
     
-    function test_MetadataRendererBadInit() public setupZoraNFTBaseBadInit(15) {
-        // expectRevert because empty string passed in as contractURI in bad setup modifer
+    function test_MetadataRendererBadInit() public  {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);        
+        PACreatorV1 paCreator = new PACreatorV1(
+            address(creator),
+            tokenUriRenderer,
+            address(uriMinter)
+        );
+        // expect revert because empty string being set as contractURI
+        vm.expectRevert();         
+        //  deploy + configure a ZORA drop w/ the token uri minter architecture
+        address configuredDrop = paCreator.deployAndConfigureDrop({
+            name: "Test NFT",
+            symbol: "TNFT",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 1000,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: bytes32(0)
+            }),
+            contractURI: "",
+            wildcardAddress: DEFAULT_WILDCARD_ADDRESS,
+            mintPricePerToken: mintPrice   
+        });        
     }    
 
-    function test_MetadataRendererUpdateTokenURI() public setupZoraNFTBase(15) { 
+    function test_MetadataRendererUpdateTokenURI() public  { 
         vm.startPrank(DEFAULT_OWNER_ADDRESS);    
-        tokenUriRenderer.updateTokenURI(address(zoraNFTBase), 1, tokenURIString1);
-        assertEq(tokenUriRenderer.tokenURIInfo(address(zoraNFTBase), 1), tokenURIString1);
+        PACreatorV1 paCreator = new PACreatorV1(
+            address(creator),
+            tokenUriRenderer,
+            address(uriMinter)
+        );
+        //  deploy + configure a ZORA drop w/ the token uri minter architecture
+        address configuredDrop = paCreator.deployAndConfigureDrop({
+            name: "Test NFT",
+            symbol: "TNFT",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 1000,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: bytes32(0)
+            }),
+            contractURI: contractURIString1,
+            wildcardAddress: DEFAULT_WILDCARD_ADDRESS,
+            mintPricePerToken: mintPrice   
+        });        
+        tokenUriRenderer.updateTokenURI(address(configuredDrop), 1, tokenURIString1);
+        assertEq(tokenUriRenderer.tokenURIInfo(address(configuredDrop), 1), tokenURIString1);
     }
 
-    function test_MetadataRendererUpdateContractURI() public setupZoraNFTBase(15) { 
+    function test_MetadataRendererUpdateContractURI() public { 
         vm.startPrank(DEFAULT_OWNER_ADDRESS);    
-        tokenUriRenderer.updateContractURI(address(zoraNFTBase), contractURIString2);
-        assertEq(tokenUriRenderer.contractURIInfo(address(zoraNFTBase)), contractURIString2);
+        PACreatorV1 paCreator = new PACreatorV1(
+            address(creator),
+            tokenUriRenderer,
+            address(uriMinter)
+        );
+        //  deploy + configure a ZORA drop w/ the token uri minter architecture
+        address configuredDrop = paCreator.deployAndConfigureDrop({
+            name: "Test NFT",
+            symbol: "TNFT",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 1000,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: bytes32(0)
+            }),
+            contractURI: contractURIString1,
+            wildcardAddress: DEFAULT_WILDCARD_ADDRESS,
+            mintPricePerToken: mintPrice   
+        });    
+    
+        tokenUriRenderer.updateContractURI(address(configuredDrop), contractURIString2);
+        assertEq(tokenUriRenderer.contractURIInfo(address(configuredDrop)), contractURIString2);
     }   
 
-    function test_MetadataRendererUpdateWildcard() public setupZoraNFTBase(15) { 
+    function test_MetadataRendererUpdateWildcard() public { 
         vm.startPrank(DEFAULT_OWNER_ADDRESS);    
-        tokenUriRenderer.updateWildcardAddress(address(zoraNFTBase), SECONDARY_WILDCARD_ADDRESS);
-        assertEq(tokenUriRenderer.wildcardInfo(address(zoraNFTBase)), SECONDARY_WILDCARD_ADDRESS);
+        PACreatorV1 paCreator = new PACreatorV1(
+            address(creator),
+            tokenUriRenderer,
+            address(uriMinter)
+        );
+        //  deploy + configure a ZORA drop w/ the token uri minter architecture
+        address configuredDrop = paCreator.deployAndConfigureDrop({
+            name: "Test NFT",
+            symbol: "TNFT",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 1000,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: bytes32(0)
+            }),
+            contractURI: contractURIString1,
+            wildcardAddress: DEFAULT_WILDCARD_ADDRESS,
+            mintPricePerToken: mintPrice   
+        });            
+        tokenUriRenderer.updateWildcardAddress(address(configuredDrop), SECONDARY_WILDCARD_ADDRESS);
+        assertEq(tokenUriRenderer.wildcardInfo(address(configuredDrop)), SECONDARY_WILDCARD_ADDRESS);
     }              
 
-    function test_GrantMinterRole() public setupZoraNFTBase(15) {
+    function test_GrantMinterRole() public {
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
-        TokenUriMinter uriMinter = new TokenUriMinter(
-            mintPrice,
-            address(tokenUriRenderer)
-        );        
-        zoraNFTBase.grantRole(zoraNFTBase.MINTER_ROLE(), address(uriMinter));   
-        bool hasMinterRole = zoraNFTBase.hasRole(zoraNFTBase.MINTER_ROLE(), address(uriMinter));
+        PACreatorV1 paCreator = new PACreatorV1(
+            address(creator),
+            tokenUriRenderer,
+            address(uriMinter)
+        );
+        //  deploy + configure a ZORA drop w/ the token uri minter architecture
+        address configuredDrop = paCreator.deployAndConfigureDrop({
+            name: "Test NFT",
+            symbol: "TNFT",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 1000,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: bytes32(0)
+            }),
+            contractURI: contractURIString1,
+            wildcardAddress: DEFAULT_WILDCARD_ADDRESS,
+            mintPricePerToken: mintPrice   
+        });            
+        bool hasMinterRole = ERC721Drop(payable(configuredDrop)).hasRole(ERC721Drop(payable(configuredDrop)).MINTER_ROLE(), address(uriMinter));
         assertTrue(hasMinterRole);
     }
 
-    function test_Mint() public setupZoraNFTBase(15) { 
+    function test_Mint() public { 
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
         // setup array of tokenURIs
         string[] memory testArray = new string[](1);
         testArray[0] = tokenURIString1;
-        // deploy TokenUriMinter contract
-        TokenUriMinter uriMinter = new TokenUriMinter(
-            mintPrice,
-            address(tokenUriRenderer)
-        );            
-        zoraNFTBase.grantRole(zoraNFTBase.MINTER_ROLE(), address(uriMinter));
+        // deploy PACreator Contract
+        PACreatorV1 paCreator = new PACreatorV1(
+            address(creator),
+            tokenUriRenderer,
+            address(uriMinter)
+        );
+        //  deploy + configure a ZORA drop w/ the token uri minter architecture
+        address configuredDrop = paCreator.deployAndConfigureDrop({
+            name: "Test NFT",
+            symbol: "TNFT",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 1000,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: bytes32(0)
+            }),
+            contractURI: contractURIString1,
+            wildcardAddress: DEFAULT_WILDCARD_ADDRESS,
+            mintPricePerToken: mintPrice   
+        });            
         vm.stopPrank();
         address customMintCaller = address(1);
         vm.deal(customMintCaller, 1 ether);
         vm.startPrank(customMintCaller);
         uriMinter.customMint{
             value: mintPrice * testArray.length
-        }(address(zoraNFTBase), customMintCaller, testArray);
-        assertEq(zoraNFTBase.saleDetails().totalMinted, 1);
+        }(address(configuredDrop), customMintCaller, testArray);
+        assertEq(ERC721Drop(payable(configuredDrop)).saleDetails().totalMinted, 1);
         assertEq(customMintCaller.balance, 1 ether - (mintPrice * testArray.length));
-        assertEq(tokenUriRenderer.contractURIInfo(address(zoraNFTBase)), contractURIString1); 
-        assertEq(tokenUriRenderer.tokenURIInfo(address(zoraNFTBase), 1), tokenURIString1);
+        assertEq(tokenUriRenderer.contractURIInfo(configuredDrop), contractURIString1); 
+        assertEq(tokenUriRenderer.tokenURIInfo(configuredDrop, 1), tokenURIString1);
     }
 
-    function test_BatchMint() public setupZoraNFTBase(15) { 
+    function test_BatchMint() public { 
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
         // setup array of tokenURIs
         string[] memory testArray = new string[](2);
         testArray[0] = tokenURIString1;
         testArray[1] = tokenURIString2;
-        // deploy TokenUriMinter contract
-        TokenUriMinter uriMinter = new TokenUriMinter(
-            mintPrice,
-            address(tokenUriRenderer)
-        );            
-        zoraNFTBase.grantRole(zoraNFTBase.MINTER_ROLE(), address(uriMinter));
+        // deploy PACreator Contract
+        PACreatorV1 paCreator = new PACreatorV1(
+            address(creator),
+            tokenUriRenderer,
+            address(uriMinter)
+        );
+        //  deploy + configure a ZORA drop w/ the token uri minter architecture
+        address configuredDrop = paCreator.deployAndConfigureDrop({
+            name: "Test NFT",
+            symbol: "TNFT",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 1000,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: bytes32(0)
+            }),
+            contractURI: contractURIString1,
+            wildcardAddress: DEFAULT_WILDCARD_ADDRESS,
+            mintPricePerToken: mintPrice   
+        });            
         vm.stopPrank();
         address customMintCaller = address(1);
         vm.deal(customMintCaller, 1 ether);
         vm.startPrank(customMintCaller);
         uriMinter.customMint{
             value: mintPrice * testArray.length
-        }(address(zoraNFTBase), customMintCaller, testArray);
-        assertEq(zoraNFTBase.saleDetails().totalMinted, 2);
+        }(configuredDrop, customMintCaller, testArray);
+        assertEq(ERC721Drop(payable(configuredDrop)).saleDetails().totalMinted, 2);
         assertEq(customMintCaller.balance, 1 ether - (mintPrice * testArray.length));
-        assertEq(tokenUriRenderer.contractURIInfo(address(zoraNFTBase)), contractURIString1); 
-        assertEq(tokenUriRenderer.tokenURIInfo(address(zoraNFTBase), 1), tokenURIString1);
-        assertEq(tokenUriRenderer.tokenURIInfo(address(zoraNFTBase), 2), tokenURIString2);
+        assertEq(tokenUriRenderer.contractURIInfo(configuredDrop), contractURIString1); 
+        assertEq(tokenUriRenderer.tokenURIInfo(configuredDrop, 1), tokenURIString1);
+        assertEq(tokenUriRenderer.tokenURIInfo(configuredDrop, 2), tokenURIString2);
     }    
 
-    function test_updateTokenURIPostMint() public setupZoraNFTBase(15) { 
+    function test_updateTokenURIPostMint() public { 
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
         // setup array of tokenURIs
         string[] memory testArray = new string[](1);
         testArray[0] = tokenURIString1;
-        // deploy TokenUriMinter contract
-        TokenUriMinter uriMinter = new TokenUriMinter(
-            mintPrice,
-            address(tokenUriRenderer)
-        );          
-        zoraNFTBase.grantRole(zoraNFTBase.MINTER_ROLE(), address(uriMinter));
+        // deploy PACreator Contract
+        PACreatorV1 paCreator = new PACreatorV1(
+            address(creator),
+            tokenUriRenderer,
+            address(uriMinter)
+        );
+        //  deploy + configure a ZORA drop w/ the token uri minter architecture
+        address configuredDrop = paCreator.deployAndConfigureDrop({
+            name: "Test NFT",
+            symbol: "TNFT",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 1000,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: bytes32(0)
+            }),
+            contractURI: contractURIString1,
+            wildcardAddress: DEFAULT_WILDCARD_ADDRESS,
+            mintPricePerToken: mintPrice   
+        });            
         vm.stopPrank();
         address customMintCaller = address(1);
         vm.deal(customMintCaller, 1 ether);
         vm.startPrank(customMintCaller);
         uriMinter.customMint{
             value: mintPrice * testArray.length
-        }(address(zoraNFTBase), customMintCaller, testArray);
-        assertEq(zoraNFTBase.saleDetails().totalMinted, 1);
+        }(configuredDrop, customMintCaller, testArray);
+        assertEq(ERC721Drop(payable(configuredDrop)).saleDetails().totalMinted, 1);    
         assertEq(customMintCaller.balance, 1 ether - (mintPrice));
-        assertEq(tokenUriRenderer.contractURIInfo(address(zoraNFTBase)), contractURIString1); 
-        assertEq(tokenUriRenderer.tokenURIInfo(address(zoraNFTBase), 1), tokenURIString1);
+        assertEq(tokenUriRenderer.contractURIInfo(configuredDrop), contractURIString1); 
+        assertEq(tokenUriRenderer.tokenURIInfo(configuredDrop, 1), tokenURIString1);
         vm.stopPrank();
         
         // example of non zora drop admin, token owner, or jen stark
         //      being barred from updating tokenURI post mint
         vm.startPrank(DEFAULT_NON_OWNER_ADDRESS);
         vm.expectRevert();
-        tokenUriRenderer.updateTokenURI(address(zoraNFTBase), 1, tokenURIString2);
+        tokenUriRenderer.updateTokenURI(configuredDrop, 1, tokenURIString2);
         vm.stopPrank();
 
         // example of token owner being able to change tokenURI
         vm.startPrank(customMintCaller);
-        tokenUriRenderer.updateTokenURI(address(zoraNFTBase), 1, tokenURIString2);
-        assertEq(tokenUriRenderer.tokenURIInfo(address(zoraNFTBase), 1), tokenURIString2);
+        tokenUriRenderer.updateTokenURI(configuredDrop, 1, tokenURIString2);
+        assertEq(tokenUriRenderer.tokenURIInfo(configuredDrop, 1), tokenURIString2);
         vm.stopPrank();
 
         // example of zora drop admin being able to change tokenURI
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
-        tokenUriRenderer.updateTokenURI(address(zoraNFTBase), 1, tokenURIString1);
-        assertEq(tokenUriRenderer.tokenURIInfo(address(zoraNFTBase), 1), tokenURIString1);
+        tokenUriRenderer.updateTokenURI(configuredDrop, 1, tokenURIString1);
+        assertEq(tokenUriRenderer.tokenURIInfo(configuredDrop, 1), tokenURIString1);
         vm.stopPrank();         
 
         // example of wildcardAddress being able to change tokenURI
         vm.startPrank(DEFAULT_WILDCARD_ADDRESS);
-        tokenUriRenderer.updateTokenURI(address(zoraNFTBase), 1, tokenURIString3);
-        assertEq(tokenUriRenderer.tokenURIInfo(address(zoraNFTBase), 1), tokenURIString3);
+        tokenUriRenderer.updateTokenURI(configuredDrop, 1, tokenURIString3);
+        assertEq(tokenUriRenderer.tokenURIInfo(configuredDrop, 1), tokenURIString3);
         vm.stopPrank();        
     }    
 
-    function test_updateContractURIPostDeploy() public setupZoraNFTBase(15) { 
+    function test_updateContractURIPostDeploy() public { 
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
-        assertEq(tokenUriRenderer.contractURIInfo(address(zoraNFTBase)), contractURIString1); 
+        // deploy PACreator Contract
+        PACreatorV1 paCreator = new PACreatorV1(
+            address(creator),
+            tokenUriRenderer,
+            address(uriMinter)
+        );
+        //  deploy + configure a ZORA drop w/ the token uri minter architecture
+        address configuredDrop = paCreator.deployAndConfigureDrop({
+            name: "Test NFT",
+            symbol: "TNFT",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 1000,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: bytes32(0)
+            }),
+            contractURI: contractURIString1,
+            wildcardAddress: DEFAULT_WILDCARD_ADDRESS,
+            mintPricePerToken: mintPrice   
+        });            
+        vm.stopPrank();
+        assertEq(tokenUriRenderer.contractURIInfo(configuredDrop), contractURIString1); 
         vm.stopPrank();
         
         // example of non zora drop admin being barred from updating contractURI post deploy
         vm.startPrank(DEFAULT_NON_OWNER_ADDRESS);
         vm.expectRevert();
-        tokenUriRenderer.updateContractURI(address(zoraNFTBase), contractURIString2);
+        tokenUriRenderer.updateContractURI(configuredDrop, contractURIString2);
         vm.stopPrank();
         
         // example of zora drop admin being able to update contractURI post deploy        
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
-        tokenUriRenderer.updateContractURI(address(zoraNFTBase), contractURIString2);
-        assertEq(tokenUriRenderer.contractURIInfo(address(zoraNFTBase)), contractURIString2);
+        tokenUriRenderer.updateContractURI(configuredDrop, contractURIString2);
+        assertEq(tokenUriRenderer.contractURIInfo(configuredDrop), contractURIString2);
     }    
 
-    function test_updateWildcardAddressPostDeploy() public setupZoraNFTBase(15) { 
+    function test_updateWildcardAddressPostDeploy() public { 
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
-        assertEq(tokenUriRenderer.wildcardInfo(address(zoraNFTBase)), DEFAULT_WILDCARD_ADDRESS); 
+        // deploy PACreator Contract
+        PACreatorV1 paCreator = new PACreatorV1(
+            address(creator),
+            tokenUriRenderer,
+            address(uriMinter)
+        );
+        //  deploy + configure a ZORA drop w/ the token uri minter architecture
+        address configuredDrop = paCreator.deployAndConfigureDrop({
+            name: "Test NFT",
+            symbol: "TNFT",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 1000,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: bytes32(0)
+            }),
+            contractURI: contractURIString1,
+            wildcardAddress: DEFAULT_WILDCARD_ADDRESS,
+            mintPricePerToken: mintPrice   
+        });            
+        assertEq(tokenUriRenderer.wildcardInfo(configuredDrop), DEFAULT_WILDCARD_ADDRESS); 
         vm.stopPrank();
         
         // example of non zora drop admin being barred from updating wildcardAddress post deploy
         vm.startPrank(DEFAULT_NON_OWNER_ADDRESS);
         vm.expectRevert();
-        tokenUriRenderer.updateWildcardAddress(address(zoraNFTBase), SECONDARY_WILDCARD_ADDRESS);
+        tokenUriRenderer.updateWildcardAddress(configuredDrop, SECONDARY_WILDCARD_ADDRESS);
         vm.stopPrank();
         
         // example of zora drop admin being able to update wildcardAddress post deploy        
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
-        tokenUriRenderer.updateWildcardAddress(address(zoraNFTBase), SECONDARY_WILDCARD_ADDRESS);
-        assertEq(tokenUriRenderer.wildcardInfo(address(zoraNFTBase)), SECONDARY_WILDCARD_ADDRESS);
+        tokenUriRenderer.updateWildcardAddress(configuredDrop, SECONDARY_WILDCARD_ADDRESS);
+        assertEq(tokenUriRenderer.wildcardInfo(configuredDrop), SECONDARY_WILDCARD_ADDRESS);
         vm.stopPrank();
 
         // example of wildcardAddress being able to update wildcardAddress post deploy        
         vm.startPrank(SECONDARY_WILDCARD_ADDRESS);
-        tokenUriRenderer.updateWildcardAddress(address(zoraNFTBase), DEFAULT_OWNER_ADDRESS);
-        assertEq(tokenUriRenderer.wildcardInfo(address(zoraNFTBase)), DEFAULT_OWNER_ADDRESS);
+        tokenUriRenderer.updateWildcardAddress(configuredDrop, DEFAULT_OWNER_ADDRESS);
+        assertEq(tokenUriRenderer.wildcardInfo(configuredDrop), DEFAULT_OWNER_ADDRESS);
         vm.stopPrank();        
     }     
+
+    function test_updateMintPricePerTokenPostDeploy() public { 
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        // deploy PACreator Contract
+        PACreatorV1 paCreator = new PACreatorV1(
+            address(creator),
+            tokenUriRenderer,
+            address(uriMinter)
+        );
+        //  deploy + configure a ZORA drop w/ the token uri minter architecture
+        address configuredDrop = paCreator.deployAndConfigureDrop({
+            name: "Test NFT",
+            symbol: "TNFT",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 1000,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: bytes32(0)
+            }),
+            contractURI: contractURIString1,
+            wildcardAddress: DEFAULT_WILDCARD_ADDRESS,
+            mintPricePerToken: mintPrice   
+        }); 
+        assertEq(tokenUriRenderer.contractURIInfo(configuredDrop), contractURIString1); 
+        vm.stopPrank();
+        
+        // example of non zora drop admin being barred from updating contractURI post deploy
+        vm.startPrank(DEFAULT_NON_OWNER_ADDRESS);
+        vm.expectRevert();
+        tokenUriRenderer.updateContractURI(configuredDrop, contractURIString2);
+        vm.stopPrank();
+        
+        // example of zora drop admin being able to update contractURI post deploy        
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        tokenUriRenderer.updateContractURI(configuredDrop, contractURIString2);
+        assertEq(tokenUriRenderer.contractURIInfo(configuredDrop), contractURIString2);
+    }    
 }

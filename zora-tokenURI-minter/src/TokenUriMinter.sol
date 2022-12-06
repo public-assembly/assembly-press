@@ -35,6 +35,9 @@ contract TokenUriMinter is
     /// @notice Funds transfer not successful to drops contract
     error TransferNotSuccessful();
 
+    /// @notice Caller is not an admin on target zora drop
+    error Access_OnlyAdmin();
+
     // ||||||||||||||||||||||||||||||||
     // ||| EVENTS |||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
@@ -43,7 +46,7 @@ contract TokenUriMinter is
     event Mint(address minter, address mintRecipient, uint256 tokenId, string tokenURI);
     
     /// @notice mintPrice updated notice
-    event MintPriceUpdated(address sender, uint256 newMintPrice);
+    event MintPriceUpdated(address sender, address targetZoraDrop, uint256 newMintPrice);
 
     /// @notice metadataRenderer updated notice
     event MetadataRendererUpdated(address sender, address newRenderer);    
@@ -54,7 +57,9 @@ contract TokenUriMinter is
     
     bytes32 public immutable MINTER_ROLE = keccak256("MINTER");
 
-    uint256 public mintPricePerToken;
+    mapping(address => uint256) public mintPricePerToken;
+    
+    // uint256 public mintPricePerToken;
 
     address public tokenUriMetadataRenderer;
 
@@ -62,8 +67,8 @@ contract TokenUriMinter is
     // ||| CONSTRUCTOR ||||||||||||||||
     // ||||||||||||||||||||||||||||||||  
 
-    constructor(uint256 _mintPricePerToken, address _tokenUriMetadataRenderer) {
-        mintPricePerToken = _mintPricePerToken;
+    constructor(address _tokenUriMetadataRenderer) {
+        // mintPricePerToken = _mintPricePerToken;
         tokenUriMetadataRenderer = _tokenUriMetadataRenderer;
     }
 
@@ -91,7 +96,7 @@ contract TokenUriMinter is
         }
 
         // check if total mint price is correct
-        if (msg.value != mintPricePerToken * tokenURIs.length) {
+        if (msg.value != mintPricePerToken[zoraDrop] * tokenURIs.length) {
             revert WrongPrice();
         }
 
@@ -145,13 +150,17 @@ contract TokenUriMinter is
     // ||| ADMIN FUNCTIONS ||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    /// @dev updates mintPricePerToken variable
+    /// @dev updates uint256 value in mintPricePerToken mapping
     /// @param newMintPricePerToken new mintPrice value
-    function setMintPrice(uint256 newMintPricePerToken) public onlyOwner {
+    function setMintPrice(address zoraDrop, uint256 newMintPricePerToken) public {
 
-        mintPricePerToken = newMintPricePerToken;
+        if (!ERC721DropMinterInterface(zoraDrop).isAdmin(msg.sender)) {
+            revert Access_OnlyAdmin();
+        }
 
-        emit MintPriceUpdated(msg.sender, newMintPricePerToken);
+        mintPricePerToken[zoraDrop] = newMintPricePerToken;
+
+        emit MintPriceUpdated(msg.sender, zoraDrop, newMintPricePerToken);
     }    
 
     /// @dev updates tokenUriMetadataRenderer variable
