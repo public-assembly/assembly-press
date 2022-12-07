@@ -2,11 +2,13 @@
 pragma solidity ^0.8.15;
 
 import {IMetadataRenderer} from "zora-drops-contracts/interfaces/IMetadataRenderer.sol";
-import {IArtifactMachineMetadataRenderer} from "./interfaces/IArtifactMachineMetadataRenderer.sol";
+import {WildInterface} from "./interfaces/WildInterface.sol";
 import {IERC721AUpgradeable} from "ERC721A-Upgradeable/IERC721AUpgradeable.sol";
 import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
+import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
 import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/interfaces/IERC721MetadataUpgradeable.sol";
-import {MetadataRenderAdminCheck} from "zora-drops-contracts/metadata/MetadataRenderAdminCheck.sol";
+import {ERC721DropMinterInterface} from "./interfaces/ERC721DropMinterInterface.sol";
+import {IAccessControlRegistry} from "onchain/interfaces/IAccessControlRegistry.sol";
 
 /** 
  * @title ArtifactMachineMetadataRenderer
@@ -14,10 +16,9 @@ import {MetadataRenderAdminCheck} from "zora-drops-contracts/metadata/MetadataRe
  * @dev Can be used by any contract
  * @author Max Bochman
  */
-contract ArtifactMachineMetadataRenderer is 
-    MetadataRenderAdminCheck,
+contract WildRenderer is 
     IMetadataRenderer, 
-    IArtifactMachineMetadataRenderer 
+    WildInterface 
 {
 
     // ||||||||||||||||||||||||||||||||
@@ -25,7 +26,6 @@ contract ArtifactMachineMetadataRenderer is
     // ||||||||||||||||||||||||||||||||     
 
     error No_MetadataAccess();
-    error No_WildcardAccess();
     error Cannot_SetBlank();
     error Token_DoesntExist();
     error Address_NotInitialized();
@@ -62,13 +62,7 @@ contract ArtifactMachineMetadataRenderer is
     event CollectionInitialized(
         address indexed target,
         string indexed contractURI,
-        address indexed wildcardAddress
-    );    
-
-    /// @notice Event for updated WildcardAddress
-    event WildcardAddressUpdated(
-        address indexed sender,
-        address indexed newWildcardAddress
+        address indexed accessControl
     );    
 
     // ||||||||||||||||||||||||||||||||
@@ -78,44 +72,56 @@ contract ArtifactMachineMetadataRenderer is
     /// @notice ContractURI mapping storage
     mapping(address => string) public contractURIInfo;
 
-    /// @notice wildcardAddress mapping storage
-    mapping(address => address) public wildcardInfo;
-
     /// @notice tokenURI mapping storage
     mapping(address => mapping(uint256 => string)) public artifactInfo;
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| MODIFIERS ||||||||||||||||||
-    // |||||||||||||||||||||||||||||||| 
-
-    /// @notice Modifier to require the sender to be an admin
-    /// @param target address that the user wants to modify
-    /// @param tokenId uint256 tokenId to check
-    modifier metadataAccessCheck(address target, uint256 tokenId ) {
-        if ( 
-            // check if msg.sender is admin of underlying Zora Drop Contract
-            target != msg.sender && !IERC721Drop(target).isAdmin(msg.sender) 
-                // check if msg.sender owns specific tokenId 
-                && IERC721AUpgradeable(target).ownerOf(tokenId) != msg.sender
-                // check if msg.sender is wildcard address for target
-                && wildcardInfo[target] != msg.sender
-        ) {
-            revert No_MetadataAccess();
-        }    
-        _;
-    }         
+    // zora contract => access control module in use
+    mapping(address => address) public dropToAccessControl;
 
     // ||||||||||||||||||||||||||||||||
     // ||| EXTERNAL WRITE FUNCTIONS |||
     // ||||||||||||||||||||||||||||||||  
+
+    /// @notice Default initializer for collection data from a specific contract
+    /// @notice contractURI must be set to non blank string value 
+    /// @param data data to init with
+    function initializeWithData(bytes memory data) external {
+        // data format: contractURI, accessControl, accessControlInit
+        (
+            string memory initContractURI, 
+            address accessControl, 
+            bytes memory accessControlInit
+        ) = abi.decode(data, (string, address, bytes));
+
+        // check if contractURI is being set to empty string
+        if (bytes(initContractURI).length == 0) {
+            revert Cannot_SetBlank();
+        }
+
+        contractURIInfo[msg.sender] = initContractURI;
+
+        IAccessControlRegistry(accessControl).initializeWithData(accessControlInit);
+
+        dropToAccessControl[msg.sender] = accessControl;    
+        
+        emit CollectionInitialized({
+            target: msg.sender,
+            contractURI: initContractURI,
+            accessControl: accessControl
+        });
+    }   
 
     /// @notice Admin function to update contractURI
     /// @param target target contractURI
     /// @param newContractURI new contractURI
     function updateContractURI(address target, string memory newContractURI)
         external
-        requireSenderAdmin(target)
     {
+        // check if msg.sender has access to update metadata for a token
+        if (IAccessControlRegistry(dropToAccessControl[target]).getAccessLevel(address(this), msg.sender) < 2) {
+            revert No_MetadataAccess();
+        }
+
         if (bytes(contractURIInfo[target]).length == 0) {
             revert Address_NotInitialized();
         }
@@ -132,15 +138,20 @@ contract ArtifactMachineMetadataRenderer is
     /// @notice Admin function to updateArtifact
     /// @param target address which collection to target
     /// @param tokenId uint256 which tokenId to target
+    /// @param addressToCheck address address to check access for
     /// @param newTokenURI string new token URI after update
-    function updateArtifact(address target, uint256 tokenId, string memory newTokenURI)
+    function updateArtifact(address target, uint256 tokenId, address addressToCheck, string memory newTokenURI)
         external returns (bool)
     {
+        // // check to see if token exists
+        // if (ERC721DropMinterInterface(target).saleDetails(target).totalMinted < tokenId) {
+        //     revert Token_DoesntExist();
+        // } 
 
         // check if target collection has been initialized
         if (bytes(contractURIInfo[target]).length == 0) {
             revert Address_NotInitialized();
-        }
+        }        
 
         // check if newTokenURI is empty string
         if (bytes(newTokenURI).length == 0) {
@@ -150,76 +161,29 @@ contract ArtifactMachineMetadataRenderer is
         // check if tokenURI has been set before
         if (bytes(artifactInfo[target][tokenId]).length == 0) {
 
-            _initializeArtifact(target, tokenId, newTokenURI);        
+            _initializeArtifact(target, tokenId, addressToCheck, newTokenURI);        
         } else {
 
-            _updateArtifact(target, tokenId, newTokenURI);
+            _updateArtifact(target, tokenId, addressToCheck, newTokenURI);
         }
 
         artifactInfo[target][tokenId] = newTokenURI;
 
         return true;
-    }
-    
-    /// @notice Admin function to update wildcardAddress
-    /// @param target address
-    /// @param newWildcardAddress address
-    function updateWildcardAddress(address target, address newWildcardAddress)
-        external
-    {
-        if (
-            // check if msg.sender is admin of underlying Zora Drop Contract
-            target != msg.sender && !IERC721Drop(target).isAdmin(msg.sender)
-                // check if msg.sender is wildcard address for target
-                && msg.sender != wildcardInfo[target]
-        ) {
-            revert No_WildcardAccess();
-        }
-
-        // check if target collection has been initialized
-        if (bytes(contractURIInfo[target]).length == 0) {
-            revert Address_NotInitialized();
-        }        
-
-        wildcardInfo[target] = newWildcardAddress;
-
-        emit WildcardAddressUpdated({
-            sender: msg.sender,
-            newWildcardAddress: newWildcardAddress        
-        });
-    }
-
-    /// @notice Default initializer for collection data from a specific contract
-    /// @notice contractURI must be set to non blank string value, 
-    /// @param data data to init with
-    function initializeWithData(bytes memory data) external {
-        // data format: contractURI, wildcardAddress
-        (string memory initContractURI, address initWildcard) = abi.decode(data, (string, address));
-
-        // check if contractURI is being set to empty string
-        if (bytes(initContractURI).length == 0) {
-            revert Cannot_SetBlank();
-        }
-
-        contractURIInfo[msg.sender] = initContractURI;
-
-        // wildcardAddress CAN be set to address(0)
-        wildcardInfo[msg.sender] = initWildcard;
-        
-        emit CollectionInitialized({
-            target: msg.sender,
-            contractURI: initContractURI,
-            wildcardAddress: initWildcard
-        });
-    }    
+    }              
 
     // ||||||||||||||||||||||||||||||||
     // ||| INTERNAL WRITE FUNCTIONS |||
     // ||||||||||||||||||||||||||||||||     
 
-    function _initializeArtifact(address target, uint256 tokenId, string memory newTokenURI)
+    function _initializeArtifact(address target, uint256 tokenId, address addressToCheck, string memory newTokenURI)
         internal
     {
+        // check if msg.sender has access to initialize metadata for a token
+        if (IAccessControlRegistry(dropToAccessControl[target]).getAccessLevel(address(this), addressToCheck) < 1) {
+            revert No_MetadataAccess();
+        }
+
         artifactInfo[target][tokenId] = newTokenURI;
 
         emit ArtifactInitialized({
@@ -230,10 +194,14 @@ contract ArtifactMachineMetadataRenderer is
         });
     }
 
-    function _updateArtifact(address target, uint256 tokenId, string memory newTokenURI)
+    function _updateArtifact(address target, uint256 tokenId, address addressToCheck, string memory newTokenURI)
         internal
-        metadataAccessCheck(target, tokenId)
     {
+        // check if msg.sender has access to update metadata for a token
+        if (IAccessControlRegistry(dropToAccessControl[target]).getAccessLevel(address(this), addressToCheck) < 2) {
+            revert No_MetadataAccess();
+        }
+
         artifactInfo[target][tokenId] = newTokenURI;
 
         emit ArtifactUpdated({
@@ -242,7 +210,7 @@ contract ArtifactMachineMetadataRenderer is
             tokenId: tokenId,
             tokenURI: newTokenURI 
         });
-    }     
+    }
 
     // ||||||||||||||||||||||||||||||||
     // ||| VIEW FUNCTIONS |||||||||||||

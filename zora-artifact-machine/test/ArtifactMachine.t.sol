@@ -14,7 +14,6 @@ import "zora-drops-contracts/ZoraNFTCreatorProxy.sol";
 import "zora-drops-contracts/ZoraNFTCreatorV1.sol";
 import {ArtifactMachine} from "../src/ArtifactMachine.sol";
 import {ArtifactMachineMetadataRenderer} from "../src/ArtifactMachineMetadataRenderer.sol";
-import {IArtifactMachineMetadataRenderer} from "../src/interfaces/IArtifactMachineMetadataRenderer.sol";
 import {ERC721DropMinterInterface} from "../src/interfaces/ERC721DropMinterInterface.sol";
 import {PACreatorV1} from "../src/PACreatorV1.sol";
 
