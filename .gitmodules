@@ -1,0 +1,3 @@
+[submodule "zora-artifact-machine/lib/onchain"]
+	path = zora-artifact-machine/lib/onchain
+	url = https://github.com/public-assembly/onchain
