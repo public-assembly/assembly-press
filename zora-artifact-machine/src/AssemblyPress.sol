@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import {IMetadataRenderer} from "zora-drops-contracts/interfaces/IMetadataRenderer.sol";
 import {IZoraCreatorInterface} from "./interfaces/IZoraCreatorInterface.sol";
 import {IAccessControlRegistry} from "onchain/interfaces/IAccessControlRegistry.sol";
 import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
@@ -20,7 +19,6 @@ import {PublisherStorage} from "./Publisher.sol";
  *
  */
 contract AssemblyPress is
-    IMetadataRenderer, 
     Ownable, 
     ReentrancyGuard, 
     PublisherStorage  
@@ -119,40 +117,40 @@ contract AssemblyPress is
         return newDropAddress;
     }
 
-    function promoteToEdition(
-        address zoraDrop,
-        uint256 tokenId,        
-        string memory name,
-        string memory symbol,
-        uint64 editionSize,
-        uint16 royaltyBPS,
-        address payable fundsRecipient,
-        address defaultAdmin,        
-        IERC721Drop.SalesConfiguration memory saleConfig,
-        string memory description
-    ) public nonReentrant returns (address) {
+    // function promoteToEdition(
+    //     address zoraDrop,
+    //     uint256 tokenId,        
+    //     string memory name,
+    //     string memory symbol,
+    //     uint64 editionSize,
+    //     uint16 royaltyBPS,
+    //     address payable fundsRecipient,
+    //     address defaultAdmin,        
+    //     IERC721Drop.SalesConfiguration memory saleConfig,
+    //     string memory description
+    // ) public nonReentrant returns (address) {
 
-        // check if msg.sender has publication access
-        if (IAccessControlRegistry(dropAccessControl[zoraDrop]).getAccessLevel(address(this), msg.sender) < 1) {
-            revert No_PublicationAccess();
-        }                 
+    //     // check if msg.sender has publication access
+    //     if (IAccessControlRegistry(dropAccessControl[zoraDrop]).getAccessLevel(address(this), msg.sender) < 1) {
+    //         revert No_PublicationAccess();
+    //     }                 
 
-        // deploy zora collection that pulls info from PublisherStorage
-        address newDropAddress = IZoraCreatorInterface(zoraNFTCreatorProxy).createEdition(
-            name,
-            symbol,
-            editionSize,
-            royaltyBPS,
-            fundsRecipient,
-            defaultAdmin,
-            saleConfig,
-            description,
-            zoraDrop.tokenURI(tokenId),
-            zoraDrop.tokenURI(tokenId)
-        );
+    //     // deploy zora collection that pulls info from PublisherStorage
+    //     address newDropAddress = IZoraCreatorInterface(zoraNFTCreatorProxy).createEdition(
+    //         name,
+    //         symbol,
+    //         editionSize,
+    //         royaltyBPS,
+    //         fundsRecipient,
+    //         defaultAdmin,
+    //         saleConfig,
+    //         description,
+    //         zoraDrop.tokenURI(tokenId),
+    //         zoraDrop.tokenURI(tokenId)
+    //     );
 
-        return newDropAddress;
-    }    
+    //     return newDropAddress;
+    // }    
 
     // ||||||||||||||||||||||||||||||||
     // ||| ADMIN FUNCTIONS ||||||||||||

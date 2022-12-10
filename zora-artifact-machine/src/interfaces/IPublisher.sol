@@ -14,14 +14,14 @@ interface IPublisher {
     // ||| FUNCTIONS ||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    /// @notice CHANGE
-    function initializeArtifact(ArtifactDetails memory artifactDetails) external returns (bool);   
+    // /// @notice CHANGE
+    // function initializeArtifact(ArtifactDetails memory artifactDetails) external returns (bool);   
 
-    /// @notice CHANGE
-    function updateArtifact(address, uint256, address, string memory) external returns (bool);
+    // /// @notice CHANGE
+    // function updateArtifact(address, uint256, address, string memory) external returns (bool);
 
-    /// @notice CHANGE
-    function updateContractURI(address, string memory) external; 
+    // /// @notice CHANGE
+    // function updateContractURI(address, string memory) external; 
 
     // ||||||||||||||||||||||||||||||||
     // ||| EVENTS |||||||||||||||||||||

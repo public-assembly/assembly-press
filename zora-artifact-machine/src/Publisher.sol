@@ -99,7 +99,7 @@ contract Publisher is
         }
 
         // set artifactInfo storage for a given ZORA ERC721Drop contract => tokenId
-        (bool artifactSuccess) = _createArtifacts(zoraDrop, mintRecipient, artifactDetails);
+        (bool artifactSuccess,,) = _createArtifacts(zoraDrop, mintRecipient, artifactDetails);
 
         // if storage update fails revert transaction
         if (!artifactSuccess) {
@@ -143,7 +143,7 @@ contract Publisher is
             }        
 
             // check if tokenRenderer is zero address
-            if (artifactDetails[i].artifactRenderer = address(0)){
+            if (artifactDetails[i].artifactRenderer == address(0)){
                 revert Cannot_SetToZeroAddress();
             }
 
@@ -152,7 +152,7 @@ contract Publisher is
                 revert Cannot_SetBlank();
             }        
 
-            artifactInfo[zoraDrop][tokenId][artifactDetails[i]];
+            artifactInfo[zoraDrop][tokenId] = artifactDetails[i];
 
             emit ArtifactCreated(
                 msg.sender,
@@ -255,7 +255,7 @@ contract Publisher is
             } 
 
             // check if tokenRenderer is zero address
-            if (artifactDetails[i].artifactRenderer = address(0)) {
+            if (artifactDetails[i].artifactRenderer == address(0)) {
                 revert Cannot_SetToZeroAddress();
             }
 
@@ -264,7 +264,7 @@ contract Publisher is
                 revert Cannot_SetBlank();
             }   
 
-            artifactInfo[zoraDrop][tokenIds[i]][artifactDetails[i]]; 
+            artifactInfo[zoraDrop][tokenIds[i]] = artifactDetails[i]; 
 
             // emit ArtifactEdited event
             emit ArtifactEdited(
@@ -307,7 +307,7 @@ contract Publisher is
     {
         string memory uri = ITokenMetadataKey(artifactInfo[msg.sender][tokenId].artifactRenderer).decodeTokenURI(artifactInfo[msg.sender][tokenId].artifactMetadata);
         if (bytes(uri).length == 0) revert Token_DoesntExist();
-        return artifactInfo[msg.sender][tokenId];
+        return uri;
     }
 
     /// @notice contractURI + tokenUri information custom getter
@@ -317,7 +317,6 @@ contract Publisher is
     function publisherExplorer(address zoraDrop, uint256 tokenId)
         external
         view
-        override
         returns (string memory, string memory)
     {
         
@@ -325,7 +324,7 @@ contract Publisher is
             revert Address_NotInitialized();
         }
         
-        if (IMetadataRenderer(contractURIInfo[zoraDrop]).length == 0) {
+        if (bytes(contractURIInfo[zoraDrop]).length == 0) {
             return (contractURIInfo[zoraDrop], "");
         }
 

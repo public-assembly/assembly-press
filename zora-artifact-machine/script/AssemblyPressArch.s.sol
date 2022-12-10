@@ -14,6 +14,8 @@ contract DeployCore is Script {
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
+        address editionMetadataRendererAddressGoerli = 0x2f5C21EF9DdFf9A1FE76a1c55dd5112fcf2EfD39;
+
         // creator proxy address from https://github.com/ourzora/zora-drops-contracts/blob/main/addresses/1.json
         // address zoraNFTCreatorProxy = 0xF74B146ce44CC162b601deC3BE331784DB111DC1; // MAINNET
         address zoraNFTCreatorProxy = 0xb9583D05Ba9ba8f7F14CCEe3Da10D2bc0A72f519; // GOERLI
@@ -26,6 +28,7 @@ contract DeployCore is Script {
 
         new AssemblyPress(
             zoraNFTCreatorProxy,
+            editionMetadataRendererAddressGoerli,
             address(publisher)
         );
 
