@@ -31,7 +31,7 @@ contract DefaultTokenMetadataKey is ITokenMetadataKey {
         returns (string memory)
     {
         // data format: tokenUri
-        (string memory tokenUri) = abi.decode(data, (string));
+        (string memory tokenUri) = abi.decode(artifactMetadata, (string));
 
         return tokenUri;
     }

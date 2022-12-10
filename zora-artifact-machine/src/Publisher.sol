@@ -35,21 +35,21 @@ contract Publisher is
         // data format: contractURI, mintPricePerToken, accessControlModule, accessControlInit
         (
             string memory contractUriInit, 
-            uint256 mintPricePerToken,
+            uint256 mintPriceInit,
             address accessControlModule, 
             bytes memory accessControlInit
-        ) = abi.decode(data, (string, address, bytes));
+        ) = abi.decode(data, (string, uint256, address, bytes));
 
         // check if contractURI is being set to empty string
-        if (bytes(initContractURI).length == 0) {
+        if (bytes(contractUriInit).length == 0) {
             revert Cannot_SetBlank();
         }
 
-        contractURIInfo[msg.sender] = initContractURI;
+        contractURIInfo[msg.sender] = contractUriInit;
 
-        mintPricePerToken[target] = newMintPricePerToken;
+        mintPricePerToken[msg.sender] = mintPriceInit;
 
-        emit MintPriceEdited(msg.sender, target, newMintPricePerToken);        
+        emit MintPriceEdited(msg.sender, msg.sender, mintPriceInit);        
 
         IAccessControlRegistry(accessControlModule).initializeWithData(accessControlInit);
 
@@ -58,7 +58,7 @@ contract Publisher is
         emit CollectionInitialized({
             target: msg.sender,
             contractURI: contractUriInit,
-            mintPricePerToken: mintPricePerToken,
+            mintPricePerToken: mintPriceInit,
             accessControl: accessControlModule,
             accessControlInit: accessControlInit
         });
@@ -76,7 +76,7 @@ contract Publisher is
     function createArtifacts(
         address zoraDrop,
         address mintRecipient,
-        []ArtifactDetails memory artifactDetails
+        ArtifactDetails[] memory artifactDetails
     ) external payable nonReentrant {
 
         // check if Publisher.sol contract has MINTER_ROLE on target ZORA Drop contract
@@ -89,12 +89,12 @@ contract Publisher is
         }
 
         // check if msg.sender has publication access
-        if (IAccessControlRegistry(dropAccessControl[target]).getAccessLevel(address(this), msg.sender) < 1) {
+        if (IAccessControlRegistry(dropAccessControl[zoraDrop]).getAccessLevel(address(this), msg.sender) < 1) {
             revert No_PublicationAccess();
         }        
 
         // check if total mint price is correct
-        if (msg.value != mintPricePerToken[target] * artifactDetails.length) {            
+        if (msg.value != mintPricePerToken[zoraDrop] * artifactDetails.length) {            
             revert WrongPrice();
         }
 
@@ -122,7 +122,7 @@ contract Publisher is
     function _createArtifacts(
         address zoraDrop,
         address mintRecipient,
-        []ArtifactDetails artifactDetails      
+        ArtifactDetails[] memory artifactDetails      
     ) internal {
 
         // calculate number of artifacts to mint
@@ -138,7 +138,7 @@ contract Publisher is
             uint256 tokenId = lastTokenMinted - (numArtifacts - (i + 1));                     
 
             // check if target collection has been initialized
-            if (bytes(contractURIInfo[target]).length == 0) {
+            if (bytes(contractURIInfo[zoraDrop]).length == 0) {
                 revert Address_NotInitialized();
             }        
 
@@ -154,11 +154,11 @@ contract Publisher is
 
             artifactInfo[zoraDrop][tokenId][artifactDetails[i]];
 
-            emit CreateArtifact(
+            emit ArtifactCreated(
                 msg.sender,
                 zoraDrop,
                 mintRecipient,
-                specificTokenId,
+                tokenId,
                 artifactDetails[i].artifactRenderer,
                 artifactDetails[i].artifactMetadata
             );                 
@@ -171,12 +171,12 @@ contract Publisher is
 
     /// @notice function that enables editing artifactDetails for a given tokenId
     /// @param zoraDrop collection address to target
-    /// @param tokenId uint256 tokenId to target
+    /// @param tokenIds uint256 tokenIds to target
     /// @param artifactDetails ArtifactDetails struct array of renderer + init to use for token being minted 
     function editArtifacts(
         address zoraDrop, 
-        []uint256 tokenIds, 
-        []ArtifactDetails artifactDetails 
+        uint256[] memory tokenIds, 
+        ArtifactDetails[] memory artifactDetails 
     )   external {
 
         // prevents users from submitting invalid inputs
@@ -185,7 +185,7 @@ contract Publisher is
         }
 
         // check if msg.sender has access to update metadata for a token
-        if (IAccessControlRegistry(dropAccessControl[target]).getAccessLevel(address(this), addressToCheck) < 2) {
+        if (IAccessControlRegistry(dropAccessControl[zoraDrop]).getAccessLevel(address(this), msg.sender) < 2) {
             revert No_EditAccess();
         }          
 
@@ -199,7 +199,6 @@ contract Publisher is
     }           
 
     /// @notice function to update contractURI
-    /// @param zoraDrop collection address to target
     /// @param newContractURI new contractURI
     function editContractURI(address target, string memory newContractURI)
         external
@@ -246,12 +245,12 @@ contract Publisher is
     // ||| INTERNAL EDIT FUNCTIONS ||||
     // ||||||||||||||||||||||||||||||||   
 
-    function _editArtifact(address zoraDrop, []uint256 tokenIds, []ArtifactDetails artifactDetails) internal {
+    function _editArtifacts(address zoraDrop, uint256[] memory tokenIds, ArtifactDetails[] memory artifactDetails) internal {
 
-        for (uint256 = i; i < tokenIds.length; i++) {
+        for (uint256 i = 0; i < tokenIds.length; i++) {
         
             // check to see if token exists
-            if (IERC721DropMinter(target).saleDetails(target).totalMinted < tokenIds[i]) {
+            if (IERC721DropMinter(zoraDrop).saleDetails(zoraDrop).totalMinted < tokenIds[i]) {
                 revert Token_DoesntExist();
             } 
 
@@ -265,13 +264,13 @@ contract Publisher is
                 revert Cannot_SetBlank();
             }   
 
-            artifactInfo[zoraDrop][tokenId][artifactDetails[i]]; 
+            artifactInfo[zoraDrop][tokenIds[i]][artifactDetails[i]]; 
 
             // emit ArtifactEdited event
             emit ArtifactEdited(
                 msg.sender,
                 zoraDrop,
-                tokenId,
+                tokenIds[i],
                 artifactDetails[i].artifactRenderer,
                 artifactDetails[i].artifactMetadata
             );   
@@ -306,8 +305,30 @@ contract Publisher is
         override
         returns (string memory)
     {
-        string memory uri = ITokenMetadataKey(artifactInfo[msg.sender][tokenId].artifactRenderer).decodeTokenURI();
+        string memory uri = ITokenMetadataKey(artifactInfo[msg.sender][tokenId].artifactRenderer).decodeTokenURI(artifactInfo[msg.sender][tokenId].artifactMetadata);
         if (bytes(uri).length == 0) revert Token_DoesntExist();
         return artifactInfo[msg.sender][tokenId];
     }
+
+    /// @notice contractURI + tokenUri information custom getter
+    /// @dev reverts if token does not exist
+    /// @param zoraDrop to get contractURI for    
+    /// @param tokenId to get tokenURI for
+    function publisherExplorer(address zoraDrop, uint256 tokenId)
+        external
+        view
+        override
+        returns (string memory, string memory)
+    {
+        
+        if (bytes(contractURIInfo[zoraDrop]).length == 0) {
+            revert Address_NotInitialized();
+        }
+        
+        if (IMetadataRenderer(contractURIInfo[zoraDrop]).length == 0) {
+            return (contractURIInfo[zoraDrop], "");
+        }
+
+        return (IMetadataRenderer(zoraDrop).contractURI(), IMetadataRenderer(zoraDrop).tokenURI(tokenId));
+    }    
 }

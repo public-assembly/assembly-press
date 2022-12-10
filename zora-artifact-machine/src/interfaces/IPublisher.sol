@@ -15,7 +15,7 @@ interface IPublisher {
     // ||||||||||||||||||||||||||||||||
 
     /// @notice CHANGE
-    function initializeArtifact(ArtifactDetails artifactDetails) external returns (bool);   
+    function initializeArtifact(ArtifactDetails memory artifactDetails) external returns (bool);   
 
     /// @notice CHANGE
     function updateArtifact(address, uint256, address, string memory) external returns (bool);
@@ -108,7 +108,10 @@ interface IPublisher {
     error Access_OnlyAdmin();
 
     /// @notice Artifact creation update failed
-    error CreateArtifactFail();      
+    error CreateArtifactFail();     
+
+    /// @notice Artifact edit update failed
+    error EditArtifactFail();           
 
     /// @notice CHANGEEEEEEEE
     error No_MetadataAccess();

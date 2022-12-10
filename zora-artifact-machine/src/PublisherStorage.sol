@@ -22,7 +22,7 @@ contract PublisherStorage is IPublisher {
     mapping(address => string) public contractURIInfo;
 
     /// @notice zora collection -> tokenId -> {tokenRenderer, tokenMetadata}
-    mapping(address => mapping(uint256 => ArtifactStructure)) public artifactInfo;     
+    mapping(address => mapping(uint256 => ArtifactDetails)) public artifactInfo;     
 
     // /// @notice Storage gap
     // uint256[49] __gap;

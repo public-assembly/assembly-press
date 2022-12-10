@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
+import {IMetadataRenderer} from "zora-drops-contracts/interfaces/IMetadataRenderer.sol";
+import {IZoraCreatorInterface} from "./interfaces/IZoraCreatorInterface.sol";
+import {IAccessControlRegistry} from "onchain/interfaces/IAccessControlRegistry.sol";
+import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
+import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
 import {Ownable} from "openzeppelin-contracts/access/ownable.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.sol";
-import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
-import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
 import {ZoraNFTCreatorProxy} from "zora-drops-contracts/ZoraNFTCreatorProxy.sol";
-import {IMetadataRenderer} from "zora-drops-contracts/interfaces/IMetadataRenderer.sol";
 import {Publisher} from "./Publisher.sol";
-import {IZoraCreatorInterface} from "./interfaces/IZoraCreatorInterface.sol";
+import {PublisherStorage} from "./Publisher.sol";
 
 /**
  * @title AssemblyPress
@@ -17,7 +19,12 @@ import {IZoraCreatorInterface} from "./interfaces/IZoraCreatorInterface.sol";
  * @author Max Bochman
  *
  */
-contract AssemblyPress is Ownable, ReentrancyGuard {
+contract AssemblyPress is
+    IMetadataRenderer, 
+    Ownable, 
+    ReentrancyGuard, 
+    PublisherStorage  
+{
 
     // ||||||||||||||||||||||||||||||||
     // ||| ERRORS |||||||||||||||||||||
@@ -31,10 +38,12 @@ contract AssemblyPress is Ownable, ReentrancyGuard {
  
     // constructor events
     event ZoraProxyAddressInitialized(address zoraProxyAddress); 
+    event ZEditionMetadataRendererInitialized(address zoraProxyAddress); 
     event PublisherInitialized(address publisherAddress); 
 
     // event called when base impl addresses updated
     event ZoraProxyAddressUpdated(address sender, address newZoraProxyAddress);     
+    event ZEditionMetadataRendererUpdated(address sender, address newZEditionMetadataRendererAddress);     
     event PublisherUpdated(address sender, address newPublisherAddress);     
 
     // ||||||||||||||||||||||||||||||||
@@ -42,8 +51,8 @@ contract AssemblyPress is Ownable, ReentrancyGuard {
     // ||||||||||||||||||||||||||||||||     
 
     bytes32 public immutable DEFAULT_ADMIN_ROLE = 0x00;
-    bytes32 public immutable MINTER_ROLE = keccak256("MINTER");
     address public zoraNFTCreatorProxy;
+    address public zEditionMetadataRenderer;
     address public publisher;
 
     // ||||||||||||||||||||||||||||||||
@@ -52,17 +61,20 @@ contract AssemblyPress is Ownable, ReentrancyGuard {
 
     constructor(
         address _zoraNFTCreatorProxy, 
+        address _zEditionMetadataRenderer,
         address _publisher
     ) {
         zoraNFTCreatorProxy = _zoraNFTCreatorProxy;
+        zEditionMetadataRenderer = _zEditionMetadataRenderer;
         publisher = _publisher;
 
         emit ZoraProxyAddressInitialized(zoraNFTCreatorProxy);
-        emit PublisherInitialized(_publisher);
+        emit ZEditionMetadataRendererInitialized(zEditionMetadataRenderer);
+        emit PublisherInitialized(publisher);
     }
 
     // ||||||||||||||||||||||||||||||||
-    // ||| createArtifactMachine ||||||
+    // ||| createPublicationChannel ||||
     // |||||||||||||||||||||||||||||||| 
 
     function createPublicationChannel(
@@ -107,6 +119,41 @@ contract AssemblyPress is Ownable, ReentrancyGuard {
         return newDropAddress;
     }
 
+    function promoteToEdition(
+        address zoraDrop,
+        uint256 tokenId,        
+        string memory name,
+        string memory symbol,
+        uint64 editionSize,
+        uint16 royaltyBPS,
+        address payable fundsRecipient,
+        address defaultAdmin,        
+        IERC721Drop.SalesConfiguration memory saleConfig,
+        string memory description
+    ) public nonReentrant returns (address) {
+
+        // check if msg.sender has publication access
+        if (IAccessControlRegistry(dropAccessControl[zoraDrop]).getAccessLevel(address(this), msg.sender) < 1) {
+            revert No_PublicationAccess();
+        }                 
+
+        // deploy zora collection that pulls info from PublisherStorage
+        address newDropAddress = IZoraCreatorInterface(zoraNFTCreatorProxy).createEdition(
+            name,
+            symbol,
+            editionSize,
+            royaltyBPS,
+            fundsRecipient,
+            defaultAdmin,
+            saleConfig,
+            description,
+            zoraDrop.tokenURI(tokenId),
+            zoraDrop.tokenURI(tokenId)
+        );
+
+        return newDropAddress;
+    }    
+
     // ||||||||||||||||||||||||||||||||
     // ||| ADMIN FUNCTIONS ||||||||||||
     // ||||||||||||||||||||||||||||||||
@@ -135,5 +182,18 @@ contract AssemblyPress is Ownable, ReentrancyGuard {
         publisher = newPublisher;
 
         emit PublisherUpdated(msg.sender, newPublisher);
-    }         
+    }      
+
+    /// @dev updates address value of zEditionMetadataRenderer
+    /// @param newZEditionMetadataRenderer new ZEditionMetadataRenderer address
+    function setzEditionMetadataRenderer(address newZEditionMetadataRenderer) public onlyOwner {
+
+        if (newZEditionMetadataRenderer == address(0)) {
+            revert CantSet_ZeroAddress();
+        }
+
+        zEditionMetadataRenderer = newZEditionMetadataRenderer;
+
+        emit ZEditionMetadataRendererUpdated(msg.sender, newZEditionMetadataRenderer);
+    }             
 }

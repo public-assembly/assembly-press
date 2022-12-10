@@ -20,7 +20,7 @@ contract DeployCore is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        DefaultTokenMetadataKey defaultTokenMetadataKey = new ArtifactMachineMetadataRenderer();
+        DefaultTokenMetadataKey defaultTokenMetadataKey = new DefaultTokenMetadataKey();
 
         Publisher publisher = new Publisher();
 
