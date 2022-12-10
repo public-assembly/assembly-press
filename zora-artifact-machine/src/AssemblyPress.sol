@@ -7,17 +7,17 @@ import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
 import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
 import {ZoraNFTCreatorProxy} from "zora-drops-contracts/ZoraNFTCreatorProxy.sol";
 import {IMetadataRenderer} from "zora-drops-contracts/interfaces/IMetadataRenderer.sol";
-import {ArtifactMachine} from "./ArtifactMachine.sol";
+import {Publisher} from "./Publisher.sol";
 import {IZoraCreatorInterface} from "./interfaces/IZoraCreatorInterface.sol";
 
 /**
- * @title PACreatorV1
+ * @title AssemblyPress
  * @notice Facilitates deployment of custom ZORA drops with extended functionality
  * @notice not audited use at own risk
  * @author Max Bochman
  *
  */
-contract WildCreator is Ownable, ReentrancyGuard {
+contract AssemblyPress is Ownable, ReentrancyGuard {
 
     // ||||||||||||||||||||||||||||||||
     // ||| ERRORS |||||||||||||||||||||
@@ -31,27 +31,20 @@ contract WildCreator is Ownable, ReentrancyGuard {
  
     // constructor events
     event ZoraProxyAddressInitialized(address zoraProxyAddress); 
-    event ArtifactMachineMetadataRendererInitialized(address artifactMachineMetadataRenderer); 
-    event ArtifactMachineInitialized(address artifactMachine); 
-
-    // event called during deploy + configure process
-    event MintingModuleInitialized(address zoraDrop, address mintingModule);
+    event PublisherInitialized(address publisherAddress); 
 
     // event called when base impl addresses updated
-    event ZoraProxyAddressUpdated(address sender, address newZoraProxyAddress); 
-    event ArtifactMachineMetadataRendererUpdated(address sender, address newArtifactMachineMetadataRenderer); 
-    event ArtifactMachineUpdated(address sender, address newArtifactMachine);         
+    event ZoraProxyAddressUpdated(address sender, address newZoraProxyAddress);     
+    event PublisherUpdated(address sender, address newPublisherAddress);     
 
     // ||||||||||||||||||||||||||||||||
     // ||| STORAGE ||||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||      
-    
+    // ||||||||||||||||||||||||||||||||     
+
     bytes32 public immutable DEFAULT_ADMIN_ROLE = 0x00;
     bytes32 public immutable MINTER_ROLE = keccak256("MINTER");
     address public zoraNFTCreatorProxy;
-    IMetadataRenderer public artifactMachineMetadataRenderer;
-    address public artifactMachine; 
-    mapping(address => address) public dropToModule;
+    address public publisher;
 
     // ||||||||||||||||||||||||||||||||
     // ||| CONSTRUCTOR ||||||||||||||||
@@ -59,23 +52,20 @@ contract WildCreator is Ownable, ReentrancyGuard {
 
     constructor(
         address _zoraNFTCreatorProxy, 
-        IMetadataRenderer _artifactMachineMetadataRenderer, 
-        address _artifactMachine 
+        address _publisher
     ) {
         zoraNFTCreatorProxy = _zoraNFTCreatorProxy;
-        artifactMachineMetadataRenderer = _artifactMachineMetadataRenderer;
-        artifactMachine = _artifactMachine;
+        publisher = _publisher;
 
         emit ZoraProxyAddressInitialized(zoraNFTCreatorProxy);
-        emit ArtifactMachineMetadataRendererInitialized(address(artifactMachineMetadataRenderer));
-        emit ArtifactMachineInitialized(artifactMachine);
+        emit PublisherInitialized(_publisher);
     }
 
     // ||||||||||||||||||||||||||||||||
     // ||| createArtifactMachine ||||||
     // |||||||||||||||||||||||||||||||| 
 
-    function createArtifactMachine(
+    function createPublicationChannel(
         string memory name,
         string memory symbol,
         address defaultAdmin,
@@ -89,8 +79,8 @@ contract WildCreator is Ownable, ReentrancyGuard {
         uint256 mintPricePerToken
     ) public nonReentrant returns (address) {
 
-        // encode contractURI + accessControl + accessControl init to pass into ArtifactMachineMetadataRenderer
-        bytes memory metadataInitializer = abi.encode(contractURI, accessControl, accessControlInit); 
+        // encode contractURI + mintPricePerToken + accessControl + accessControl init to pass into ArtifactMachineRegistry
+        bytes memory publisherInitializer = abi.encode(contractURI, mintPricePerToken, accessControl, accessControlInit); 
 
         // deploy zora collection - defaultAdmin must be address(this) here but will be updated later
         address newDropAddress = IZoraCreatorInterface(zoraNFTCreatorProxy).setupDropsContract(
@@ -101,15 +91,12 @@ contract WildCreator is Ownable, ReentrancyGuard {
             royaltyBPS,
             fundsRecipient,
             saleConfig,
-            artifactMachineMetadataRenderer,
-            metadataInitializer           
+            publisher,
+            publisherInitializer           
         );
 
-        // give artifactMachine minter role on zora drop
-        ERC721Drop(payable(newDropAddress)).grantRole(MINTER_ROLE, artifactMachine);
-
-        // set mintPricePerToken for zora drop
-        ArtifactMachine(artifactMachine).setMintPrice(newDropAddress, mintPricePerToken);
+        // give publisher minter role on zora drop
+        ERC721Drop(payable(newDropAddress)).grantRole(MINTER_ROLE, publisher);
 
         // grant admin role to desired admin address
         ERC721Drop(payable(newDropAddress)).grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
@@ -117,21 +104,7 @@ contract WildCreator is Ownable, ReentrancyGuard {
         // revoke admin role from address(this) as it differed from desired admin address
         ERC721Drop(payable(newDropAddress)).revokeRole(DEFAULT_ADMIN_ROLE, address(this));
 
-        // maps newDropAddress => artifactMachine in the dropToModule mapping
-        initializeDropToModule(newDropAddress, artifactMachine);
-
         return newDropAddress;
-    }
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| INTERNAL FUNCTIONS |||||||||
-    // ||||||||||||||||||||||||||||||||
-
-    // initializes the mintingModule address for a given zoraDrop in the dropToModule mapping
-    function initializeDropToModule(address zoraDrop, address mintingModule) private {
-        dropToModule[zoraDrop] = mintingModule;
-
-        emit MintingModuleInitialized(zoraDrop, mintingModule);
     }
 
     // ||||||||||||||||||||||||||||||||
@@ -151,29 +124,16 @@ contract WildCreator is Ownable, ReentrancyGuard {
         emit ZoraProxyAddressUpdated(msg.sender, newZoraNFTCreatorProxy);
     }      
 
-    /// @dev updates address value of artifactMachineMetadataRenderer
-    /// @param newArtifactMachineMetadataRenderer new artifactMachineMetadataRenderer address
-    function setArtifactMachineMetadataRenderer(IMetadataRenderer newArtifactMachineMetadataRenderer) public onlyOwner {
+    /// @dev updates address value of publisher
+    /// @param newPublisher new newPublisher address
+    function setPublisher(address newPublisher) public onlyOwner {
 
-        if (address(newArtifactMachineMetadataRenderer) == address(0)) {
+        if (newPublisher == address(0)) {
             revert CantSet_ZeroAddress();
         }
 
-        artifactMachineMetadataRenderer = newArtifactMachineMetadataRenderer;
+        publisher = newPublisher;
 
-        emit ArtifactMachineMetadataRendererUpdated(msg.sender, address(newArtifactMachineMetadataRenderer));
-    }     
-
-    /// @dev updates address value of artifactMachine
-    /// @param newArtifactMachine new artifactMachine address
-    function setArtifactMachine(address newArtifactMachine) public onlyOwner {
-
-        if (newArtifactMachine == address(0)) {
-            revert CantSet_ZeroAddress();
-        }
-
-        artifactMachine = newArtifactMachine;
-
-        emit ArtifactMachineUpdated(msg.sender, newArtifactMachine);
+        emit PublisherUpdated(msg.sender, newPublisher);
     }         
 }

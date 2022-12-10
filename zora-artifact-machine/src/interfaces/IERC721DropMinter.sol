@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
 
-interface ERC721DropMinterInterface {
+interface IERC721DropMinter {
     function adminMint(address recipient, uint256 quantity)
         external
         returns (uint256);
