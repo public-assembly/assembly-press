@@ -12,4 +12,5 @@ openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contr
 openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/
 zora-drops-contracts/=lib/zora-drops-contracts/src/
 zora-drops-contracts-tests/=lib/zora-drops-contracts/test
+onchain/=lib/onchain/tokenized-access-control/src
 
