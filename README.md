@@ -1,4 +1,4 @@
-# AssemblyPress 
+# AssemblyPress ✣
 
 ## Overview
 The contracts in this repo extend the [zora-drops-contracts](https://github.com/ourzora/zora-drops-contracts) and faciliate the creation of creator-owned minting contracts that provide very high levels of flexibility to control both metadata + metadata schema's for each token upon mint. Also leverages the modular + remote onchain access control enabled by the contracts in this repo [repo](https://github.com/public-assembly/onchain/tree/master/tokenized-access-control) to administer access to deployed contracts minting + editing functionality. Still a WIP as of 221212.
