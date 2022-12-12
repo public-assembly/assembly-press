@@ -4,7 +4,11 @@ pragma solidity ^0.8.15;
 
 interface IPublisher {
 
-    /// @notice Shared listing struct for both access and storage ***CHANGE THIS  
+    // ||||||||||||||||||||||||||||||||
+    // ||| TYPES ||||||||||||||||||||||
+    // ||||||||||||||||||||||||||||||||
+
+    /// @notice Shared listing struct for both artifactRenderer address + artifactMetadata 
     struct ArtifactDetails {
         address artifactRenderer;
         bytes artifactMetadata;
@@ -13,15 +17,6 @@ interface IPublisher {
     // ||||||||||||||||||||||||||||||||
     // ||| FUNCTIONS ||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
-
-    // /// @notice CHANGE
-    // function initializeArtifact(ArtifactDetails memory artifactDetails) external returns (bool);   
-
-    // /// @notice CHANGE
-    // function updateArtifact(address, uint256, address, string memory) external returns (bool);
-
-    // /// @notice CHANGE
-    // function updateContractURI(address, string memory) external; 
 
     // ||||||||||||||||||||||||||||||||
     // ||| EVENTS |||||||||||||||||||||
@@ -50,8 +45,8 @@ interface IPublisher {
     // event Mint(address minter, address mintRecipient, uint256 tokenId, string tokenURI);
     event Mint(address minter, address mintRecipient, uint256 tokenId, address artifactRegistry, bytes artifactMetadata);    
     
-    /// @notice mintPrice edited notice
-    event MintPriceEdited(address sender, address target, uint256 newMintPrice);
+    /// @notice mintPrice updated notice
+    event MintPriceUpdated(address sender, address target, uint256 newMintPrice);
 
     /// @notice metadataRenderer updated notice
     event MetadataRendererUpdated(address sender, address newRenderer);     
@@ -79,9 +74,9 @@ interface IPublisher {
         string indexed contractURI
     );    
 
-    /// @notice Event for a new collection initialized
+    /// @notice Event for a new publication initialized
     /// @dev admin function indexer feedback
-    event CollectionInitialized(
+    event PublicationInitialized(
         address indexed target,
         string indexed contractURI,
         uint256 mintPricePerToken,
@@ -121,6 +116,10 @@ interface IPublisher {
 
     /// @notice CHANGEEEEEEEE
     error No_EditAccess();      
+
+    /// @notice if contractURI return is blank, means the contract has not been initialize
+    ///      or is being called by an address other than zoraDrop that has been initd
+    error NotInitialized_Or_NotZoraDrop();    
 
     /// @notice CHANGEEEEEEEE    
     error Cannot_SetBlank();

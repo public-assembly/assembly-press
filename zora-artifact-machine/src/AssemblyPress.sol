@@ -51,7 +51,7 @@ contract AssemblyPress is
     bytes32 public immutable DEFAULT_ADMIN_ROLE = 0x00;
     address public zoraNFTCreatorProxy;
     address public zEditionMetadataRenderer;
-    address public publisher;
+    Publisher public publisher;
 
     // ||||||||||||||||||||||||||||||||
     // ||| CONSTRUCTOR ||||||||||||||||
@@ -60,7 +60,7 @@ contract AssemblyPress is
     constructor(
         address _zoraNFTCreatorProxy, 
         address _zEditionMetadataRenderer,
-        address _publisher
+        Publisher _publisher
     ) {
         zoraNFTCreatorProxy = _zoraNFTCreatorProxy;
         zEditionMetadataRenderer = _zEditionMetadataRenderer;
@@ -68,14 +68,14 @@ contract AssemblyPress is
 
         emit ZoraProxyAddressInitialized(zoraNFTCreatorProxy);
         emit ZEditionMetadataRendererInitialized(zEditionMetadataRenderer);
-        emit PublisherInitialized(publisher);
+        emit PublisherInitialized(address(publisher));
     }
 
     // ||||||||||||||||||||||||||||||||
-    // ||| createPublicationChannel ||||
+    // ||| createPublication ||||||||||
     // |||||||||||||||||||||||||||||||| 
 
-    function createPublicationChannel(
+    function createPublication(
         string memory name,
         string memory symbol,
         address defaultAdmin,
@@ -106,16 +106,60 @@ contract AssemblyPress is
         );
 
         // give publisher minter role on zora drop
-        ERC721Drop(payable(newDropAddress)).grantRole(MINTER_ROLE, publisher);
+        ERC721Drop(payable(newDropAddress)).grantRole(MINTER_ROLE, address(publisher));
 
         // grant admin role to desired admin address
-        ERC721Drop(payable(newDropAddress)).grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
+        ERC721Drop(payable(newDropAddress)).grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);    
 
         // revoke admin role from address(this) as it differed from desired admin address
         ERC721Drop(payable(newDropAddress)).revokeRole(DEFAULT_ADMIN_ROLE, address(this));
 
         return newDropAddress;
-    }
+    }    
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| ADMIN FUNCTIONS ||||||||||||
+    // ||||||||||||||||||||||||||||||||
+
+    /// @dev updates address value of zoraNFTCreatorProxy
+    /// @param newZoraNFTCreatorProxy new zoraNFTCreatorProxy address
+    function setZoraCreatorProxyAddress(address newZoraNFTCreatorProxy) public onlyOwner {
+
+        if (newZoraNFTCreatorProxy == address(0)) {
+            revert CantSet_ZeroAddress();
+        }
+
+        zoraNFTCreatorProxy = newZoraNFTCreatorProxy;
+
+        emit ZoraProxyAddressUpdated(msg.sender, newZoraNFTCreatorProxy);
+    }      
+
+    /// @dev updates address value of publisher
+    /// @param newPublisher new newPublisher address
+    function setPublisher(Publisher newPublisher) public onlyOwner {
+
+        if (address(newPublisher) == address(0)) {
+            revert CantSet_ZeroAddress();
+        }
+
+        publisher = newPublisher;
+
+        emit PublisherUpdated(msg.sender, address(newPublisher));
+    }      
+
+    /// @dev updates address value of zEditionMetadataRenderer
+    /// @param newZEditionMetadataRenderer new ZEditionMetadataRenderer address
+    function setzEditionMetadataRenderer(address newZEditionMetadataRenderer) public onlyOwner {
+
+        if (newZEditionMetadataRenderer == address(0)) {
+            revert CantSet_ZeroAddress();
+        }
+
+        zEditionMetadataRenderer = newZEditionMetadataRenderer;
+
+        emit ZEditionMetadataRendererUpdated(msg.sender, newZEditionMetadataRenderer);
+    }             
+}
 
     // function promoteToEdition(
     //     address zoraDrop,
@@ -150,48 +194,4 @@ contract AssemblyPress is
     //     );
 
     //     return newDropAddress;
-    // }    
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| ADMIN FUNCTIONS ||||||||||||
-    // ||||||||||||||||||||||||||||||||
-
-    /// @dev updates address value of zoraNFTCreatorProxy
-    /// @param newZoraNFTCreatorProxy new zoraNFTCreatorProxy address
-    function setZoraCreatorProxyAddress(address newZoraNFTCreatorProxy) public onlyOwner {
-
-        if (newZoraNFTCreatorProxy == address(0)) {
-            revert CantSet_ZeroAddress();
-        }
-
-        zoraNFTCreatorProxy = newZoraNFTCreatorProxy;
-
-        emit ZoraProxyAddressUpdated(msg.sender, newZoraNFTCreatorProxy);
-    }      
-
-    /// @dev updates address value of publisher
-    /// @param newPublisher new newPublisher address
-    function setPublisher(address newPublisher) public onlyOwner {
-
-        if (newPublisher == address(0)) {
-            revert CantSet_ZeroAddress();
-        }
-
-        publisher = newPublisher;
-
-        emit PublisherUpdated(msg.sender, newPublisher);
-    }      
-
-    /// @dev updates address value of zEditionMetadataRenderer
-    /// @param newZEditionMetadataRenderer new ZEditionMetadataRenderer address
-    function setzEditionMetadataRenderer(address newZEditionMetadataRenderer) public onlyOwner {
-
-        if (newZEditionMetadataRenderer == address(0)) {
-            revert CantSet_ZeroAddress();
-        }
-
-        zEditionMetadataRenderer = newZEditionMetadataRenderer;
-
-        emit ZEditionMetadataRendererUpdated(msg.sender, newZEditionMetadataRenderer);
-    }             
-}
+    // }

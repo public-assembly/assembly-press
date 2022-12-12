@@ -5,14 +5,15 @@ import {Ownable} from "openzeppelin-contracts/access/ownable.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.sol";
 import {IMetadataRenderer} from "zora-drops-contracts/interfaces/IMetadataRenderer.sol";
 import {IERC721DropMinter} from "./interfaces/IERC721DropMinter.sol";
+import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
 import {IAccessControlRegistry} from "onchain/interfaces/IAccessControlRegistry.sol";
 import {IPublisher} from "./interfaces/IPublisher.sol";
-import {ITokenMetadataKey} from "./interfaces/ITokenMetadataKey.sol";
+import {IDefaultMetadataDecoder} from "./interfaces/IDefaultMetadataDecoder.sol";
 import {PublisherStorage} from "./PublisherStorage.sol";
 
 /** 
  * @title Publisher.sol
- * @dev Minting module & registry that initializes rendering strategy + metadata upon collection init + token mint 
+ * @dev Minting module & registry that initializes unique token rendering strategy + metadata upon collection init + each mint 
  *      for specific token Ids of a given zora ERC721Drop collection
  * @dev Can be used by any zora ERC721Drop collection
  * @author Max Bochman
@@ -49,13 +50,13 @@ contract Publisher is
 
         mintPricePerToken[msg.sender] = mintPriceInit;
 
-        emit MintPriceEdited(msg.sender, msg.sender, mintPriceInit);        
+        emit MintPriceUpdated(msg.sender, msg.sender, mintPriceInit);        
 
         IAccessControlRegistry(accessControlModule).initializeWithData(accessControlInit);
 
         dropAccessControl[msg.sender] = accessControlModule;    
         
-        emit CollectionInitialized({
+        emit PublicationInitialized({
             target: msg.sender,
             contractURI: contractUriInit,
             mintPricePerToken: mintPriceInit,
@@ -69,11 +70,11 @@ contract Publisher is
     // |||||||||||||||||||||||||||||||| 
 
     /// @notice allows you to mint a token with arbitrary metadata + arbitrary metadata structure
-    /// @dev calls adminMint function in ZORA Drop contract + initializes artifactStructure
+    /// @dev calls adminMint function in ZORA Drop contract + initializes artifactDetails
     /// @param zoraDrop ZORA Drop contract to mint from
     /// @param mintRecipient address to recieve minted tokens
     /// @param artifactDetails ArtifactDetails struct array of renderer + init to use for token being minted 
-    function createArtifacts(
+    function publish(
         address zoraDrop,
         address mintRecipient,
         ArtifactDetails[] memory artifactDetails
@@ -99,7 +100,7 @@ contract Publisher is
         }
 
         // set artifactInfo storage for a given ZORA ERC721Drop contract => tokenId
-        (bool artifactSuccess,,) = _createArtifacts(zoraDrop, mintRecipient, artifactDetails);
+        (bool artifactSuccess) = _publish(zoraDrop, mintRecipient, artifactDetails);
 
         // if storage update fails revert transaction
         if (!artifactSuccess) {
@@ -119,11 +120,11 @@ contract Publisher is
     // ||| INTERNAL MINTING FUNCTION ||
     // ||||||||||||||||||||||||||||||||
 
-    function _createArtifacts(
+    function _publish(
         address zoraDrop,
         address mintRecipient,
         ArtifactDetails[] memory artifactDetails      
-    ) internal {
+    ) internal returns (bool) {
 
         // calculate number of artifacts to mint
         uint256 numArtifacts = artifactDetails.length;        
@@ -142,12 +143,12 @@ contract Publisher is
                 revert Address_NotInitialized();
             }        
 
-            // check if tokenRenderer is zero address
+            // check if artifactRenderer is zero address
             if (artifactDetails[i].artifactRenderer == address(0)){
                 revert Cannot_SetToZeroAddress();
             }
 
-            // check if tokenMetadata is empty
+            // check if artifactMetadata is empty
             if (artifactDetails[i].artifactMetadata.length == 0) {
                 revert Cannot_SetBlank();
             }        
@@ -162,7 +163,8 @@ contract Publisher is
                 artifactDetails[i].artifactRenderer,
                 artifactDetails[i].artifactMetadata
             );                 
-        }         
+        }
+        return true;
     }           
 
     // ||||||||||||||||||||||||||||||||
@@ -173,7 +175,7 @@ contract Publisher is
     /// @param zoraDrop collection address to target
     /// @param tokenIds uint256 tokenIds to target
     /// @param artifactDetails ArtifactDetails struct array of renderer + init to use for token being minted 
-    function editArtifacts(
+    function edit(
         address zoraDrop, 
         uint256[] memory tokenIds, 
         ArtifactDetails[] memory artifactDetails 
@@ -190,7 +192,7 @@ contract Publisher is
         }          
 
         // edit artifactInfo storage for a given ZORA ERC721Drop contract => tokenId
-        (bool editSuccess) = _editArtifacts(zoraDrop, tokenIds, artifactDetails);
+        (bool editSuccess) = _edit(zoraDrop, tokenIds, artifactDetails);
 
         // if storage update fails revert transaction
         if (!editSuccess) {
@@ -200,10 +202,10 @@ contract Publisher is
 
     /// @notice function to update contractURI
     /// @param newContractURI new contractURI
-    function editContractURI(address target, string memory newContractURI)
+    function updateContractURI(address target, string memory newContractURI)
         external
     {
-        // check if msg.sender has access to edit access for a collection
+        // check if msg.sender has access to update access for a collection
         if (IAccessControlRegistry(dropAccessControl[target]).getAccessLevel(address(this), msg.sender) < 2) {
             revert No_EditAccess();
         }
@@ -229,7 +231,7 @@ contract Publisher is
 
     /// @dev updates uint256 value in mintPricePerToken mapping
     /// @param newMintPricePerToken new mintPrice value
-    function editMintPrice(address target, uint256 newMintPricePerToken) public {
+    function updateMintPrice(address target, uint256 newMintPricePerToken) public {
 
         // check if msg.sender has access to edit access for a collection
         if (IAccessControlRegistry(dropAccessControl[target]).getAccessLevel(address(this), msg.sender) < 2) {
@@ -238,31 +240,35 @@ contract Publisher is
 
         mintPricePerToken[target] = newMintPricePerToken;
 
-        emit MintPriceEdited(msg.sender, target, newMintPricePerToken);
+        emit MintPriceUpdated(msg.sender, target, newMintPricePerToken);
     }    
 
     // ||||||||||||||||||||||||||||||||
     // ||| INTERNAL EDIT FUNCTIONS ||||
     // ||||||||||||||||||||||||||||||||   
 
-    function _editArtifacts(address zoraDrop, uint256[] memory tokenIds, ArtifactDetails[] memory artifactDetails) internal {
+    function _edit(
+        address zoraDrop, 
+        uint256[] memory tokenIds, 
+        ArtifactDetails[] memory artifactDetails
+    ) internal returns (bool) {
 
         for (uint256 i = 0; i < tokenIds.length; i++) {
         
             // check to see if token exists
-            if (IERC721DropMinter(zoraDrop).saleDetails(zoraDrop).totalMinted < tokenIds[i]) {
+            if (ERC721Drop(payable(zoraDrop)).saleDetails().totalMinted < tokenIds[i]) {
                 revert Token_DoesntExist();
             } 
 
             // check if tokenRenderer is zero address
             if (artifactDetails[i].artifactRenderer == address(0)) {
                 revert Cannot_SetToZeroAddress();
-            }
+            }   
 
-            // check if tokenMetadata is empty
+            // check if artifactMetadata is empty
             if (artifactDetails[i].artifactMetadata.length == 0) {
                 revert Cannot_SetBlank();
-            }   
+            }         
 
             artifactInfo[zoraDrop][tokenIds[i]] = artifactDetails[i]; 
 
@@ -274,7 +280,8 @@ contract Publisher is
                 artifactDetails[i].artifactRenderer,
                 artifactDetails[i].artifactMetadata
             );   
-        }         
+        }
+        return true;         
     }
 
     // ||||||||||||||||||||||||||||||||
@@ -291,7 +298,11 @@ contract Publisher is
         returns (string memory) 
     {
         string memory uri = contractURIInfo[msg.sender];
-        if (bytes(uri).length == 0) revert Address_NotInitialized();
+        if (bytes(uri).length == 0) {
+            // if contractURI return is blank, means the contract has not been initialize
+            //      or is being called by an address other than zoraDrop that has been initd
+            revert NotInitialized_Or_NotZoraDrop();
+        }
         return uri;
     }
 
@@ -305,16 +316,16 @@ contract Publisher is
         override
         returns (string memory)
     {
-        string memory uri = ITokenMetadataKey(artifactInfo[msg.sender][tokenId].artifactRenderer).decodeTokenURI(artifactInfo[msg.sender][tokenId].artifactMetadata);
+        string memory uri = IDefaultMetadataDecoder(artifactInfo[msg.sender][tokenId].artifactRenderer).metadataDecoder(artifactInfo[msg.sender][tokenId].artifactMetadata);
         if (bytes(uri).length == 0) revert Token_DoesntExist();
         return uri;
-    }
+    }    
 
-    /// @notice contractURI + tokenUri information custom getter
+    /// @notice contractURI + tokenURI information custom getter
     /// @dev reverts if token does not exist
     /// @param zoraDrop to get contractURI for    
     /// @param tokenId to get tokenURI for
-    function publisherExplorer(address zoraDrop, uint256 tokenId)
+    function publisherDirectory(address zoraDrop, uint256 tokenId)
         external
         view
         returns (string memory, string memory)

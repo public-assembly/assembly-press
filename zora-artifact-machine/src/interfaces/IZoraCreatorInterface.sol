@@ -5,6 +5,7 @@ import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
 import {IMetadataRenderer} from "zora-drops-contracts/interfaces/IMetadataRenderer.sol";
 
 interface IZoraCreatorInterface {
+
     function setupDropsContract(
         string memory name,
         string memory symbol,
@@ -16,4 +17,5 @@ interface IZoraCreatorInterface {
         IMetadataRenderer metadataRenderer,
         bytes memory metadataInitializer        
     ) external returns (address);
+    
 }

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
-import {DefaultTokenMetadataKey} from "../src/DefaultTokenMetadataKey.sol";
+import {DefaultMetadataDecoder} from "../src/DefaultMetadataDecoder.sol";
 import {Publisher} from "../src/Publisher.sol";
 import {AssemblyPress} from "../src/AssemblyPress.sol";
 
@@ -22,14 +22,14 @@ contract DeployCore is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        DefaultTokenMetadataKey defaultTokenMetadataKey = new DefaultTokenMetadataKey();
-
         Publisher publisher = new Publisher();
+
+        new DefaultMetadataDecoder();        
 
         new AssemblyPress(
             zoraNFTCreatorProxy,
             editionMetadataRendererAddressGoerli,
-            address(publisher)
+            publisher
         );
 
         vm.stopBroadcast();

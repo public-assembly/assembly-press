@@ -9,7 +9,7 @@ import {IPublisher} from "./interfaces/IPublisher.sol";
  */
 contract PublisherStorage is IPublisher {
 
-    /// @notice zora collection immutable minter_role value storage
+    /// @notice zora drops contracts immutable minter_role storage
     bytes32 public immutable MINTER_ROLE = keccak256("MINTER");
 
     /// @notice mintPricePerToken storage
