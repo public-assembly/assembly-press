@@ -5,8 +5,8 @@ import {IZoraCreatorInterface} from "./interfaces/IZoraCreatorInterface.sol";
 import {IAccessControlRegistry} from "onchain/interfaces/IAccessControlRegistry.sol";
 import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
 import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
-import {Ownable} from "openzeppelin-contracts/access/ownable.sol";
-import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {ZoraNFTCreatorProxy} from "zora-drops-contracts/ZoraNFTCreatorProxy.sol";
 import {Publisher} from "./Publisher.sol";
 import {PublisherStorage} from "./Publisher.sol";
@@ -19,8 +19,8 @@ import {PublisherStorage} from "./Publisher.sol";
  *
  */
 contract AssemblyPress is
-    Ownable, 
-    ReentrancyGuard, 
+    OwnableUpgradeable, 
+    ReentrancyGuardUpgradeable, 
     PublisherStorage  
 {
 
