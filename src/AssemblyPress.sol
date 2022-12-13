@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
+import {IAssemblyPress} from "./interfaces/IAssemblyPress.sol";
 import {IZoraCreatorInterface} from "./interfaces/IZoraCreatorInterface.sol";
 import {IAccessControlRegistry} from "onchain/interfaces/IAccessControlRegistry.sol";
 import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
@@ -11,6 +12,7 @@ import {ZoraNFTCreatorProxy} from "zora-drops-contracts/ZoraNFTCreatorProxy.sol"
 import {Publisher} from "./Publisher.sol";
 import {PublisherStorage} from "./Publisher.sol";
 
+
 /**
  * @title AssemblyPress
  * @notice Facilitates deployment of custom ZORA drops with extended functionality
@@ -18,7 +20,7 @@ import {PublisherStorage} from "./Publisher.sol";
  * @author Max Bochman
  *
  */
-contract AssemblyPress is OwnableUpgradeable, ReentrancyGuardUpgradeable, PublisherStorage {
+contract AssemblyPress is IAssemblyPress, OwnableUpgradeable, ReentrancyGuardUpgradeable, PublisherStorage {
     // ||||||||||||||||||||||||||||||||
     // ||| STORAGE ||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
