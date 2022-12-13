@@ -46,22 +46,22 @@ contract AssemblyPress is OwnableUpgradeable, ReentrancyGuardUpgradeable, Publis
     bytes32 public immutable DEFAULT_ADMIN_ROLE = 0x00;
     address public zoraNFTCreatorProxy;
     address public zEditionMetadataRenderer;
-    Publisher public publisher;
+    Publisher public publisherImplementation;
 
     // ||||||||||||||||||||||||||||||||
     // ||| INITIALIZER ||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    function initialize(address _zoraNFTCreatorProxy, address _zEditionMetadataRenderer, Publisher _publisher)
+    function initialize(address _zoraNFTCreatorProxy, address _zEditionMetadataRenderer, Publisher _publisherImplementation)
         initializer
     {
         zoraNFTCreatorProxy = _zoraNFTCreatorProxy;
         zEditionMetadataRenderer = _zEditionMetadataRenderer;
-        publisher = _publisher;
+        publisherImplementation = _publisherImplementation;
 
         emit ZoraProxyAddressInitialized(zoraNFTCreatorProxy);
         emit ZEditionMetadataRendererInitialized(zEditionMetadataRenderer);
-        emit PublisherInitialized(address(publisher));
+        emit PublisherInitialized(address(publisherImplementation));
     }
 
     // ||||||||||||||||||||||||||||||||
@@ -93,12 +93,12 @@ contract AssemblyPress is OwnableUpgradeable, ReentrancyGuardUpgradeable, Publis
             royaltyBPS,
             fundsRecipient,
             saleConfig,
-            publisher,
+            publisherImplementation,
             publisherInitializer
         );
 
-        // give publisher minter role on zora drop
-        ERC721Drop(payable(newDropAddress)).grantRole(MINTER_ROLE, address(publisher));
+        // give publisherImplementation minter role on zora drop
+        ERC721Drop(payable(newDropAddress)).grantRole(MINTER_ROLE, address(publisherImplementation));
 
         // grant admin role to desired admin address
         ERC721Drop(payable(newDropAddress)).grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
@@ -125,16 +125,16 @@ contract AssemblyPress is OwnableUpgradeable, ReentrancyGuardUpgradeable, Publis
         emit ZoraProxyAddressUpdated(msg.sender, newZoraNFTCreatorProxy);
     }
 
-    /// @dev updates address value of publisher
-    /// @param newPublisher new newPublisher address
-    function setPublisher(Publisher newPublisher) public onlyOwner {
-        if (address(newPublisher) == address(0)) {
+    /// @dev updates address value of publisherImplementation
+    /// @param newPublisherImplementation new newPublisherImplementation address
+    function setPublisher(Publisher newPublisherImplementation) public onlyOwner {
+        if (address(newPublisherImplementation) == address(0)) {
             revert CantSet_ZeroAddress();
         }
 
-        publisher = newPublisher;
+        publisherImplementation = newPublisherImplementation;
 
-        emit PublisherUpdated(msg.sender, address(newPublisher));
+        emit PublisherUpdated(msg.sender, address(newPublisherImplementation));
     }
 
     /// @dev updates address value of zEditionMetadataRenderer
