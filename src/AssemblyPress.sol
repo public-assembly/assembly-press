@@ -20,12 +20,6 @@ import {PublisherStorage} from "./Publisher.sol";
  */
 contract AssemblyPress is OwnableUpgradeable, ReentrancyGuardUpgradeable, PublisherStorage {
     // ||||||||||||||||||||||||||||||||
-    // ||| ERRORS |||||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||
-
-    error CantSet_ZeroAddress();
-
-    // ||||||||||||||||||||||||||||||||
     // ||| EVENTS |||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
