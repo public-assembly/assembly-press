@@ -28,7 +28,7 @@ interface IAssemblyPress {
         uint64 editionSize,
         uint16 royaltyBPS,
         address fundsRecipient,
-        SalesConfiguration memory saleConfig,
+        IERC721Drop.SalesConfiguration memory saleConfig,
         string memory contractURI,
         address accessControl,
         bytes memory accessControlInit,
