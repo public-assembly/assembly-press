@@ -7,6 +7,7 @@ import {IAccessControlRegistry} from "onchain/interfaces/IAccessControlRegistry.
 import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
 import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {ZoraNFTCreatorProxy} from "zora-drops-contracts/ZoraNFTCreatorProxy.sol";
 import {Publisher} from "./Publisher.sol";
@@ -20,7 +21,7 @@ import {PublisherStorage} from "./Publisher.sol";
  * @author Max Bochman
  *
  */
-contract AssemblyPress is IAssemblyPress, OwnableUpgradeable, ReentrancyGuardUpgradeable, PublisherStorage {
+contract AssemblyPress is IAssemblyPress, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, PublisherStorage {
     // ||||||||||||||||||||||||||||||||
     // ||| STORAGE ||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
