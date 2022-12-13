@@ -52,9 +52,11 @@ contract AssemblyPress is OwnableUpgradeable, ReentrancyGuardUpgradeable, Publis
     // ||| INITIALIZER ||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    function initialize(address _zoraNFTCreatorProxy, address _zEditionMetadataRenderer, Publisher _publisherImplementation)
-        initializer
+    function initialize(address _initialOwner, address _zoraNFTCreatorProxy, address _zEditionMetadataRenderer, Publisher _publisherImplementation)
+        initializer external
     {
+        __Ownable_init(_initialOwner);
+
         zoraNFTCreatorProxy = _zoraNFTCreatorProxy;
         zEditionMetadataRenderer = _zEditionMetadataRenderer;
         publisherImplementation = _publisherImplementation;
