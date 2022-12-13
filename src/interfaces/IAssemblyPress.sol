@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
+import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
 import {Publisher} from "../Publisher.sol";
 
 interface IAssemblyPress {
