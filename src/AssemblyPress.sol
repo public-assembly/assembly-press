@@ -20,20 +20,6 @@ import {PublisherStorage} from "./Publisher.sol";
  */
 contract AssemblyPress is OwnableUpgradeable, ReentrancyGuardUpgradeable, PublisherStorage {
     // ||||||||||||||||||||||||||||||||
-    // ||| EVENTS |||||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||
-
-    // constructor events
-    event ZoraProxyAddressInitialized(address zoraProxyAddress);
-    event ZEditionMetadataRendererInitialized(address zoraProxyAddress);
-    event PublisherInitialized(address publisherAddress);
-
-    // event called when base impl addresses updated
-    event ZoraProxyAddressUpdated(address sender, address newZoraProxyAddress);
-    event ZEditionMetadataRendererUpdated(address sender, address newZEditionMetadataRendererAddress);
-    event PublisherUpdated(address sender, address newPublisherAddress);
-
-    // ||||||||||||||||||||||||||||||||
     // ||| STORAGE ||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
