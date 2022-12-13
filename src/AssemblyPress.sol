@@ -133,6 +133,14 @@ contract AssemblyPress is IAssemblyPress, OwnableUpgradeable, ReentrancyGuardUpg
 
         emit ZEditionMetadataRendererUpdated(msg.sender, newZEditionMetadataRenderer);
     }
+
+    /// @notice Allows only the owner to upgrade the contract
+    /// @param newImplementation proposed new upgrade implementation
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        override
+        onlyOwner
+    {}
 }
 
 // function promoteToEdition(
