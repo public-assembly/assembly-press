@@ -27,7 +27,7 @@ interface IAssemblyPress {
         address defaultAdmin,
         uint64 editionSize,
         uint16 royaltyBPS,
-        address fundsRecipient,
+        address payable fundsRecipient,
         IERC721Drop.SalesConfiguration memory saleConfig,
         string memory contractURI,
         address accessControl,
@@ -37,7 +37,7 @@ interface IAssemblyPress {
 
     function setZoraCreatorProxyAddress(address newZoraNFTCreatorProxy) external;
 
-    function setPublisher(address newPublisher) external;
+    function setPublisher(Publisher newPublisherImplementation) external;
 
     function setzEditionMetadataRenderer(address newZEditionMetadataRenderer) external;
 }
