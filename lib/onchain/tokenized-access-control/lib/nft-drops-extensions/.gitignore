@@ -1,7 +1,0 @@
-cache/
-.DS_Store
-out/
-
-.env
-.env*
-!.env.example
