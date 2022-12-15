@@ -7,3 +7,6 @@
 [submodule "lib/onchain"]
 	path = lib/onchain
 	url = https://github.com/public-assembly/onchain
+[submodule "lib/curation-protocol"]
+	path = lib/curation-protocol
+	url = https://github.com/public-assembly/curation-protocol
