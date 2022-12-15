@@ -45,7 +45,7 @@ contract AssemblyPress is
             _zoraNFTCreatorProxy == address(0) || _zEditionMetadataRenderer == address(0)
                 || address(_publisherImplementation) == address(0)
         ) {
-            revert IMPL_CANNOT_BE_ZERO();
+            revert CantSet_ZeroAddress();
         }
 
         zoraNFTCreatorProxy = _zoraNFTCreatorProxy;
