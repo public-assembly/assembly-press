@@ -10,6 +10,7 @@ import {IAccessControlRegistry} from "onchain/interfaces/IAccessControlRegistry.
 import {IPublisher} from "./interfaces/IPublisher.sol";
 import {IDefaultMetadataDecoder} from "./interfaces/IDefaultMetadataDecoder.sol";
 import {PublisherStorage} from "./PublisherStorage.sol";
+import {BytecodeStorage} from "./utils/BytecodeStorage.sol";
 
 /** 
  * @title Publisher.sol
@@ -153,13 +154,17 @@ contract Publisher is
                 revert Cannot_SetBlank();
             }        
 
-            artifactInfo[zoraDrop][tokenId] = artifactDetails[i];
+
+            address dataContract = BytecodeStorage.writeToBytecode(abi.encode(artifactDetails[i]));
+
+            artifactInfo[zoraDrop][tokenId] = dataContract;
 
             emit ArtifactCreated(
                 msg.sender,
                 zoraDrop,
                 mintRecipient,
                 tokenId,
+                dataContract,
                 artifactDetails[i].artifactRenderer,
                 artifactDetails[i].artifactMetadata
             );                 
@@ -200,18 +205,71 @@ contract Publisher is
         }
     }           
 
+    // /// @notice function to update contractURI
+    // /// @param newContractURI new contractURI
+    // function updateContractURI(address target, string memory newContractURI)
+    //     external
+    // {
+    //     // check if msg.sender has access to update access for a collection
+    //     if (IAccessControlRegistry(dropAccessControl[target]).getAccessLevel(address(this), msg.sender) < 2) {
+    //         revert No_EditAccess();
+    //     }
+
+    //     // check if contract has been initialized + if 
+    //     if (bytes(contractURIInfo[target]).length == 0) {
+    //         revert Address_NotInitialized();
+    //     }
+
+    //     // check if contractURI is being set to empty string
+    //     if (bytes(newContractURI).length == 0) {
+    //         revert Cannot_SetBlank();
+    //     }
+
+    //     contractURIInfo[target] = newContractURI;
+
+    //     emit ContractURIUpdated({
+    //         target: target,
+    //         sender: msg.sender,
+    //         contractURI: newContractURI
+    //     });
+    // }      
+
+    // /// @dev updates uint256 value in mintPricePerToken mapping
+    // /// @param newMintPricePerToken new mintPrice value
+    // function updateMintPrice(address target, uint256 newMintPricePerToken) public {
+
+    //     // check if msg.sender has access to edit access for a collection
+    //     if (IAccessControlRegistry(dropAccessControl[target]).getAccessLevel(address(this), msg.sender) < 2) {
+    //         revert No_EditAccess();
+    //     }
+
+    //     mintPricePerToken[target] = newMintPricePerToken;
+
+    //     emit MintPriceUpdated(msg.sender, target, newMintPricePerToken);
+    // }    
+
+
+
+
+
+
+
+
+
+
     /// @notice function to update contractURI
+    /// @param targetPress press contract address target
     /// @param newContractURI new contractURI
-    function updateContractURI(address target, string memory newContractURI)
+    function updateContractURI(address targetPress, string memory newContractURI)
         external
     {
         // check if msg.sender has access to update access for a collection
-        if (IAccessControlRegistry(dropAccessControl[target]).getAccessLevel(address(this), msg.sender) < 2) {
+        if (IAccessControlRegistry(pressInfo[targetPress].accessControl).getAccessLevel(address(this), msg.sender) < 2) {
             revert No_EditAccess();
         }
 
         // check if contract has been initialized + if 
-        if (bytes(contractURIInfo[target]).length == 0) {
+        if (bytes(pressInfo[targetPress].contractURI).length == 0) {
             revert Address_NotInitialized();
         }
 
@@ -220,28 +278,109 @@ contract Publisher is
             revert Cannot_SetBlank();
         }
 
-        contractURIInfo[target] = newContractURI;
+        pressInfo[targetPress].contractURI = newContractURI;
 
         emit ContractURIUpdated({
-            target: target,
+            target: targetPress,
             sender: msg.sender,
             contractURI: newContractURI
         });
     }      
 
     /// @dev updates uint256 value in mintPricePerToken mapping
+    /// @param targetPress press contract address target
     /// @param newMintPricePerToken new mintPrice value
-    function updateMintPrice(address target, uint256 newMintPricePerToken) public {
+    function updateMintPrice(address targetPress, uint256 newMintPricePerToken) public {
 
         // check if msg.sender has access to edit access for a collection
-        if (IAccessControlRegistry(dropAccessControl[target]).getAccessLevel(address(this), msg.sender) < 2) {
+        if (IAccessControlRegistry(pressInfo[targetPress].accessControl).getAccessLevel(address(this), msg.sender) < 2) {
             revert No_EditAccess();
         }
 
-        mintPricePerToken[target] = newMintPricePerToken;
+        pressInfo[targetPress].mintPricePerToken = newMintPricePerToken;
 
-        emit MintPriceUpdated(msg.sender, target, newMintPricePerToken);
+        emit MintPriceUpdated(msg.sender, targetPress, newMintPricePerToken);
     }    
+
+    /// @dev updates access control module + init data
+    /// @param targetPress press contract address target
+    /// @param accessControl address of access control module
+    /// @param accessControlData address of accessControl
+    function updateAccessControlWithData(
+        address targetPress, 
+        address accessControl, 
+        bytes memory accessControlData
+    ) public {
+
+        // check if msg.sender has access to edit access for a collection
+        if (IAccessControlRegistry(pressInfo[targetPress].accessControl).getAccessLevel(address(this), msg.sender) < 2) {
+            revert No_EditAccess();
+        }
+
+        if (accessControl != pressInfo[targetPress].accessControl) {
+
+            (bool updateSuccess) = _updateAccessControlNewModule(
+                targetPress,
+                accessControl,
+                accessControlData
+            );
+
+            // if access control update fails revert transaction
+            if (!updateSuccess) {
+                revert UpdateAccessControlFail();
+            }
+        }
+
+        // (bool updateSuccess) = _updateAccessControlSameModule(
+        //     targetPress,
+        //     accessControl,
+        //     accessControlData
+        // );
+
+        // // if access control update fails revert transaction
+        // if (!updateSuccess) {
+        //     revert UpdateAccessControlFail();
+        // }        
+
+        emit AccessControlUpdated(msg.sender, targetPress, accessControl, accessControlData);
+    }      
+
+
+    /// @dev updates access control module + data when module address is changing
+    /// @param targetPress press contract address target
+    /// @param accessControl address of access control module
+    /// @param accessControlData address of accessControl
+    function _updateAccessControlNewModule(
+        address targetPress, 
+        address accessControl, 
+        bytes memory accessControlData        
+    ) internal returns (bool) {
+
+        // setup new remote access control 
+        IAccessControlRegistry(accessControl).initializeWithData(accessControlData);
+
+        // store address of access control module in pressInfo mapping
+        pressInfo[targetPress].accessControl = accessControl;
+
+        return true;    
+    }
+
+
+    // @dev updates access control module + data when module address isnt changing
+    // @param targetPress press contract address target
+    // @param accessControl address of access control module
+    // @param accessControlData address of accessControl
+    // function _updateAccessControlSameModule(
+    //     address targetPress, 
+    //     address accessControl, 
+    //     bytes accessControlData        
+    // ) internal returns (bool) {
+
+    //     // edit remote access control data
+    //     IAccessControlRegistry(accessControl).editWithData(accessControlData);
+
+    //     return true;  
+    // }    
 
     // ||||||||||||||||||||||||||||||||
     // ||| INTERNAL EDIT FUNCTIONS ||||
@@ -270,13 +409,23 @@ contract Publisher is
                 revert Cannot_SetBlank();
             }         
 
-            artifactInfo[zoraDrop][tokenIds[i]] = artifactDetails[i]; 
+            // check if token has been initialized **** might be able to remove the if check!!! and just do it automatically
+            if (artifactInfo[zoraDrop][tokenIds[i]] != address(0x0)) {
+                BytecodeStorage.purgeBytecode(artifactInfo[zoraDrop][tokenIds[i]]);
+            }        
+
+            address dataContract = BytecodeStorage.writeToBytecode(
+                abi.encode(artifactDetails[i])
+            );
+
+            artifactInfo[zoraDrop][tokenIds[i]] = dataContract;
 
             // emit ArtifactEdited event
             emit ArtifactEdited(
                 msg.sender,
                 zoraDrop,
                 tokenIds[i],
+                dataContract,
                 artifactDetails[i].artifactRenderer,
                 artifactDetails[i].artifactMetadata
             );   
@@ -316,7 +465,14 @@ contract Publisher is
         override
         returns (string memory)
     {
-        string memory uri = IDefaultMetadataDecoder(artifactInfo[msg.sender][tokenId].artifactRenderer).metadataDecoder(artifactInfo[msg.sender][tokenId].artifactMetadata);
+        
+        ArtifactDetails memory details = abi.decode(
+            BytecodeStorage.readFromBytecode(artifactInfo[msg.sender][tokenId]),
+            (ArtifactDetails)
+        );
+
+        string memory uri = IDefaultMetadataDecoder(details.artifactRenderer).metadataDecoder(details.artifactMetadata);
+        
         if (bytes(uri).length == 0) revert Token_DoesntExist();
         return uri;
     }    

@@ -4,3 +4,6 @@
 [submodule "lib/zora-drops-contracts"]
 	path = lib/zora-drops-contracts
 	url = https://github.com/ourzora/zora-drops-contracts
+[submodule "lib/onchain"]
+	path = lib/onchain
+	url = https://github.com/public-assembly/onchain
