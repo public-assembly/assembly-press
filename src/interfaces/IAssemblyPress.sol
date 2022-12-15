@@ -14,12 +14,7 @@ interface IAssemblyPress {
     event ZoraProxyAddressInitialized(address zoraProxyAddress);
     event ZoraProxyAddressUpdated(address sender, address newZoraProxyAddress);
 
-    function initialize(
-        address _initialOwner,
-        address _zoraNFTCreatorProxy,
-        address _zEditionMetadataRenderer,
-        Publisher _publisherImplementation
-    ) external;
+    function initialize(address _initialOwner) external;
 
     function createPublication(
         string memory name,

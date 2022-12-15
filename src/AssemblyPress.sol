@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import {IAssemblyPress} from "./interfaces/IAssemblyPress.sol";
 import {IZoraCreatorInterface} from "./interfaces/IZoraCreatorInterface.sol";
-import {IAccessControlRegistry} from "onchain/interfaces/IAccessControlRegistry.sol";
+import {IAccessControlRegistry} from "onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
 import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
 import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
 import {OwnableUpgradeable} from "./utils/OwnableUpgradeable.sol";
@@ -13,7 +13,6 @@ import {ZoraNFTCreatorProxy} from "zora-drops-contracts/ZoraNFTCreatorProxy.sol"
 import {Publisher} from "./Publisher.sol";
 import {PublisherStorage} from "./Publisher.sol";
 
-
 /**
  * @title AssemblyPress
  * @notice Facilitates deployment of custom ZORA drops with extended functionality
@@ -21,7 +20,13 @@ import {PublisherStorage} from "./Publisher.sol";
  * @author Max Bochman
  *
  */
-contract AssemblyPress is IAssemblyPress, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, PublisherStorage {
+contract AssemblyPress is
+    IAssemblyPress,
+    OwnableUpgradeable,
+    ReentrancyGuardUpgradeable,
+    UUPSUpgradeable,
+    PublisherStorage
+{
     // ||||||||||||||||||||||||||||||||
     // ||| STORAGE ||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
@@ -32,13 +37,16 @@ contract AssemblyPress is IAssemblyPress, OwnableUpgradeable, ReentrancyGuardUpg
     Publisher public publisherImplementation;
 
     // ||||||||||||||||||||||||||||||||
-    // ||| INITIALIZER ||||||||||||||||
+    // ||| CONSTRUCTOR ||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    function initialize(address _initialOwner, address _zoraNFTCreatorProxy, address _zEditionMetadataRenderer, Publisher _publisherImplementation)
-        initializer external
-    {
-        __Ownable_init(_initialOwner);
+    constructor(address _zoraNFTCreatorProxy, address _zEditionMetadataRenderer, Publisher _publisherImplementation) {
+        if (
+            _zoraNFTCreatorProxy == address(0) || _zEditionMetadataRenderer == address(0)
+                || address(_publisherImplementation) == address(0)
+        ) {
+            revert CantSet_ZeroAddress();
+        }
 
         zoraNFTCreatorProxy = _zoraNFTCreatorProxy;
         zEditionMetadataRenderer = _zEditionMetadataRenderer;
@@ -47,6 +55,14 @@ contract AssemblyPress is IAssemblyPress, OwnableUpgradeable, ReentrancyGuardUpg
         emit ZoraProxyAddressInitialized(zoraNFTCreatorProxy);
         emit ZEditionMetadataRendererInitialized(zEditionMetadataRenderer);
         emit PublisherInitialized(address(publisherImplementation));
+    }
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| INITIALIZER ||||||||||||||||
+    // ||||||||||||||||||||||||||||||||
+
+    function initialize(address _initialOwner) external initializer {
+        __Ownable_init(_initialOwner);
     }
 
     // ||||||||||||||||||||||||||||||||
@@ -136,11 +152,7 @@ contract AssemblyPress is IAssemblyPress, OwnableUpgradeable, ReentrancyGuardUpg
 
     /// @notice Allows only the owner to upgrade the contract
     /// @param newImplementation proposed new upgrade implementation
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        override
-        onlyOwner
-    {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
 
 // function promoteToEdition(
