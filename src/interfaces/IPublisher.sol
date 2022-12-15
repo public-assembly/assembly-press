@@ -9,6 +9,13 @@ interface IPublisher {
     // ||||||||||||||||||||||||||||||||
 
     /// @notice Shared listing struct for both artifactRenderer address + artifactMetadata 
+    struct PressDetails {
+        string contractURI;
+        address accessControl;
+        uint256 mintPricePerToken;
+    }
+
+    /// @notice Shared listing struct for both artifactRenderer address + artifactMetadata 
     struct ArtifactDetails {
         address artifactRenderer;
         bytes artifactMetadata;
@@ -28,15 +35,17 @@ interface IPublisher {
         address zoraDrop, 
         address mintRecipient, 
         uint256 tokenId, 
+        address dataContract,
         address tokenRenderer,
         bytes tokenMetadata
-    ) ; 
+    ); 
 
     /// @notice edit artifact notice
     event ArtifactEdited(
         address editor, 
         address zoraDrop,
         uint256 tokenId, 
+        address dataContract,
         address tokenRenderer, 
         bytes tokenMetadata
     );           
@@ -82,7 +91,15 @@ interface IPublisher {
         uint256 mintPricePerToken,
         address indexed accessControl,
         bytes accessControlInit
-    );         
+    );
+
+    /// @notice Event for updates made to access control strategy
+    event AccessControlUpdated(
+        address indexed sender,
+        address indexed targetPress,
+        address accessControl,
+        bytes accessControlData
+    );     
 
     // ||||||||||||||||||||||||||||||||
     // ||| ERRORS |||||||||||||||||||||
@@ -111,7 +128,7 @@ interface IPublisher {
     /// @notice CHANGEEEEEEEE
     error No_MetadataAccess();
 
-    /// @notice CHANGEEEEEEEE
+    /// @notice CHANGEEEEEEEE to No_PublishingAccess
     error No_PublicationAccess();    
 
     /// @notice CHANGEEEEEEEE
@@ -132,4 +149,7 @@ interface IPublisher {
 
     /// @notice CHANGEEEEEEEE  
     error INVALID_INPUT_LENGTH();
+
+    /// @notice Update to access control strategy failed  
+    error UpdateAccessControlFail();    
 }

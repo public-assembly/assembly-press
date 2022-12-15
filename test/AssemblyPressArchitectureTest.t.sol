@@ -81,11 +81,7 @@ contract AssemblyPressArchitectureTest is DSTest {
         publisher = new Publisher();
         defaultMetaDecoder = new DefaultMetadataDecoder();
         onlyAdminAC = new OnlyAdminAccessControl();
-        assemblyPress = new AssemblyPress(
-            address(creator),
-            address(editionMetadataRenderer),
-            publisher
-        );
+        assemblyPress = new AssemblyPress();        
     }
 
     function test_CreatePublication() public { 

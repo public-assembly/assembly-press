@@ -26,11 +26,7 @@ contract DeployCore is Script {
 
         new DefaultMetadataDecoder();        
 
-        new AssemblyPress(
-            zoraNFTCreatorProxy,
-            editionMetadataRendererAddressGoerli,
-            publisher
-        );
+        new AssemblyPress();
 
         vm.stopBroadcast();
     }
