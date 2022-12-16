@@ -13,10 +13,12 @@ import {AssemblyPress} from "../src/AssemblyPress.sol";
 import {AssemblyPressProxy} from "../src/AssemblyPressProxy.sol";
 
 import {IOwnableUpgradeable} from "../src/utils/IOwnableUpgradeable.sol";
+import {console} from "forge-std/console.sol";
 
 contract AssemblyPressArchitectureTest is DropConfig {
     uint256 public mintPrice = 0;
     string public contractURIString1 = "test_contractURI_1/";
+    string public contractURIString2 = "test_contractURI_2/";
     string public tokenURIString1 = "test_tokenURI_1/";
     bytes public tokenURIString1_encoded = abi.encode(tokenURIString1);
     string public tokenURIString2 = "test_tokenURI_2/";
@@ -63,8 +65,12 @@ contract AssemblyPressArchitectureTest is DropConfig {
             mintPricePerToken: mintPrice
         });
         ERC721Drop pubChannel = ERC721Drop(payable(zoraDrop));
-        assertEq(onlyAdminAC.getAccessLevel(address(publisher), DEFAULT_OWNER_ADDRESS), 3);
+        (string memory s, address a, uint256 u) = publisher.pressInfo(zoraDrop);
+        assertEq(s, contractURIString1);
+        assertEq(a, address(onlyAdminAC));
+        assertEq(u, mintPrice);
         assertEq(pubChannel.contractURI(), contractURIString1);
+        assertEq(onlyAdminAC.getAccessLevel(address(publisher), DEFAULT_OWNER_ADDRESS), 3);        
     }
 
     function test_publish() public {
@@ -141,5 +147,129 @@ contract AssemblyPressArchitectureTest is DropConfig {
         tokenIds[0] = 1;
 
         publisher.edit(zoraDrop, tokenIds, artifacts_2);
+        assertEq(pubChannel.tokenURI(1), tokenURIString2);
     }
+
+    function test_editFailNoAccessControl() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        address zoraDrop = assemblyPress.createPublication({
+            name: "TestDrop",
+            symbol: "TD",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 18446744073709551615,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: 0x0000000000000000000000000000000000000000000000000000000000000000
+            }),
+            contractURI: contractURIString1,
+            accessControl: address(onlyAdminAC),
+            accessControlInit: accessControlInit,
+            mintPricePerToken: mintPrice
+        });
+        ERC721Drop pubChannel = ERC721Drop(payable(zoraDrop));
+        vm.stopPrank();
+        vm.startPrank(DEFAULT_NON_OWNER_ADDRESS);
+        vm.expectRevert();
+        publisher.updateContractURI(zoraDrop, contractURIString2);
+        vm.expectRevert();
+        publisher.updateMintPrice(zoraDrop, 100);
+        vm.expectRevert();
+        publisher.updateAccessControlWithData(zoraDrop, address(onlyAdminAC), accessControlInit2);
+    }    
+
+    function test_editContractURI() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        address zoraDrop = assemblyPress.createPublication({
+            name: "TestDrop",
+            symbol: "TD",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 18446744073709551615,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: 0x0000000000000000000000000000000000000000000000000000000000000000
+            }),
+            contractURI: contractURIString1,
+            accessControl: address(onlyAdminAC),
+            accessControlInit: accessControlInit,
+            mintPricePerToken: mintPrice
+        });
+        ERC721Drop pubChannel = ERC721Drop(payable(zoraDrop));
+        publisher.updateContractURI(zoraDrop, contractURIString2);
+        (string memory s, address a, uint256 u) = publisher.pressInfo(zoraDrop);        
+        assertEq(s, contractURIString2);
+        assertEq(pubChannel.contractURI(), contractURIString2);
+    } 
+
+    function test_editAccessControl() public {
+        // startPrank inputs set msg.sender, tx.origin respectively
+        vm.startPrank(DEFAULT_OWNER_ADDRESS, DEFAULT_OWNER_ADDRESS);
+        address zoraDrop = assemblyPress.createPublication({
+            name: "TestDrop",
+            symbol: "TD",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 18446744073709551615,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: 0x0000000000000000000000000000000000000000000000000000000000000000
+            }),
+            contractURI: contractURIString1,
+            accessControl: address(onlyAdminAC),
+            accessControlInit: accessControlInit,
+            mintPricePerToken: mintPrice
+        });
+        publisher.updateAccessControlWithData(zoraDrop, address(onlyAdminAC), accessControlInit2);
+        (string memory s, address a, uint256 u) = publisher.pressInfo(zoraDrop);
+        assertEq(a, address(onlyAdminAC));
+        assertEq(onlyAdminAC.getAccessLevel(address(publisher), DEFAULT_OWNER_ADDRESS), 0);    
+        assertEq(onlyAdminAC.getAccessLevel(address(publisher), DEFAULT_NON_OWNER_ADDRESS), 3);    
+    }            
+
+    function test_editMintPricePerToken() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+        address zoraDrop = assemblyPress.createPublication({
+            name: "TestDrop",
+            symbol: "TD",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 18446744073709551615,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: 0x0000000000000000000000000000000000000000000000000000000000000000
+            }),
+            contractURI: contractURIString1,
+            accessControl: address(onlyAdminAC),
+            accessControlInit: accessControlInit,
+            mintPricePerToken: mintPrice
+        });
+        publisher.updateMintPrice(zoraDrop, 100);
+        (string memory s, address a, uint256 u) = publisher.pressInfo(zoraDrop);
+        assertEq(u, 100);
+    }        
 }

@@ -29,9 +29,12 @@ contract DropConfig is Test {
     DefaultMetadataDecoder public defaultMetaDecoder;
     OnlyAdminAccessControl public onlyAdminAC;
     bytes public accessControlInit = abi.encode(DEFAULT_OWNER_ADDRESS);
+    bytes public accessControlInit2 = abi.encode(DEFAULT_NON_OWNER_ADDRESS);
+    IPublisher.PressDetails pressDetails;
 
     // Zora drop initialization variables
     address public constant DEFAULT_OWNER_ADDRESS = address(0x23499);
+    address public constant DEFAULT_NON_OWNER_ADDRESS = address(0x666);
     address payable public constant DEFAULT_FUNDS_RECIPIENT_ADDRESS = payable(address(0x21303));
     address payable public constant DEFAULT_ZORA_DAO_ADDRESS = payable(address(0x999));
     ERC721Drop public dropImpl;
