@@ -7,7 +7,6 @@ import {Publisher} from "../Publisher.sol";
 interface IAssemblyPress {
     error CantSet_ZeroAddress();
 
-    event CreatedDrop(address dropContractAddress);
     event PublisherInitialized(address publisherAddress);
     event PublisherUpdated(address sender, address newPublisherAddress);
     event ZEditionMetadataRendererInitialized(address zoraProxyAddress);

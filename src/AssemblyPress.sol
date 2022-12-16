@@ -104,8 +104,6 @@ contract AssemblyPress is
         // revoke admin role from address(this) as it differed from desired admin address
         ERC721Drop(payable(newDropAddress)).revokeRole(DEFAULT_ADMIN_ROLE, address(this));
 
-        emit CreatedDrop({dropContractAddress: newDropAddress});
-
         return newDropAddress;
     }
 
