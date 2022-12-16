@@ -31,8 +31,4 @@ interface IAssemblyPress {
     ) external returns (address);
 
     function setZoraCreatorProxyAddress(address newZoraNFTCreatorProxy) external;
-
-    function setPublisher(Publisher newPublisherImplementation) external;
-
-    function setzEditionMetadataRenderer(address newZEditionMetadataRenderer) external;
 }

@@ -43,12 +43,11 @@ contract DropConfig is Test {
     DropMetadataRenderer public dropMetadataRenderer;
 
     function setUp() public {
-        vm.prank(DEFAULT_ZORA_DAO_ADDRESS);
+        vm.startPrank(DEFAULT_ZORA_DAO_ADDRESS);
         ZoraFeeManager feeManager = new ZoraFeeManager(
             500,
             DEFAULT_ZORA_DAO_ADDRESS
         );
-        vm.prank(DEFAULT_ZORA_DAO_ADDRESS);
         dropImpl = new ERC721Drop(
             feeManager,
             address(1234),
@@ -64,7 +63,9 @@ contract DropConfig is Test {
         );
         creator = ZoraNFTCreatorV1(address(new ZoraNFTCreatorProxy(address(impl), "")));
         creator.initialize();
+        vm.stopPrank();
 
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
         // AssemblyPress architecture deploy
         publisher = new Publisher();
         defaultMetaDecoder = new DefaultMetadataDecoder();
@@ -73,7 +74,6 @@ contract DropConfig is Test {
         // Deploys an unproxied, unowned, and uninitialized factory
         assemblyPress = new AssemblyPress(
             address(creator),
-            address(editionMetadataRenderer),
             publisher
         );
     }
