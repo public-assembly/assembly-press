@@ -6,7 +6,7 @@ import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.s
 import {IMetadataRenderer} from "zora-drops-contracts/interfaces/IMetadataRenderer.sol";
 import {IERC721DropMinter} from "./interfaces/IERC721DropMinter.sol";
 import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
-import {IAccessControlRegistry} from "onchain/interfaces/IAccessControlRegistry.sol";
+import {IAccessControlRegistry} from "onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
 import {IPublisher} from "./interfaces/IPublisher.sol";
 import {IDefaultMetadataDecoder} from "./interfaces/IDefaultMetadataDecoder.sol";
 import {PublisherStorage} from "./PublisherStorage.sol";

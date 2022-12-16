@@ -26,7 +26,7 @@ contract DeployCore is Script {
 
         new DefaultMetadataDecoder();        
 
-        new AssemblyPress();
+        // new AssemblyPress();
 
         vm.stopBroadcast();
     }
