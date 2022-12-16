@@ -11,6 +11,7 @@ import {IPublisher} from "./interfaces/IPublisher.sol";
 import {IDefaultMetadataDecoder} from "./interfaces/IDefaultMetadataDecoder.sol";
 import {PublisherStorage} from "./PublisherStorage.sol";
 import {BytecodeStorage} from "./utils/BytecodeStorage.sol";
+import {console} from "forge-std/console.sol";
 
 /** 
  * @title Publisher.sol
@@ -47,15 +48,9 @@ contract Publisher is
             revert Cannot_SetBlank();
         }
 
-        contractURIInfo[msg.sender] = contractUriInit;
-
-        mintPricePerToken[msg.sender] = mintPriceInit;
-
-        emit MintPriceUpdated(msg.sender, msg.sender, mintPriceInit);        
-
         IAccessControlRegistry(accessControlModule).initializeWithData(accessControlInit);
 
-        dropAccessControl[msg.sender] = accessControlModule;    
+        pressInfo[msg.sender] = PressDetails(contractUriInit, accessControlModule, mintPriceInit);
         
         emit PublicationInitialized({
             target: msg.sender,
@@ -91,12 +86,12 @@ contract Publisher is
         }
 
         // check if msg.sender has publication access
-        if (IAccessControlRegistry(dropAccessControl[zoraDrop]).getAccessLevel(address(this), msg.sender) < 1) {
+        if (IAccessControlRegistry(pressInfo[zoraDrop].accessControl).getAccessLevel(address(this), msg.sender) < 1) {
             revert No_PublicationAccess();
         }        
 
         // check if total mint price is correct
-        if (msg.value != mintPricePerToken[zoraDrop] * artifactDetails.length) {            
+        if (msg.value != pressInfo[zoraDrop].mintPricePerToken * artifactDetails.length) {            
             revert WrongPrice();
         }
 
@@ -140,7 +135,7 @@ contract Publisher is
             uint256 tokenId = lastTokenMinted - (numArtifacts - (i + 1));                     
 
             // check if target collection has been initialized
-            if (bytes(contractURIInfo[zoraDrop]).length == 0) {
+            if (bytes(pressInfo[zoraDrop].contractURI).length == 0) {
                 revert Address_NotInitialized();
             }        
 
@@ -153,7 +148,6 @@ contract Publisher is
             if (artifactDetails[i].artifactMetadata.length == 0) {
                 revert Cannot_SetBlank();
             }        
-
 
             address dataContract = BytecodeStorage.writeToBytecode(abi.encode(artifactDetails[i]));
 
@@ -192,7 +186,7 @@ contract Publisher is
         }
 
         // check if msg.sender has access to update metadata for a token
-        if (IAccessControlRegistry(dropAccessControl[zoraDrop]).getAccessLevel(address(this), msg.sender) < 2) {
+        if (IAccessControlRegistry(pressInfo[zoraDrop].accessControl).getAccessLevel(address(this), msg.sender) < 2) {
             revert No_EditAccess();
         }          
 
@@ -204,58 +198,6 @@ contract Publisher is
             revert EditArtifactFail();
         }
     }           
-
-    // /// @notice function to update contractURI
-    // /// @param newContractURI new contractURI
-    // function updateContractURI(address target, string memory newContractURI)
-    //     external
-    // {
-    //     // check if msg.sender has access to update access for a collection
-    //     if (IAccessControlRegistry(dropAccessControl[target]).getAccessLevel(address(this), msg.sender) < 2) {
-    //         revert No_EditAccess();
-    //     }
-
-    //     // check if contract has been initialized + if 
-    //     if (bytes(contractURIInfo[target]).length == 0) {
-    //         revert Address_NotInitialized();
-    //     }
-
-    //     // check if contractURI is being set to empty string
-    //     if (bytes(newContractURI).length == 0) {
-    //         revert Cannot_SetBlank();
-    //     }
-
-    //     contractURIInfo[target] = newContractURI;
-
-    //     emit ContractURIUpdated({
-    //         target: target,
-    //         sender: msg.sender,
-    //         contractURI: newContractURI
-    //     });
-    // }      
-
-    // /// @dev updates uint256 value in mintPricePerToken mapping
-    // /// @param newMintPricePerToken new mintPrice value
-    // function updateMintPrice(address target, uint256 newMintPricePerToken) public {
-
-    //     // check if msg.sender has access to edit access for a collection
-    //     if (IAccessControlRegistry(dropAccessControl[target]).getAccessLevel(address(this), msg.sender) < 2) {
-    //         revert No_EditAccess();
-    //     }
-
-    //     mintPricePerToken[target] = newMintPricePerToken;
-
-    //     emit MintPriceUpdated(msg.sender, target, newMintPricePerToken);
-    // }    
-
-
-
-
-
-
-
-
-
 
     /// @notice function to update contractURI
     /// @param targetPress press contract address target
@@ -329,22 +271,24 @@ contract Publisher is
             if (!updateSuccess) {
                 revert UpdateAccessControlFail();
             }
+            
+        } else {
+
+            (bool updateSuccess) = _updateAccessControlSameModule(
+                targetPress,
+                accessControl,
+                accessControlData
+            );
+
+            // if access control update fails revert transaction
+            if (!updateSuccess) {
+                revert UpdateAccessControlFail();
+            }        
+
         }
-
-        // (bool updateSuccess) = _updateAccessControlSameModule(
-        //     targetPress,
-        //     accessControl,
-        //     accessControlData
-        // );
-
-        // // if access control update fails revert transaction
-        // if (!updateSuccess) {
-        //     revert UpdateAccessControlFail();
-        // }        
 
         emit AccessControlUpdated(msg.sender, targetPress, accessControl, accessControlData);
     }      
-
 
     /// @dev updates access control module + data when module address is changing
     /// @param targetPress press contract address target
@@ -365,22 +309,24 @@ contract Publisher is
         return true;    
     }
 
+    /// @dev updates access control module + data when module address isnt changing
+    /// @param targetPress press contract address target
+    /// @param accessControl address of access control module
+    /// @param accessControlData address of accessControl
+    function _updateAccessControlSameModule(
+        address targetPress, 
+        address accessControl, 
+        bytes memory accessControlData        
+    ) internal returns (bool) {
 
-    // @dev updates access control module + data when module address isnt changing
-    // @param targetPress press contract address target
-    // @param accessControl address of access control module
-    // @param accessControlData address of accessControl
-    // function _updateAccessControlSameModule(
-    //     address targetPress, 
-    //     address accessControl, 
-    //     bytes accessControlData        
-    // ) internal returns (bool) {
+        // edit remote access control data
+        IAccessControlRegistry(accessControl).updateWithData(accessControlData);
 
-    //     // edit remote access control data
-    //     IAccessControlRegistry(accessControl).editWithData(accessControlData);
+        // store address of access control module in pressInfo mapping
+        pressInfo[targetPress].accessControl = accessControl;        
 
-    //     return true;  
-    // }    
+        return true;  
+    }    
 
     // ||||||||||||||||||||||||||||||||
     // ||| INTERNAL EDIT FUNCTIONS ||||
@@ -446,7 +392,7 @@ contract Publisher is
         override 
         returns (string memory) 
     {
-        string memory uri = contractURIInfo[msg.sender];
+        string memory uri = pressInfo[msg.sender].contractURI;
         if (bytes(uri).length == 0) {
             // if contractURI return is blank, means the contract has not been initialize
             //      or is being called by an address other than zoraDrop that has been initd
@@ -487,12 +433,12 @@ contract Publisher is
         returns (string memory, string memory)
     {
         
-        if (bytes(contractURIInfo[zoraDrop]).length == 0) {
+        if (bytes(pressInfo[zoraDrop].contractURI).length == 0) {
             revert Address_NotInitialized();
         }
         
-        if (bytes(contractURIInfo[zoraDrop]).length == 0) {
-            return (contractURIInfo[zoraDrop], "");
+        if (bytes(pressInfo[zoraDrop].contractURI).length == 0) {
+            return (pressInfo[zoraDrop].contractURI, "");
         }
 
         return (IMetadataRenderer(zoraDrop).contractURI(), IMetadataRenderer(zoraDrop).tokenURI(tokenId));
