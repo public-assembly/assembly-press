@@ -33,27 +33,24 @@ contract AssemblyPress is
 
     bytes32 public immutable DEFAULT_ADMIN_ROLE = 0x00;
     address public zoraNFTCreatorProxy;
-    address public zEditionMetadataRenderer;
-    Publisher public publisherImplementation;
+    Publisher public immutable publisherImplementation;
 
     // ||||||||||||||||||||||||||||||||
     // ||| CONSTRUCTOR ||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    constructor(address _zoraNFTCreatorProxy, address _zEditionMetadataRenderer, Publisher _publisherImplementation) {
-        if (
-            _zoraNFTCreatorProxy == address(0) || _zEditionMetadataRenderer == address(0)
-                || address(_publisherImplementation) == address(0)
-        ) {
+    constructor(address _zoraNFTCreatorProxy, Publisher _publisherImplementation) {
+        if (_zoraNFTCreatorProxy == address(0)) {
             revert CantSet_ZeroAddress();
         }
-
         zoraNFTCreatorProxy = _zoraNFTCreatorProxy;
-        zEditionMetadataRenderer = _zEditionMetadataRenderer;
+
+        if (address(_publisherImplementation) == address(0)) {
+            revert CantSet_ZeroAddress();
+        }
         publisherImplementation = _publisherImplementation;
 
         emit ZoraProxyAddressInitialized(zoraNFTCreatorProxy);
-        emit ZEditionMetadataRendererInitialized(zEditionMetadataRenderer);
         emit PublisherInitialized(address(publisherImplementation));
     }
 
@@ -107,6 +104,8 @@ contract AssemblyPress is
         // revoke admin role from address(this) as it differed from desired admin address
         ERC721Drop(payable(newDropAddress)).revokeRole(DEFAULT_ADMIN_ROLE, address(this));
 
+        emit CreatedDrop({dropContractAddress: newDropAddress});
+
         return newDropAddress;
     }
 
@@ -126,30 +125,6 @@ contract AssemblyPress is
         emit ZoraProxyAddressUpdated(msg.sender, newZoraNFTCreatorProxy);
     }
 
-    /// @dev updates address value of publisherImplementation
-    /// @param newPublisherImplementation new newPublisherImplementation address
-    function setPublisher(Publisher newPublisherImplementation) public onlyOwner {
-        if (address(newPublisherImplementation) == address(0)) {
-            revert CantSet_ZeroAddress();
-        }
-
-        publisherImplementation = newPublisherImplementation;
-
-        emit PublisherUpdated(msg.sender, address(newPublisherImplementation));
-    }
-
-    /// @dev updates address value of zEditionMetadataRenderer
-    /// @param newZEditionMetadataRenderer new ZEditionMetadataRenderer address
-    function setzEditionMetadataRenderer(address newZEditionMetadataRenderer) public onlyOwner {
-        if (newZEditionMetadataRenderer == address(0)) {
-            revert CantSet_ZeroAddress();
-        }
-
-        zEditionMetadataRenderer = newZEditionMetadataRenderer;
-
-        emit ZEditionMetadataRendererUpdated(msg.sender, newZEditionMetadataRenderer);
-    }
-
     /// @notice Allows only the owner to upgrade the contract
     /// @param newImplementation proposed new upgrade implementation
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
@@ -157,6 +132,7 @@ contract AssemblyPress is
 
 // function promoteToEdition(
 //     address zoraDrop,
+//     address publisherImplOverride
 //     uint256 tokenId,
 //     string memory name,
 //     string memory symbol,
