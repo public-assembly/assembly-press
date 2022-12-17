@@ -10,9 +10,6 @@ import {AssemblyPressProxy} from "../src/AssemblyPressProxy.sol";
 contract AssemblyPressArch is Script {
     uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
-    // address editionMetadataRenderer = 0x192ce8267CbaB9C3C477D61e85D7f0c5fE3B46Af; // MAINNET
-    address editionMetadataRendererGoerli = 0x2f5C21EF9DdFf9A1FE76a1c55dd5112fcf2EfD39; // GOERLI
-
     // address zoraNFTCreatorProxy = 0xF74B146ce44CC162b601deC3BE331784DB111DC1; // MAINNET
     address zoraNFTCreatorProxy = 0xb9583D05Ba9ba8f7F14CCEe3Da10D2bc0A72f519; // GOERLI
 
@@ -29,7 +26,6 @@ contract AssemblyPressArch is Script {
         // Create an instance of Assembly Press
         AssemblyPress assemblyPress = new AssemblyPress(
             address(zoraNFTCreatorProxy),
-            address(editionMetadataRendererGoerli),
             publisher
         );
 
