@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import {IOwnableUpgradeable} from "./IOwnableUpgradeable.sol";
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Initializable} from "openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /// @title Ownable
 /// @author Rohan Kulkarni / Iain Nash
