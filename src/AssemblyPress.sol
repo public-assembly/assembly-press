@@ -11,7 +11,7 @@ import {UUPSUpgradeable} from "openzeppelin/contracts-upgradeable/proxy/utils/UU
 import {ReentrancyGuardUpgradeable} from "openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {ZoraNFTCreatorProxy} from "zora-drops-contracts/ZoraNFTCreatorProxy.sol";
 import {Publisher} from "./Publisher.sol";
-import {PublisherStorage} from "./Publisher.sol";
+import {PublisherStorage} from "./PublisherStorage.sol";
 
 /**
  * @title AssemblyPress
@@ -32,7 +32,7 @@ contract AssemblyPress is
     // ||||||||||||||||||||||||||||||||
 
     bytes32 public immutable DEFAULT_ADMIN_ROLE = 0x00;
-    address public zoraNFTCreatorProxy;
+    address public immutable zoraNFTCreatorProxy;
     Publisher public immutable publisherImplementation;
 
     // ||||||||||||||||||||||||||||||||
@@ -40,14 +40,10 @@ contract AssemblyPress is
     // ||||||||||||||||||||||||||||||||
 
     constructor(address _zoraNFTCreatorProxy, Publisher _publisherImplementation) {
-        if (_zoraNFTCreatorProxy == address(0)) {
+        if (_zoraNFTCreatorProxy == address(0) || address(_publisherImplementation) == address(0)) {
             revert CantSet_ZeroAddress();
         }
         zoraNFTCreatorProxy = _zoraNFTCreatorProxy;
-
-        if (address(_publisherImplementation) == address(0)) {
-            revert CantSet_ZeroAddress();
-        }
         publisherImplementation = _publisherImplementation;
 
         emit ZoraProxyAddressInitialized(zoraNFTCreatorProxy);
@@ -110,18 +106,6 @@ contract AssemblyPress is
     // ||||||||||||||||||||||||||||||||
     // ||| ADMIN FUNCTIONS ||||||||||||
     // ||||||||||||||||||||||||||||||||
-
-    /// @dev updates address value of zoraNFTCreatorProxy
-    /// @param newZoraNFTCreatorProxy new zoraNFTCreatorProxy address
-    function setZoraCreatorProxyAddress(address newZoraNFTCreatorProxy) public onlyOwner {
-        if (newZoraNFTCreatorProxy == address(0)) {
-            revert CantSet_ZeroAddress();
-        }
-
-        zoraNFTCreatorProxy = newZoraNFTCreatorProxy;
-
-        emit ZoraProxyAddressUpdated(msg.sender, newZoraNFTCreatorProxy);
-    }
 
     /// @notice Allows only the owner to upgrade the contract
     /// @param newImplementation proposed new upgrade implementation

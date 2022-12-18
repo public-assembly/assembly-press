@@ -46,6 +46,40 @@ contract AssemblyPressArchitectureTest is DropConfig {
         );
     }
 
+    function test_implementationAddresses() public {
+        Publisher publisherLocal = new Publisher();
+        AssemblyPress assemblyPressLocal = new AssemblyPress(
+            address(creator),
+            publisherLocal
+        );
+        AssemblyPressProxy assemblyPressProxy = new AssemblyPressProxy(
+            address(assemblyPressLocal),
+            DEFAULT_OWNER_ADDRESS
+        );
+
+        Publisher publisherLocalAddress = AssemblyPress(address(assemblyPressProxy)).publisherImplementation();
+        assertEq(address(publisherLocal), address(publisherLocalAddress));
+        vm.expectRevert();
+        assertEq(address(creator), address(0));
+        assertEq(IOwnableUpgradeable(address(assemblyPressProxy)).owner(), DEFAULT_OWNER_ADDRESS);
+    }
+
+    function test_FactoryInitializeProxy() public {
+        Publisher mockImplAddress = new Publisher();
+        address defaultOwnerAddress = address(0x222);
+        AssemblyPress assemblyPressOne = new AssemblyPress(
+            address(creator),
+            mockImplAddress
+        );
+
+        AssemblyPressProxy assemblyPressProxy = new AssemblyPressProxy(
+            address(assemblyPressOne),
+            DEFAULT_OWNER_ADDRESS
+        );
+
+        assertEq(IOwnableUpgradeable(address(assemblyPressProxy)).owner(), DEFAULT_OWNER_ADDRESS);
+    }
+
     // DOES NOT PASS
     function test_createPublicationFromProxy() public {
         Publisher publisherLocal = new Publisher();
@@ -58,7 +92,6 @@ contract AssemblyPressArchitectureTest is DropConfig {
             address(assemblyPressLocal),
             DEFAULT_OWNER_ADDRESS
         );
-        // vm.startPrank(DEFAULT_OWNER_ADDRESS);
         // Call createPublication on the Assembly Press Proxy
         address zoraDrop = IAssemblyPress(address(assemblyPressProxy)).createPublication({
             name: "TestDrop",
@@ -114,7 +147,7 @@ contract AssemblyPressArchitectureTest is DropConfig {
         assertEq(a, address(onlyAdminAC));
         assertEq(u, mintPrice);
         assertEq(pubChannel.contractURI(), contractURIString1);
-        assertEq(onlyAdminAC.getAccessLevel(address(publisher), DEFAULT_OWNER_ADDRESS), 3);        
+        assertEq(onlyAdminAC.getAccessLevel(address(publisher), DEFAULT_OWNER_ADDRESS), 3);
     }
 
     function test_publish() public {
@@ -224,7 +257,7 @@ contract AssemblyPressArchitectureTest is DropConfig {
         publisher.updateMintPrice(zoraDrop, 100);
         vm.expectRevert();
         publisher.updateAccessControlWithData(zoraDrop, address(onlyAdminAC), accessControlInit2);
-    }    
+    }
 
     function test_editContractURI() public {
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
@@ -251,10 +284,10 @@ contract AssemblyPressArchitectureTest is DropConfig {
         });
         ERC721Drop pubChannel = ERC721Drop(payable(zoraDrop));
         publisher.updateContractURI(zoraDrop, contractURIString2);
-        (string memory s, address a, uint256 u) = publisher.pressInfo(zoraDrop);        
+        (string memory s, address a, uint256 u) = publisher.pressInfo(zoraDrop);
         assertEq(s, contractURIString2);
         assertEq(pubChannel.contractURI(), contractURIString2);
-    } 
+    }
 
     function test_editAccessControl() public {
         // startPrank inputs set msg.sender, tx.origin respectively
@@ -283,9 +316,9 @@ contract AssemblyPressArchitectureTest is DropConfig {
         publisher.updateAccessControlWithData(zoraDrop, address(onlyAdminAC), accessControlInit2);
         (string memory s, address a, uint256 u) = publisher.pressInfo(zoraDrop);
         assertEq(a, address(onlyAdminAC));
-        assertEq(onlyAdminAC.getAccessLevel(address(publisher), DEFAULT_OWNER_ADDRESS), 0);    
-        assertEq(onlyAdminAC.getAccessLevel(address(publisher), DEFAULT_NON_OWNER_ADDRESS), 3);    
-    }            
+        assertEq(onlyAdminAC.getAccessLevel(address(publisher), DEFAULT_OWNER_ADDRESS), 0);
+        assertEq(onlyAdminAC.getAccessLevel(address(publisher), DEFAULT_NON_OWNER_ADDRESS), 3);
+    }
 
     function test_editMintPricePerToken() public {
         vm.startPrank(DEFAULT_OWNER_ADDRESS);
@@ -313,5 +346,5 @@ contract AssemblyPressArchitectureTest is DropConfig {
         publisher.updateMintPrice(zoraDrop, 100);
         (string memory s, address a, uint256 u) = publisher.pressInfo(zoraDrop);
         assertEq(u, 100);
-    }        
+    }
 }

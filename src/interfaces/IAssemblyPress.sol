@@ -30,5 +30,5 @@ interface IAssemblyPress {
         uint256 mintPricePerToken
     ) external returns (address);
 
-    function setZoraCreatorProxyAddress(address newZoraNFTCreatorProxy) external;
+    // function setZoraCreatorProxyAddress(address newZoraNFTCreatorProxy) external;
 }
