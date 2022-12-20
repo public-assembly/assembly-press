@@ -167,7 +167,7 @@ contract Publisher is
     }           
 
     // ||||||||||||||||||||||||||||||||
-    // ||| EXTNERAL EDIT FUNCTIONS ||||
+    // ||| EXTERNAL EDIT FUNCTIONS ||||
     // ||||||||||||||||||||||||||||||||   
 
     /// @notice function that enables editing artifactDetails for a given tokenId
