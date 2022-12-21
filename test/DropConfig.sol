@@ -18,7 +18,7 @@ import {AssemblyPress} from "../src/AssemblyPress.sol";
 import {IPublisher} from "../src/interfaces/IPublisher.sol";
 import {Publisher} from "../src/Publisher.sol";
 import {PublisherStorage} from "../src/PublisherStorage.sol";
-import {DefaultMetadataDecoder} from "../src/DefaultMetadataDecoder.sol";
+import {DefaultMetadataDecoder} from "../src/metadata/DefaultMetadataDecoder.sol";
 import {IAccessControlRegistry} from "onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
 import {OnlyAdminAccessControl} from "onchain/remote-access-control/src/OnlyAdminAccessControl.sol";
 
