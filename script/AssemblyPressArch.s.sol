@@ -2,7 +2,8 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
-import {DefaultMetadataDecoder} from "../src/DefaultMetadataDecoder.sol";
+import {DefaultMetadataDecoder} from "../src/metadata/DefaultMetadataDecoder.sol";
+import {ProvenanceRenderer} from "../src/metadata/ProvenanceRenderer.sol";
 import {Publisher} from "../src/Publisher.sol";
 import {AssemblyPress} from "../src/AssemblyPress.sol";
 import {AssemblyPressProxy} from "../src/AssemblyPressProxy.sol";
@@ -20,29 +21,32 @@ contract AssemblyPressArch is Script {
     function run() public {
         vm.startBroadcast(deployerPrivateKey);
 
-        // Create an instance of Publisher
-        Publisher publisher = new Publisher();
+        // // Create an instance of Publisher
+        // Publisher publisher = new Publisher();
 
-        // Create an instance of Assembly Press
-        AssemblyPress assemblyPress = new AssemblyPress(
-            address(zoraNFTCreatorProxy),
-            publisher
-        );
+        // // Create an instance of Assembly Press
+        // AssemblyPress assemblyPress = new AssemblyPress(
+        //     address(zoraNFTCreatorProxy),
+        //     publisher
+        // );
 
-        // Create a proxy of the Assembly Press instance
-        AssemblyPressProxy assemblyPressProxy = new AssemblyPressProxy(
-            address(assemblyPress),
-            goerliOwner
-        );
+        // // Create a proxy of the Assembly Press instance
+        // AssemblyPressProxy assemblyPressProxy = new AssemblyPressProxy(
+        //     address(assemblyPress),
+        //     goerliOwner
+        // );
 
         // Create an instance of the Default Metadata Decoder
         new DefaultMetadataDecoder();
 
+        // Create an instance of the ProvenanceRenderer
+        new ProvenanceRenderer();
+
         vm.stopBroadcast();
 
-        console2.log("Publisher Impl: ", address(publisher));
-        console2.log("Assembly Press Impl: ", address(assemblyPress));
-        console2.log("Assembly Press Proxy: ", address(assemblyPressProxy));
+        // console2.log("Publisher Impl: ", address(publisher));
+        // console2.log("Assembly Press Impl: ", address(assemblyPress));
+        // console2.log("Assembly Press Proxy: ", address(assemblyPressProxy));
     }
 }
 

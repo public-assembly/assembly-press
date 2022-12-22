@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import {IDefaultMetadataDecoder} from "./interfaces/IDefaultMetadataDecoder.sol";
+import {IDefaultMetadataDecoder} from "../interfaces/IDefaultMetadataDecoder.sol";
 
 /** 
  * @title DefaultMetadataDecoder

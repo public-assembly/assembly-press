@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import {IAssemblyPress} from "./interfaces/IAssemblyPress.sol";
 import {IZoraNFTCreator} from "./interfaces/IZoraNFTCreator.sol";
 import {IAccessControlRegistry} from "onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
+import {IMetadataRenderer} from "zora-drops-contracts/interfaces/IMetadataRenderer.sol";
 import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
 import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
 import {OwnableUpgradeable} from "./utils/OwnableUpgradeable.sol";
@@ -104,53 +105,59 @@ contract AssemblyPress is
     }
 
     // ||||||||||||||||||||||||||||||||
-    // ||| promoteToEdition |||||||||||
+    // ||| createProvenanceEdition ||||
     // ||||||||||||||||||||||||||||||||
 
+        // MAYBE UNNCESSARY TO GATE THE DERIVATIVE PUBLICATION? NOTHING IS STOPPING ANYONE FROM DOING
+        // WHATS HAPPENING BELOW BY INTERACTING WITH THESE CONTRACTS? NOT SURE
+        // // check if msg.sender has publication access
+        // if (
+        //     IAccessControlRegistry(pressInfo[contractAddress].accessControl).getAccessLevel(address(publisherImplementation), msg.sender)
+        //         < 1
+        // ) {
+        //     revert No_PublicationAccess();
+        // }    
+
     // @param contractAddress drop contract from which to make a series of editions
-    function promoteToEdition(
+    function createProvenanceEdition(
         address contractAddress,
         uint256 tokenId,
         address defaultAdmin,
         uint64 editionSize,
         uint16 royaltyBPS,
         address payable fundsRecipient,
-        IERC721Drop.SalesConfiguration memory saleConfig
+        IERC721Drop.SalesConfiguration memory saleConfig,
+        address provenanceRenderer
     ) public nonReentrant returns (address) {
-        // check if msg.sender has publication access
-        if (
-            IAccessControlRegistry(dropAccessControl[sourceContractAddress]).getAccessLevel(address(this), msg.sender)
-                < 1
-        ) {
-            revert No_PublicationAccess();
+
+        // get the tokenURI of specific token of the supplied drop
+        string memory tokenURI = IMetadataRenderer(contractAddress).tokenURI(tokenId);
+
+        // check if tokenURI of token is blank 
+        if (bytes(tokenURI).length == 0) {
+            revert CantPromote_BlankArtifact();
         }
 
-        // get the tokenURI of the supplied drop
-        string memory tokenURI = ERC721Drop(contractAddress.tokenURI(tokenId));
-
         // get the contractURI of the supplied drop
-        string memory tokenURI = ERC721Drop(contractAddress.contractURI());
+        string memory contractURI = IMetadataRenderer(contractAddress).contractURI();
 
-        // calculate the hash of the tokenURI of the supplied drop
-        bytes32 memory tokenURIHash = keccak256(abi.encode(ERC721Drop(contractAddress).tokenURI(tokenId)));
-
-        // encode the original contractAddress, tokenId, tokenURI, contractURI, and tokenURIHash to initialize the provenanceRenderer
-        bytes memory provenanceRendererInit = abi.encode(contractAddress, tokenId, tokenURI, contractUri, tokenURIHash);
+        // encode the original contractAddress, tokenId, tokenURI, and contractURI to initialize the provenanceRenderer
+        bytes memory provenanceRendererInit = abi.encode(contractAddress, tokenId, contractURI, tokenURI);
 
         // deploy zora collection that pulls info from PublisherStorage
-        address promotedDrop = IZoraNFTCreator(zoraNFTCreatorProxy).setupDropsContract(
-            ERC721Drop(contractAddress.name), // name
-            ERC721Drop(contractAddress.symbol) + "(e)", // symbol
+        address provenanceEdition = IZoraNFTCreator(zoraNFTCreatorProxy).setupDropsContract(
+            ERC721Drop(payable(contractAddress)).name(), // name
+            ERC721Drop(payable(contractAddress)).symbol(), // symbol
             defaultAdmin, // defaultAdmin
             editionSize, // editionSize
             royaltyBPS, // royaltyBPS
             fundsRecipient, // fundsRecipient
             saleConfig, // saleConfig
-            provenanceRenderer, // metadataRenderer
-            provenanceRendererInit // metadataInitializer
+            IMetadataRenderer(provenanceRenderer), // provenanceRenderer
+            provenanceRendererInit // provenanceRendererInit
         );
 
-        return promotedDrop;
+        return provenanceEdition;
     }
 
     // ||||||||||||||||||||||||||||||||

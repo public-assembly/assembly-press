@@ -59,8 +59,6 @@ contract AssemblyPressArchitectureTest is DropConfig {
 
         Publisher publisherLocalAddress = AssemblyPress(address(assemblyPressProxy)).publisherImplementation();
         assertEq(address(publisherLocal), address(publisherLocalAddress));
-        vm.expectRevert();
-        assertEq(address(creator), address(0));
         assertEq(IOwnableUpgradeable(address(assemblyPressProxy)).owner(), DEFAULT_OWNER_ADDRESS);
     }
 
@@ -80,16 +78,9 @@ contract AssemblyPressArchitectureTest is DropConfig {
         assertEq(IOwnableUpgradeable(address(assemblyPressProxy)).owner(), DEFAULT_OWNER_ADDRESS);
     }
 
-    // DOES NOT PASS
     function test_createPublicationFromProxy() public {
-        Publisher publisherLocal = new Publisher();
-        AssemblyPress assemblyPressLocal = new AssemblyPress(
-            address(creator),
-            publisherLocal
-        );
-        // Create a proxy of the Assembly Press instance
         AssemblyPressProxy assemblyPressProxy = new AssemblyPressProxy(
-            address(assemblyPressLocal),
+            address(assemblyPress),
             DEFAULT_OWNER_ADDRESS
         );
         // Call createPublication on the Assembly Press Proxy
@@ -114,9 +105,13 @@ contract AssemblyPressArchitectureTest is DropConfig {
             accessControl: address(onlyAdminAC),
             accessControlInit: accessControlInit
         });
-        // ERC721Drop pubChannel = ERC721Drop(payable(zoraDrop));
-        // assertEq(onlyAdminAC.getAccessLevel(address(publisher), DEFAULT_OWNER_ADDRESS), 3);
-        // assertEq(pubChannel.contractURI(), contractURIString1);
+        ERC721Drop pubChannel = ERC721Drop(payable(zoraDrop));
+        (string memory s, address a, uint256 u) = publisher.pressInfo(zoraDrop);
+        assertEq(s, contractURIString1);
+        assertEq(a, address(onlyAdminAC));
+        assertEq(u, mintPrice);
+        assertEq(pubChannel.contractURI(), contractURIString1);
+        assertEq(onlyAdminAC.getAccessLevel(address(publisher), DEFAULT_OWNER_ADDRESS), 3);
     }
 
     function test_createPublication() public {
@@ -151,6 +146,7 @@ contract AssemblyPressArchitectureTest is DropConfig {
     }
 
     function test_publish() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
         address zoraDrop = assemblyPress.createPublication({
             name: "TestDrop",
             symbol: "TD",
@@ -176,7 +172,7 @@ contract AssemblyPressArchitectureTest is DropConfig {
         IPublisher.ArtifactDetails[] memory artifacts = new IPublisher.ArtifactDetails[](1);
         artifacts[0].artifactRenderer = address(defaultMetaDecoder);
         artifacts[0].artifactMetadata = tokenURIString1_encoded;
-        publisher.publish(zoraDrop, DEFAULT_OWNER_ADDRESS, artifacts);
+        publisher.publish(zoraDrop, DEFAULT_OWNER_ADDRESS, artifacts);        
         assertEq(pubChannel.saleDetails().totalMinted, 1);
         assertEq(pubChannel.tokenURI(1), tokenURIString1);
 
@@ -186,6 +182,7 @@ contract AssemblyPressArchitectureTest is DropConfig {
     }
 
     function test_edit() public {
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
         address zoraDrop = assemblyPress.createPublication({
             name: "TestDrop",
             symbol: "TD",
@@ -347,4 +344,70 @@ contract AssemblyPressArchitectureTest is DropConfig {
         (string memory s, address a, uint256 u) = publisher.pressInfo(zoraDrop);
         assertEq(u, 100);
     }
+
+    function test_createProvenanceEditionFromProxy() public {
+        vm.deal(DEFAULT_OWNER_ADDRESS, 1 ether);
+        vm.startPrank(DEFAULT_OWNER_ADDRESS);
+
+        AssemblyPressProxy assemblyPressProxy = new AssemblyPressProxy(
+            address(assemblyPress),
+            DEFAULT_OWNER_ADDRESS
+        );
+
+        // Call createPublication on the Assembly Press Proxy
+        address zoraDrop = IAssemblyPress(address(assemblyPressProxy)).createPublication({
+            name: "TestDrop",
+            symbol: "TD",
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 18446744073709551615,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: 0x0000000000000000000000000000000000000000000000000000000000000000
+            }),
+            contractURI: contractURIString1,
+            mintPricePerToken: mintPrice,
+            accessControl: address(onlyAdminAC),
+            accessControlInit: accessControlInit
+        });
+        ERC721Drop pubChannel = ERC721Drop(payable(zoraDrop));
+        IPublisher.ArtifactDetails[] memory artifacts = new IPublisher.ArtifactDetails[](1);
+        artifacts[0].artifactRenderer = address(defaultMetaDecoder);
+        artifacts[0].artifactMetadata = tokenURIString1_encoded;
+        publisher.publish(zoraDrop, DEFAULT_OWNER_ADDRESS, artifacts);   
+        address provEdition = assemblyPress.createProvenanceEdition({
+            contractAddress: zoraDrop,
+            tokenId: 1,
+            defaultAdmin: DEFAULT_OWNER_ADDRESS,
+            editionSize: 18446744073709551615,
+            royaltyBPS: 1000,
+            fundsRecipient: payable(DEFAULT_OWNER_ADDRESS),
+            saleConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 18446744073709551615,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: 0x0000000000000000000000000000000000000000000000000000000000000000
+            }),
+            provenanceRenderer: address(provRenderer)   
+        });
+        ERC721Drop provEditionContract = ERC721Drop(payable(provEdition));
+        provEditionContract.purchase{
+            value: 0
+        }(3);
+        assertEq(provEditionContract.saleDetails().totalMinted, 3);
+        assertEq(provEditionContract.contractURI(), contractURIString1);
+        assertEq(provEditionContract.tokenURI(1), tokenURIString1);                    
+        assertEq(provEditionContract.tokenURI(2), tokenURIString1);                    
+        assertEq(provEditionContract.tokenURI(3), tokenURIString1);                    
+    } 
+    
 }
