@@ -2,8 +2,9 @@
 pragma solidity ^0.8.15;
 
 import {IAssemblyPress} from "./interfaces/IAssemblyPress.sol";
-import {IZoraCreatorInterface} from "./interfaces/IZoraCreatorInterface.sol";
+import {IZoraNFTCreator} from "./interfaces/IZoraNFTCreator.sol";
 import {IAccessControlRegistry} from "onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
+import {IMetadataRenderer} from "zora-drops-contracts/interfaces/IMetadataRenderer.sol";
 import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
 import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
 import {OwnableUpgradeable} from "./utils/OwnableUpgradeable.sol";
@@ -79,7 +80,7 @@ contract AssemblyPress is
         bytes memory publisherInitializer = abi.encode(contractURI, mintPricePerToken, accessControl, accessControlInit);
 
         // deploy zora collection - defaultAdmin must be address(this) here but will be updated later
-        address newDropAddress = IZoraCreatorInterface(zoraNFTCreatorProxy).setupDropsContract(
+        address newDropAddress = IZoraNFTCreator(zoraNFTCreatorProxy).setupDropsContract(
             name,
             symbol,
             address(this),
@@ -104,6 +105,62 @@ contract AssemblyPress is
     }
 
     // ||||||||||||||||||||||||||||||||
+    // ||| createProvenanceEdition ||||
+    // ||||||||||||||||||||||||||||||||
+
+        // MAYBE UNNCESSARY TO GATE THE DERIVATIVE PUBLICATION? NOTHING IS STOPPING ANYONE FROM DOING
+        // WHATS HAPPENING BELOW BY INTERACTING WITH THESE CONTRACTS? NOT SURE
+        // // check if msg.sender has publication access
+        // if (
+        //     IAccessControlRegistry(pressInfo[contractAddress].accessControl).getAccessLevel(address(publisherImplementation), msg.sender)
+        //         < 1
+        // ) {
+        //     revert No_PublicationAccess();
+        // }    
+
+    // @param contractAddress drop contract from which to make a series of editions
+    function createProvenanceEdition(
+        address contractAddress,
+        uint256 tokenId,
+        address defaultAdmin,
+        uint64 editionSize,
+        uint16 royaltyBPS,
+        address payable fundsRecipient,
+        IERC721Drop.SalesConfiguration memory saleConfig,
+        address provenanceRenderer
+    ) public nonReentrant returns (address) {
+
+        // get the tokenURI of specific token of the supplied drop
+        string memory tokenURI = IMetadataRenderer(contractAddress).tokenURI(tokenId);
+
+        // check if tokenURI of token is blank 
+        if (bytes(tokenURI).length == 0) {
+            revert CantPromote_BlankArtifact();
+        }
+
+        // get the contractURI of the supplied drop
+        string memory contractURI = IMetadataRenderer(contractAddress).contractURI();
+
+        // encode the original contractAddress, tokenId, tokenURI, and contractURI to initialize the provenanceRenderer
+        bytes memory provenanceRendererInit = abi.encode(contractAddress, tokenId, contractURI, tokenURI);
+
+        // deploy zora collection that pulls info from PublisherStorage
+        address provenanceEdition = IZoraNFTCreator(zoraNFTCreatorProxy).setupDropsContract(
+            ERC721Drop(payable(contractAddress)).name(), // name
+            ERC721Drop(payable(contractAddress)).symbol(), // symbol
+            defaultAdmin, // defaultAdmin
+            editionSize, // editionSize
+            royaltyBPS, // royaltyBPS
+            fundsRecipient, // fundsRecipient
+            saleConfig, // saleConfig
+            IMetadataRenderer(provenanceRenderer), // provenanceRenderer
+            provenanceRendererInit // provenanceRendererInit
+        );
+
+        return provenanceEdition;
+    }
+
+    // ||||||||||||||||||||||||||||||||
     // ||| ADMIN FUNCTIONS ||||||||||||
     // ||||||||||||||||||||||||||||||||
 
@@ -111,39 +168,3 @@ contract AssemblyPress is
     /// @param newImplementation proposed new upgrade implementation
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
-
-// function promoteToEdition(
-//     address zoraDrop,
-//     address publisherImplOverride
-//     uint256 tokenId,
-//     string memory name,
-//     string memory symbol,
-//     uint64 editionSize,
-//     uint16 royaltyBPS,
-//     address payable fundsRecipient,
-//     address defaultAdmin,
-//     IERC721Drop.SalesConfiguration memory saleConfig,
-//     string memory description
-// ) public nonReentrant returns (address) {
-
-//     // check if msg.sender has publication access
-//     if (IAccessControlRegistry(dropAccessControl[zoraDrop]).getAccessLevel(address(this), msg.sender) < 1) {
-//         revert No_PublicationAccess();
-//     }
-
-//     // deploy zora collection that pulls info from PublisherStorage
-//     address newDropAddress = IZoraCreatorInterface(zoraNFTCreatorProxy).createEdition(
-//         name,
-//         symbol,
-//         editionSize,
-//         royaltyBPS,
-//         fundsRecipient,
-//         defaultAdmin,
-//         saleConfig,
-//         description,
-//         zoraDrop.tokenURI(tokenId),
-//         zoraDrop.tokenURI(tokenId)
-//     );
-
-//     return newDropAddress;
-// }

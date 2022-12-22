@@ -6,6 +6,7 @@ import {Publisher} from "../Publisher.sol";
 
 interface IAssemblyPress {
     error CantSet_ZeroAddress();
+    error CantPromote_BlankArtifact();
 
     event PublisherInitialized(address publisherAddress);
     event PublisherUpdated(address sender, address newPublisherAddress);

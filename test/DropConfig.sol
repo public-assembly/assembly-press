@@ -18,7 +18,8 @@ import {AssemblyPress} from "../src/AssemblyPress.sol";
 import {IPublisher} from "../src/interfaces/IPublisher.sol";
 import {Publisher} from "../src/Publisher.sol";
 import {PublisherStorage} from "../src/PublisherStorage.sol";
-import {DefaultMetadataDecoder} from "../src/DefaultMetadataDecoder.sol";
+import {DefaultMetadataDecoder} from "../src/metadata/DefaultMetadataDecoder.sol";
+import {ProvenanceRenderer} from "../src/metadata/ProvenanceRenderer.sol";
 import {IAccessControlRegistry} from "onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
 import {OnlyAdminAccessControl} from "onchain/remote-access-control/src/OnlyAdminAccessControl.sol";
 
@@ -28,6 +29,7 @@ contract DropConfig is Test {
     Publisher public publisher;
     DefaultMetadataDecoder public defaultMetaDecoder;
     OnlyAdminAccessControl public onlyAdminAC;
+    ProvenanceRenderer public provRenderer;
     bytes public accessControlInit = abi.encode(DEFAULT_OWNER_ADDRESS);
     bytes public accessControlInit2 = abi.encode(DEFAULT_NON_OWNER_ADDRESS);
     IPublisher.PressDetails pressDetails;
@@ -70,6 +72,7 @@ contract DropConfig is Test {
         publisher = new Publisher();
         defaultMetaDecoder = new DefaultMetadataDecoder();
         onlyAdminAC = new OnlyAdminAccessControl();
+        provRenderer = new ProvenanceRenderer();
 
         // Deploys an unproxied, unowned, and uninitialized factory
         assemblyPress = new AssemblyPress(
