@@ -4,10 +4,10 @@ pragma solidity ^0.8.15;
 import {IMetadataRenderer} from "./interfaces/IMetadataRenderer.sol";
 
 /**
- @notice ArtifactoryRenderer
+ @notice ArtifactRenderer
  @author Max Bochman
  */
-contract ArtifactoryStorageV1 is IMetadataRenderer {
+contract ArtifactRenderer is IMetadataRenderer {
 
     // ||||||||||||||||||||||||||||||||
     // ||| TYPES ||||||||||||||||||||||
@@ -24,9 +24,47 @@ contract ArtifactoryStorageV1 is IMetadataRenderer {
     // ||||||||||||||||||||||||||||||||  
 
     /// @notice Press -> tokenId -> {artifactDecoder, artifactMetadata}
-    mapping(address => mapping(uint256 => address)) public artifactInfo;            
+    mapping(address => mapping(uint256 => address)) public artifactInfo;      
 
-    function initializeWithData(bytes metadataInit) {
+    string contractURI;
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| EXTERNAL FUNCTIONS |||||||||
+    // ||||||||||||||||||||||||||||||||          
+
+    /// @notice Default initializer for collection level data of a specific zora ERC721 drop contract
+    /// @notice contractURI must be set to non blank string value 
+    /// @param data data to init with
+    function initializeWithData(bytes memory rendererInit) external {
+        // data format: contractURI
+        (
+            string memory contractUriInit, 
+        ) = abi.decode(data, (string));
+
+        // check if contractURI is being set to empty string
+        if (bytes(contractUriInit).length == 0) {
+            revert Cannot_SetBlank();
+        }
+
+        contractURI = contractUriInit;
+    }   
+
+    /// @notice function to update contractURI value
+    /// @notice contractURI must be set to non blank string value 
+    /// @param newContractURI new string value
+    function updateContractURI(string memory newContractURI) external {
+        
+        // check if contractURI is being set to empty string
+        if (bytes(contractUriInit).length == 0) {
+            revert Cannot_SetBlank();
+        }
+
+        // update contractURI value
+        contractURI = newContractURI;
+    }
+
+    /// @notice sets up metadata schema for each token
+    function initializeTokenMetadata(bytes artifactMetadataInit) external {
         // data format: artifactDetails[]
         (ArtifactDetails[] artifactDetails) = abi.decode(data, (ArtifactDetails[]))
 

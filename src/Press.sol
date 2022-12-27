@@ -94,11 +94,6 @@ contract Press is
         config.royaltyBPS = _royaltyBPS;
         config.fundsRecipient = _fundsRecipient;
         _metadataRenderer.initializeWithData(_metadataRendererInit);
-
-
-        // set up contractURI
-        contractURI = _contractURI;
-
     }    
 
     // ||||||||||||||||||||||||||||||||
