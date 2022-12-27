@@ -4,3 +4,4 @@ onchain/=lib/onchain/
 openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
 openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/
 zora-drops-contracts/=lib/zora-drops-contracts/src/
+erc721a-upgradeable/=lib/erc721a-upgradeable/contracts/
