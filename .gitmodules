@@ -13,3 +13,7 @@
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "lib/erc721a-upgradeable"]
+	path = lib/erc721a-upgradeable
+	url = https://github.com/chiru-labs/erc721a-upgradeable
+	branch = v4.2.3
