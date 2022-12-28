@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.16;
 
-import {IDefaultMetadataDecoder} from "../interfaces/IDefaultMetadataDecoder.sol";
+import {ITokenDecoder} from "../interfaces/ITokenDecoder.sol";
 
 /** 
- * @title DefaultMetadataDecoder
+ * @title ArtifactDecoder
  * @notice Simple bytes => string decoder usable by all tokens that init address of this contract
  *      as their renderer
  * @dev Can be used by any contract
  * @author Max Bochman
  */
-contract DefaultMetadataDecoder is IDefaultMetadataDecoder {
+contract ArtifactDecoder is ITokenDecoder {
 
-    /// @notice metadataDecoder
+    /// @notice decodeTokenURI
     /// @dev returns blank if token not initialized
     /// @return tokenURI uri for given token of collection address (if set)
-    function metadataDecoder(bytes memory artifactMetadata)
+    function decodeTokenURI(bytes memory artifactMetadata)
         external
         pure
         returns (string memory)
