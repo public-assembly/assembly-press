@@ -1,8 +1,8 @@
 # AssemblyPress ✣
 
-## THIS BRANCH ISUNDER CONSTRUCTION
+## THIS BRANCH IS UNDER CONSTRUCTION
 
-## Local Development
+### Local Development
 
 1. `git clone https://github.com/public-assembly/onchain-modules.git`
 2. cd into cloned folder
