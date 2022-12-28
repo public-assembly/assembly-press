@@ -74,8 +74,6 @@ contract Press is
     ) public initializer {
         // Setup ERC721A
         __ERC721A_init(_contractName, _contractSymbol);
-        // Setup access control
-        __AccessControl_init();
         // Setup re-entracy guard
         __ReentrancyGuard_init();
         // Set ownership to original sender of contract call
@@ -108,12 +106,31 @@ contract Press is
         payable
         nonReentrant
     {
-        IPress(pressConfig.mintingLogic).mintWithData(mintData);
+        if(pressConfig.mintingLogic.canMint(msg.sender) != true) {
+            revert Cant_Mint();
+        }
 
-        _mintNFTs(recipient, mintQuantity);
+        if(msg.value != pressConfig.mintingLogic.mintPrice(msg.sender)) {
+            revert Wrong_MsgValue();
+        }        
 
-        IMetadataRenderer(pressConfig.metadataRenderer).initializeWithData(mintData);
+        _mintNFTs(recipient, mintQuantity); // this the nice ERC721A call
+
+        IMetadataRenderer(pressConfig.metadataRenderer).initializeTokenMetadata(mintData);
     }
+
+    // /// @notice allows user to mint token(s) from the Press contract
+    // function mintWithData(address recipient, uint256 mintQuantity, bytes memory mintData)
+    //     external
+    //     payable
+    //     nonReentrant
+    // {
+    //     IPress(pressConfig.mintingLogic).mintWithData(mintData);
+
+    //     _mintNFTs(recipient, mintQuantity);
+
+    //     IMetadataRenderer(pressConfig.metadataRenderer).initializeTokenMetadata(mintData);
+    // }
 
     /// @notice allows user to mint token(s) from the Press contract
     function withdraw()

@@ -10,4 +10,7 @@ interface IMintingLogic {
     // event PublisherInitialized(address publisherAddress);
 
     // function initialize(address _initialOwner) external returns (address);
+
+    function canMint(address addressToCheck) view external returns (bool);
+    function 
 }
