@@ -35,10 +35,10 @@ contract Press is
     // ||| STORAGE ||||||||||||||||||||
     // |||||||||||||||||||||||||||||||| 
 
-    /// @dev This is the max mint batch size for the optimized ERC721A mint contract
+    /// @notice This is the recommended max mint batch size for ERC721A
     uint256 internal immutable MAX_MINT_BATCH_SIZE = 8;
 
-    /// @dev Gas limit to send funds
+    /// @notice Gas limit to send funds
     uint256 internal immutable FUNDS_SEND_GAS_LIMIT = 210_000;
 
     /// @notice Max royalty BPS
@@ -46,7 +46,7 @@ contract Press is
     
     /// @notice Local fall back value for maxSupply to protect against broken logic
     ///     being introduced in external logic contract
-    ///     max value = 18446744073709551615
+    /// @dev type(uint64).max == 18446744073709551615
     uint64 maxSupplyFallback = type(uint64).max;
 
     // ||||||||||||||||||||||||||||||||
