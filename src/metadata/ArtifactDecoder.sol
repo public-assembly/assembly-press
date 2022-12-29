@@ -5,8 +5,8 @@ import {ITokenDecoder} from "../interfaces/ITokenDecoder.sol";
 
 /** 
  * @title ArtifactDecoder
- * @notice Simple bytes => string decoder usable by all tokens that init address of this contract
- *      as their renderer
+ * @notice Simple bytes => string decoder usable by all tokens that 
+ *      init address of this contract as their renderer
  * @dev Can be used by any contract
  * @author Max Bochman
  */

@@ -14,6 +14,6 @@ contract PressStorageV1 {
     IPress.PressConfig public pressConfig;      
 
     /// @notice PrimarySaleFee for Press contract storage
-    IPress.PrimarySaleFee public primarySaleFee;
+    IPress.PrimarySaleFee public primarySaleFeeConfig;
 
 }
