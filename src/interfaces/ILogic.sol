@@ -5,6 +5,10 @@ interface ILogic {
     
     // function name() external view returns (string memory); UNNCESSSARY?
     
+    function maxSupply() external view returns (uint64);
+
+    function maxSupplyCheck(address targetPress, uint64 mintQuantity) external view returns (bool);
+
     function isInitialized(address targetPress) external view returns (bool);
 
     function canMint(address targetPress, uint64 mintQuantity, address mintCaller) external view returns (bool);
@@ -18,6 +22,8 @@ interface ILogic {
     function canUpdatePressConfig(address targetPress, address updateCaller) external view returns (bool);
 
     function canUpgrade(address targetPress, address upgradeCaller) external view returns (bool);
+    
+    function canBurn(address targetPress, address burnCaller) external view returns (bool);
 
     function initializeWithData(bytes memory initData) external;
     

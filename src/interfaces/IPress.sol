@@ -24,7 +24,6 @@ interface IPress {
     // ||| FUNCTIONS ||||||||||||||||||
     // |||||||||||||||||||||||||||||||| 
 
-
     /// @notice Function to return the press config details for the given press
     function pressConfigDetails() external view returns (PressConfig memory);
 
@@ -67,4 +66,5 @@ interface IPress {
     error NO_UPGRADE_ACCESS();
     error NO_UPDATE_ACCESS();
     error ONLY_OWNER_ACCESS();
+    error NO_BURN_ACCESS();
 }

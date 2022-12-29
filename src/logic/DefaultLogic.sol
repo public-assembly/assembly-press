@@ -42,6 +42,8 @@ contract DefaultLogic is ILogic {
     error CANNOT_SET_MAXSUPPLY_BELOW_TOTAL_MINTED();
     error NO_UPGRADE_ACCESS();
     error NO_UPDATE_ACCESS();
+    error NO_BURN_ACCESS();
+    error MAX_SUPPLY_HAS_BEEN_REACHED();
 
     // ||||||||||||||||||||||||||||||||
     // ||| STORAGE ||||||||||||||||||||
@@ -78,11 +80,11 @@ contract DefaultLogic is ILogic {
         }
 
         _;
-    }        
-     
+    }           
+
     // ||||||||||||||||||||||||||||||||
-    // ||| EXTERNAL VIEW FUNCTIONS ||||
-    // ||||||||||||||||||||||||||||||||  
+    // ||| VIEW FUNCTIONS |||||||||||||
+    // ||||||||||||||||||||||||||||||||      
 
     /// @notice checks value of initialized variable in mintInfo mapping for target press
     /// @param targetPress press contract to check initialization status
@@ -95,6 +97,32 @@ contract DefaultLogic is ILogic {
 
         return true;
     }          
+
+    /// @notice checks value of maxSupply variable in mintInfo mapping for msg.sender
+    /// @dev reverts if msg.sender has not been initialized
+    function maxSupply() external view requireInitialized(msg.sender) returns (uint64) {
+        return mintInfo[msg.sender].maxSupply;
+    }            
+
+    /// @notice checks to see if mint call will mint tokens over maxSupply
+    /// @dev reverts if msg.sender has not been initialized
+    /// @dev returns false if will breach maxSupply, true if not
+    function maxSupplyCheck(address targetPress, uint64 mintQuantity) 
+        public 
+        view
+        requireInitialized(msg.sender) 
+        returns (bool) 
+    {
+        // check to see if mint call will mint tokens over maxSupply
+        if (
+            IPress(targetPress).lastMintedTokenId() + mintQuantity
+            < mintInfo[targetPress].maxSupply
+        ) {
+            return false;
+        }      
+
+        return true;
+    }           
 
     /// @notice checks mint access for a given mintQuantity + mintCaller
     /// @param targetPress press contract to check access for
@@ -115,6 +143,9 @@ contract DefaultLogic is ILogic {
         if (mintCaller != accessInfo[targetPress].minter) {
             revert NO_MINTING_ACCESS();
         }
+        
+        // check to see if mint call will mint tokens over maxSupply
+        maxSupplyCheck(targetPress, mintQuantity);        
 
         return true;
     }       
@@ -193,13 +224,29 @@ contract DefaultLogic is ILogic {
         address upgradeCaller
     ) external view requireInitialized(targetPress) returns (bool) {
 
-        // check if withdrawCaller caller has balance withdraw access for given target Press
+        // check if upgradeCaller has upgrade access for given target Press
         if (upgradeCaller != accessInfo[targetPress].admin) {
             revert NO_UPGRADE_ACCESS();
         }
 
         return true;
     }            
+
+    /// @notice checks burun access for a given burn caller
+    /// @param targetPress press contract to check access for
+    /// @param burnCaller address of burnCaller to check access for
+    function canBurn(
+        address targetPress, 
+        address burnCaller
+    ) external view requireInitialized(targetPress) returns (bool) {
+
+        // check if burnCaller caller has balance burn access for given target Press
+        if (burnCaller != accessInfo[targetPress].admin) {
+            revert NO_BURN_ACCESS();
+        }
+
+        return true;
+    }          
 
     // ||||||||||||||||||||||||||||||||
     // ||| EXTERNAL WRITE FUNCTIONS |||
@@ -229,6 +276,11 @@ contract DefaultLogic is ILogic {
         accessInfo[msg.sender].minter = minterInit;
         accessInfo[msg.sender].editor = editorInit;
         accessInfo[msg.sender].admin = adminInit;
+
+        // check to see if maxSupply is lower than count of tokens aleady minted
+        if (maxSupplyInit < IPress(msg.sender).lastMintedTokenId()) {
+            revert CANNOT_SET_MAXSUPPLY_BELOW_TOTAL_MINTED();
+        }        
 
         // update mutable values in mintInfo mapping
         mintInfo[msg.sender].mintPrice = mintPriceInit;
@@ -277,6 +329,7 @@ contract DefaultLogic is ILogic {
         uint64 mintCapPerAddress
     ) external requireInitialized(targetPress) requireSenderAdmin(targetPress) {
 
+        // check to see if maxSupply is lower than count of tokens aleady minted
         if (maxSupply < IPress(targetPress).lastMintedTokenId()) {
             revert CANNOT_SET_MAXSUPPLY_BELOW_TOTAL_MINTED();
         }

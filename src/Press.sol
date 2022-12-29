@@ -43,6 +43,11 @@ contract Press is
 
     /// @notice Max royalty BPS
     uint16 constant MAX_ROYALTY_BPS = 50_00;    
+    
+    /// @notice Local fall back value for maxSupply to protect against broken logic
+    ///     being introduced in external logic contract
+    ///     max value = 18446744073709551615
+    uint64 maxSupplyFallback = type(uint64).max;
 
     // ||||||||||||||||||||||||||||||||
     // ||| INITIALIZER ||||||||||||||||
@@ -135,6 +140,11 @@ contract Press is
         // call logic contract to check what mintPrice is for given quantity + user
         if(msg.value != ILogic(pressConfig.logic).totalMintPrice(address(this), mintQuantity, msg.sender)) {
             revert INCORRECT_MSG_VALUE();
+        }        
+
+        // check if recipient == zero address
+        if(recipient == address(0)) {
+            revert CANNOT_SET_ZERO_ADDRESS();
         }        
 
         // batch mint NFTs to recipient address
@@ -246,7 +256,7 @@ contract Press is
         pressConfig.renderer = newRenderer;
 
         // call initializeWithData if newRendererInit != 0
-        if (newRendererInit.length > 0) {
+        if (newRendererInit.length != 0) {
             IRenderer(newRenderer).initializeWithData(newRendererInit);
         }        
     }
@@ -273,7 +283,7 @@ contract Press is
         pressConfig.logic = newLogic;
 
         // call initializeWithData if newLogicInit != 0
-        if (newLogicInit.length > 0) {
+        if (newLogicInit.length != 0) {
             ILogic(newLogic).initializeWithData(newLogicInit);
         }     
     }            
@@ -344,13 +354,13 @@ contract Press is
         // update renderer address in pressConfig
         pressConfig.renderer = newRenderer;
         // call initializeWithData if newRendererInit != 0
-        if (newRendererInit.length > 0) {
+        if (newRendererInit.length != 0) {
             IRenderer(newRenderer).initializeWithData(newRendererInit);
         }        
         // update logic contract address in pressConfig
         pressConfig.logic = newLogic;
         // call initializeWithData if newLogicInit != 0
-        if (newLogicInit.length > 0) {
+        if (newLogicInit.length != 0) {
             ILogic(newLogic).initializeWithData(newLogicInit);
         }             
         return true;
@@ -404,22 +414,24 @@ contract Press is
             primarySaleFeeConfig.feeRecipient,
             fee
         );
-    }    
+    }      
 
     // ||||||||||||||||||||||||||||||||
     // ||| ERC721A CUSTOMIZATION ||||||
     // |||||||||||||||||||||||||||||||| 
 
+    /* confirm that the canBurn check is actually whats gating burn success */
     /// @param tokenId Token ID to burn
     /// @notice User burn function for token id
     function burn(uint256 tokenId) public {
-        _burn(tokenId, true);
-    }    
 
-    /// @notice Start token ID for minting (1-100 vs 0-99)
-    function _startTokenId() internal pure override returns (uint256) {
-        return 1;
-    }    
+        // Check if burn is allowed for sender
+        if (ILogic(pressConfig.logic).canBurn(address(this), msg.sender) != true) {
+            revert NO_BURN_ACCESS();
+        }            
+
+        _burn(tokenId, true);
+    }     
 
     /// @notice Getter for last minted token ID (gets next token id and subtracts 1)
     /// @dev also works as a "totalMinted" lookup
@@ -430,7 +442,12 @@ contract Press is
     /// @notice Getter that returns number of tokens minted for a given address
     function numberMinted(address ownerAddress) external view returns (uint256) {
         return _numberMinted(ownerAddress);
-    }    
+    }   
+
+    /// @notice Start token ID for minting (1-100 vs 0-99)
+    function _startTokenId() internal pure override returns (uint256) {
+        return 1;
+    }     
 
     // ||||||||||||||||||||||||||||||||
     // ||| MISC OVERRIDES |||||||||||||
@@ -504,7 +521,14 @@ contract Press is
         }
 
         return IRenderer(pressConfig.renderer).tokenURI(tokenId);
-    }    
+    }   
+
+    /// @notice Getter for fundsRecipent address stored in pressConfig
+    /// @dev may return 0 or revert if incorrect external logic has been configured
+    /// @dev can use maxSupplyFallback() instead if that scenario ^
+    function maxSupply() external view returns (uint64) {
+        return ILogic(pressConfig.logic).maxSupply();
+    }     
 
     /// @notice Getter for fundsRecipent address stored in pressConfig
     function fundsRecipient() external view returns (address payable) {
