@@ -9,6 +9,9 @@
 2. Do we like how we implemented a very basic optional primary sale fee incentive mechanism in Press.sol?
     Completely optional, but allows front end create services to set themselves an immutable fee
     upon contract deploy that gets paid out permissionlessly on withdraw
+3. Can we /do we want to get rid of upgradeability of Press.sol? right now it uses ERC721AUpgradeable
+    feel like we actually want to keep upgradeability there bc the owner of the contract gets to decide that
+    the bigger rug risks are on the factories + external metadata / logic contracts if those are upgradeable
 
 #### REMAINING EDITS
 1. Redo factory + factory proxy impls
