@@ -14,10 +14,11 @@ import {IRenderer} from "./interfaces/IRenderer.sol";
 import {PressStorageV1} from "./storage/PressStorageV1.sol";
 
 /**
- * @notice minimal NFT Base contract in AssemblyPress framework
- *      injected with metadata + minting + access control logic during deploy from AssemblyPress
- * @dev 
- * @author FF89de.eth
+ * @notice ERC721 implementation in AssemblyPress framework
+ *      injected with metadata + general logic during deploy via AssemblyPress
+ * @dev functionality configurable using external renderer + logic contracts
+ * @author Max Bochman
+ * @author Salief Lewis
  *
  */
 contract Press is 
@@ -29,24 +30,6 @@ contract Press is
     OwnableSkeleton,
     PressStorageV1
 {
-
-    /***
-
-    QUESTIONS
-    1. do we like how _authorizeUpgrade is handled? didn't use ZORA upgradeArch, but looks like
-        we are missing the functionaity thats provided in the zora upgrade gate
-        https://github.com/ourzora/zora-drops-contracts/blob/main/src/FactoryUpgradeGate.sol
-    2. do we like how we implemented a very basic optional primary sale fee incentive mechanism
-        completely optional, but allows front end create services to set themselves an immutable fee
-        upon contract deploy that gets paid out permissionlessly on withdraw
-
-    REMAINING EDITS
-    1. clean up upgradeablility + proxy inits
-    2. Determine if need to add in any missing erc721 util functionality
-    3. add ability to withdraw non ETH funds
-        -- does contract need FundsReciever import?  
-
-    ***/
 
     // ||||||||||||||||||||||||||||||||
     // ||| STORAGE ||||||||||||||||||||

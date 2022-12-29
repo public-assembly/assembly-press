@@ -10,15 +10,6 @@ import {ILogic} from "../interfaces/ILogic.sol";
  */
 contract DefaultLogic is ILogic {
 
-    /* EDITS TO MAKE
-
-    1. UPDATE ACCESS CONTROL TO ENUM BASED +  update isAdmin/Editor checks in address(this) + ArtifactRenderer 
-    2. Move maxSupply into Press.sol to prevent issues if a Press swithes logic impls? 
-        -- thought comes from https://metalabel.notion.site/040-Metalabel-Protocol-Walkthrough-64e892c31f6a4090a2c92088300b62c4
-        -- maybe allow a configurable "hardcap" on the collection size, and configurable "softcap" on the Logic side
-        
-    */
-
     // ||||||||||||||||||||||||||||||||
     // ||| TYPES ||||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||  
