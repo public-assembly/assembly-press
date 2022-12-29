@@ -21,6 +21,8 @@
     -- thought comes from https://metalabel.notion.site/040-Metalabel-Protocol-Walkthrough-64e892c31f6a4090a2c92088300b62c4
     -- maybe allow a configurable "hardcap" on the collection size, and configurable "softcap" on the Logic side
 7. FIX ALL THE EVENTS + ERRORS + VARIABLES + FUNCTION NAMES + NATSPEC AHHHHH
+8. Tests
+9. Deploy scripts
 
 ### Local Development
 
