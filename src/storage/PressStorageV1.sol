@@ -10,8 +10,10 @@ import {IPress} from "../interfaces/IPress.sol";
  */
 contract PressStorageV1 {
 
-    /// @notice Configuration for Press contract storage
+    /// @notice PressConfig for Press contract storage
     IPress.PressConfig public pressConfig;      
 
-    // address public owner;
+    /// @notice PrimarySaleFee for Press contract storage
+    IPress.PrimarySaleFee public primarySaleFee;
+
 }

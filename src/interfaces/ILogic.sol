@@ -15,6 +15,10 @@ interface ILogic {
 
     function canEditMetadata(address targetPress, address editCaller) external view returns (bool);    
 
+    function canUpdatePressConfig(address targetPress, address updateCaller) external view returns (bool);
+
+    function canUpgrade(address targetPress, address upgradeCaller) external view returns (bool);
+
     function initializeWithData(bytes memory initData) external;
     
 }

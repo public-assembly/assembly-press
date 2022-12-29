@@ -6,17 +6,29 @@ interface IPress {
     
     // ===== TYPES
     struct PressConfig {
-        address fundsRecipient;
+        address payable fundsRecipient;
         uint16 royaltyBPS;
         address logic;
         address renderer;
     }
+
+    struct PrimarySaleFee {
+        address payable fundsRecipient;
+        uint16 feeBPS;
+    }    
     
+    /// @notice Royalty percentage too high
+    error Setup_RoyaltyPercentageTooHigh(uint16 maxRoyaltyBPS);
+    /// @notice Cannot withdraw funds due to ETH send failure
+    error Withdraw_FundsSendFailure();
+
     error CANNOT_SET_ZERO_ADDRESS();
     error CANNOT_MINT();
     error INCORRECT_MSG_VALUE();
     error NO_WITHDRAW_ACCESS();
     error WITHDRAW_FUNDS_SEND_FAILURE();
+    error NO_UPGRADE_ACCESS();
+    error NO_UPDATE_ACCESS();
 
     // event PublisherInitialized(address publisherAddress);
 

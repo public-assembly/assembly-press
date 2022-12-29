@@ -49,6 +49,8 @@ contract DefaultLogic is ILogic {
     error CANNOT_SET_ZERO_ADDRESS();
     error NO_EDIT_ACCESS();
     error CANNOT_SET_MAXSUPPLY_BELOW_TOTAL_MINTED();
+    error NO_UPGRADE_ACCESS();
+    error NO_UPDATE_ACCESS();
 
     // ||||||||||||||||||||||||||||||||
     // ||| STORAGE ||||||||||||||||||||
@@ -146,6 +148,22 @@ contract DefaultLogic is ILogic {
 
     /// @notice checks metadata edit access for a given edit caller
     /// @param targetPress press contract to check access for
+    /// @param editCaller address of editCaller to check access for
+    function canEditMetadata(
+        address targetPress, 
+        address editCaller
+    ) external view requireInitialized(targetPress) returns (bool) {
+
+        // check if edit caller has metadata editing access for given target Press
+        if (editCaller != accessInfo[targetPress].editor) {
+            revert NO_EDIT_ACCESS();
+        }
+
+        return true;
+    }           
+
+    /// @notice checks funds withdrawl access for a given wtihdrawal caller
+    /// @param targetPress press contract to check access for
     /// @param withdrawCaller address of withdrawCaller to check access for
     function canWithdraw(
         address targetPress, 
@@ -160,21 +178,37 @@ contract DefaultLogic is ILogic {
         return true;
     }               
 
-    /// @notice checks metadata edit access for a given edit caller
+    /// @notice checks update access for a given update caller
     /// @param targetPress press contract to check access for
-    /// @param editCaller address of editCaller to check access for
-    function canEditMetadata(
+    /// @param updateCaller address of updateCaller to check access for
+    function canUpdatePressConfig(
         address targetPress, 
-        address editCaller
+        address updateCaller
     ) external view requireInitialized(targetPress) returns (bool) {
 
-        // check if edit caller has metadata editing access for given target Press
-        if (editCaller != accessInfo[targetPress].editor) {
-            revert NO_EDIT_ACCESS();
+        // check if withdrawCaller caller has balance withdraw access for given target Press
+        if (updateCaller != accessInfo[targetPress].admin) {
+            revert NO_UPDATE_ACCESS();
         }
 
         return true;
-    }           
+    }            
+
+    /// @notice checks upgrade access for a given upgrade caller
+    /// @param targetPress press contract to check access for
+    /// @param upgradeCaller address of upgradeCaller to check access for
+    function canUpgrade(
+        address targetPress, 
+        address upgradeCaller
+    ) external view requireInitialized(targetPress) returns (bool) {
+
+        // check if withdrawCaller caller has balance withdraw access for given target Press
+        if (upgradeCaller != accessInfo[targetPress].admin) {
+            revert NO_UPGRADE_ACCESS();
+        }
+
+        return true;
+    }            
 
     // ||||||||||||||||||||||||||||||||
     // ||| EXTERNAL WRITE FUNCTIONS |||

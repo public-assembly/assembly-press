@@ -2,25 +2,21 @@
 pragma solidity ^0.8.16;
 
 /*
-Assembly Press:
+Assembly Press
 An information distribution framework
 */
 
 import {ERC721AUpgradeable} from "erc721a-upgradeable/ERC721AUpgradeable.sol";
 import {IERC721AUpgradeable} from "erc721a-upgradeable/IERC721AUpgradeable.sol";
-import {IERC2981Upgradeable, IERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
-import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableSkeleton} from "./utils/OwnableSkeleton.sol";
 import {IPress} from "./interfaces/IPress.sol";
 import {ILogic} from "./interfaces/ILogic.sol";
 import {IOwnable} from "./interfaces/IOwnable.sol";
 import {IRenderer} from "./interfaces/IRenderer.sol";
 import {PressStorageV1} from "./storage/PressStorageV1.sol";
-
-import {ERC721A__Initializable} from "lib/erc721a-upgradeable/contracts/ERC721A__Initializable.sol";
-import {Initializable} from "lib/zora-drops-contracts/lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
-
 
 
 /**
@@ -32,16 +28,25 @@ import {Initializable} from "lib/zora-drops-contracts/lib/openzeppelin-contracts
  */
 contract Press is 
     ERC721AUpgradeable,
+    UUPSUpgradeable,
     IERC2981Upgradeable,
+    ReentrancyGuardUpgradeable,    
     IPress,
     OwnableSkeleton,
     PressStorageV1
 {
-    //ReentrancyGuardUpgradeable,
-    //UUPSUpgradeable
-    //    IERC165Upgradeable,
 
     /* EDITS TO MAKE
+
+    ADD IN CONFIGURABLE DEPLOYER FEEEEEEEE
+
+    Quesetions
+    - do we like how _authorizeUpgrade is handled? didn't use ZORA upgradeArch, but looks like
+        we are missing the functionaity thats provided in the zora upgrade gate
+        https://github.com/ourzora/zora-drops-contracts/blob/main/src/FactoryUpgradeGate.sol
+    - do we like how we implemented a very basic optional primary sale fee incentive mechanism
+        completely optional, but allows front end create services to set themselves an immutable fee
+        upon contract deploy that gets paid out permissionlessly on withdraw
 
     1. Determine if need to add in any missing erc721 util functionality like "burn"
     2. add ability to withdraw non ETH funds
@@ -59,6 +64,9 @@ contract Press is
     /// @dev Gas limit to send funds
     uint256 internal immutable FUNDS_SEND_GAS_LIMIT = 210_000;
 
+    /// @notice Max royalty BPS
+    uint16 constant MAX_ROYALTY_BPS = 50_00;    
+
     // ===== ERRORS
 
     // ===== EVENTS
@@ -69,8 +77,8 @@ contract Press is
     // ||| INITIALIZER ||||||||||||||||
     // ||||||||||||||||||||||||||||||||    
 
-    /* add back in initializer */
-    ///  @dev Create a new drop contract
+    ///  @dev Create a new press contract for media publication
+    ///  @dev primarySaleFeeBPS + primarySaleFeeRecipient cannot be adjusted after initialization
     ///  @param _contractName Contract name
     ///  @param _contractSymbol Contract symbol
     ///  @param _initialOwner User that owns the contract upon deployment
@@ -80,6 +88,8 @@ contract Press is
     ///  @param _logicInit Logic contract initial data   
     ///  @param _renderer Renderer contract to use
     ///  @param _rendererInit Renderer initial data
+    ///  @param _primarySaleFeeBPS optional fee to set on primary sales
+    ///  @param _primarySaleFeeRecipient fundsRecipient on primary sales
     function initialize(
         string memory _contractName,
         string memory _contractSymbol,
@@ -89,12 +99,14 @@ contract Press is
         ILogic _logic,
         bytes memory _logicInit,
         IRenderer _renderer,
-        bytes memory _rendererInit
-    ) public {
+        bytes memory _rendererInit,
+        uint16 _primarySaleFeeBPS,
+        address payable _primarySaleFeeRecipient
+    ) public initializer {
         // Setup ERC721A
         __ERC721A_init(_contractName, _contractSymbol);
         // Setup re-entracy guard
-        // __ReentrancyGuard_init();
+        __ReentrancyGuard_init();
         // Set ownership to original sender of contract call
         _setOwner(_initialOwner);
 
@@ -104,7 +116,12 @@ contract Press is
         {
             revert CANNOT_SET_ZERO_ADDRESS();
         }        
-        
+
+        // check if _royaltyBPS is higher than immutable MAX_ROYALTY_BPS value
+        if (_royaltyBPS > MAX_ROYALTY_BPS) {
+            revert Setup_RoyaltyPercentageTooHigh(MAX_ROYALTY_BPS);
+        }
+
         // Setup pressConfig variables
         pressConfig.fundsRecipient = _fundsRecipient;
         pressConfig.royaltyBPS = _royaltyBPS;
@@ -114,17 +131,30 @@ contract Press is
         // initialize renderer + logic
         _logic.initializeWithData(_logicInit);        
         _renderer.initializeWithData(_rendererInit);
+
+        // Setup optional primary sales fee, skip if feeBPS = 0
+        if (_primarySaleFeeBPS != 0) {
+
+            // cannot set primarySaleFeeRecipient to zero address if feeBPS != 0
+            if (_primarySaleFeeRecipient != address(0)) {
+                revert CANNOT_SET_ZERO_ADDRESS();
+            }
+
+            // update primarySaleFee storage values. immutable once
+            primarySaleFee.feeBPS = _primarySaleFeeBPS;
+            primarySaleFee.fundsRecipient = _primarySaleFeeRecipient;
+        }
     }    
 
     // ||||||||||||||||||||||||||||||||
     // ||| MINTING LOGIC ||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    /* add back in nonReentrant */
     /// @notice allows user to mint token(s) from the Press contract
     function mintWithData(address recipient, uint64 mintQuantity, bytes memory mintData)
         external
         payable
+        nonReentrant
     {
         // call logic contract to check is user can mint
         if(ILogic(pressConfig.logic).canMint(address(this), mintQuantity, msg.sender) != true) {
@@ -164,10 +194,52 @@ contract Press is
     // ||| PressConfig ADMIN ||||||||||
     // ||||||||||||||||||||||||||||||||
     
-    /* add back in nonReentrant */
+    function setFundsRecipient(address payable newFundsRecipient)
+        external
+        nonReentrant
+    {
+        // call logic contract to check is msg.sender can update
+        if(ILogic(pressConfig.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
+            revert NO_UPDATE_ACCESS();
+        }        
+
+        // check if newFundsRecipient == zero address
+        if(newFundsRecipient == address(0)) {
+            revert CANNOT_SET_ZERO_ADDRESS();
+        }
+
+        // update fundsRecipient address in pressConfig
+        pressConfig.fundsRecipient = newFundsRecipient;
+    }
+
+    function setRoyaltyBPS(uint16 newRoyaltyBPS)
+        external
+        nonReentrant
+    {
+        // call logic contract to check is msg.sender can update
+        if(ILogic(pressConfig.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
+            revert NO_UPDATE_ACCESS();
+        }        
+
+        // check if newRoyaltyBPS is higher than immutable MAX_ROYALTY_BPS value
+        if (newRoyaltyBPS > MAX_ROYALTY_BPS) {
+            revert Setup_RoyaltyPercentageTooHigh(MAX_ROYALTY_BPS);
+        }
+
+        // update fundsRecipient address in pressConfig
+        pressConfig.royaltyBPS = newRoyaltyBPS;
+    }    
+
+
     function setRenderer(address newRenderer, bytes memory newRendererInit)
         external
+        nonReentrant
     {
+        // call logic contract to check is msg.sender can update
+        if(ILogic(pressConfig.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
+            revert NO_UPDATE_ACCESS();
+        }        
+
         // update renderer address in pressConfig
         pressConfig.renderer = newRenderer;
 
@@ -177,10 +249,15 @@ contract Press is
         }        
     }
 
-    /* add back in nonReentrant */
     function setLogic(address newLogic, bytes memory newLogicInit)
         external
+        nonReentrant
     {
+        // call logic contract to check is msg.sender can update
+        if(ILogic(pressConfig.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
+            revert NO_UPDATE_ACCESS();
+        }        
+
         // update logic contract address in pressConfig
         pressConfig.logic = newLogic;
 
@@ -192,13 +269,8 @@ contract Press is
 
     // ===== OTHER UTILS
 
-    /* add back in nonReentrant */
-
-    function withdraw() external  {
+    function withdraw() external nonReentrant {
         address sender = msg.sender;
-
-        // Get fee amount
-        uint256 funds = address(this).balance;
 
         // Check if withdraw is allowed for sender
         if (
@@ -207,6 +279,22 @@ contract Press is
         ) {
             revert NO_WITHDRAW_ACCESS();
         }    
+
+        // Calculate primary sale fee amount
+        uint256 funds = address(this).balance;
+        uint256 fee = funds * primarySaleFee.feeBPS / 10_000;
+
+        // Payout primary sale fees
+        if (fee > 0) {
+            (bool successFee, ) = primarySaleFee.fundsRecipient.call{
+                value: fee,
+                gas: FUNDS_SEND_GAS_LIMIT
+            }("");
+            if (!successFee) {
+                revert Withdraw_FundsSendFailure();
+            }
+            funds -= fee;
+        } 
 
         // Payout recipient
         (bool successFunds, ) = pressConfig.fundsRecipient.call{
@@ -222,6 +310,8 @@ contract Press is
         //     msg.sender,
         //     pressConfig.fundsRecipient,
         //     funds,
+        //     primarySaleFee,
+        //     parimarySaleFeeRecipient,
         // );
     }    
 
@@ -242,42 +332,24 @@ contract Press is
         );
     }    
 
-    // function _isConstructor() private view override(ERC721A__Initializable) returns (bool) {
-    //     // // extcodesize checks the size of the code stored in an address, and
-    //     // // address returns the current address. Since the code is still not
-    //     // // deployed when running a constructor, any checks on its code size will
-    //     // // yield zero, making it an effective way to detect if a contract is
-    //     // // under construction or not.
-    //     // address self = address(this);
-    //     // uint256 cs;
-    //     // assembly {
-    //     //     cs := extcodesize(self)
-    //     // }
-    //     // return cs == 0;
-    //     super._isConstructor();
-    // }
+    /// @notice Connects this contract to the factory upgrade gate
+    /// @param newImplementation proposed new upgrade implementation
+    /// @dev Only can be called by admin
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        override
+    {
+        // call logic contract to check is msg.sender can upgrade
+        if(
+            ILogic(pressConfig.logic).canUpgrade(address(this), msg.sender) != true
+                && owner() != msg.sender
+        ) {
+            revert NO_UPGRADE_ACCESS();
+        }
+    }
 
 
-    // /// @notice Connects this contract to the factory upgrade gate
-    // /// @param newImplementation proposed new upgrade implementation
-    // /// @dev Only can be called by admin
-    // function _authorizeUpgrade(address newImplementation)
-    //     internal
-    //     override
-    //     onlyAdmin
-    // {
-    //     if (
-    //         !factoryUpgradeGate.isValidUpgradePath({
-    //             _newImpl: newImplementation,
-    //             _currentImpl: _getImplementation()
-    //         })
-    //     ) {
-    //         revert Admin_InvalidUpgradeAddress(newImplementation);
-    //     }
-    // }    
-
-
-    // ===== ERC721A HELPERS
+    // ===== ERC721A EXTENDED FUNCTIONALITY
 
     /// @notice Start token ID for minting (1-100 vs 0-99)
     function _startTokenId() internal pure override returns (uint256) {
