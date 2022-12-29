@@ -13,7 +13,6 @@ import {IOwnable} from "./interfaces/IOwnable.sol";
 import {IRenderer} from "./interfaces/IRenderer.sol";
 import {PressStorageV1} from "./storage/PressStorageV1.sol";
 
-
 /**
  * @notice minimal NFT Base contract in AssemblyPress framework
  *      injected with metadata + minting + access control logic during deploy from AssemblyPress
