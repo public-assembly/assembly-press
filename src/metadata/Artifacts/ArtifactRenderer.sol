@@ -29,16 +29,23 @@ contract ArtifactRenderer is IRenderer {
     // ||| ERRORS |||||||||||||||||||||
     // |||||||||||||||||||||||||||||||| 
 
+    /// @notice supplied value cannot be empty
     error Cannot_SetBlank();
+    /// @notice caller does not have permission to edit
     error No_Edit_Access();
+    /// @notice unsuccessful attempt to update metadata
     error InitializeTokenMetadataFail();
+    /// @notice target Press contract is uninitialized
     error Press_NotInitialized();
+    /// @notice address cannot be zero
     error Cannot_SetToZeroAddress();
+    /// @notice unsuccessful attempt to edit an existing artifact
     error EditArtifactFail();
+    /// @notice supplied token does not exist or is yet to be minted
     error Token_DoesntExist();
-    error NotInitialized_Or_NotPress();
-    error Address_NotInitialized();
-    /// @notice prevents users from submitting invalid inputs in grant role function
+    /// @notice target Press contract is uninitialized or being accessed by the wrong Press
+    error NotInitialized_Or_WrongPress();
+    /// @notice prevents users from submitting invalid inputs to the grant role function
     error Invalid_Input_Length();
   
     // ||||||||||||||||||||||||||||||||
@@ -136,7 +143,7 @@ contract ArtifactRenderer is IRenderer {
     /// @notice sets up metadata schema for each token
     function initializeTokenMetadata(bytes memory tokenInit) external {
 
-        // check if target collection has been initialized
+        // check if target Press has been initialized
         if (ILogic(ERC721Press(msg.sender).logic()).isInitialized(msg.sender) != true) {
             revert Press_NotInitialized();
         }
@@ -284,7 +291,7 @@ contract ArtifactRenderer is IRenderer {
     // ||| VIEW FUNCTIONS |||||||||||||
     // ||||||||||||||||||||||||||||||||    
 
-    /// @notice A contract URI for the given drop contract
+    /// @notice contract uri for the given Press contract
     /// @dev reverts if a contract uri has not been initialized
     /// @return contract uri for the collection address (if set)
     function contractURI() 
@@ -294,14 +301,16 @@ contract ArtifactRenderer is IRenderer {
     {
         string memory uri = contractUriInfo[msg.sender];
         if (bytes(uri).length == 0) {
-            // if contractURI return is blank, means the contract has not been initialize
-            //      or is being called by an address other than press that has been initd
-            revert NotInitialized_Or_NotPress();
+            /*
+            * if contractURI returns blank, the contract has not been initialized
+            * or this function is being called by another Press contract
+            */      
+            revert NotInitialized_Or_WrongPress();
         }
         return uri;
     }
 
-    /// @notice Token URI information getter
+    /// @notice token uri getter
     /// @dev reverts if token does not exist
     /// @param tokenId to get uri for
     /// @return tokenURI uri for given token of collection address (if set)
@@ -331,7 +340,7 @@ contract ArtifactRenderer is IRenderer {
     {
         
         if (ILogic(ERC721Press(targetPress).logic()).isInitialized(targetPress) != true) {
-            revert Address_NotInitialized();
+            revert Press_NotInitialized();
         }
 
         if (IERC721Press(targetPress).lastMintedTokenId() < tokenId) {
