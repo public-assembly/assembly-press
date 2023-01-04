@@ -8,7 +8,7 @@ interface ILogic {
     function initializeWithData(bytes memory initData) external;    
 
     // access control functions
-    /// @notice checks if a certain address can update the Config struct on a given Pres 
+    /// @notice checks if a certain address can update the Config struct on a given Press 
     function canUpdatePressConfig(address targetPress, address updateCaller) external view returns (bool);
     /// @notice checks if a certain address can access mint functionalitty for a given Press + quantity combination
     function canMint(address targetPress, uint64 mintQuantity, address mintCaller) external view returns (bool);
