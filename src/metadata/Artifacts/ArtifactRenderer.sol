@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {Press} from "../Press.sol";
-import {IRenderer} from "../interfaces/IRenderer.sol";
-import {IPress} from "../interfaces/IPress.sol";
-import {ILogic} from "../interfaces/ILogic.sol";
-import {ITokenDecoder} from "../interfaces/ITokenDecoder.sol";
-import {BytecodeStorage} from "../utils/BytecodeStorage.sol";
+import {IRenderer} from "../../interfaces/IRenderer.sol";
+import {IERC721Press} from "../../interfaces/IERC721Press.sol";
+import {ILogic} from "../../interfaces/ILogic.sol";
+import {ITokenDecoder} from "../../interfaces/ITokenDecoder.sol";
+import {ERC721Press} from "../../ERC721Press.sol";
+import {BytecodeStorage} from "../../utils/BytecodeStorage.sol";
 
 /**
  @notice ArtifactRenderer
  @author Max Bochman
+ @author Salief Lewis
  */
 contract ArtifactRenderer is IRenderer {
 
@@ -18,7 +19,7 @@ contract ArtifactRenderer is IRenderer {
     // ||| TYPES ||||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||  
 
-    /// @notice Shared listing struct for both artifactDecoder address + artifactMetadata 
+    /// @notice Shared struct for both artifactDecoder address + artifactMetadata 
     struct ArtifactDetails {
         address artifactDecoder;
         bytes artifactMetadata;
@@ -29,17 +30,17 @@ contract ArtifactRenderer is IRenderer {
     // |||||||||||||||||||||||||||||||| 
 
     error Cannot_SetBlank();
-    error NO_EDIT_ACCESS();
+    error No_Edit_Access();
     error InitializeTokenMetadataFail();
     error Press_NotInitialized();
     error Cannot_SetToZeroAddress();
-    error INVALID_INPUT_LENGTH();
     error EditArtifactFail();
     error Token_DoesntExist();
     error NotInitialized_Or_NotPress();
     error Address_NotInitialized();
+    /// @notice prevents users from submitting invalid inputs in grant role function
+    error Invalid_Input_Length();
   
-
     // ||||||||||||||||||||||||||||||||
     // ||| STORAGE ||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||  
@@ -48,7 +49,41 @@ contract ArtifactRenderer is IRenderer {
     mapping(address => string) contractUriInfo;
 
     /// @notice Press -> tokenId -> {artifactDecoder, artifactMetadata}
-    mapping(address => mapping(uint256 => address)) public artifactInfo;      
+    mapping(address => mapping(uint256 => address)) public artifactInfo;    
+    
+    // ||||||||||||||||||||||||||||||||
+    // ||| EVENTS |||||||||||||||||||||
+    // ||||||||||||||||||||||||||||||||  
+
+    /// @notice Event triggered when contractURI is updated
+    /// @param sender address that sent update txn
+    /// @param press address of Press to update contractURI for
+    /// @param contractURI new contractURI
+    event UpdatedContractURI(
+        address indexed sender,
+        address indexed press,
+        string contractURI
+    );     
+
+    /// @notice Event triggered when an artifact is created
+    /// @param press address of Press to create artifact from
+    /// @param tokenId tokenId of created artifact
+    /// @param dataContract address of resulting dataContract
+    event ArtifactCreated(
+        address indexed press,
+        uint256 indexed tokenId,
+        address dataContract
+    );        
+
+    /// @notice Event triggered when an artifact is edited
+    /// @param press address of Press to create artifact from
+    /// @param tokenId tokenId of created artifact
+    /// @param dataContract address of resulting dataContract
+    event ArtifactEdited(
+        address indexed press,
+        uint256 indexed tokenId,
+        address dataContract
+    );           
 
     // ||||||||||||||||||||||||||||||||
     // ||| CONTRACT URI FUNCTIONS |||||
@@ -75,8 +110,8 @@ contract ArtifactRenderer is IRenderer {
     /// @param newContractURI new string contractURI value
     function updateContractURI(address targetPress, string memory newContractURI) external {
 
-        if (ILogic(Press(targetPress).logic()).canEditMetadata(targetPress, msg.sender) != true) {
-            revert NO_EDIT_ACCESS();
+        if (ILogic(ERC721Press(targetPress).logic()).canEditMetadata(targetPress, msg.sender) != true) {
+            revert No_Edit_Access();
         } 
         
         // check if contractURI is being set to empty string
@@ -86,6 +121,12 @@ contract ArtifactRenderer is IRenderer {
 
         // update contractURI value
         contractUriInfo[targetPress] = newContractURI;
+
+        emit UpdatedContractURI({ 
+            sender: msg.sender,
+            press: targetPress,
+            contractURI: newContractURI
+        });
     }     
 
     // ||||||||||||||||||||||||||||||||
@@ -93,9 +134,15 @@ contract ArtifactRenderer is IRenderer {
     // |||||||||||||||||||||||||||||||| 
 
     /// @notice sets up metadata schema for each token
-    function initializeTokenMetadata(bytes memory artifactMetadataInit) external {
+    function initializeTokenMetadata(bytes memory tokenInit) external {
+
+        // check if target collection has been initialized
+        if (ILogic(ERC721Press(msg.sender).logic()).isInitialized(msg.sender) != true) {
+            revert Press_NotInitialized();
+        }
+
         // data format: artifactDetails[]
-        (ArtifactDetails[] memory artifactDetails) = abi.decode(artifactMetadataInit, (ArtifactDetails[]));
+        (ArtifactDetails[] memory artifactDetails) = abi.decode(tokenInit, (ArtifactDetails[]));
 
         // edit artifactInfo storage for a given Press contract => tokenId
         (bool initSuccess) = _initializeTokenMetadata(msg.sender, artifactDetails);
@@ -115,22 +162,17 @@ contract ArtifactRenderer is IRenderer {
         ArtifactDetails[] memory artifactDetails
     ) internal returns (bool) {
 
-        // calculate number of artifacts to mint
+        // calculate number of artifacts to initialize
         uint256 numArtifacts = artifactDetails.length;        
 
-        // call admintMint function on target ZORA contract and store last tokenId minted
-        uint256 lastTokenMinted = IPress(targetPress).lastMintedTokenId();        
+        // cache lastMintedtokenId from target Press
+        uint256 lastTokenMinted = IERC721Press(targetPress).lastMintedTokenId();        
 
-        // for length of numArtifacts array, emit CreateArtifact event
+        // for length of numArtifacts array, emit ArtifactCreated event
         for (uint256 i = 0; i < numArtifacts; i++) {  
         
-            // get current tokenId to process
+            // cache current tokenId to process
             uint256 tokenId = lastTokenMinted - (numArtifacts - (i + 1));                     
-
-            // check if target collection has been initialized
-            if (ILogic(Press(targetPress).logic()).isInitialized(targetPress) != true) {
-                revert Press_NotInitialized();
-            }
 
             // check if artifactDecoder is zero address
             if (artifactDetails[i].artifactDecoder == address(0)){
@@ -142,20 +184,19 @@ contract ArtifactRenderer is IRenderer {
                 revert Cannot_SetBlank();
             }        
 
+            // cache dataContract address after deploying + storing encoded artifactDetails as raw bytecode
             address dataContract = BytecodeStorage.writeToBytecode(abi.encode(artifactDetails[i]));
 
+            // set dataContract address to given targetPress => tokenId
             artifactInfo[targetPress][tokenId] = dataContract;
 
-            // emit ArtifactCreated(
-            //     msg.sender,
-            //     zoraDrop,
-            //     mintRecipient,
-            //     tokenId,
-            //     dataContract,
-            //     artifactDetails[i].artifactDecoder,
-            //     artifactDetails[i].artifactMetadata
-            // );      
+            emit ArtifactCreated(
+                targetPress,
+                tokenId,
+                dataContract
+            );      
         }    
+
         return true;
     }                
 
@@ -171,13 +212,13 @@ contract ArtifactRenderer is IRenderer {
     ) external {
 
         // check for metadta edit access on given target Press contract
-        if (ILogic(Press(targetPress).logic()).canEditMetadata(targetPress, msg.sender) != true) {
-            revert NO_EDIT_ACCESS();
+        if (ILogic(ERC721Press(targetPress).logic()).canEditMetadata(targetPress, msg.sender) != true) {
+            revert No_Edit_Access();
         } 
         
         // prevents users from submitting invalid inputs
         if (tokenIds.length != artifactDetails.length) {
-            revert INVALID_INPUT_LENGTH();
+            revert Invalid_Input_Length();
         }
 
         // edit artifactInfo storage for a given Press contract => tokenId
@@ -204,7 +245,7 @@ contract ArtifactRenderer is IRenderer {
         for (uint256 i = 0; i < tokenIds.length; i++) {
         
             // check to see if token exists
-            if (IPress(targetPress).lastMintedTokenId() < tokenIds[i]) {
+            if (IERC721Press(targetPress).lastMintedTokenId() < tokenIds[i]) {
                 revert Token_DoesntExist();
             } 
 
@@ -221,7 +262,7 @@ contract ArtifactRenderer is IRenderer {
             // self-destruct data contract currently adssociated with given targetPress => tokenId 
             BytecodeStorage.purgeBytecode(artifactInfo[targetPress][tokenIds[i]]);
 
-            // deploy data contract containing abi.encoded artifactDetails struct
+            // cache address of deployed data contract containing abi.encoded artifactDetails struct
             address dataContract = BytecodeStorage.writeToBytecode(
                 abi.encode(artifactDetails[i])
             );
@@ -229,16 +270,13 @@ contract ArtifactRenderer is IRenderer {
             // map dataContract address to targetPress => tokenId
             artifactInfo[targetPress][tokenIds[i]] = dataContract;
 
-            // // emit ArtifactEdited event
-            // emit ArtifactEdited(
-            //     msg.sender,
-            //     targetPress,
-            //     tokenIds[i],
-            //     dataContract,
-            //     artifactDetails[i].artifactDecoder,
-            //     artifactDetails[i].artifactMetadata
-            // );   
-        }    
+            emit ArtifactEdited(
+                targetPress,
+                tokenIds[i],
+                dataContract
+            );           
+        } 
+
         return true;
     }            
 
@@ -286,17 +324,17 @@ contract ArtifactRenderer is IRenderer {
     /// @dev reverts if token does not exist
     /// @param targetPress to get contractURI for    
     /// @param tokenId to get tokenURI for
-    function artifactDirectory(address targetPress, uint256 tokenId)
+    function artifactLookup(address targetPress, uint256 tokenId)
         external
         view
         returns (string memory, string memory)
     {
         
-        if (ILogic(Press(targetPress).logic()).isInitialized(targetPress) != true) {
+        if (ILogic(ERC721Press(targetPress).logic()).isInitialized(targetPress) != true) {
             revert Address_NotInitialized();
         }
 
-        if (IPress(targetPress).lastMintedTokenId() < tokenId) {
+        if (IERC721Press(targetPress).lastMintedTokenId() < tokenId) {
             revert Token_DoesntExist();
         }         
 

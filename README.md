@@ -2,30 +2,34 @@
 
 ## THIS BRANCH IS UNDER CONSTRUCTION
 
-#### QUESTIONS
-1. Do we like how _authorizeUpgrade is handled in Press.osl? didn't use ZORA upgradeArch, but looks like
-    We are missing the functionaity thats provided in the zora upgrade gate
-    https://github.com/ourzora/zora-drops-contracts/blob/main/src/FactoryUpgradeGate.sol
-2. Do we like how we implemented a very basic optional primary sale fee incentive mechanism in Press.sol?
-    Completely optional, but allows front end create services to set themselves an immutable fee
-    upon contract deploy that gets paid out permissionlessly on withdraw
-3. Can we /do we want to get rid of upgradeability of Press.sol? right now it uses ERC721AUpgradeable
-    feel like we actually want to keep upgradeability there bc the owner of the contract gets to decide that
-    the bigger rug risks are on the factories + external metadata / logic contracts if those are upgradeable
+#### REMAINING Work
+1. Finish error documentation in ArtifactRenderer
+2. re implement "promoteToEdition" esque function w/ custom renderer + logic
+--did a very basic porting over of the old logic to the "EditionRenderer.sol" file. need to confirm that the way I overrode the "initializeToken" function to not do anything actually works
+--also need to figure out where wee want to integrate a "createEdition" or "promoteToEdition" call. not sure
+3. Redo factory + factory proxy impls
+-- prob want to have first class functions for "deployArtifactory" and "editionalizeArtifact" or something like that
+4. Tests
+5. Deploy scripts
+6. PA Bug bounty?
+7. Front endsss
 
-#### REMAINING EDITS
-1. Redo factory + factory proxy impls
-2. Press.sol -- clean up upgradeablility + proxy inits
-3. Press.sol -- Determine if need to add in any missing erc721 util functionality
+side note: theres definitely errors/inconsistencies when it comes to event usage + naming.
+-- particularly when it comes to treating initialization functions
+
+### REMAINING QUESTIONS
+1. DefaultLogic.sol - Move maxSupply into Press.sol to prevent issues if a Press swithes logic impls? 
+-- thought comes from https://metalabel.notion.site/040-Metalabel-Protocol-Walkthrough-64e892c31f6a4090a2c92088300b62c4
+-- maybe allow a configurable "hardcap" on the collection size, and configurable "softcap" on the Logic side
+2. add natspec/comment attributes for any code that was direct copy paste from elsewhere? ex: lots of zora util stuff 
+3. should we add a "can use press?" check on the factory impl that requires ppl to mint an AssemblyPress free token?
+-- this kinda kills hyperstructureness tho so prob not
+4. should we update the "ArtifactCreated" event so that it stores the raw address + bytes for a given token?
+-- if we dont do this, then that info will be lost forever whenever an Artifact is edited. which is kinda cool... but maybe we want to preserve
+
+### NICE TO HAVES -- NON ESSENTIAL FOR V1
 4. Press.sol -- add ability to withdraw non ETH funds
     -- does contract need FundsReciever import?  
-5. DefaultLogic.sol -- UPDATE ACCESS CONTROL TO ENUM BASED +  update isAdmin/Editor checks in address(this) + ArtifactRenderer + Press.sol?
-6. DefaultLogic.sol - Move maxSupply into Press.sol to prevent issues if a Press swithes logic impls? 
-    -- thought comes from https://metalabel.notion.site/040-Metalabel-Protocol-Walkthrough-64e892c31f6a4090a2c92088300b62c4
-    -- maybe allow a configurable "hardcap" on the collection size, and configurable "softcap" on the Logic side
-7. FIX ALL THE EVENTS + ERRORS + VARIABLES + FUNCTION NAMES + NATSPEC AHHHHH
-8. Tests
-9. Deploy scripts
 
 ### Local Development
 

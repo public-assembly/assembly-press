@@ -7,11 +7,12 @@ import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-up
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableSkeleton} from "./utils/OwnableSkeleton.sol";
-import {IPress} from "./interfaces/IPress.sol";
+import {IERC721Press} from "./interfaces/IERC721Press.sol";
 import {ILogic} from "./interfaces/ILogic.sol";
 import {IOwnable} from "./interfaces/IOwnable.sol";
 import {IRenderer} from "./interfaces/IRenderer.sol";
-import {PressStorageV1} from "./storage/PressStorageV1.sol";
+import {ERC721PressStorageV1} from "./storage/ERC721PressStorageV1.sol";
+import {Version} from "./utils/Version.sol";
 
 /**
  * @notice ERC721 implementation in AssemblyPress framework
@@ -21,39 +22,36 @@ import {PressStorageV1} from "./storage/PressStorageV1.sol";
  * @author Salief Lewis
  *
  */
-contract Press is 
+contract ERC721Press is 
     ERC721AUpgradeable,
     UUPSUpgradeable,
     IERC2981Upgradeable,
     ReentrancyGuardUpgradeable,    
-    IPress,
+    IERC721Press,
     OwnableSkeleton,
-    PressStorageV1
+    Version(1),
+    ERC721PressStorageV1
 {
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| STORAGE ||||||||||||||||||||
-    // |||||||||||||||||||||||||||||||| 
-
-    /// @notice This is the recommended max mint batch size for ERC721A
+    /// @dev This is the recommended max mint batch size for ERC721A
     uint256 internal immutable MAX_MINT_BATCH_SIZE = 8;
 
-    /// @notice Gas limit to send funds
+    /// @dev Gas limit to send funds
     uint256 internal immutable FUNDS_SEND_GAS_LIMIT = 210_000;
 
-    /// @notice Max royalty BPS
+    /// @dev Max royalty BPS
     uint16 constant MAX_ROYALTY_BPS = 50_00;    
     
-    /// @notice Local fall back value for maxSupply to protect against broken logic
+    /// @dev Local fall back value for maxSupply to protect against broken logic
     ///     being introduced in external logic contract
-    /// @dev type(uint64).max == 18446744073709551615
+    /// type(uint64).max == 18446744073709551615
     uint64 maxSupplyFallback = type(uint64).max;
 
     // ||||||||||||||||||||||||||||||||
     // ||| INITIALIZER ||||||||||||||||
     // ||||||||||||||||||||||||||||||||    
 
-    ///  @dev Create a new press contract for media publication
+    ///  @dev Create a new Press contract
     ///  @dev optional primarySaleFeeBPS + primarySaleFeeRecipient cannot be adjusted after initialization
     ///  @param _contractName Contract name
     ///  @param _contractSymbol Contract symbol
@@ -87,10 +85,12 @@ contract Press is
         _setOwner(_initialOwner);
 
         // check if fundsRecipient, logic, or renderer are being set to address(0)
-        if (_fundsRecipient == address(0) || address(_logic) == address(0) 
-            || address(_renderer) == address(0)) 
+        if (
+            _fundsRecipient == address(0) || address(_logic) == address(0) 
+            || address(_renderer) == address(0)
+        ) 
         {
-            revert CANNOT_SET_ZERO_ADDRESS();
+            revert Cannot_Set_Zero_Address();
         }        
 
         // check if _royaltyBPS is higher than immutable MAX_ROYALTY_BPS value
@@ -98,11 +98,11 @@ contract Press is
             revert Setup_RoyaltyPercentageTooHigh(MAX_ROYALTY_BPS);
         }
 
-        // Setup pressConfig variables
-        pressConfig.fundsRecipient = _fundsRecipient;
-        pressConfig.royaltyBPS = _royaltyBPS;
-        pressConfig.logic = address(_logic);   
-        pressConfig.renderer = address(_renderer);
+        // Setup config variables
+        config.fundsRecipient = _fundsRecipient;
+        config.royaltyBPS = _royaltyBPS;
+        config.logic = address(_logic);   
+        config.renderer = address(_renderer);
 
         // initialize renderer + logic
         _logic.initializeWithData(_logicInit);        
@@ -113,13 +113,26 @@ contract Press is
 
             // cannot set primarySaleFeeRecipient to zero address if feeBPS != 0
             if (_primarySaleFeeRecipient != address(0)) {
-                revert CANNOT_SET_ZERO_ADDRESS();
+                revert Cannot_Set_Zero_Address();
             }
 
-            // update primarySaleFee storage values. immutable once
-            primarySaleFeeConfig.feeBPS = _primarySaleFeeBPS;
-            primarySaleFeeConfig.feeRecipient = _primarySaleFeeRecipient;
+            // update primarySaleFeeDetails storage values. immutable once
+            primarySaleFeeDetails.feeBPS = _primarySaleFeeBPS;
+            primarySaleFeeDetails.feeRecipient = _primarySaleFeeRecipient;
+
+            emit IERC721Press.PrimarySaleFeeSet({
+                feeRecipient: _primarySaleFeeRecipient,
+                feeBPS: _primarySaleFeeBPS
+            });
         }
+
+        emit IERC721Press.ConfigInitialized({
+            sender: msg.sender,
+            logic: address(_logic),
+            renderer: address(_renderer),
+            fundsRecipient: _fundsRecipient,
+            royaltyBPS: _royaltyBPS
+        });
     }    
 
     // ||||||||||||||||||||||||||||||||
@@ -131,29 +144,42 @@ contract Press is
         external
         payable
         nonReentrant
+        returns (uint256)
     {
         // call logic contract to check is user can mint
-        if(ILogic(pressConfig.logic).canMint(address(this), mintQuantity, msg.sender) != true) {
-            revert CANNOT_MINT();
+        if(ILogic(config.logic).canMint(address(this), mintQuantity, msg.sender) != true) {
+            revert No_Mint_Access();
         }
 
         // call logic contract to check what mintPrice is for given quantity + user
-        if(msg.value != ILogic(pressConfig.logic).totalMintPrice(address(this), mintQuantity, msg.sender)) {
-            revert INCORRECT_MSG_VALUE();
+        if(msg.value != ILogic(config.logic).totalMintPrice(address(this), mintQuantity, msg.sender)) {
+            revert Incorrect_Msg_Value();
         }        
 
         // check if recipient == zero address
         if(recipient == address(0)) {
-            revert CANNOT_SET_ZERO_ADDRESS();
+            revert Cannot_Set_Zero_Address();
         }        
 
         // batch mint NFTs to recipient address
-        _mintNFTs(recipient, mintQuantity);
+        _mintNFTs(recipient, mintQuantity);      
+        // cache tokenId of first minted token so txn tokenId mint range can be reconsistiuted using events
+        uint256 firstMintedTokenId = lastMintedTokenId() - mintQuantity;          
 
-        // call initializeTokenMetadata if mintData != 0
+        // call initializeToken if mintData != 0
         if (mintData.length != 0) {
-            IRenderer(pressConfig.renderer).initializeTokenMetadata(mintData);
+            IRenderer(config.renderer).initializeTokenMetadata(mintData);
         }
+
+        emit IERC721Press.MintWithData({
+            recipient: msg.sender,
+            quantity: mintQuantity,            
+            mintData: mintData,
+            totalMintPrice: msg.value,
+            firstMintedTokenId: firstMintedTokenId            
+        });        
+
+        return firstMintedTokenId;
     }
 
     /// @notice Function to mint NFTs
@@ -176,12 +202,15 @@ contract Press is
     // ||||||||||||||||||||||||||||||||    
 
     /// @dev Set new owner for access control + front ends
-    /// @param newOwner new owner to set
+    /// @param newOwner address new owner to set
     function setOwner(address newOwner) public {        
         
-        // check if msg.sender is owner of contract
-        if (msg.sender != owner()) {
-            revert ONLY_OWNER_ACCESS();
+        // check if msg.sender has transfer access
+        if (
+            msg.sender != owner() &&
+            ILogic(config.logic).canTransfer(address(this), msg.sender) != true
+        ) {
+            revert No_Transfer_Access();
         }
 
         // transfer contract ownership to new owner
@@ -189,10 +218,10 @@ contract Press is
     }        
 
     // ||||||||||||||||||||||||||||||||
-    // ||| pressConfig ADMIN CALLS ||||
+    // ||| CONFIG ACCESS ||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    /// @notice Function to set pressConfig.fundsRecipient
+    /// @notice Function to set config.fundsRecipient
     /// @dev cannot set fundsRecipient to address(0)
     /// @param newFundsRecipient payable address to recieve funds via withdraw
     function setFundsRecipient(address payable newFundsRecipient)
@@ -200,20 +229,25 @@ contract Press is
         nonReentrant
     {
         // call logic contract to check is msg.sender can update
-        if(ILogic(pressConfig.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
-            revert NO_UPDATE_ACCESS();
+        if(ILogic(config.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
+            revert No_Update_Access();
         }        
 
         // check if newFundsRecipient == zero address
         if(newFundsRecipient == address(0)) {
-            revert CANNOT_SET_ZERO_ADDRESS();
+            revert Cannot_Set_Zero_Address();
         }
 
-        // update fundsRecipient address in pressConfig
-        pressConfig.fundsRecipient = newFundsRecipient;
+        // update fundsRecipient address in config
+        config.fundsRecipient = newFundsRecipient;
+
+        emit UpdatedFundsRecipient({
+            sender: msg.sender,
+            fundsRecipient: newFundsRecipient
+        });        
     }
 
-    /// @notice Function to set pressConfig.royaltyBPS
+    /// @notice Function to set config.royaltyBPS
     /// @dev max value = 5000
     /// @param newRoyaltyBPS uint16 value of royaltyBPS
     function setRoyaltyBPS(uint16 newRoyaltyBPS)
@@ -221,8 +255,8 @@ contract Press is
         nonReentrant
     {
         // call logic contract to check is msg.sender can update
-        if(ILogic(pressConfig.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
-            revert NO_UPDATE_ACCESS();
+        if (ILogic(config.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
+            revert No_Update_Access();
         }        
 
         // check if newRoyaltyBPS is higher than immutable MAX_ROYALTY_BPS value
@@ -230,38 +264,16 @@ contract Press is
             revert Setup_RoyaltyPercentageTooHigh(MAX_ROYALTY_BPS);
         }
 
-        // update fundsRecipient address in pressConfig
-        pressConfig.royaltyBPS = newRoyaltyBPS;
+        // update royaltyBPS in config
+        config.royaltyBPS = newRoyaltyBPS;
+
+        emit UpdatedRoyaltyBPS({
+            sender: msg.sender,
+            royaltyBPS: newRoyaltyBPS
+        });                
     }    
 
-    /// @notice Function to set pressConfig.renderer
-    /// @dev cannot set renderer to address(0)
-    /// @param newRenderer renderer address to handle metadata logic
-    /// @param newRendererInit data to initialize renderer
-    function setRenderer(address newRenderer, bytes memory newRendererInit)
-        external
-        nonReentrant
-    {
-        // call logic contract to check is msg.sender can update
-        if(ILogic(pressConfig.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
-            revert NO_UPDATE_ACCESS();
-        }        
-
-        // check if newRenderer == zero address
-        if(newRenderer == address(0)) {
-            revert CANNOT_SET_ZERO_ADDRESS();
-        }
-
-        // update renderer address in pressConfig
-        pressConfig.renderer = newRenderer;
-
-        // call initializeWithData if newRendererInit != 0
-        if (newRendererInit.length != 0) {
-            IRenderer(newRenderer).initializeWithData(newRendererInit);
-        }        
-    }
-
-    /// @notice Function to set pressConfig.logic
+    /// @notice Function to set config.logic
     /// @dev cannot set logic to address(0)
     /// @param newLogic logic address to handle general contract logic
     /// @param newLogicInit data to initialize logic
@@ -270,25 +282,62 @@ contract Press is
         nonReentrant
     {
         // call logic contract to check is msg.sender can update
-        if(ILogic(pressConfig.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
-            revert NO_UPDATE_ACCESS();
+        if(ILogic(config.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
+            revert No_Update_Access();
         }        
 
         // check if newLogic == zero address
         if(newLogic == address(0)) {
-            revert CANNOT_SET_ZERO_ADDRESS();
+            revert Cannot_Set_Zero_Address();
         }        
 
-        // update logic contract address in pressConfig
-        pressConfig.logic = newLogic;
+        // update logic contract address in config
+        config.logic = newLogic;
 
         // call initializeWithData if newLogicInit != 0
         if (newLogicInit.length != 0) {
             ILogic(newLogic).initializeWithData(newLogicInit);
         }     
+
+        emit UpdatedLogic({
+            sender: msg.sender,
+            logic: newLogic
+        });             
     }            
 
-    /// @notice Function to set pressConfig.logic
+    /// @notice Function to set config.renderer
+    /// @dev cannot set renderer to address(0)
+    /// @param newRenderer renderer address to handle metadata logic
+    /// @param newRendererInit data to initialize renderer
+    function setRenderer(address newRenderer, bytes memory newRendererInit)
+        external
+        nonReentrant
+    {
+        // call logic contract to check is msg.sender can update
+        if(ILogic(config.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
+            revert No_Update_Access();
+        }        
+
+        // check if newRenderer == zero address
+        if(newRenderer == address(0)) {
+            revert Cannot_Set_Zero_Address();
+        }
+
+        // update renderer address in config
+        config.renderer = newRenderer;
+
+        // call initializeWithData if newRendererInit != 0
+        if (newRendererInit.length != 0) {
+            IRenderer(newRenderer).initializeWithData(newRendererInit);
+        }        
+
+        emit UpdatedRenderer({
+            sender: msg.sender,
+            renderer: newRenderer
+        });               
+    }    
+
+    /// @notice Function to set config.logic
     /// @dev cannot set fundsRecipient or logic or renderer to address(0)
     /// @dev max newRoyaltyBPS value = 5000
     /// @param newFundsRecipient payable address to recieve funds via withdraw
@@ -297,7 +346,7 @@ contract Press is
     /// @param newRendererInit data to initialize renderer    
     /// @param newLogic logic address to handle general contract logic
     /// @param newLogicInit data to initialize logic
-    function setPressConfig(
+    function setConfig(
         address payable newFundsRecipient,
         uint16 newRoyaltyBPS,
         address newRenderer, 
@@ -307,11 +356,11 @@ contract Press is
     ) external nonReentrant {
 
         // call logic contract to check is msg.sender can update
-        if(ILogic(pressConfig.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
-            revert NO_UPDATE_ACCESS();
+        if(ILogic(config.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
+            revert No_Update_Access();
         }                
 
-      (bool setSuccess) = _setPressConfig(
+      (bool setSuccess) = _setConfig(
             newFundsRecipient,
             newRoyaltyBPS,
             newRenderer,
@@ -321,12 +370,20 @@ contract Press is
         ); 
 
         if (!setSuccess) {
-            revert SET_PRESS_CONFIG_FAIL();
+            revert Set_Config_Fail();
         }
+
+        emit UpdatedConfig({
+            sender: msg.sender,
+            logic: newLogic,
+            renderer: newRenderer,
+            fundsRecipient: newFundsRecipient,
+            royaltyBPS: newRoyaltyBPS
+        });
     }    
 
-    /// @notice internal handler to set pressConfig.logic
-    function _setPressConfig(
+    /// @notice internal handler to set config.logic
+    function _setConfig(
         address payable newFundsRecipient,
         uint16 newRoyaltyBPS,
         address newRenderer, 
@@ -340,25 +397,25 @@ contract Press is
             newFundsRecipient == address(0) || newRenderer == address(0)
             || newLogic == address(0)
         ) {
-            revert CANNOT_SET_ZERO_ADDRESS();
+            revert Cannot_Set_Zero_Address();
         }
         // check if newRoyaltyBPS is higher than immutable MAX_ROYALTY_BPS value
         if (newRoyaltyBPS > MAX_ROYALTY_BPS) {
             revert Setup_RoyaltyPercentageTooHigh(MAX_ROYALTY_BPS);
         }
 
-        // update fundsRecipient address in pressConfig
-        pressConfig.fundsRecipient = newFundsRecipient;
-        // update fundsRecipient address in pressConfig
-        pressConfig.royaltyBPS = newRoyaltyBPS;
-        // update renderer address in pressConfig
-        pressConfig.renderer = newRenderer;
+        // update fundsRecipient address in config
+        config.fundsRecipient = newFundsRecipient;
+        // update fundsRecipient address in config
+        config.royaltyBPS = newRoyaltyBPS;
+        // update renderer address in config
+        config.renderer = newRenderer;
         // call initializeWithData if newRendererInit != 0
         if (newRendererInit.length != 0) {
             IRenderer(newRenderer).initializeWithData(newRendererInit);
         }        
-        // update logic contract address in pressConfig
-        pressConfig.logic = newLogic;
+        // update logic contract address in config
+        config.logic = newLogic;
         // call initializeWithData if newLogicInit != 0
         if (newLogicInit.length != 0) {
             ILogic(newLogic).initializeWithData(newLogicInit);
@@ -376,18 +433,18 @@ contract Press is
         // Check if withdraw is allowed for sender
         if (
             sender != owner() &&
-            ILogic(pressConfig.logic).canWithdraw(address(this), sender) != true
+            ILogic(config.logic).canWithdraw(address(this), sender) != true
         ) {
-            revert NO_WITHDRAW_ACCESS();
+            revert No_Withdraw_Access();
         }    
 
         // Calculate primary sale fee amount
         uint256 funds = address(this).balance;
-        uint256 fee = funds * primarySaleFeeConfig.feeBPS / 10_000;
+        uint256 fee = funds * primarySaleFeeDetails.feeBPS / 10_000;
 
         // Payout primary sale fees
         if (fee > 0) {
-            (bool successFee, ) = primarySaleFeeConfig.feeRecipient.call{
+            (bool successFee, ) = primarySaleFeeDetails.feeRecipient.call{
                 value: fee,
                 gas: FUNDS_SEND_GAS_LIMIT
             }("");
@@ -398,20 +455,20 @@ contract Press is
         } 
 
         // Payout recipient
-        (bool successFunds, ) = pressConfig.fundsRecipient.call{
+        (bool successFunds, ) = config.fundsRecipient.call{
             value: funds,
             gas: FUNDS_SEND_GAS_LIMIT
         }("");
         if (!successFunds) {
-            revert WITHDRAW_FUNDS_SEND_FAILURE();
+            revert Withdraw_FundsSendFailure();
         }          
 
         // Emit event for indexing
         emit FundsWithdrawn(
             msg.sender,
-            pressConfig.fundsRecipient,
+            config.fundsRecipient,
             funds,
-            primarySaleFeeConfig.feeRecipient,
+            primarySaleFeeDetails.feeRecipient,
             fee
         );
     }      
@@ -426,16 +483,21 @@ contract Press is
     function burn(uint256 tokenId) public {
 
         // Check if burn is allowed for sender
-        if (ILogic(pressConfig.logic).canBurn(address(this), msg.sender) != true) {
-            revert NO_BURN_ACCESS();
+        if (ILogic(config.logic).canBurn(address(this), msg.sender) != true) {
+            revert No_Burn_Access();
         }            
 
         _burn(tokenId, true);
     }     
 
+    /// @notice Start token ID for minting (1-100 vs 0-99)
+    function _startTokenId() internal pure override returns (uint256) {
+        return 1;
+    }         
+
     /// @notice Getter for last minted token ID (gets next token id and subtracts 1)
     /// @dev also works as a "totalMinted" lookup
-    function lastMintedTokenId() external view returns (uint256) {
+    function lastMintedTokenId() public view returns (uint256) {
         return _nextTokenId() - 1;
     }
 
@@ -444,13 +506,10 @@ contract Press is
         return _numberMinted(ownerAddress);
     }   
 
-    /// @notice Start token ID for minting (1-100 vs 0-99)
-    function _startTokenId() internal pure override returns (uint256) {
-        return 1;
-    }     
+
 
     // ||||||||||||||||||||||||||||||||
-    // ||| MISC OVERRIDES |||||||||||||
+    // ||| MISC |||||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||       
 
     /// @dev Get royalty information for token
@@ -461,14 +520,14 @@ contract Press is
         override
         returns (address receiver, uint256 royaltyAmount)
     {
-        if (pressConfig.fundsRecipient == address(0)) {
-            return (pressConfig.fundsRecipient, 0);
+        if (config.fundsRecipient == address(0)) {
+            return (config.fundsRecipient, 0);
         }
         return (
-            pressConfig.fundsRecipient,
-            (_salePrice * pressConfig.royaltyBPS) / 10_000
+            config.fundsRecipient,
+            (_salePrice * config.royaltyBPS) / 10_000
         );
-    }        
+    }    
 
     /// @notice Connects this contract to the factory upgrade gate
     /// @param newImplementation proposed new upgrade implementation
@@ -479,10 +538,10 @@ contract Press is
     {
         // call logic contract to check is msg.sender can upgrade
         if(
-            ILogic(pressConfig.logic).canUpgrade(address(this), msg.sender) != true
+            ILogic(config.logic).canUpgrade(address(this), msg.sender) != true
                 && owner() != msg.sender
         ) {
-            revert NO_UPGRADE_ACCESS();
+            revert No_Upgrade_Access();
         }
     }
 
@@ -495,7 +554,7 @@ contract Press is
     function owner()
         public
         view
-        override(OwnableSkeleton, IPress)
+        override(OwnableSkeleton, IERC721Press)
         returns (address)
     {
         return super.owner();
@@ -504,7 +563,7 @@ contract Press is
     /// @notice Contract URI Getter, proxies to renderer
     /// @return Contract URI
     function contractURI() external view returns (string memory) {
-        return IRenderer(pressConfig.renderer).contractURI();
+        return IRenderer(config.renderer).contractURI();
     }
 
     /// @notice Token URI Getter, proxies to renderer
@@ -520,73 +579,73 @@ contract Press is
             revert IERC721AUpgradeable.URIQueryForNonexistentToken();
         }
 
-        return IRenderer(pressConfig.renderer).tokenURI(tokenId);
+        return IRenderer(config.renderer).tokenURI(tokenId);
     }   
 
-    /// @notice Getter for fundsRecipent address stored in pressConfig
+    /// @notice Getter for fundsRecipent address stored in config
     /// @dev may return 0 or revert if incorrect external logic has been configured
     /// @dev can use maxSupplyFallback() instead if that scenario ^
     function maxSupply() external view returns (uint64) {
-        return ILogic(pressConfig.logic).maxSupply();
+        return ILogic(config.logic).maxSupply();
     }     
 
-    /// @notice Getter for fundsRecipent address stored in pressConfig
+    /// @notice Getter for fundsRecipent address stored in config
     function fundsRecipient() external view returns (address payable) {
-        return pressConfig.fundsRecipient;
+        return config.fundsRecipient;
     }
 
-    /// @notice Getter for logic contract stored in pressConfig
+    /// @notice Getter for logic contract stored in config
     function royaltyBPS() external view returns (uint16) {
-        return pressConfig.royaltyBPS;
+        return config.royaltyBPS;
     }   
 
-    /// @notice Getter for renderer contract stored in pressConfig
+    /// @notice Getter for renderer contract stored in config
     function renderer() external view returns (IRenderer) {
-        return IRenderer(pressConfig.renderer);
+        return IRenderer(config.renderer);
     }
 
-    /// @notice Getter for logic contract stored in pressConfig
+    /// @notice Getter for logic contract stored in config
     function logic() external view returns (ILogic) {
-        return ILogic(pressConfig.logic);
+        return ILogic(config.logic);
     }    
 
-    /// @notice pressConfig details
-    /// @return IPress.pressConfig information details
-    function pressConfigDetails()
+    /// @notice config details
+    /// @return IERC721Press.config information details
+    function configDetails()
         external
         view
-        returns (IPress.PressConfig memory)
+        returns (IERC721Press.Configuration memory)
     {
         return
-            IPress.PressConfig({
-                fundsRecipient: pressConfig.fundsRecipient,
-                royaltyBPS: pressConfig.royaltyBPS,
-                logic: pressConfig.logic,
-                renderer: pressConfig.renderer
+            IERC721Press.Configuration({
+                fundsRecipient: config.fundsRecipient,
+                royaltyBPS: config.royaltyBPS,
+                logic: config.logic,
+                renderer: config.renderer
             });
     }
 
-    /// @notice Getter for feeRecipient address stored in primarySaleFeeConfig
+    /// @notice Getter for feeRecipient address stored in primarySaleFeeDetails
     function primarySaleFeeRecipient() external view returns (address payable) {
-        return primarySaleFeeConfig.feeRecipient;
+        return primarySaleFeeDetails.feeRecipient;
     }
 
-    /// @notice Getter for feeBPS stored in primarySaleFeeConfig
+    /// @notice Getter for feeBPS stored in primarySaleFeeDetails
     function primarySaleFeeBPS() external view returns (uint16) {
-        return primarySaleFeeConfig.feeBPS;
+        return primarySaleFeeDetails.feeBPS;
     }       
 
-    /// @notice primarySaleFeeConfig details
-    /// @return IPress.PrimarySaleFee information details
-    function primarySaleFeeConfigDetails()
+    /// @notice primarySaleFee details
+    /// @return IERC721Press.PrimarySaleFee details
+    function primarySaleFeeConfig()
         external
         view
-        returns (IPress.PrimarySaleFee memory)
+        returns (IERC721Press.PrimarySaleFee memory)
     {
         return
-            IPress.PrimarySaleFee({
-                feeRecipient: primarySaleFeeConfig.feeRecipient,
-                feeBPS: primarySaleFeeConfig.feeBPS
+            IERC721Press.PrimarySaleFee({
+                feeRecipient: primarySaleFeeDetails.feeRecipient,
+                feeBPS: primarySaleFeeDetails.feeBPS
             });
     }    
 
@@ -605,7 +664,7 @@ contract Press is
             super.supportsInterface(interfaceId) ||
             type(IOwnable).interfaceId == interfaceId ||
             type(IERC2981Upgradeable).interfaceId == interfaceId ||
-            type(IPress).interfaceId == interfaceId;
+            type(IERC721Press).interfaceId == interfaceId;
     }
 }
     
