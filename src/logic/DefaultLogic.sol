@@ -112,7 +112,7 @@ contract DefaultLogic is ILogic {
         _;
     }        
 
-    /// @notice Checks if msg.sender has admin level privalages for given Press contract
+    /// @notice Checks if msg.sender has admin level privileges for given Press contract
     modifier requireSenderAdmin(address target) {
 
         if (
