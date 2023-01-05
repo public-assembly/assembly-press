@@ -8,10 +8,10 @@ interface IERC721Press {
     // |||||||||||||||||||||||||||||||| 
 
     struct Configuration {
-        uint16 royaltyBPS;
         address payable fundsRecipient;
         address logic;
         address renderer;
+        uint16 royaltyBPS;
     }
 
     struct PrimarySaleFee {
