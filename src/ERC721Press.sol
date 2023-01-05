@@ -3,27 +3,24 @@ pragma solidity ^0.8.16;
 
 import {ERC721AUpgradeable} from "erc721a-upgradeable/ERC721AUpgradeable.sol";
 import {IERC721AUpgradeable} from "erc721a-upgradeable/IERC721AUpgradeable.sol";
-import {
-    IERC2981Upgradeable,
-    IERC165Upgradeable
-} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
+import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {OwnableSkeleton} from "./utils/OwnableSkeleton.sol";
 import {IERC721Press} from "./interfaces/IERC721Press.sol";
 import {ILogic} from "./interfaces/ILogic.sol";
 import {IOwnable} from "./interfaces/IOwnable.sol";
 import {IRenderer} from "./interfaces/IRenderer.sol";
-import {ERC721PressStorageV1} from "./storage/ERC721PressStorageV1.sol";
+import {OwnableSkeleton} from "./utils/OwnableSkeleton.sol";
 import {Version} from "./utils/Version.sol";
+import {ERC721PressStorageV1} from "./storage/ERC721PressStorageV1.sol";
 
 /**
- * @notice ERC721 implementation in AssemblyPress framework
- *      injected with metadata + general logic during deploy via AssemblyPress
- * @dev functionality configurable using external renderer + logic contracts
+ * @title ERC721Press
+ * @notice A highly extensible, minimally opinionated ERC721A implementation
+ * @dev Functionality is configurable using external renderer + logic contracts
+ *
  * @author Max Bochman
  * @author Salief Lewis
- *
  */
 contract ERC721Press is
     ERC721AUpgradeable,
@@ -55,19 +52,19 @@ contract ERC721Press is
     // ||| INITIALIZER ||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    ///  @dev Create a new Press contract
-    ///  @dev optional primarySaleFeeBPS + primarySaleFeeRecipient cannot be adjusted after initialization
+    ///  @dev Initializes a new, creator-owned proxy of `ERC721Press.sol`
+    ///  @dev Optional `primarySaleFeeBPS` + `primarySaleFeeRecipient` cannot be adjusted after initialization
     ///  @param _contractName Contract name
     ///  @param _contractSymbol Contract symbol
     ///  @param _initialOwner User that owns the contract upon deployment
-    ///  @param _fundsRecipient Wallet address that receives funds from sale
-    ///  @param _royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty.
+    ///  @param _fundsRecipient Address that receives funds from sale
+    ///  @param _royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty
     ///  @param _logic Logic contract to use (access control + pricing dynamics)
     ///  @param _logicInit Logic contract initial data
     ///  @param _renderer Renderer contract to use
     ///  @param _rendererInit Renderer initial data
-    ///  @param _primarySaleFeeBPS optional fee to set on primary sales
-    ///  @param _primarySaleFeeRecipient fundsRecipient on primary sales
+    ///  @param _primarySaleFeeBPS Optional fee to set on primary sales
+    ///  @param _primarySaleFeeRecipient Funds recipient on primary sales
     function initialize(
         string memory _contractName,
         string memory _contractSymbol,
@@ -463,9 +460,8 @@ contract ERC721Press is
         return (config.fundsRecipient, (_salePrice * config.royaltyBPS) / 10_000);
     }
 
-    /// @notice Connects this contract to the factory upgrade gate
+    /// @dev Can only be called by an admin or the contract owner
     /// @param newImplementation proposed new upgrade implementation
-    /// @dev Only can be called by admin
     function _authorizeUpgrade(address newImplementation) internal override {
         // call logic contract to check is msg.sender can upgrade
         if (ILogic(config.logic).canUpgrade(address(this), msg.sender) != true && owner() != msg.sender) {
