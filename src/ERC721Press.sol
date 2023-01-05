@@ -52,19 +52,19 @@ contract ERC721Press is
     // ||| INITIALIZER ||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    ///  @dev Create a new Press contract
-    ///  @dev optional primarySaleFeeBPS + primarySaleFeeRecipient cannot be adjusted after initialization
+    ///  @dev Initializes a new, creator-owned proxy of `ERC721Press.sol`
+    ///  @dev Optional `primarySaleFeeBPS` + `primarySaleFeeRecipient` cannot be adjusted after initialization
     ///  @param _contractName Contract name
     ///  @param _contractSymbol Contract symbol
     ///  @param _initialOwner User that owns the contract upon deployment
-    ///  @param _fundsRecipient Wallet address that receives funds from sale
-    ///  @param _royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty.
+    ///  @param _fundsRecipient Address that receives funds from sale
+    ///  @param _royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty
     ///  @param _logic Logic contract to use (access control + pricing dynamics)
     ///  @param _logicInit Logic contract initial data
     ///  @param _renderer Renderer contract to use
     ///  @param _rendererInit Renderer initial data
-    ///  @param _primarySaleFeeBPS optional fee to set on primary sales
-    ///  @param _primarySaleFeeRecipient fundsRecipient on primary sales
+    ///  @param _primarySaleFeeBPS Optional fee to set on primary sales
+    ///  @param _primarySaleFeeRecipient Funds recipient on primary sales
     function initialize(
         string memory _contractName,
         string memory _contractSymbol,
