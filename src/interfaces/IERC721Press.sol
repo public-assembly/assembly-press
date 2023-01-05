@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
+import {ILogic} from "./ILogic.sol";
+import {IRenderer} from "./IRenderer.sol";
+
 interface IERC721Press {
-    
     // ||||||||||||||||||||||||||||||||
     // ||| TYPES ||||||||||||||||||||||
-    // |||||||||||||||||||||||||||||||| 
+    // ||||||||||||||||||||||||||||||||
 
     struct Configuration {
         address payable fundsRecipient;
@@ -17,31 +19,31 @@ interface IERC721Press {
     struct PrimarySaleFee {
         address payable feeRecipient;
         uint16 feeBPS;
-    }    
+    }
 
     // ||||||||||||||||||||||||||||||||
     // ||| ERRORS |||||||||||||||||||||
-    // |||||||||||||||||||||||||||||||| 
+    // ||||||||||||||||||||||||||||||||
 
     // access errors
-    /// @notice msg.sender does not have mint access for given Press       
+    /// @notice msg.sender does not have mint access for given Press
     error No_Mint_Access();
-    /// @notice msg.sender does not have withdraw access for given Press   
+    /// @notice msg.sender does not have withdraw access for given Press
     error No_Withdraw_Access();
-    /// @notice msg.sender does not have upgrade access for given Press   
+    /// @notice msg.sender does not have upgrade access for given Press
     error No_Upgrade_Access();
-    /// @notice msg.sender does not have update access for given Press   
+    /// @notice msg.sender does not have update access for given Press
     error No_Update_Access();
-    /// @notice msg.sender does not have burn access for given Press   
+    /// @notice msg.sender does not have burn access for given Press
     error No_Burn_Access();
-    /// @notice msg.sender does not have transfer access for given Press   
-    error No_Transfer_Access();    
+    /// @notice msg.sender does not have transfer access for given Press
+    error No_Transfer_Access();
 
-    // constraint/failure errors    
+    // constraint/failure errors
     /// @notice Royalty percentage too high
     error Setup_RoyaltyPercentageTooHigh(uint16 maxRoyaltyBPS);
     /// @notice cannot set address to address(0)
-    error Cannot_Set_Zero_Address();    
+    error Cannot_Set_Zero_Address();
     /// @notice msg.value incorrect for mint call
     error Incorrect_Msg_Value();
     /// @notice Cannot withdraw funds due to ETH send failure
@@ -51,15 +53,12 @@ interface IERC721Press {
 
     // ||||||||||||||||||||||||||||||||
     // ||| EVENTS |||||||||||||||||||||
-    // |||||||||||||||||||||||||||||||| 
+    // ||||||||||||||||||||||||||||||||
 
     /// @notice Event emitted if primary sale fee is set during Press initialization
     /// @param feeRecipient address that will recieve primary sale fees
     /// @param feeBPS fee basis points (divide by 10_000 for %)
-    event PrimarySaleFeeSet(
-        address indexed feeRecipient,
-        uint16 feeBPS
-    );      
+    event PrimarySaleFeeSet(address indexed feeRecipient, uint16 feeBPS);
 
     /// @notice Event when Press config is initialized
     /// @param sender address that sent update txn
@@ -73,8 +72,8 @@ interface IERC721Press {
         address indexed renderer,
         address fundsRecipient,
         uint16 royaltyBPS
-    );          
-    
+    );
+
     /// @notice Event emitted for each mint
     /// @param recipient address nfts were minted to
     /// @param quantity quantity of the minted nfts
@@ -101,39 +100,27 @@ interface IERC721Press {
         uint256 amount,
         address feeRecipient,
         uint256 feeAmount
-    );      
+    );
 
     /// @notice Event emitted when fundsRecipient is updated post initialization
     /// @param sender address that sent update txn
     /// @param fundsRecipient new fundsRecipient
-    event UpdatedFundsRecipient(
-        address indexed sender,
-        address indexed fundsRecipient
-    );          
+    event UpdatedFundsRecipient(address indexed sender, address indexed fundsRecipient);
 
     /// @notice Event emitted when royaltyBPS is updated post initialization
     /// @param sender address that sent update txn
     /// @param royaltyBPS new royaltyBPS
-    event UpdatedRoyaltyBPS(
-        address indexed sender,
-        uint16 indexed royaltyBPS
-    );        
+    event UpdatedRoyaltyBPS(address indexed sender, uint16 indexed royaltyBPS);
 
     /// @notice Event emitted when renderer is updated post initialization
     /// @param sender address that sent update txn
     /// @param renderer new renderer contract address
-    event UpdatedRenderer(
-        address indexed sender,
-        address indexed renderer
-    );            
+    event UpdatedRenderer(address indexed sender, address indexed renderer);
 
     /// @notice Event emitted when logic is updated post initialization
     /// @param sender address that sent update txn
     /// @param logic new logic contract address
-    event UpdatedLogic(
-        address indexed sender,
-        address indexed logic
-    );          
+    event UpdatedLogic(address indexed sender, address indexed logic);
 
     /// @notice Event emitted when config is updated post initialization
     /// @param sender address that sent update txn
@@ -147,14 +134,32 @@ interface IERC721Press {
         address indexed renderer,
         address fundsRecipient,
         uint16 royaltyBPS
-    );         
+    );
 
     // ||||||||||||||||||||||||||||||||
     // ||| FUNCTIONS ||||||||||||||||||
-    // |||||||||||||||||||||||||||||||| 
+    // ||||||||||||||||||||||||||||||||
+
+    /// @notice initializes a Press contract instance
+    function initialize(
+        string memory _contractName,
+        string memory _contractSymbol,
+        address _initialOwner,
+        address payable _fundsRecipient,
+        uint16 _royaltyBPS,
+        ILogic _logic,
+        bytes memory _logicInit,
+        IRenderer _renderer,
+        bytes memory _rendererInit,
+        uint16 _primarySaleFeeBPS,
+        address payable _primarySaleFeeRecipient
+    ) external;
 
     /// @notice allows user to mint token(s) from the Press contract
-    function mintWithData(address recipient, uint64 mintQuantity, bytes memory mintData) external payable returns (uint256);
+    function mintWithData(address recipient, uint64 mintQuantity, bytes memory mintData)
+        external
+        payable
+        returns (uint256);
 
     /// @notice Function to set config.logic
     /// @dev cannot set logic to address(0)
@@ -166,21 +171,20 @@ interface IERC721Press {
     /// @dev cannot set renderer to address(0)
     /// @param newRenderer renderer address to handle metadata logic
     /// @param newRendererInit data to initialize renderer
-    function setRenderer(address newRenderer, bytes memory newRendererInit) external;    
+    function setRenderer(address newRenderer, bytes memory newRendererInit) external;
 
     /// @notice Public owner setting that can be set by the contract admin
-    function owner() view external returns (address);
+    function owner() external view returns (address);
 
     /// @notice Function to return global config details for the given Press
     function configDetails() external view returns (Configuration memory);
 
     /// @notice Function to return global primsarySaleFee details for the given Press
-    function primarySaleFeeConfig() external view returns (PrimarySaleFee memory);    
+    function primarySaleFeeConfig() external view returns (PrimarySaleFee memory);
 
     /// @notice Getter for last minted token ID (gets next token id and subtracts 1)
-    function lastMintedTokenId() external view returns (uint256);    
+    function lastMintedTokenId() external view returns (uint256);
 
     /// @notice Getter that returns number of tokens minted for a given address
     function numberMinted(address ownerAddress) external view returns (uint256);
-
 }
