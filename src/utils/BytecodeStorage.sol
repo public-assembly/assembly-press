@@ -3,7 +3,7 @@ pragma solidity 0.8.16;
 
 /**
  * @title Storage Library
- * @notice Utilize contract bytecode as persistant storage for large chunks of script string data.
+ * @notice Utilize contract bytecode as persistent storage for large chunks of script string data.
  *
  * @author Zora Labs Modified from Art Blocks
  * @author Modified from Art Blocks Inc. (https://github.com/ArtBlocks/artblocks-contracts/contracts/libs/0.8.x/BytecodeStorage.sol)
