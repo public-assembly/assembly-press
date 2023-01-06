@@ -267,21 +267,18 @@ contract ArtifactRenderer is IRenderer {
             }        
 
             // self-destruct data contract currently adssociated with given targetPress => tokenId 
-            BytecodeStorage.purgeBytecode(artifactInfo[targetPress][tokenIds[i]]);
-
-            // cache address of deployed data contract containing abi.encoded artifactDetails struct
-            address dataContract = BytecodeStorage.writeToBytecode(
-                abi.encode(artifactDetails[i])
-            );
+            BytecodeStorage.purgeBytecode(artifactInfo[targetPress][tokenIds[i]]); 
 
             // map dataContract address to targetPress => tokenId
-            artifactInfo[targetPress][tokenIds[i]] = dataContract;
+            artifactInfo[targetPress][tokenIds[i]] = BytecodeStorage.writeToBytecode(
+                abi.encode(artifactDetails[i])
+            );
 
             emit ArtifactEdited(
                 targetPress,
                 tokenIds[i],
-                dataContract
-            );           
+                artifactInfo[targetPress][tokenIds[i]]
+            );                   
         } 
 
         return true;
