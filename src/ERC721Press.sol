@@ -211,7 +211,7 @@ contract ERC721Press is
         }
 
         // Transfer contract ownership to new owner
-        _setOwner(newOwner);
+        _transferOwnership(newOwner);
     }
 
     // ||||||||||||||||||||||||||||||||
@@ -464,7 +464,7 @@ contract ERC721Press is
     // ||||||||||||||||||||||||||||||||
 
     /// @notice Simple override for owner interface
-    function owner() public view override (OwnableSkeleton, IERC721Press) returns (address) {
+    function owner() public view override (OwnableUpgradeable, IERC721Press) returns (address) {
         return super.owner();
     }
 
