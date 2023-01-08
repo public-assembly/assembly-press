@@ -3,15 +3,19 @@ pragma solidity ^0.8.16;
 
 import {ERC721AUpgradeable} from "erc721a-upgradeable/ERC721AUpgradeable.sol";
 import {IERC721AUpgradeable} from "erc721a-upgradeable/IERC721AUpgradeable.sol";
+
 import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 import {IERC721Press} from "./interfaces/IERC721Press.sol";
 import {ILogic} from "./interfaces/ILogic.sol";
 import {IOwnable} from "./interfaces/IOwnable.sol";
 import {IRenderer} from "./interfaces/IRenderer.sol";
-import {OwnableSkeleton} from "./utils/OwnableSkeleton.sol";
+
+import {OwnableUpgradeable} from "./utils/OwnableUpgradeable.sol";
 import {Version} from "./utils/Version.sol";
+
 import {ERC721PressStorageV1} from "./storage/ERC721PressStorageV1.sol";
 
 /**
@@ -28,7 +32,7 @@ contract ERC721Press is
     IERC2981Upgradeable,
     ReentrancyGuardUpgradeable,
     IERC721Press,
-    OwnableSkeleton,
+    OwnableUpgradeable,
     Version(1),
     ERC721PressStorageV1
 {
@@ -42,9 +46,9 @@ contract ERC721Press is
     uint16 constant MAX_ROYALTY_BPS = 50_00;
 
     /**
-     * @dev Local fallback value for `maxSupply` to protect against broken logic
-     * being introduced by an external logic contract
-     * @dev type(uint64).max == 18446744073709551615
+     * @dev Local fallback value for maxSupply to protect against broken logic
+     *      being introduced by an external logic contract
+     *      type(uint64).max == 18446744073709551615
      */
     uint64 maxSupplyFallback = type(uint64).max;
 
@@ -52,8 +56,8 @@ contract ERC721Press is
     // ||| INITIALIZER ||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    ///  @notice Initializes a new, creator-owned proxy of `ERC721Press.sol`
-    ///  @dev Optional `primarySaleFeeBPS` + `primarySaleFeeRecipient` cannot be adjusted after initialization
+    ///  @notice Initializes a new, creator-owned proxy of ERC721Press.sol
+    ///  @dev Optional primarySaleFeeBPS + primarySaleFeeRecipient cannot be adjusted after initialization
     ///  @param _contractName Contract name
     ///  @param _contractSymbol Contract symbol
     ///  @param _initialOwner User that owns the contract upon deployment
@@ -85,7 +89,7 @@ contract ERC721Press is
         __ReentrancyGuard_init();
 
         // Set ownership to original sender of contract call
-        _setOwner(_initialOwner);
+        __Ownable_init(_initialOwner);
 
         // Check if `fundsRecipient,` `logic,` or `renderer` are being set to the zero address
         if (_fundsRecipient == address(0) || address(_logic) == address(0) || address(_renderer) == address(0)) {
