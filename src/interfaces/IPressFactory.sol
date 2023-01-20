@@ -26,6 +26,9 @@ interface IPressFactory {
     // ||| FUNCTIONS ||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
+    /// @notice Initializes the proxy behind a PressFactory
+    function initialize(address _initialOwner) external;
+
     /// @notice Creates a new, creator-owned proxy of `ERC721Press.sol`
     function createPress(
         string memory _contractName,

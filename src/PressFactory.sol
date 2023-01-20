@@ -8,6 +8,7 @@ import {IRenderer} from "./interfaces/IRenderer.sol";
 import {ERC721PressProxy} from "./proxy/ERC721PressProxy.sol";
 import {OwnableUpgradeable} from "./utils/OwnableUpgradeable.sol";
 import {Version} from "./utils/Version.sol";
+import {ERC721Press} from "./ERC721Press.sol";
 
 /**
  * @title PressFactory
@@ -16,12 +17,7 @@ import {Version} from "./utils/Version.sol";
  * @author Max Bochman
  * @author Salief Lewis
  */
-contract PressFactory is 
-    IPressFactory,
-    OwnableUpgradeable,
-    UUPSUpgradeable,
-    Version(1)
-{
+contract PressFactory is IPressFactory, OwnableUpgradeable, UUPSUpgradeable, Version(1) {
     /// @notice Implementation contract behind Press proxies
     address public immutable pressImpl;
 
@@ -45,33 +41,32 @@ contract PressFactory is
 
     /// @notice Creates a new, creator-owned proxy of `ERC721Press.sol`
     ///  @dev Optional `primarySaleFeeBPS` + `primarySaleFeeRecipient` cannot be adjusted after initialization
-    ///  @param _contractName Contract name
-    ///  @param _contractSymbol Contract symbol
-    ///  @param _initialOwner User that owns the contract upon deployment
-    ///  @param _fundsRecipient Address that receives funds from sale
-    ///  @param _royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty
-    ///  @param _logic Logic contract to use (access control + pricing dynamics)
-    ///  @param _logicInit Logic contract initial data
-    ///  @param _renderer Renderer contract to use
-    ///  @param _rendererInit Renderer initial data
-    ///  @param _primarySaleFeeBPS Optional fee to set on primary sales
-    ///  @param _primarySaleFeeRecipient Funds recipient on primary sales
+    ///  @param name Contract name
+    ///  @param symbol Contract symbol
+    ///  @param defaultAdmin User that owns the contract upon deployment
+    ///  @param fundsRecipient Address that receives funds from sale
+    ///  @param royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty
+    ///  @param logic Logic contract to use (access control + pricing dynamics)
+    ///  @param logicInit Logic contract initial data
+    ///  @param renderer Renderer contract to use
+    ///  @param rendererInit Renderer initial data
+    ///  @param primarySaleFeeBPS Optional fee to set on primary sales
+    ///  @param primarySaleFeeRecipient Funds recipient on primary sales
     function createPress(
-        string memory _contractName,
-        string memory _contractSymbol,
-        address _initialOwner,
-        address payable _fundsRecipient,
-        uint16 _royaltyBPS,
-        ILogic _logic,
-        bytes memory _logicInit,
-        IRenderer _renderer,
-        bytes memory _rendererInit,
-        uint16 _primarySaleFeeBPS,
-        address payable _primarySaleFeeRecipient
+        string memory name,
+        string memory symbol,
+        address defaultAdmin,
+        address payable fundsRecipient,
+        uint16 royaltyBPS,
+        ILogic logic,
+        bytes memory logicInit,
+        IRenderer renderer,
+        bytes memory rendererInit,
+        uint16 primarySaleFeeBPS,
+        address payable primarySaleFeeRecipient
     ) public returns (address payable newPressAddress) {
-
         /// Configure ownership details in proxy constructor
-        ERC721PressProxy newPress = new ERC721PressProxy(pressImpl, _initialOwner);
+        ERC721PressProxy newPress = new ERC721PressProxy(pressImpl, "");
 
         /// Declare a new variable to track contract creation
         newPressAddress = payable(address(newPress));
@@ -81,7 +76,7 @@ contract PressFactory is
             _contractName: name,
             _contractSymbol: symbol,
             _initialOwner: defaultAdmin,
-            _fundsRecipeint: fundsRecipient,
+            _fundsRecipient: fundsRecipient,
             _royaltyBPS: royaltyBPS,
             _logic: logic,
             _logicInit: logicInit,
@@ -94,9 +89,5 @@ contract PressFactory is
 
     /// @dev Can only be called by the contract owner
     /// @param newImplementation proposed new upgrade implementation
-    function _authorizeUpgrade(address newImplementation) 
-        internal 
-        override 
-        onlyOwner 
-    {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

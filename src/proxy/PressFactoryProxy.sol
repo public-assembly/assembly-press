@@ -10,6 +10,6 @@ contract PressFactoryProxy is ERC1967Proxy {
     /// @param _logic underlying implementation contract
     /// @param _initialOwner initial owner of the underlying contract
     constructor(address _logic, address _initialOwner)
-         ERC1967Proxy(_logic, abi.encodeWithSelector(IPressFactory.initialize.selector, _initialOwner));
+         ERC1967Proxy(_logic, abi.encodeWithSelector(IPressFactory.initialize.selector, _initialOwner))
     {}
 }

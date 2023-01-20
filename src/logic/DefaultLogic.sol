@@ -5,10 +5,12 @@ import {ILogic} from "../interfaces/ILogic.sol";
 import {IERC721Press} from "../interfaces/IERC721Press.sol";
 
 /**
- @notice DefaultLogic for AssemblyPress architecture
- @author Max Bochman
- @author Salief Lewis
- */
+* @title ERC721Press
+* @notice DefaultLogic for AssemblyPress architecture
+*
+* @author Max Bochman
+* @author Salief Lewis
+*/
 contract DefaultLogic is ILogic {
 
     // ||||||||||||||||||||||||||||||||
@@ -28,7 +30,7 @@ contract DefaultLogic is ILogic {
 
     /// @notice Target Press has not been initialized
     error Press_Not_Initialized();
-    /// @notice Cannot set address to address(0)
+    /// @notice Cannot set address to the zero address
     error Cannot_Set_Zero_Address();
     /// @notice Address does not have admin role
     error Not_Admin();
@@ -326,7 +328,7 @@ contract DefaultLogic is ILogic {
     // ||||||||||||||||||||||||||||||||          
 
     /// @notice Default logic initializer for a given Press
-    /// @notice admin cannot be set to address(0)
+    /// @notice admin cannot be set to the zero address
     /// @dev updates mappings for msg.sender, so no need to add access control to this function
     /// @param logicInit data to init with
     function initializeWithData(bytes memory logicInit) external {
@@ -338,7 +340,7 @@ contract DefaultLogic is ILogic {
             uint64 mintCapPerAddressInit
         ) = abi.decode(logicInit, (address, uint256, uint64, uint64));
 
-        // check if admin set to zero address
+        // check if admin set to the zero address
         if (adminInit == address(0)) {
             revert Cannot_Set_Zero_Address();
         }
