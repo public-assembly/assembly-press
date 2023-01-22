@@ -135,3 +135,10 @@ contract ERC1155Press is
         // }
     }
 }
+
+/* references
+oz https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable/blob/master/contracts/token/ERC1155/ERC1155Upgradeable.sol
+manifold https://github.com/manifoldxyz/creator-core-solidity/blob/main/contracts/ERC1155CreatorImplementation.sol
+thirdweb https://github.com/thirdweb-dev/contracts/blob/main/contracts/drop/DropERC1155.sol
+solmate https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC1155.sol
+*/
