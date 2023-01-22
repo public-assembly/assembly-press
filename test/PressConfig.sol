@@ -30,6 +30,7 @@ contract PressConfig is Test {
     DefaultLogic public defaultLogic = new DefaultLogic();
 
     // bytes defaultLogicInit = 
+    // bytes defaultRendererInit = 
 
     // Set up called before each test
     function setUp() public {
@@ -70,7 +71,7 @@ contract PressConfig is Test {
             _fundsRecipient: payable(FUNDS_RECIPIENT),
             _royaltyBPS: 1000,
             _logic: defaultLogic,
-            _logicInit: defaultLogicInit,
+            _logicInit: "",
             _renderer: mockRenderer,
             _rendererInit: "",
             _primarySaleFeeBPS: 1000,
