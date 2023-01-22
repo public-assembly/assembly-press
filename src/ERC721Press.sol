@@ -20,7 +20,7 @@ import {ERC721PressStorageV1} from "./storage/ERC721PressStorageV1.sol";
 
 /**
  * @title ERC721Press
- * @notice A highly extensible, minimally opinionated ERC721A implementation
+ * @notice A highly extensible ERC721A implementation
  * @dev Functionality is configurable using external renderer + logic contracts
  *
  * @author Max Bochman
