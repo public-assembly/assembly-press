@@ -116,9 +116,15 @@ contract ERC721Press is
         config.logic = address(_logic);
         config.renderer = address(_renderer);
 
-        // Initialize renderer + logic
-        _logic.initializeWithData(_logicInit);
-        _renderer.initializeWithData(_rendererInit);
+        // Initialize logic if init not empty
+        if (_logicInit.length != 0) {
+            _logic.initializeWithData(_logicInit);
+        }
+
+        // Initialize renderer if init not empty
+        if (_rendererInit.length != 0) {
+            _renderer.initializeWithData(_rendererInit);
+        }
 
         // Setup optional primary sales fee, skip if primarySalefeeBPS is set to zero
         if (_primarySaleFeeBPS != 0) {

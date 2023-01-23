@@ -58,7 +58,7 @@ contract DefaultLogic is ILogic {
         uint64 maxSupply,
         uint64 mintCapPerAddress
     );    
-   
+
     /// @notice Event emitted when mint config updated
     /// @param press Press that initialized logic file
     /// @param mintPrice universal mint price for contract

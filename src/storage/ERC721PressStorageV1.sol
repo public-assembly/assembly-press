@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IERC1155Press} from "../interfaces/IERC1155Press.sol";
+import {IERC721Press} from "../interfaces/IERC721Press.sol";
 
 contract ERC721PressStorageV1 {
     /// @notice Configuration for Press contract storage
-    IERC1155Press.Configuration public config;      
+    IERC721Press.Configuration public config;      
 
     /// @notice PrimarySaleFee for Press contract storage
-    IERC1155Press.PrimarySaleFee public primarySaleFeeDetails;
+    IERC721Press.PrimarySaleFee public primarySaleFeeDetails;
 }

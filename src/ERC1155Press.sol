@@ -8,8 +8,12 @@ import {OwnableUpgradeable} from "./utils/OwnableUpgradeable.sol";
 import {Version} from "./utils/Version.sol";
 
 import {IOwnableUpgradeable} from "./interfaces/IOwnableUpgradeable.sol";
+import {IContractLogic} from "./interfaces/IContractLogic.sol";
 import {ILogic} from "./interfaces/ILogic.sol";
 import {IRenderer} from "./interfaces/IRenderer.sol";
+import {IERC1155Press} from "./interfaces/IERC1155Press.sol";
+
+import {ERC1155PressStorageV1} from "./storage/ERC1155PressStorageV1.sol";
 
 /**
  * @title ERC1155Press
@@ -23,7 +27,9 @@ contract ERC1155Press is
     ERC1155Upgradeable,
     ReentrancyGuardUpgradeable,
     OwnableUpgradeable,
-    Version(1)
+    Version(1),
+    ERC1155PressStorageV1,
+    IERC1155Press
 {
     /// @dev Max royalty basis points (BPS)
     uint16 constant MAX_ROYALTY_BPS = 50_00;
@@ -32,13 +38,11 @@ contract ERC1155Press is
     string public contractName;
     string public contractSymbol;
 
-    // contract level secondary royaltyBPS
-    /* is there a way to get this down to token level? */
-    // track it down starting line 57 https://github.com/manifoldxyz/creator-core-solidity/blob/648ef7aa1a7442416b49de35b9e2411fce23b419/contracts/core/CreatorCore.sol
-    uint16 royaltyBPS;
-
     // custom counter since cant use ERC721A's
+    /* start with 1? */
+    /* change to startTokenId ? */
     uint256 internal _tokenCount = 0;
+
 
 
     /**
@@ -47,12 +51,14 @@ contract ERC1155Press is
     ///  @param _name Contract name
     ///  @param _symbol Contract symbol
     ///  @param _initialOwner User that owns the contract upon deployment  
-    ///  @param _royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty   
+    ///  @param _contractLevelLogic Contract level logic contract to use for access control
+    ///  @param _contractLevelLogicInit Contract level logic optional init data
     function initialize(
         string memory _name, 
         string memory _symbol, 
         address _initialOwner,
-        uint16 _royaltyBPS
+        address _contractLevelLogic,
+        bytes memory _contractLevelLogicInit
     ) public initializer {
         /* we prob gonna never use this */
         // used to set uri for all token types by relying on id substitiion, e.g. https://token-cdn-domain/{id}.json
@@ -68,31 +74,40 @@ contract ERC1155Press is
         contractName = _name;
         contractSymbol = _symbol;
 
-        // setup contract level secondary royaltyBPS
-        royaltyBPS = _royaltyBPS;
+        // setup contract level logic
+        contractLevelLogic = _contractLevelLogic;
+
+        // initialize contract level logic if init not zero
+        if (_contractLevelLogicInit.length != 0) {
+            IContractLogic(_contractLevelLogic).initializeWithData(_contractLevelLogicInit);
+        }
     }
 
-
     /// @notice Allows user to mint token(s) from the Press contract
-    /// @param recipients address to mint NFTs to
+    /// @param mintRecipients address to mint NFTs to
     /// @param mintQuantities number of NFTs to mint
     /// @param logics logic contracts to associate with a given token
     /// @param logicInits logicInit data to associate with a given logic contract
     /// @param renderers renderer contracts to associate with a given token
     /// @param rendererInits rendererInit data to associate with a given renderer contract
     function mintNewWithData(
-        address[] mintRecipients, 
-        uint64[] mintQuantities, 
-        address[] logics,
-        bytes[] logicInits,
-        address[] renderers,
-        bytes[] rendererInits
+        address[] memory mintRecipients, 
+        uint256[] memory mintQuantities, 
+        ILogic[] memory logics,
+        bytes[] memory logicInits,
+        IRenderer[] memory renderers,
+        bytes[] memory rendererInits
     )
         external
-        payable
         nonReentrant
         returns (uint256[] memory tokenIds)
     {
+
+        // Call contract level logic contract to check if user can mint
+        if (IContractLogic(contractLevelLogic).canMintNew(address(this), mintQuantities, mintRecipients, msg.sender) =! true) {
+            revert No_MintNew_Access();
+        }        
+
 
         // all of the logic about who gets what tokens
         /*
@@ -104,11 +119,15 @@ contract ERC1155Press is
         */
 
         if (mintRecipients.length > 1) {
-            // Multiple receiver.  Give every receiver the same new token
+            // Multiple receivers.  Mint every receiver the same or diff quantities of the same new token
+            // * not sure about render length here? why can it be 0? also shouldnt it be able to be same length as other stuff?
+            // * also need to add in checks about logic files
             tokenIds = new uint256[](1);
             require(renderers.length <= 1 && (mintQuantities.length == 1 || mintRecipients.length == mintQuantities.length), "Invalid input");
         } else {
             // Single receiver.  Generating multiple tokens
+            // * but couldnt they be not minting any tokens to ppl if quantity set to 0?
+            // * maybe setting tokens to 0 is what enbles lazy minting, but imo we should mint the first token to ppl by defauly
             tokenIds = new uint256[](mintQuantities.length);
             require(renderers.length == 0 || mintQuantities.length == renderers.length, "Invalid input");
         }
@@ -117,22 +136,58 @@ contract ERC1155Press is
         for (uint i; i < tokenIds.length;) {
             ++_tokenCount;
             tokenIds[i] = _tokenCount;
-            // // Track the extension that minted the token
-            // _tokensExtension[_tokenCount] = extension;
             unchecked { ++i; }
         }        
 
+        if (mintRecipients.length == 1 && tokenIds.length == 1) {
+           // Single mint
+            _mint(mintRecipients[0], tokenIds[0], mintQuantities[0], new bytes(0));
+        } else if (mintRecipients.length > 1) {
+            // Multiple receivers.  Receiving the same token
+            if (mintQuantities.length == 1) {
+                // Everyone receiving the same amount
+                for (uint i; i < mintRecipients.length;) {
+                    _mint(mintRecipients[i], tokenIds[0], mintQuantities[0], new bytes(0));
+                    unchecked { ++i; }
+                }
+            } else {
+                // Everyone receiving different mintQuantities
+                for (uint i; i < mintRecipients.length;) {
+                    _mint(mintRecipients[i], tokenIds[0], mintQuantities[i], new bytes(0));
+                    unchecked { ++i; }
+                }
+            }
+        } else {
+            _mintBatch(mintRecipients[0], tokenIds, mintQuantities, new bytes(0));
+        }
 
-        /* this needs to be reconfigured below to allow for setting up the renderer
-        contract so that the uri of that token gets proxied to in the uri call of this contract
-        */
-        // // all of the logic about setting up renderer + logic contracts
-        // for (uint i; i < tokenIds.length;) {
-        //     if (i < uris.length && bytes(uris[i]).length > 0) {
-        //         _tokenURIs[tokenIds[i]] = uris[i];
-        //     }
-        //     unchecked { ++i; }
-        // }
+        // Assign + innitialize logics
+        for (uint i; i < tokenIds.length;) {
+            if (i < logics.length) {
+                
+                config[tokenIds[i]].logic = address(logics[i]);
+
+                if (logicInits[i].length != 0) {
+                    ILogic(logics[i]).initializeWithData(logicInits[i]);
+                }
+                
+            }
+            unchecked { ++i; }
+        }
+
+        // Assign + initialize renderers
+        for (uint i; i < tokenIds.length;) {
+            if (i < renderers.length) {
+
+                config[tokenIds[i]].renderer = address(renderers[i]);
+
+                if (rendererInits[i].length != 0) {
+                    IRenderer(renderers[i]).initializeTokenMetadata(rendererInits[i]);
+                }
+                
+            }
+            unchecked { ++i; }
+        }
     }
 }
 
@@ -141,4 +196,7 @@ oz https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable/blob/maste
 manifold https://github.com/manifoldxyz/creator-core-solidity/blob/main/contracts/ERC1155CreatorImplementation.sol
 thirdweb https://github.com/thirdweb-dev/contracts/blob/main/contracts/drop/DropERC1155.sol
 solmate https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC1155.sol
+
+manifold erc1155 lazypayble claim https://etherscan.io/address/0x44e94034AFcE2Dd3CD5Eb62528f239686Fc8f162#code
+
 */
