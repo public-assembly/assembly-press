@@ -666,22 +666,28 @@ contract ERC1155Press is
     // if supporting eip-5192 (doesnt support 1155 yet), emit locked(id)
     //
 
-    /// @notice modifier signifying contract function is not supported
-    modifier notSupported() {
-        revert("Fn not supported: nontransferrable NFT");
-        _;
+    /// @notice asdf
+    function setApprovalForAll(address, address, bool) public override {
+
+        // custom non transferability chcek
+        if (nonTransferability == 1) {
+            revert("Fn not supported: nontransferrable NFT");
+        }
+
+        // follows standard OZ-ERC1155Upgradeable implementation if transferable
+        _setApprovalForAll(_msgSender(), operator, approved);        
     }
 
-    /// @notice approvals not supported
-    function setApprovalForAll(address, bool) public override {
-
-        if (nonTransferrableInfo
-
-    }
-
-    /// @notice approvals not supported
+    /// @notice asdf
     function isApprovedForAll(address, address) public pure override returns (bool) {
-        return false;
+        
+        // custom non transferability chcek
+        if (nonTransferability == 1) {
+            return false;
+        }
+
+        // follows standard OZ-ERC1155Upgradeable implementation if transferable
+        return _operatorApprovals[account][operator];
     }
 
     /// @notice transfers not supported
@@ -691,7 +697,20 @@ contract ERC1155Press is
         uint256 id,
         uint256 amount,
         bytes memory data
-    ) public override notSupported {}
+    ) public override {
+
+        // custom non transferability chcek
+        if (nonTransferability == 1) {
+            revert("Fn not supported: nontransferrable NFT");
+        }        
+                
+        // follows standard OZ-ERC1155Upgradeable implementation if transferable
+        require(
+            from == _msgSender() || isApprovedForAll(from, _msgSender()),
+            "ERC1155: caller is not token owner or approved"
+        );
+        _safeTransferFrom(from, to, id, amount, data);        
+    }
 
     /// @notice btach transfers not supported
     function safeBatchTransferFrom(
@@ -700,7 +719,20 @@ contract ERC1155Press is
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data
-    ) public override notSupported {}    
+    ) public override {
+
+        // custom non transferability chcek
+        if (nonTransferability == 1) {
+            revert("Fn not supported: nontransferrable NFT");
+        }        
+
+        // follows standard OZ-ERC1155Upgradeable implementation if transferable
+        require(
+            from == _msgSender() || isApprovedForAll(from, _msgSender()),
+            "ERC1155: caller is not token owner or approved"
+        );
+        _safeBatchTransferFrom(from, to, ids, amounts, data);        
+    }    
 
     // ||||||||||||||||||||||||||||||||
     // ||| ERC1155 CUSTOMIZATION ||||||
