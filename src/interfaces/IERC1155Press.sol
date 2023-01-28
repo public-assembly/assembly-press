@@ -1,30 +1,155 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {ILogic} from "./ILogic.sol";
-import {IRenderer} from "./IRenderer.sol";
+import {IERC1155Logic} from "./IERC1155Logic.sol";
+import {IERC1155Renderer} from "./IERC1155Renderer.sol";
+import {IContractLogic} from "./IContractLogic.sol";
+
 
 interface IERC1155Press {
-
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| ERRORS |||||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||
-    /// @notice msg.sender does not have mint new access for given Press
-    error No_MintNew_Access();    
-    
     // ||||||||||||||||||||||||||||||||
     // ||| TYPES ||||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
+    // stores token level logic + renderer + funds routing related information
     struct Configuration {
         address payable fundsRecipient;
-        address logic;
-        address renderer;
+        IERC1155Logic logic;
+        IERC1155Renderer renderer;
+        address payable primarySaleFeeRecipient;
+        uint16 royaltyBPS;
+        uint16 primarySaleFeeBPS;        
     }
 
-    struct PrimarySaleFee {
-        address payable feeRecipient;
-        uint16 feeBPS;
-    }
+    // ||||||||||||||||||||||||||||||||
+    // ||| ERRORS |||||||||||||||||||||
+    // ||||||||||||||||||||||||||||||||
+
+    // Access errors
+    /// @notice msg.sender does not have mint new access for given Press
+    error No_MintNew_Access();    
+    /// @notice msg.sender does not have mint existing access for given Press
+    error No_MintExisting_Access();
+    /// @notice msg.sender does not have config access for given Press + tokenId
+    error No_Config_Access();     
+    /// @notice msg.sender does not have withdraw access for given Press
+    error No_Withdraw_Access();    
+    /// @notice cannot withdraw balance from a tokenId with no associated funds  
+    error No_Withdrawable_Balance(uint256 tokenId);     
+    /// @notice msg.sender does not have burn access for given Press + tokenId
+    error No_Burn_Access();    
+    /// @notice msg.sender does not have upgrade access for given Press
+    error No_Upgrade_Access();     
+    /// @notice msg.sender does not have owernship transfer access for given Press
+    error No_Transfer_Access();       
+
+    // Constraint/invalid/failure errors
+    /// @notice invalid input
+    error Invalid_Input();
+    /// @notice If minted total supply would exceed max supply
+    error Exceeds_MaxSupply();    
+    /// @notice invalid contract inputs due to parameter.length mismatches
+    error Input_Length_Mismatch();
+    /// @notice token doesnt exist error
+    error Token_Doesnt_Exist(uint256 tokenId);    
+    /// @notice incorrect msg.value for transaction
+    error Incorrect_Msg_Value();    
+    /// @notice cant set address
+    error Cannot_Set_Zero_Address();
+    /// @notice cannot set royalty or finders fee bps this high
+    error Setup_PercentageTooHigh(uint16 maxBPS);    
+    /// @notice Cannot withdraw funds due to ETH send failure
+    error Withdraw_FundsSendFailure();    
+    /// @notice error setting config varibles
+    error Set_Config_Fail(); 
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| EVENTS |||||||||||||||||||||
+    // ||||||||||||||||||||||||||||||||    
+
+    /// @notice Event emitted upon ERC1155Press initialization
+    /// @param sender msg.sender calling initialization function
+    /// @param owner initial owner of contract
+    /// @param contractLogic logic contract set 
+    event ERC1155PressInitialized(
+        address indexed sender,        
+        address indexed owner,
+        IContractLogic indexed contractLogic
+    );          
+
+    /// @notice Event emitted when minting a new token
+    /// @param tokenId tokenId being minted
+    /// @param sender msg.sender calling mintNew function
+    /// @param recipient recipient of tokens
+    /// @param quantity quantity of tokens received by recipient 
+    event NewTokenMinted(
+        uint256 indexed tokenId,        
+        address indexed sender,
+        address indexed recipient,
+        uint256 quantity
+    );    
+
+    /// @notice Event emitted when minting an existing token
+    /// @param tokenId tokenId being minted
+    /// @param sender msg.sender calling mintExisting function
+    /// @param recipient recipient of tokens
+    /// @param quantity quantity of tokens received by recipient 
+    event ExistingTokenMinted(
+        uint256 indexed tokenId,        
+        address indexed sender,
+        address indexed recipient,
+        uint256 quantity
+    );
+
+    /// @notice Event emitted when adding to a tokenId's funds tracking
+    /// @param tokenId tokenId being minted
+    /// @param sender msg.sender passing value
+    /// @param amount value being added to tokenId's funds tracking
+    event TokenFundsIncreased(
+        uint256 indexed tokenId,        
+        address indexed sender,
+        uint256 amount
+    );    
+
+    /// @notice Event emitted when the funds generated by a given tokenId are withdrawn from the minting contract
+    /// @param tokenId tokenId to withdraw generated funds from
+    /// @param sender address that issued the withdraw
+    /// @param fundsRecipient address that the funds were withdrawn to
+    /// @param fundsAmount amount that was withdrawn
+    /// @param feeRecipient user getting withdraw fee (if any)
+    /// @param feeAmount amount of the fee getting sent (if any)
+    event TokenFundsWithdrawn(
+        uint256 indexed tokenId,        
+        address indexed sender,
+        address indexed fundsRecipient,        
+        uint256 fundsAmount,
+        address feeRecipient,
+        uint256 feeAmount
+    );    
+
+    /// @notice Event emitted when config is updated post initialization
+    /// @param tokenId tokenId config being updated
+    /// @param sender address that sent update txn
+    /// @param logic new logic contract address
+    /// @param renderer new renderer contract address
+    /// @param fundsRecipient new fundsRecipient
+    /// @param royaltyBPS new royaltyBPS
+    event UpdatedConfig(
+        uint256 indexed tokenId,
+        address indexed sender,        
+        IERC1155Logic logic,
+        IERC1155Renderer renderer,
+        address fundsRecipient,
+        uint16 royaltyBPS
+    );    
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| FUNCTIONS ||||||||||||||||||
+    // ||||||||||||||||||||||||||||||||
+
+    /// @notice Getter for last minted tokenId
+    function tokenCount() external view returns (uint256);
+
+    /// @notice Getter for logic contract stored in configInfo for a given tokenId
+    function getLogic(uint256 tokenId) external view returns (IERC1155Logic);      
 }

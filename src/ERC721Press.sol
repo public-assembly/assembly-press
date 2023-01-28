@@ -15,12 +15,19 @@ import {IRenderer} from "./interfaces/IRenderer.sol";
 
 import {OwnableUpgradeable} from "./utils/OwnableUpgradeable.sol";
 import {Version} from "./utils/Version.sol";
+import {FundsReceiver} from "./utils/FundsReceiver.sol";
 
 import {ERC721PressStorageV1} from "./storage/ERC721PressStorageV1.sol";
 
+
+/// ADDD metadata update standard
+// https://github.com/ourzora/zora-drops-contracts/blob/main/src/interfaces/IERC4906.sol
+//
+//
+
 /**
  * @title ERC721Press
- * @notice A highly extensible ERC721A implementation
+ * @notice Extensible ERC721A implementation
  * @dev Functionality is configurable using external renderer + logic contracts
  *
  * @author Max Bochman
@@ -34,7 +41,8 @@ contract ERC721Press is
     IERC721Press,
     OwnableUpgradeable,
     Version(1),
-    ERC721PressStorageV1
+    ERC721PressStorageV1,
+    FundsReceiver
 {
     /// @dev Recommended max mint batch size for ERC721A
     uint256 internal immutable MAX_MINT_BATCH_SIZE = 8;
@@ -51,12 +59,6 @@ contract ERC721Press is
      *      type(uint64).max == 18446744073709551615
      */
     uint64 maxSupplyFallback = type(uint64).max;
-
-    uint8 randomVar;
-
-    // constructor(uint8 _randomVar) initializer {
-    //     _randomVar = randomVar;
-    // }
 
     // ||||||||||||||||||||||||||||||||
     // ||| INITIALIZER ||||||||||||||||
@@ -116,15 +118,9 @@ contract ERC721Press is
         config.logic = address(_logic);
         config.renderer = address(_renderer);
 
-        // Initialize logic if init not empty
-        if (_logicInit.length != 0) {
-            _logic.initializeWithData(_logicInit);
-        }
-
-        // Initialize renderer if init not empty
-        if (_rendererInit.length != 0) {
-            _renderer.initializeWithData(_rendererInit);
-        }
+        // Initialize logic + renderer
+        _logic.initializeWithData(_logicInit);
+        _renderer.initializeWithData(_rendererInit);
 
         // Setup optional primary sales fee, skip if primarySalefeeBPS is set to zero
         if (_primarySaleFeeBPS != 0) {
@@ -233,26 +229,6 @@ contract ERC721Press is
     // ||| CONFIG ACCESS ||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    /// @notice Function to set config.fundsRecipient
-    /// @dev Cannot set `fundsRecipient` to the zero address
-    /// @param newFundsRecipient payable address to receive funds via withdraw
-    function setFundsRecipient(address payable newFundsRecipient) external nonReentrant {
-        // Call logic contract to check is msg.sender can update
-        if (ILogic(config.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
-            revert No_Update_Access();
-        }
-
-        // Check if `newFundsRecipient` is the zero address
-        if (newFundsRecipient == address(0)) {
-            revert Cannot_Set_Zero_Address();
-        }
-
-        // Update `fundsRecipient` address in config
-        config.fundsRecipient = newFundsRecipient;
-
-        emit UpdatedFundsRecipient({sender: msg.sender, fundsRecipient: newFundsRecipient});
-    }
-
     /// @notice Function to set config.royaltyBPS
     /// @dev Max value = 5000
     /// @param newRoyaltyBPS uint16 value of `royaltyBPS`
@@ -273,6 +249,26 @@ contract ERC721Press is
         emit UpdatedRoyaltyBPS({sender: msg.sender, royaltyBPS: newRoyaltyBPS});
     }
 
+    /// @notice Function to set config.fundsRecipient
+    /// @dev Cannot set `fundsRecipient` to the zero address
+    /// @param newFundsRecipient payable address to receive funds via withdraw
+    function setFundsRecipient(address payable newFundsRecipient) external nonReentrant {
+        // Call logic contract to check is msg.sender can update
+        if (ILogic(config.logic).canUpdatePressConfig(address(this), msg.sender) != true) {
+            revert No_Update_Access();
+        }
+
+        // Check if `newFundsRecipient` is the zero address
+        if (newFundsRecipient == address(0)) {
+            revert Cannot_Set_Zero_Address();
+        }
+
+        // Update `fundsRecipient` address in config and initialize it
+        config.fundsRecipient = newFundsRecipient;
+
+        emit UpdatedFundsRecipient({sender: msg.sender, fundsRecipient: newFundsRecipient});
+    }
+
     /// @notice Function to set config.logic
     /// @dev Cannot set logic to the zero address
     /// @param newLogic logic address to handle general contract logic
@@ -288,13 +284,9 @@ contract ERC721Press is
             revert Cannot_Set_Zero_Address();
         }
 
-        // Update logic contract address in config
+        // Update logic contract in config and initialize it
         config.logic = newLogic;
-
-        // Call initializeWithData if `newLogicInit` is not empty
-        if (newLogicInit.length != 0) {
-            ILogic(newLogic).initializeWithData(newLogicInit);
-        }
+        ILogic(newLogic).initializeWithData(newLogicInit);
 
         emit UpdatedLogic({sender: msg.sender, logic: newLogic});
     }
@@ -314,13 +306,9 @@ contract ERC721Press is
             revert Cannot_Set_Zero_Address();
         }
 
-        // Update renderer address in config
+        // Update renderer in config
         config.renderer = newRenderer;
-
-        // Call `initializeWithData` if newRendererInit is not empty
-        if (newRendererInit.length != 0) {
-            IRenderer(newRenderer).initializeWithData(newRendererInit);
-        }
+        IRenderer(newRenderer).initializeWithData(newRendererInit);
 
         emit UpdatedRenderer({sender: msg.sender, renderer: newRenderer});
     }
@@ -330,10 +318,10 @@ contract ERC721Press is
     /// @dev Max `newRoyaltyBPS` value = 5000
     /// @param newFundsRecipient payable address to recieve funds via withdraw
     /// @param newRoyaltyBPS uint16 value of royaltyBPS
+    /// @param newLogic logic address to handle general contract logic
+    /// @param newLogicInit data to initialize logic    
     /// @param newRenderer renderer address to handle metadata logic
     /// @param newRendererInit data to initialize renderer
-    /// @param newLogic logic address to handle general contract logic
-    /// @param newLogicInit data to initialize logic
     function setConfig(
         address payable newFundsRecipient,
         uint16 newRoyaltyBPS,
@@ -347,8 +335,14 @@ contract ERC721Press is
             revert No_Update_Access();
         }
 
-        (bool setSuccess) =
-            _setConfig(newFundsRecipient, newRoyaltyBPS, newRenderer, newRendererInit, newLogic, newLogicInit);
+        (bool setSuccess) = _setConfig(
+            newFundsRecipient, 
+            newRoyaltyBPS, 
+            newRenderer, 
+            newRendererInit, 
+            newLogic, 
+            newLogicInit
+        );
 
         // Check if config update was successful
         if (!setSuccess) {
@@ -364,14 +358,14 @@ contract ERC721Press is
         });
     }
 
-    /// @notice Internal handler to set config.logic
+    /// @notice Internal handler to set config
     function _setConfig(
         address payable newFundsRecipient,
         uint16 newRoyaltyBPS,
-        address newRenderer,
-        bytes memory newRendererInit,
         address newLogic,
-        bytes memory newLogicInit
+        bytes memory newLogicInit,        
+        address newRenderer,
+        bytes memory newRendererInit
     ) internal returns (bool) {
         // Check if supplied addresses are the zero address
         if (newFundsRecipient == address(0) || newRenderer == address(0) || newLogic == address(0)) {
@@ -388,21 +382,13 @@ contract ERC721Press is
         // Update royaltyBPS in config
         config.royaltyBPS = newRoyaltyBPS;
 
-        // Update renderer address in config
-        config.renderer = newRenderer;
-
-        // Call initializeWithData if newRendererInit is not empty
-        if (newRendererInit.length != 0) {
-            IRenderer(newRenderer).initializeWithData(newRendererInit);
-        }
-
-        // Update logic contract address in config
+        // Update logic in config + initialize it
         config.logic = newLogic;
+        ILogic(newLogic).initializeWithData(newLogicInit);
 
-        // Call initializeWithData if newLogicInit is not empty
-        if (newLogicInit.length != 0) {
-            ILogic(newLogic).initializeWithData(newLogicInit);
-        }
+        // Update renderer in config + initialize it
+        config.renderer = newRenderer;
+        IRenderer(newRenderer).initializeWithData(newRendererInit);
 
         return true;
     }
@@ -412,6 +398,7 @@ contract ERC721Press is
     // ||||||||||||||||||||||||||||||||
 
     function withdraw() external nonReentrant {
+        // cache msg.sender
         address sender = msg.sender;
 
         // Check if withdraw is allowed for sender
@@ -439,39 +426,6 @@ contract ERC721Press is
         }
 
         emit FundsWithdrawn(msg.sender, config.fundsRecipient, funds, primarySaleFeeDetails.feeRecipient, fee);
-    }
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| ERC721A CUSTOMIZATION ||||||
-    // ||||||||||||||||||||||||||||||||
-
-    /* TODO: Confirm that the canBurn check is actually what is gating burn success */
-
-    /// @notice User burn function for tokenId
-    /// @param tokenId token id to burn
-    function burn(uint256 tokenId) public {
-        // Check if burn is allowed for sender
-        if (ILogic(config.logic).canBurn(address(this), msg.sender) != true) {
-            revert No_Burn_Access();
-        }
-
-        _burn(tokenId, true);
-    }
-
-    /// @notice Start token ID for minting (1-100 vs 0-99)
-    function _startTokenId() internal pure override returns (uint256) {
-        return 1;
-    }
-
-    /// @notice Getter for last minted token id (gets next token id and subtracts 1)
-    /// @dev Also works as a "totalMinted" lookup
-    function lastMintedTokenId() public view returns (uint256) {
-        return _nextTokenId() - 1;
-    }
-
-    /// @notice Getter that returns number of tokens minted for a given address
-    function numberMinted(address ownerAddress) external view returns (uint256) {
-        return _numberMinted(ownerAddress);
     }
 
     // ||||||||||||||||||||||||||||||||
@@ -558,22 +512,6 @@ contract ERC721Press is
         });
     }
 
-    /// @notice ERC165 supports interface
-    /// @param interfaceId interface id to check if supported
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(IERC165Upgradeable, ERC721AUpgradeable)
-        returns (bool)
-    {
-        return super.supportsInterface(interfaceId) || type(IOwnableUpgradeable).interfaceId == interfaceId
-            || type(IERC2981Upgradeable).interfaceId == interfaceId || type(IERC721Press).interfaceId == interfaceId;
-    }
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| MISC |||||||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||
-
     /// @dev Get royalty information for token
     /// @param _salePrice sale price for the token
     function royaltyInfo(uint256, uint256 _salePrice)
@@ -587,6 +525,60 @@ contract ERC721Press is
         }
         return (config.fundsRecipient, (_salePrice * config.royaltyBPS) / 10_000);
     }
+
+    /// @notice ERC165 supports interface
+    /// @param interfaceId interface id to check if supported
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(IERC165Upgradeable, ERC721AUpgradeable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId) || type(IOwnableUpgradeable).interfaceId == interfaceId
+            || type(IERC2981Upgradeable).interfaceId == interfaceId || type(IERC721Press).interfaceId == interfaceId;
+    }
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| ERC721A CUSTOMIZATION ||||||
+    // ||||||||||||||||||||||||||||||||
+
+    /* TODO: Confirm that the canBurn check is actually what is gating burn success */
+    //
+    //
+    //
+    //
+    //
+
+    /// @notice User burn function for tokenId
+    /// @param tokenId token id to burn
+    function burn(uint256 tokenId) public {
+        // Check if burn is allowed for sender
+        if (ILogic(config.logic).canBurn(address(this), msg.sender) != true) {
+            revert No_Burn_Access();
+        }
+
+        _burn(tokenId, true);
+    }
+
+    /// @notice Start token ID for minting (1-100 vs 0-99)
+    function _startTokenId() internal pure override returns (uint256) {
+        return 1;
+    }
+
+    /// @notice Getter for last minted token id (gets next token id and subtracts 1)
+    /// @dev Also works as a "totalMinted" lookup
+    function lastMintedTokenId() public view returns (uint256) {
+        return _nextTokenId() - 1;
+    }
+
+    /// @notice Getter that returns number of tokens minted for a given address
+    function numberMinted(address ownerAddress) external view returns (uint256) {
+        return _numberMinted(ownerAddress);
+    }    
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| MISC |||||||||||||||||||||||
+    // ||||||||||||||||||||||||||||||||
 
     /// @dev Can only be called by an admin or the contract owner
     /// @param newImplementation proposed new upgrade implementation

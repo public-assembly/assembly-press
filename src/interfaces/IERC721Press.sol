@@ -25,21 +25,21 @@ interface IERC721Press {
     // ||| ERRORS |||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    // access errors
+    // Access errors
     /// @notice msg.sender does not have mint access for given Press
     error No_Mint_Access();
-    /// @notice msg.sender does not have withdraw access for given Press
-    error No_Withdraw_Access();
-    /// @notice msg.sender does not have upgrade access for given Press
-    error No_Upgrade_Access();
     /// @notice msg.sender does not have update access for given Press
     error No_Update_Access();
+    /// @notice msg.sender does not have withdraw access for given Press
+    error No_Withdraw_Access();    
     /// @notice msg.sender does not have burn access for given Press
     error No_Burn_Access();
+    /// @notice msg.sender does not have upgrade access for given Press
+    error No_Upgrade_Access();
     /// @notice msg.sender does not have transfer access for given Press
     error No_Transfer_Access();
 
-    // constraint/failure errors
+    // Constraint/failure errors
     /// @notice Royalty percentage too high
     error Setup_RoyaltyPercentageTooHigh(uint16 maxRoyaltyBPS);
     /// @notice cannot set address to address(0)
