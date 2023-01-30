@@ -2,8 +2,8 @@
 pragma solidity ^0.8.16;
 
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IPressFactory} from "./interfaces/IPressFactory.sol";
-import {ILogic} from "./interfaces/ILogic.sol";
+import {IERC1155PressCreator} from "./interfaces/IERC1155PressCreator.sol";
+import {IERC1155PressContractLogic} from "./interfaces/IERC1155PressContractLogic.sol";
 import {IRenderer} from "./interfaces/IRenderer.sol";
 import {ERC1155PressProxy} from "./proxy/ERC1155PressProxy.sol";
 import {OwnableUpgradeable} from "./utils/OwnableUpgradeable.sol";
@@ -17,7 +17,7 @@ import {ERC1155Press} from "./ERC1155Press.sol";
  * @author Max Bochman
  * @author Salief Lewis
  */
-contract ERC1155PressCreator is IPressFactory, OwnableUpgradeable, UUPSUpgradeable, Version(1) {
+contract ERC1155PressCreator is IERC1155PressCreator, OwnableUpgradeable, UUPSUpgradeable, Version(1) {
     /// @notice Implementation contract behind Press proxies
     address public immutable pressImpl;
 
@@ -49,8 +49,8 @@ contract ERC1155PressCreator is IPressFactory, OwnableUpgradeable, UUPSUpgradeab
         string memory name,
         string memory symbol,
         address initialOwner,
-        ILogic logic,
-        bytes memory logicInit,
+        IERC1155PressContractLogic logic,
+        bytes memory logicInit
     ) public returns (address payable newPressAddress) {
         /// Configure ownership details in proxy constructor
         ERC1155PressProxy newPress = new ERC1155PressProxy(pressImpl, "");
@@ -60,11 +60,11 @@ contract ERC1155PressCreator is IPressFactory, OwnableUpgradeable, UUPSUpgradeab
 
         /// Initialize the new Press instance
         ERC1155Press(newPressAddress).initialize({
-            _contractName: name,
-            _contractSymbol: symbol,
+            _name: name,
+            _symbol: symbol,
             _initialOwner: initialOwner,
-            _logic: logic,
-            _logicInit: logicInit
+            _contractLogic: logic,
+            _contractLogicInit: logicInit
         });
     }
 

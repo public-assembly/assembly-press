@@ -311,9 +311,8 @@ contract ERC1155BasicTokenLogic is IERC1155PressTokenLogic {
         (
             address adminInit, 
             uint256 startTimeInit,
-            uint256 mintExistingPriceInit,
-            uint256 mintCapPerAddressInit
-        ) = abi.decode(logicInit, (address, uint256, uint256, uint256));
+            uint256 mintExistingPriceInit
+        ) = abi.decode(logicInit, (address, uint256, uint256));
 
         // check if admin set to the zero address
         if (adminInit == address(0)) {
@@ -327,10 +326,11 @@ contract ERC1155BasicTokenLogic is IERC1155PressTokenLogic {
         tokenInfo[msg.sender][tokenId].startTime = startTimeInit;        
         tokenInfo[msg.sender][tokenId].mintExistingPrice = mintExistingPriceInit;
         // if free mint, mintCapPerAddress automatically set to 1
+        // if paid mint, mintCapPerAddress automically set to ~ unlimited
         if (mintExistingPriceInit == 0) {
             tokenInfo[msg.sender][tokenId].mintCapPerAddress = 1;
         } else {
-            tokenInfo[msg.sender][tokenId].mintCapPerAddress = mintCapPerAddressInit;
+            tokenInfo[msg.sender][tokenId].mintCapPerAddress = type(uint256).max;
         }
         
         // update immutable values in mintInfo mapping

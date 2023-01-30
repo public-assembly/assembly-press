@@ -17,7 +17,7 @@ contract MockLogic is ILogic {
 
     function canWithdraw(address targetPress, address withdrawCaller) external view returns (bool) {}
 
-    function canBurn(address targetPress, address burnCaller) external view returns (bool) {}
+    function canBurn(address targetPress, uint256 tokenId, address burnCaller) external view returns (bool) {}
 
     function canUpgrade(address targetPress, address upgradeCaller) external view returns (bool) {}
 

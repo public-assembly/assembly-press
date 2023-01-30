@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IERC1155Logic} from "./IERC1155Logic.sol";
+import {IERC1155PressTokenLogic} from "./IERC1155PressTokenLogic.sol";
 import {IERC1155Renderer} from "./IERC1155Renderer.sol";
-import {IContractLogic} from "./IContractLogic.sol";
+import {IERC1155PressContractLogic} from "./IERC1155PressContractLogic.sol";
 
 
 interface IERC1155Press {
@@ -14,7 +14,7 @@ interface IERC1155Press {
     // stores token level logic + renderer + funds + transferability related information
     struct Configuration {
         address payable fundsRecipient;
-        IERC1155Logic logic;
+        IERC1155PressTokenLogic logic;
         IERC1155Renderer renderer;
         address payable primarySaleFeeRecipient;
         bool soulbound;
@@ -75,7 +75,7 @@ interface IERC1155Press {
     event ERC1155PressInitialized(
         address indexed sender,        
         address indexed owner,
-        IContractLogic indexed contractLogic
+        IERC1155PressContractLogic indexed contractLogic
     );          
 
     /// @notice Event emitted when minting a new token
@@ -139,7 +139,7 @@ interface IERC1155Press {
     event UpdatedConfig(
         uint256 indexed tokenId,
         address indexed sender,        
-        IERC1155Logic logic,
+        IERC1155PressTokenLogic logic,
         IERC1155Renderer renderer,
         address fundsRecipient,
         uint16 royaltyBPS,
@@ -153,9 +153,51 @@ interface IERC1155Press {
     /// @notice Public owner setting that can be set by the contract admin
     function owner() external view returns (address);
 
+    /// @notice URI getter for a given tokenId
+    function uri(uint256 tokenId) external view returns (string memory);
+
+    /// @notice Amount of existing (minted & not burned) tokens with a given tokenId
+    function totalSupply(uint256 tokenId) external view returns (uint256);
+
+    /// @notice getter for internal _numMinted counter which keeps track of quantity minted per tokenId per wallet address
+    function numMinted(uint256 tokenId, address account) external view returns (uint256);    
+
     /// @notice Getter for last minted tokenId
     function tokenCount() external view returns (uint256);
 
+    /// @notice Getter for contract level logic contract
+    function getContractLogic() external view returns (IERC1155PressContractLogic); 
+
     /// @notice Getter for logic contract stored in configInfo for a given tokenId
-    function getLogic(uint256 tokenId) external view returns (IERC1155Logic);      
+    function getTokenLogic(uint256 tokenId) external view returns (IERC1155PressTokenLogic); 
+
+    /// @notice Getter for renderer contract stored in configInfo for a given tokenId
+    function getRenderer(uint256 tokenId) external view returns (IERC1155Renderer); 
+
+    /// @notice Getter for fundsRecipent address stored in configInfo for a given tokenId
+    function getFundsRecipient(uint256 tokenId) external view returns (address payable); 
+
+    /// @notice Getter for logic contract stored in configInfo for a given tokenId
+    function getRoyaltyBPS(uint256 tokenId) external view returns (uint16);
+
+    /// @notice Getter for `primarySaleFeeRecipient` address stored in configInfo for a given tokenId
+    function getPrimarySaleFeeRecipient(uint256 tokenId) external view returns (address payable);
+
+    /// @notice Getter for `primarySaleFeeBPS` stored in configInfo for a given tokenId
+    function getPrimarySaleFeeBPS(uint256 tokenId) external view returns (uint16);
+
+    /// @notice returns true if token type `id` is soulbound
+    function isSoulbound(uint256 id) external view returns (bool);
+
+    /// @notice Config level details
+    /// @return Configuration (defined in IERC1155Press) 
+    function getConfigDetails(uint256 tokenId) external view returns (Configuration memory);
+
+    /// @dev Get royalty information for token
+    /// @param _salePrice Sale price for the token
+    function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount);
+
+    /// @notice ERC165 supports interface
+    /// @param interfaceId interface id to check if supported
+    function supportsInterface(bytes4 interfaceId) external view returns (bool);
 }

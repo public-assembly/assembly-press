@@ -117,7 +117,7 @@ contract ArtifactRenderer is IRenderer {
     /// @param newContractURI new string contractURI value
     function updateContractURI(address targetPress, string memory newContractURI) external {
 
-        if (ILogic(ERC721Press(targetPress).logic()).canEditMetadata(targetPress, msg.sender) != true) {
+        if (ILogic(ERC721Press(payable(targetPress)).logic()).canEditMetadata(targetPress, msg.sender) != true) {
             revert No_Edit_Access();
         } 
         
@@ -144,7 +144,7 @@ contract ArtifactRenderer is IRenderer {
     function initializeTokenMetadata(bytes memory tokenInit) external {
 
         // check if target Press has been initialized
-        if (ILogic(ERC721Press(msg.sender).logic()).isInitialized(msg.sender) != true) {
+        if (ILogic(ERC721Press(payable(msg.sender)).logic()).isInitialized(msg.sender) != true) {
             revert Press_NotInitialized();
         }
 
@@ -219,7 +219,7 @@ contract ArtifactRenderer is IRenderer {
     ) external {
 
         // check for metadta edit access on given target Press contract
-        if (ILogic(ERC721Press(targetPress).logic()).canEditMetadata(targetPress, msg.sender) != true) {
+        if (ILogic(ERC721Press(payable(targetPress)).logic()).canEditMetadata(targetPress, msg.sender) != true) {
             revert No_Edit_Access();
         } 
         
@@ -336,7 +336,7 @@ contract ArtifactRenderer is IRenderer {
         returns (string memory, string memory)
     {
         
-        if (ILogic(ERC721Press(targetPress).logic()).isInitialized(targetPress) != true) {
+        if (ILogic(ERC721Press(payable(targetPress)).logic()).isInitialized(targetPress) != true) {
             revert Press_NotInitialized();
         }
 

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.16;
 
 import {IERC1155Renderer} from "../interfaces/IERC1155Renderer.sol";
-import {IERC1155Logic} from "../interfaces/IERC1155Logic.sol";
+import {IERC1155PressTokenLogic} from "../interfaces/IERC1155PressTokenLogic.sol";
 import {IERC1155Press} from "../interfaces/IERC1155Press.sol";
 
 /**
@@ -73,7 +73,7 @@ contract ERC1155BasicRenderer is IERC1155Renderer {
     /// @param newURI new string URI for token
     function setTokenURI(address targetPress, uint256 tokenId, string memory newURI) external {
 
-        if (IERC1155Press(targetPress).getLogic(tokenId).canEditMetadata(targetPress, tokenId, msg.sender) != true) {
+        if (IERC1155Press(targetPress).getTokenLogic(tokenId).canEditMetadata(targetPress, tokenId, msg.sender) != true) {
             revert No_Edit_Access();
         } 
         

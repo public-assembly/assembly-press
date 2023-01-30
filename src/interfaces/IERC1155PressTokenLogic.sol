@@ -14,8 +14,6 @@ interface IERC1155PressTokenLogic {
     function canUpdateConfig(address targetPress, uint256 tokenId, address updateCaller) external view returns (bool);
     /// @notice checks if a certain address can access mint functionality for a given tokenId for a given Press + recipient + quantity combination
     function canMintExisting(address targetPress, address mintCaller, uint256 tokenId, address[] memory recipients, uint256 quantity) external view returns (bool);
-    /// @notice checks if a certain address can access batchMint functionality for a given Press + tokenIds + recipient + quantities combination
-    function canBatchMintExisting(address targetPress, address mintCaller, uint256[] memory tokenIds, address recipient, uint256[] memory quantities) external view returns (bool);    
     /// @notice checks if a certain address can call the withdraw function for a given tokenId for a given Press
     function canWithdraw(address targetPress, uint256 tokenId, address withdrawCaller) external view returns (bool);
     /// @notice checks if a certain address can call the burn function for a given tokenId for a given Press

@@ -91,7 +91,7 @@ contract EditionRenderer is IRenderer {
         view  
         returns (string memory) 
     {
-        string memory uri = ERC721Press((provenanceInfo[msg.sender].contractAddress)).contractURI();
+        string memory uri = ERC721Press(payable((provenanceInfo[msg.sender].contractAddress))).contractURI();
         if (bytes(uri).length == 0) {
             // if contractURI return is blank, means the contract has not yet been initialized
             //      or is being called by an address other than Press that has been initd
@@ -108,7 +108,7 @@ contract EditionRenderer is IRenderer {
         view
         returns (string memory)
     {
-        string memory uri = ERC721Press((provenanceInfo[msg.sender].contractAddress)).tokenURI(provenanceInfo[msg.sender].tokenId);
+        string memory uri = ERC721Press(payable((provenanceInfo[msg.sender].contractAddress))).tokenURI(provenanceInfo[msg.sender].tokenId);
         return uri;
     }    
 
@@ -138,7 +138,7 @@ contract EditionRenderer is IRenderer {
     /// @notice checks whether the provided contract contains the original metadata
     function checkContractURIProvenance(address artifactContract) external view returns (bool) {
         if (
-            keccak256(abi.encode(ERC721Press((artifactContract)).contractURI()))
+            keccak256(abi.encode(ERC721Press(payable((artifactContract))).contractURI()))
                 != provenanceInfo[artifactContract].contractURIHash
         ) {
             return false;
@@ -149,7 +149,7 @@ contract EditionRenderer is IRenderer {
     /// @notice checks whether the provided token contains the original metadata
     function checkTokenURIProvenance(address artifactContract, uint256 tokenId) external view returns (bool) {
         if (
-            keccak256(abi.encode(ERC721Press((artifactContract)).tokenURI(tokenId)))
+            keccak256(abi.encode(ERC721Press(payable((artifactContract))).tokenURI(tokenId)))
                 != provenanceInfo[artifactContract].tokenURIHash
         ) {
             return false;
@@ -160,10 +160,10 @@ contract EditionRenderer is IRenderer {
     /// @notice checks whether the provided contract + token contains the original metadata
     function checkCompleteProvenance(address artifactContract, uint256 tokenId) external view returns (bool) {
         if (
-            keccak256(abi.encode(ERC721Press((artifactContract)).contractURI()))
+            keccak256(abi.encode(ERC721Press(payable((artifactContract))).contractURI()))
                 != provenanceInfo[artifactContract].contractURIHash
             &&
-            keccak256(abi.encode(ERC721Press((artifactContract)).tokenURI(tokenId)))
+            keccak256(abi.encode(ERC721Press(payable((artifactContract))).tokenURI(tokenId)))
                 != provenanceInfo[artifactContract].tokenURIHash
         ) {
             return false;
