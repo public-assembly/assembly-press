@@ -17,16 +17,14 @@ import {ERC1155PressStorageV1} from "./storage/ERC1155PressStorageV1.sol";
 import {IERC1155Press} from "./interfaces/IERC1155Press.sol";
 import {IERC5633} from "./interfaces/IERC5633.sol";
 
-
-/* references
-oz https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable/blob/master/contracts/token/ERC1155/ERC1155Upgradeable.sol
-manifold https://github.com/manifoldxyz/creator-core-solidity/blob/main/contracts/ERC1155CreatorImplementation.sol
-thirdweb https://github.com/thirdweb-dev/contracts/blob/main/contracts/drop/DropERC1155.sol
-solmate https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC1155.sol
-manifold erc1155 lazypayble claim https://etherscan.io/address/0x44e94034AFcE2Dd3CD5Eb62528f239686Fc8f162#code
+/* 
+    WIP references
+    oz https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable/blob/master/contracts/token/ERC1155/ERC1155Upgradeable.sol
+    manifold https://github.com/manifoldxyz/creator-core-solidity/blob/main/contracts/ERC1155CreatorImplementation.sol
+    thirdweb https://github.com/thirdweb-dev/contracts/blob/main/contracts/drop/DropERC1155.sol
+    solmate https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC1155.sol
+    manifold erc1155 lazypayble claim https://etherscan.io/address/0x44e94034AFcE2Dd3CD5Eb62528f239686Fc8f162#code
 */
-
-
 
 /**
  * @title ERC1155Press
@@ -81,11 +79,6 @@ contract ERC1155Press is
         IERC1155PressContractLogic _contractLogic,
         bytes memory _contractLogicInit
     ) public initializer {
-        /* we prob gonna never use this ?? */
-        // think we can remove this actually -- unless it needs to be kept to work with oz 1155 impl
-        //
-        // used to set uri for all token types by relying on id substitiion, e.g. https://token-cdn-domain/{id}.json
-        // __ERC1155_init("");
 
         // Setup reentrancy guard
         __ReentrancyGuard_init();
