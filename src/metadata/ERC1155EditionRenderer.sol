@@ -47,12 +47,12 @@ contract ERC1155BasicRenderer is IERC1155Renderer {
     // ||| URI FUNCTIONS ||||||||||||||
     // ||||||||||||||||||||||||||||||||         
 
-    /// @notice Default initializer for collection level data of a specific zora ERC721 drop contract
-    /// @notice contractURI must be set to non blank string value 
+    /// @notice uri must be set to non blank string value 
+    /// @param tokenId tokenId to init
     /// @param rendererInit data to init with
-    function initializeWithData(bytes memory rendererInit) external {
+    function initializeWithData(uint256 tokenId, bytes memory rendererInit) external {
         // data format: uri
-        (uint256 tokenId, string memory uriInit) = abi.decode(rendererInit, (uint256, string));
+        (string memory uriInit) = abi.decode(rendererInit, (string));
 
         // check if contractURI is being set to empty string
         if (bytes(uriInit).length == 0) {

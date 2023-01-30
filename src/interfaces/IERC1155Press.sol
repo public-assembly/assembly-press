@@ -11,12 +11,13 @@ interface IERC1155Press {
     // ||| TYPES ||||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    // stores token level logic + renderer + funds routing related information
+    // stores token level logic + renderer + funds + transferability related information
     struct Configuration {
         address payable fundsRecipient;
         IERC1155Logic logic;
         IERC1155Renderer renderer;
         address payable primarySaleFeeRecipient;
+        bool soulbound;
         uint16 royaltyBPS;
         uint16 primarySaleFeeBPS;        
     }
@@ -130,22 +131,27 @@ interface IERC1155Press {
     /// @notice Event emitted when config is updated post initialization
     /// @param tokenId tokenId config being updated
     /// @param sender address that sent update txn
-    /// @param logic new logic contract address
-    /// @param renderer new renderer contract address
-    /// @param fundsRecipient new fundsRecipient
-    /// @param royaltyBPS new royaltyBPS
+    /// @param logic logic contract address
+    /// @param renderer renderer contract address
+    /// @param fundsRecipient fundsRecipient
+    /// @param royaltyBPS royaltyBPS
+    /// @param soulbound soulbound bool
     event UpdatedConfig(
         uint256 indexed tokenId,
         address indexed sender,        
         IERC1155Logic logic,
         IERC1155Renderer renderer,
         address fundsRecipient,
-        uint16 royaltyBPS
+        uint16 royaltyBPS,
+        bool soulbound
     );    
 
     // ||||||||||||||||||||||||||||||||
     // ||| FUNCTIONS ||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
+
+    /// @notice Public owner setting that can be set by the contract admin
+    function owner() external view returns (address);
 
     /// @notice Getter for last minted tokenId
     function tokenCount() external view returns (uint256);

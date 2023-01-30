@@ -2,33 +2,43 @@
 pragma solidity ^0.8.16;
 
 import {ERC1155} from "solmate/tokens/ERC1155.sol";
-import {ERC1155Upgradeable} from "openzeppelin-contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {Initializable} from "openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "./utils/OwnableUpgradeable.sol";
 import {Version} from "./utils/Version.sol";
 import {FundsReceiver} from "./utils/FundsReceiver.sol";
-
 import {IOwnableUpgradeable} from "./interfaces/IOwnableUpgradeable.sol";
-
-import {ILogic} from "./interfaces/ILogic.sol";
 import {IERC1155Renderer} from "./interfaces/IERC1155Renderer.sol";
-
-import {IERC1155Logic} from "./interfaces/IERC1155Logic.sol";
-import {IContractLogic} from "./interfaces/IContractLogic.sol";
+import {IERC1155PressContractLogic} from "./interfaces/IERC1155PressContractLogic.sol";
+import {IERC1155PressTokenLogic} from "./interfaces/IERC1155PressTokenLogic.sol";
 import {ERC1155PressStorageV1} from "./storage/ERC1155PressStorageV1.sol";
 import {IERC1155Press} from "./interfaces/IERC1155Press.sol";
+import {IERC5633} from "./interfaces/IERC5633.sol";
+
+
+/* references
+oz https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable/blob/master/contracts/token/ERC1155/ERC1155Upgradeable.sol
+manifold https://github.com/manifoldxyz/creator-core-solidity/blob/main/contracts/ERC1155CreatorImplementation.sol
+thirdweb https://github.com/thirdweb-dev/contracts/blob/main/contracts/drop/DropERC1155.sol
+solmate https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC1155.sol
+manifold erc1155 lazypayble claim https://etherscan.io/address/0x44e94034AFcE2Dd3CD5Eb62528f239686Fc8f162#code
+*/
+
+
 
 /**
  * @title ERC1155Press
- * @notice Extensible ERC1155 implementation designed around drops
+ * @notice Highly configurable ERC1155 implementation
  * @dev Functionality is configurable using external renderer + logic contracts at both contract and token level
+ * @dev Uses EIP-5633 to allow for configurable token level soulbound status
  * @author Max Bochman
  * @author Salief Lewis
  */
 contract ERC1155Press is
-    ERC1155Upgradeable,
+    ERC1155,
+    Initializable,
     UUPSUpgradeable,
     IERC2981Upgradeable,
     ReentrancyGuardUpgradeable,
@@ -36,8 +46,14 @@ contract ERC1155Press is
     OwnableUpgradeable,
     Version(1),
     ERC1155PressStorageV1,
-    FundsReceiver
+    FundsReceiver,
+    IERC5633
 {
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| CONSTANTS ||||||||||||||||||
+    // ||||||||||||||||||||||||||||||||
+
     /// @dev Max basis points (BPS) for secondary royalties + finders fee
     uint16 constant public MAX_BPS = 50_00;
 
@@ -46,10 +62,6 @@ contract ERC1155Press is
 
     /// @dev Max supply value
     uint256 constant internal maxSupply = type(uint256).max;
-
-    /// @dev Counter to keep track of tokenId. First token minted will be tokenId #1
-    uint256 internal _tokenCount = 0;
-
 
     // ||||||||||||||||||||||||||||||||
     // ||| INITIALIZER ||||||||||||||||
@@ -60,22 +72,20 @@ contract ERC1155Press is
     /// @param _name Contract name
     /// @param _symbol Contract symbol
     /// @param _initialOwner User that owns the contract upon deployment  
-    /// @param _contractLevelLogic Contract level logic contract to use for access control
-    /// @param _contractLevelLogicInit Contract level logic optional init data
-    /// @param isNonTransferable configurable input to determine if token is non transferable. 0 = transferable, 1 = non transferable    
+    /// @param _contractLogic Contract level logic contract to use for access control
+    /// @param _contractLogicInit Contract level logic optional init data
     function initialize(
         string memory _name, 
         string memory _symbol, 
         address _initialOwner,
-        IContractLogic _contractLevelLogic,
-        bytes memory _contractLevelLogicInit,
-        uint16 isNonTransferable
+        IERC1155PressContractLogic _contractLogic,
+        bytes memory _contractLogicInit
     ) public initializer {
         /* we prob gonna never use this ?? */
         // think we can remove this actually -- unless it needs to be kept to work with oz 1155 impl
         //
         // used to set uri for all token types by relying on id substitiion, e.g. https://token-cdn-domain/{id}.json
-        __ERC1155_init("");
+        // __ERC1155_init("");
 
         // Setup reentrancy guard
         __ReentrancyGuard_init();
@@ -88,24 +98,21 @@ contract ERC1155Press is
         contractSymbol = _symbol;
 
         // Setup contract level logic
-        contractLevelLogic = _contractLevelLogic;
+        contractLogic = _contractLogic;
 
         // Initialize contract level logic
-        IContractLogic(_contractLevelLogic).initializeWithData(_contractLevelLogicInit);
+        IERC1155PressContractLogic(_contractLogic).initializeWithData(_contractLogicInit);
 
         emit IERC1155Press.ERC1155PressInitialized({
             sender: msg.sender,
             owner: _initialOwner,
-            contractLogic: _contractLevelLogic
+            contractLogic: _contractLogic
         });
-
-        /* WIP */        
-        // set tokens transferability status. cannot be altered after the fact.
-        nonTransferability = isNonTransferable;        
     }
 
     /// @notice Allows user to mint copies of a new tokenId from the Press contract
     /// @dev No ability to update platform fees after setting them in this call
+    /// @dev No ability to update token specific soulbound value after setting it in this call
     /// @param recipients address to mint NFTs to
     /// @param quantity number of NFTs to mint to each address
     /// @param logic logic contract to associate with a given token
@@ -116,6 +123,7 @@ contract ERC1155Press is
     /// @param royaltyBPS secondary royalty BPS
     /// @param primarySaleFeeRecipient optional primary sale fee recipient address
     /// @param primarySaleFeeBPS primary sale feeBPS. cannot be zero if fee recipient set to != address(0)
+    /// @param soulbound determines whether token can be transferred after minted. false = transferrable, true = non-transferrable            
     function mintNew(
         address[] memory recipients,
         uint256 quantity,
@@ -126,29 +134,25 @@ contract ERC1155Press is
         address payable fundsRecipient,
         uint16 royaltyBPS,
         address payable primarySaleFeeRecipient,
-        uint16 primarySaleFeeBPS        
+        uint16 primarySaleFeeBPS,
+        bool soulbound        
     ) external payable nonReentrant {
-
         // Call contract level logic contract to check if user can mint
-        if (IContractLogic(contractLevelLogic).canMintNew(address(this), msg.sender, recipients, quantity) != true) {
+        if (IERC1155PressContractLogic(contractLogic).canMintNew(address(this), msg.sender, recipients, quantity) != true) {
             revert No_MintNew_Access();
         }     
-
         // Call logic contract to check what msg.value needs to be sent for given Press + msg.sender
-        if (msg.value != IContractLogic(contractLevelLogic).mintNewPrice(address(this), msg.sender, recipients, quantity)) {
+        if (msg.value != IERC1155PressContractLogic(contractLogic).mintNewPrice(address(this), msg.sender, recipients, quantity)) {
             revert Incorrect_Msg_Value();
         }        
-
         // Check to see if logic or renderer set to zero address
         if (address(logic) == address(0) || address(renderer) == address(0)) {
             revert Cannot_Set_Zero_Address();
         }
-
         // Check to see if royaltyBPS and feeBPS set to acceptable levels
         if (royaltyBPS > MAX_BPS || primarySaleFeeBPS > MAX_BPS) {
             revert Setup_PercentageTooHigh(MAX_BPS);
         }
-
         // Check to see if minted quantity exceeds maxSupply
         if (quantity > maxSupply) {
             revert Exceeds_MaxSupply();
@@ -171,12 +175,12 @@ contract ERC1155Press is
             configInfo[tokenId].primarySaleFeeRecipient = primarySaleFeeRecipient;        
             configInfo[tokenId].primarySaleFeeBPS = primarySaleFeeBPS;
         }        
+        // Set token specific soulbound value. false = transferable, true = non-transferable
+        configInfo[tokenId].soulbound = soulbound;
 
-        // Initialize token logic
-        IERC1155Logic(logic).initializeWithData(logicInit);
-
-        // Initialize token renderer
-        IERC1155Renderer(renderer).initializeWithData(rendererInit);  
+        // Initialize token and logic + renderer
+        IERC1155PressTokenLogic(logic).initializeWithData(tokenId, logicInit);
+        IERC1155Renderer(renderer).initializeWithData(tokenId, rendererInit);  
 
         // For each recipient provided, mint them given quantity of tokenId being newly minted
         for (uint256 i = 0; i < recipients.length; ++i) {
@@ -210,29 +214,25 @@ contract ERC1155Press is
 
     /// @notice Allows user to mint an existing token from the Press contract
     /// @param tokenId which tokenId to mint copies of
-    /// @param recipients addresses to mint NFTs to
+    /// @param recipients addresses to mint NFTs to. multiple recipients allows for gifting
     /// @param quantity how many copies to mint to each recipient
     function mintExisting(         
         uint256 tokenId, 
         address[] memory recipients,
         uint256 quantity
     ) external payable nonReentrant {
-
         // Check to see if tokenId being minted exists
         if (tokenId > _tokenCount) {
             revert Token_Doesnt_Exist(tokenId);
         }
-        
         // Call token level logic contract to check if user can mint
-        if (IERC1155Logic(configInfo[tokenId].logic).canMintExisting(address(this), msg.sender, tokenId, recipients, quantity) != true) {
+        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canMintExisting(address(this), msg.sender, tokenId, recipients, quantity) != true) {
             revert No_MintExisting_Access();
         }   
-
         // Call logic contract to check what msg.value needs to be sent for given Press + tokenIds + quantities + msg.sender
-        if (msg.value != IERC1155Logic(configInfo[tokenId].logic).mintExistingPrice(address(this), msg.sender, tokenId, recipients, quantity)) {
+        if (msg.value != IERC1155PressTokenLogic(configInfo[tokenId].logic).mintExistingPrice(address(this), msg.sender, tokenId, recipients, quantity)) {
             revert Incorrect_Msg_Value();
         }        
-
         // Check to see if minted quantity exceeds maxSupply
         if (_totalSupply[tokenId] + quantity > maxSupply) {
             revert Exceeds_MaxSupply();
@@ -263,12 +263,74 @@ contract ERC1155Press is
         });        
     }
 
+    /// @notice Allows user to use ERC1155 batch mint call. Helpful for checkout-esque flows
+    ///         whre a user is minting multiple different items at once
+    /// @param tokenIds tokenIds to mint
+    /// @param recipient specific recipient address to mint to. is an array but length must == 1
+    /// @param quantities quantities of tokenIds to mint
+    function batchMintExisting(
+        uint256[] memory tokenIds,
+        address[] memory recipient,
+        uint256[] memory quantities
+    ) external payable nonReentrant {
+
+        // Cache length of tokenIds array
+        uint256 newTokens = tokenIds.length;
+
+        // Check if input lengths are correct
+        if (newTokens != quantities.length || newTokens == 0 || recipient.length != 1) {
+            revert Invalid_Input();
+        }
+        // Check to see if any recipient is zero address
+        if (recipient[0] == address(0)) {
+            revert Cannot_Set_Zero_Address();
+        }
+
+        // Create local value used in msg.value check calculation
+        uint256 msgValueCheck;              
+
+        // Do the following access checks 
+        for (uint256 i; i < newTokens; ++i) {
+            // Check to see if tokenId being minted exists
+            if (tokenIds[i] > _tokenCount) {
+                revert Token_Doesnt_Exist(tokenIds[i]);
+            }
+            // Call token level logic contract to check if user can mint
+            if (IERC1155PressTokenLogic(configInfo[tokenIds[i]].logic).canMintExisting(address(this), msg.sender, tokenIds[i], recipient, quantities[i]) != true) {
+                revert No_MintExisting_Access();
+            }   
+            // Check to see if minted quantity exceeds maxSupply
+            if (_totalSupply[tokenIds[i]] + quantities[i] > maxSupply) {
+                revert Exceeds_MaxSupply();
+            }          
+            // Add mintExistingPrice for individual token to msgValue chcek
+            msgValueCheck += IERC1155PressTokenLogic(configInfo[tokenIds[i]].logic).mintExistingPrice(address(this), msg.sender, tokenIds[i], recipient, quantities[i]);
+        } 
+
+        // Check if msgValue check is correct
+        if (msg.value != msgValueCheck) {
+            revert Incorrect_Msg_Value();
+        }
+
+        // Process _batchMint call
+        _batchMint(recipient[0], tokenIds, quantities, new bytes(0));
+
+        // Emit event for each token being minted
+        for (uint256 i; i < newTokens; ++i) {
+            emit IERC1155Press.ExistingTokenMinted({
+                tokenId: tokenIds[i],
+                sender: msg.sender,
+                recipient: recipient[i],
+                quantity: quantities[i]
+            });    
+        }        
+    }    
+
     /// @notice Allows user to withdraw funds generated by a given tokenId to the designated funds recipient for that token
     /// @param tokenId which tokenId to withdraw funds from
     function withdraw(uint256 tokenId) external nonReentrant {
-
         // Check if withdraw is allowed for sender
-        if (IERC1155Logic(configInfo[tokenId].logic).canWithdraw(address(this), tokenId, msg.sender) != true) {
+        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canWithdraw(address(this), tokenId, msg.sender) != true) {
             revert No_Withdraw_Access();
         }
 
@@ -280,15 +342,13 @@ contract ERC1155Press is
     /// @dev reverts if any withdraw call is invalid for any provided tokenId
     /// @param tokenIds which tokenIds to withdraw funds from
     function batchWithdraw(uint256[] memory tokenIds) external nonReentrant {
-
         // Attempt to process withdraws for each tokenId provided
         for (uint256 i; i < tokenIds.length; ++i) {  
 
             // Check if withdraw is allowed for sender
-            if (IERC1155Logic(configInfo[tokenIds[i]].logic).canWithdraw(address(this), tokenIds[i], msg.sender) != true) {
+            if (IERC1155PressTokenLogic(configInfo[tokenIds[i]].logic).canWithdraw(address(this), tokenIds[i], msg.sender) != true) {
                 revert No_Withdraw_Access();
             }
-
             // Check to see if tokenId has a balance
             if (tokenFundsInfo[tokenIds[i]] != 0) {
                 revert No_Withdrawable_Balance(tokenIds[i]);
@@ -303,7 +363,6 @@ contract ERC1155Press is
     /// @param tokenId which tokenId to withdraw funds from
     /// @param sender address where withdraw call originated from
     function _withdraw(uint256 tokenId, address sender) internal {
-
         // check to see if tokenId exists
         if (tokenId > _tokenCount) {
             revert Token_Doesnt_Exist(tokenId);
@@ -321,7 +380,6 @@ contract ERC1155Press is
             }
             funds -= fee;
         }
-
         // Payout recipient
         (bool successFunds,) = configInfo[tokenId].fundsRecipient.call{value: funds, gas: FUNDS_SEND_GAS_LIMIT}("");
         if (!successFunds) {
@@ -351,10 +409,9 @@ contract ERC1155Press is
     /// @param newFundsRecipient payable address to receive funds via withdraw
     function setFundsRecipient(uint256 tokenId, address payable newFundsRecipient) external nonReentrant {
         // Call logic contract to check is msg.sender can update
-        if (IERC1155Logic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
+        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
             revert No_Config_Access();
         }
-
         // Check if `newFundsRecipient` is the zero address
         if (newFundsRecipient == address(0)) {
             revert Cannot_Set_Zero_Address();
@@ -369,7 +426,8 @@ contract ERC1155Press is
             logic: configInfo[tokenId].logic,
             renderer: configInfo[tokenId].renderer,
             fundsRecipient: newFundsRecipient,
-            royaltyBPS: configInfo[tokenId].royaltyBPS
+            royaltyBPS: configInfo[tokenId].royaltyBPS,
+            soulbound: configInfo[tokenId].soulbound
         });
     }
 
@@ -379,10 +437,9 @@ contract ERC1155Press is
     /// @param newRoyaltyBPS uint16 value of `royaltyBPS`
     function setRoyaltyBPS(uint256 tokenId, uint16 newRoyaltyBPS) external nonReentrant {
         // Call logic contract to check is msg.sender can update config for given Press + token
-        if (IERC1155Logic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
+        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
             revert No_Config_Access();
         }
-
         // Check if `newRoyaltyBPS` is higher than immutable `MAX_BPS` value
         if (newRoyaltyBPS > MAX_BPS) {
             revert Setup_PercentageTooHigh(MAX_BPS);
@@ -397,7 +454,8 @@ contract ERC1155Press is
             logic: configInfo[tokenId].logic,
             renderer: configInfo[tokenId].renderer,
             fundsRecipient: configInfo[tokenId].fundsRecipient,
-            royaltyBPS: newRoyaltyBPS
+            royaltyBPS: newRoyaltyBPS,
+            soulbound: configInfo[tokenId].soulbound
         });
     }
 
@@ -408,10 +466,9 @@ contract ERC1155Press is
     /// @param newLogicInit data to initialize logic
     function setLogic(uint256 tokenId, IERC1155Logic newLogic, bytes memory newLogicInit) external nonReentrant {
         // Call logic contract to check is msg.sender can update config for given Press + token
-        if (IERC1155Logic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
+        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
             revert No_Config_Access();
         }
-
         // Check if `newLogic` is the zero address
         if (address(newLogic) == address(0)) {
             revert Cannot_Set_Zero_Address();
@@ -419,7 +476,7 @@ contract ERC1155Press is
 
         // Update logic in config and initialize it
         configInfo[tokenId].logic = newLogic;
-        IERC1155Logic(configInfo[tokenId].logic).initializeWithData(newLogicInit);
+        IERC1155PressTokenLogic(configInfo[tokenId].logic).initializeWithData(newLogicInit);
 
         emit UpdatedConfig({
             tokenId: tokenId,
@@ -427,7 +484,8 @@ contract ERC1155Press is
             logic: newLogic,
             renderer: configInfo[tokenId].renderer,
             fundsRecipient: configInfo[tokenId].fundsRecipient,
-            royaltyBPS: configInfo[tokenId].royaltyBPS
+            royaltyBPS: configInfo[tokenId].royaltyBPS,
+            soulbound: configInfo[tokenId].soulbound
         });
     }    
 
@@ -438,10 +496,9 @@ contract ERC1155Press is
     /// @param newRendererInit data to initialize renderer
     function setRenderer(uint256 tokenId, IERC1155Renderer newRenderer, bytes memory newRendererInit) external nonReentrant {
         // Call logic contract to check is msg.sender can update config for given Press + token
-        if (IERC1155Logic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
+        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
             revert No_Config_Access();
         }
-
         // Check if `newRenderer` is the zero address
         if (address(newRenderer) == address(0)) {
             revert Cannot_Set_Zero_Address();
@@ -449,7 +506,7 @@ contract ERC1155Press is
 
         // Update renderer in config and initialize it
         configInfo[tokenId].renderer = newRenderer;
-        IERC1155Renderer(configInfo[tokenId].renderer).initializeWithData(newRendererInit);
+        IERC1155Renderer(configInfo[tokenId].renderer).initializeWithData(tokenId, newRendererInit);
 
         emit UpdatedConfig({
             tokenId: tokenId,
@@ -457,7 +514,8 @@ contract ERC1155Press is
             logic: configInfo[tokenId].logic,
             renderer: newRenderer,
             fundsRecipient: configInfo[tokenId].fundsRecipient,
-            royaltyBPS: configInfo[tokenId].royaltyBPS
+            royaltyBPS: configInfo[tokenId].royaltyBPS,
+            soulbound: configInfo[tokenId].soulbound
         });
     }    
 
@@ -481,10 +539,11 @@ contract ERC1155Press is
         bytes memory newRendererInit
     ) external nonReentrant {
         // Call logic contract to check is msg.sender can update config for given Press + token
-        if (IERC1155Logic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
+        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
             revert No_Config_Access();
         }
 
+        // Store success bool of _setConfig() operation
         (bool setSuccess) = _setConfig(
             tokenId, 
             newFundsRecipient, 
@@ -506,7 +565,8 @@ contract ERC1155Press is
             logic: newLogic,
             renderer: newRenderer,
             fundsRecipient: newFundsRecipient,
-            royaltyBPS: newRoyaltyBPS
+            royaltyBPS: newRoyaltyBPS,
+            soulbound: configInfo[tokenId].soulbound
         });
     }
 
@@ -535,13 +595,13 @@ contract ERC1155Press is
         // Update royaltyBPS in config
         configInfo[tokenId].royaltyBPS = newRoyaltyBPS;
 
-        // Update renderer address in config + initialize it
-        configInfo[tokenId].renderer = newRenderer;
-        newRenderer.initializeWithData(newRendererInit);
-
         // Update logic contract address in config + initialize it
         configInfo[tokenId].logic = newLogic;
         newLogic.initializeWithData(newLogicInit);
+
+        // Update renderer address in config + initialize it
+        configInfo[tokenId].renderer = newRenderer;
+        newRenderer.initializeWithData(tokenId, newRendererInit);
 
         return true;
     }
@@ -554,7 +614,7 @@ contract ERC1155Press is
     /// @param newOwner address of the new owner
     function setOwner(address newOwner) public {
         // Check if msg.sender can transfer ownership
-        if (msg.sender != owner() && IContractLogic(contractLevelLogic).canTransferOwnership(address(this), msg.sender) != true) {
+        if (msg.sender != owner() && IERC1155PressContractLogic(contractLogic).canTransferOwnership(address(this), msg.sender) != true) {
             revert No_Transfer_Access();
         }
 
@@ -563,18 +623,17 @@ contract ERC1155Press is
     }
 
     // ||||||||||||||||||||||||||||||||
-    // ||| PUBLIC VIEW CALLS ||||||||||
+    // ||| VIEW CALLS |||||||||||||||||
     // ||||||||||||||||||||||||||||||||    
 
     /// @notice Simple override for owner interface
-    function owner() public view override(OwnableUpgradeable) returns (address) {
+    function owner() public view override(OwnableUpgradeable, IERC1155Press) returns (address) {
         return super.owner();
     }
 
     function uri(uint256 tokenId) public view virtual override returns (string memory) {
         return IERC1155Renderer(configInfo[tokenId].renderer).uri(tokenId);
     }
-
 
     /// @dev Total amount of existing tokens with a given tokenId.
     function totalSupply(uint256 tokenId) external view virtual returns (uint256) {
@@ -611,6 +670,11 @@ contract ERC1155Press is
         return configInfo[tokenId].primarySaleFeeBPS;
     }    
 
+    /// @notice returns true if token type `id` is soulbound
+    function isSoulbound(uint256 id) public view virtual returns (bool) {
+        return _soulboundInfo[id];
+    }  
+
     /// @notice Config details
     /// @return IERC1155Press.Configuration details
     function configDetails(uint256 tokenId) external view returns (IERC1155Press.Configuration memory) {
@@ -620,9 +684,10 @@ contract ERC1155Press is
             fundsRecipient: configInfo[tokenId].fundsRecipient,
             royaltyBPS: configInfo[tokenId].royaltyBPS,
             primarySaleFeeRecipient: configInfo[tokenId].primarySaleFeeRecipient,
-            primarySaleFeeBPS: configInfo[tokenId].primarySaleFeeBPS
+            primarySaleFeeBPS: configInfo[tokenId].primarySaleFeeBPS,
+            soulbound: configInfo[tokenId].soulbound
         });
-    }    
+    }      
 
     /// @dev Get royalty information for token
     /// @param _salePrice Sale price for the token
@@ -646,114 +711,46 @@ contract ERC1155Press is
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(
-            IERC165Upgradeable,
-            ERC1155Upgradeable
-        )
+        override(IERC165Upgradeable, ERC1155)
         returns (bool)
     {
         return
             super.supportsInterface(interfaceId) ||
-            type(IERC2981Upgradeable).interfaceId == interfaceId ||
-            // Because the EIP-4906 spec is event-based a numerically relevant interfaceId is used.
-            bytes4(0x49064906) == interfaceId;
+            type(IERC2981Upgradeable).interfaceId == interfaceId;
     }        
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| SOULBOUND IMPLEMENTATION |||
-    // ||||||||||||||||||||||||||||||||
-    
-    // if supporting eip-5192 (doesnt support 1155 yet), emit locked(id)
-    //
-
-    /// @notice asdf
-    function setApprovalForAll(address, address, bool) public override {
-
-        // custom non transferability chcek
-        if (nonTransferability == 1) {
-            revert("Fn not supported: nontransferrable NFT");
-        }
-
-        // follows standard OZ-ERC1155Upgradeable implementation if transferable
-        _setApprovalForAll(_msgSender(), operator, approved);        
-    }
-
-    /// @notice asdf
-    function isApprovedForAll(address, address) public pure override returns (bool) {
-        
-        // custom non transferability chcek
-        if (nonTransferability == 1) {
-            return false;
-        }
-
-        // follows standard OZ-ERC1155Upgradeable implementation if transferable
-        return _operatorApprovals[account][operator];
-    }
-
-    /// @notice transfers not supported
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 id,
-        uint256 amount,
-        bytes memory data
-    ) public override {
-
-        // custom non transferability chcek
-        if (nonTransferability == 1) {
-            revert("Fn not supported: nontransferrable NFT");
-        }        
-                
-        // follows standard OZ-ERC1155Upgradeable implementation if transferable
-        require(
-            from == _msgSender() || isApprovedForAll(from, _msgSender()),
-            "ERC1155: caller is not token owner or approved"
-        );
-        _safeTransferFrom(from, to, id, amount, data);        
-    }
-
-    /// @notice btach transfers not supported
-    function safeBatchTransferFrom(
-        address from,
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts,
-        bytes memory data
-    ) public override {
-
-        // custom non transferability chcek
-        if (nonTransferability == 1) {
-            revert("Fn not supported: nontransferrable NFT");
-        }        
-
-        // follows standard OZ-ERC1155Upgradeable implementation if transferable
-        require(
-            from == _msgSender() || isApprovedForAll(from, _msgSender()),
-            "ERC1155: caller is not token owner or approved"
-        );
-        _safeBatchTransferFrom(from, to, ids, amounts, data);        
-    }    
 
     // ||||||||||||||||||||||||||||||||
     // ||| ERC1155 CUSTOMIZATION ||||||
     // ||||||||||||||||||||||||||||||||
 
-    /// @notice getter for internal tokenCount counter which keeps track of the most recently minted tokenId
+    /// @notice getter for internal _tokenCount counter which keeps track of the most recently minted tokenId
     function tokenCount() public view returns (uint256) {
         return _tokenCount;
     }
+
+    /// @notice getter for internal _numMinted counter which keeps track quantity minted per tokenId per wallet address
+    function numMinted(uint256 tokenId, address account) public view returns (uint256) {
+        return _numMinted[tokenId][account];
+    }    
+
+    /*
+        the following changes to mint/batch calls 
+        allow for totalSupply + numMinted to be tracked at the token level
+    */
 
     /// @dev See {ERC1155-_mint}.
     function _mint(address account, uint256 id, uint256 amount, bytes memory data) internal virtual override {
         super._mint(account, id, amount, data);
         _totalSupply[id] += amount;
+        _numMinted[id][account] += amount;
     }
 
-    /// @dev See {ERC1155-_mintBatch}.
-    function _mintBatch(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data) internal virtual override {
-        super._mintBatch(to, ids, amounts, data);
+    /// @dev See {ERC1155-_batchMint}.
+    function _batchMint(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data) internal virtual override {
+        super._batchMint(to, ids, amounts, data);
         for (uint i; i < ids.length;) {
             _totalSupply[ids[i]] += amounts[i];
+            _numMinted[ids[i]][to] += amounts[i];
             unchecked { ++i; }
         }
     }
@@ -781,7 +778,7 @@ contract ERC1155Press is
     /// @param account wallet address to burn supply for
     /// @param ids tokenIds to burn
     /// @param amounts quantities to burn
-    function burnBatch(address account, uint256[] memory ids, uint256[] memory amounts) public {
+    function batchBurn(address account, uint256[] memory ids, uint256[] memory amounts) public {
         
         // prevents users from submitting invalid inputs
         if (ids.length != amounts.length) {
@@ -796,12 +793,12 @@ contract ERC1155Press is
             }            
         }
 
-        _burnBatch(account, ids, amounts);
+        _batchBurn(account, ids, amounts);
     }    
 
-    /// @dev See {ERC1155-_burnBatch}.
-    function _burnBatch(address account, uint256[] memory ids, uint256[] memory amounts) internal virtual override {
-        super._burnBatch(account, ids, amounts);
+    /// @dev See {ERC1155-_batchBurn}.
+    function _batchBurn(address account, uint256[] memory ids, uint256[] memory amounts) internal virtual override {
+        super._batchBurn(account, ids, amounts);
         for (uint i; i < ids.length;) {
             _totalSupply[ids[i]] -= amounts[i];
             unchecked { ++i; }
@@ -818,18 +815,10 @@ contract ERC1155Press is
 
     modifier canUpgrade() {
         // call logic contract to check is msg.sender can upgrade
-        if (IContractLogic(contractLevelLogic).canUpgrade(address(this), msg.sender) != true && owner() != msg.sender) {
+        if (IERC1155PressContractLogic(contractLogic).canUpgrade(address(this), msg.sender) != true && owner() != msg.sender) {
             revert No_Upgrade_Access();
         }
 
         _;
     }            
 }
-
-/* references
-oz https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable/blob/master/contracts/token/ERC1155/ERC1155Upgradeable.sol
-manifold https://github.com/manifoldxyz/creator-core-solidity/blob/main/contracts/ERC1155CreatorImplementation.sol
-thirdweb https://github.com/thirdweb-dev/contracts/blob/main/contracts/drop/DropERC1155.sol
-solmate https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC1155.sol
-manifold erc1155 lazypayble claim https://etherscan.io/address/0x44e94034AFcE2Dd3CD5Eb62528f239686Fc8f162#code
-*/

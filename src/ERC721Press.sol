@@ -19,9 +19,9 @@ import {FundsReceiver} from "./utils/FundsReceiver.sol";
 
 import {ERC721PressStorageV1} from "./storage/ERC721PressStorageV1.sol";
 
-
-/// ADDD metadata update standard
+/// Add eip4096 etadata update standard
 // https://github.com/ourzora/zora-drops-contracts/blob/main/src/interfaces/IERC4906.sol
+//
 //
 //
 
@@ -553,7 +553,7 @@ contract ERC721Press is
     /// @param tokenId token id to burn
     function burn(uint256 tokenId) public {
         // Check if burn is allowed for sender
-        if (ILogic(config.logic).canBurn(address(this), msg.sender) != true) {
+        if (ILogic(config.logic).canBurn(address(this), tokenId, msg.sender) != true) {
             revert No_Burn_Access();
         }
 

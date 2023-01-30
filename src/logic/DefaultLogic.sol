@@ -3,6 +3,7 @@ pragma solidity ^0.8.16;
 
 import {ILogic} from "../interfaces/ILogic.sol";
 import {IERC721Press} from "../interfaces/IERC721Press.sol";
+import {ERC721Press} from "../ERC721Press.sol";
 
 /**
 * @title ERC721Press
@@ -233,18 +234,20 @@ contract DefaultLogic is ILogic {
 
     /// @notice checks burun access for a given burn caller
     /// @param targetPress press contract to check access for
+    /// @param tokenId tokenId to check access for
     /// @param burnCaller address of burnCaller to check access for
     function canBurn(
         address targetPress, 
+        uint256 tokenId,
         address burnCaller
     ) external view requireInitialized(targetPress) returns (bool) {
 
         // check if burnCaller caller has burn access for given target Press
-        if (accessInfo[targetPress][burnCaller] < ADMIN) {
-            return false;
+        if (burnCaller == ERC721Press(payable(targetPress)).ownerOf(tokenId)) {
+            return true;
         }
 
-        return true;
+        return false;
     }          
 
     /// @notice checks transfer access for a given transfer caller
