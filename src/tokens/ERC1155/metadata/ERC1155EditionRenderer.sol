@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IERC1155Renderer} from "../interfaces/IERC1155Renderer.sol";
+import {IERC1155TokenRenderer} from "../interfaces/IERC1155TokenRenderer.sol";
 import {IERC1155PressTokenLogic} from "../interfaces/IERC1155PressTokenLogic.sol";
 import {IERC1155Press} from "../interfaces/IERC1155Press.sol";
 
@@ -10,7 +10,7 @@ import {IERC1155Press} from "../interfaces/IERC1155Press.sol";
  @author Max Bochman
  @author Salief Lewis
  */
-contract ERC1155BasicRenderer is IERC1155Renderer {
+contract ERC1155BasicRenderer is IERC1155TokenRenderer {
 
     // ||||||||||||||||||||||||||||||||
     // ||| ERRORS |||||||||||||||||||||

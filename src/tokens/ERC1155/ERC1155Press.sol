@@ -10,7 +10,7 @@ import {OwnableUpgradeable} from "../../utils/utils/OwnableUpgradeable.sol";
 import {Version} from "../../utils/utils/Version.sol";
 import {FundsReceiver} from "../../utils/utils/FundsReceiver.sol";
 import {IOwnableUpgradeable} from "../../utils/interfaces/IOwnableUpgradeable.sol";
-import {IERC1155Renderer} from "./interfaces/IERC1155Renderer.sol";
+import {IERC1155TokenRenderer} from "./interfaces/IERC1155TokenRenderer.sol";
 import {IERC1155PressContractLogic} from "./interfaces/IERC1155PressContractLogic.sol";
 import {IERC1155PressTokenLogic} from "./interfaces/IERC1155PressTokenLogic.sol";
 import {ERC1155PressStorageV1} from "./storage/ERC1155PressStorageV1.sol";
@@ -126,7 +126,7 @@ contract ERC1155Press is
         uint256 quantity,
         IERC1155PressTokenLogic logic, 
         bytes memory logicInit,
-        IERC1155Renderer renderer, 
+        IERC1155TokenRenderer renderer, 
         bytes memory rendererInit,
         address payable fundsRecipient,
         uint16 royaltyBPS,
@@ -177,7 +177,7 @@ contract ERC1155Press is
 
         // Initialize token and logic + renderer
         IERC1155PressTokenLogic(logic).initializeWithData(tokenId, logicInit);
-        IERC1155Renderer(renderer).initializeWithData(tokenId, rendererInit);  
+        IERC1155TokenRenderer(renderer).initializeWithData(tokenId, rendererInit);  
 
         // For each recipient provided, mint them given quantity of tokenId being newly minted
         for (uint256 i = 0; i < recipients.length; ++i) {
@@ -457,7 +457,7 @@ contract ERC1155Press is
     /// @param tokenId tokenId to target
     /// @param newRenderer renderer address to handle general contract renderer
     /// @param newRendererInit data to initialize renderer
-    function setRenderer(uint256 tokenId, IERC1155Renderer newRenderer, bytes memory newRendererInit) external nonReentrant {
+    function setRenderer(uint256 tokenId, IERC1155TokenRenderer newRenderer, bytes memory newRendererInit) external nonReentrant {
         // Call logic contract to check is msg.sender can update config for given Press + token
         if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
             revert No_Config_Access();
@@ -469,7 +469,7 @@ contract ERC1155Press is
 
         // Update renderer in config and initialize it
         configInfo[tokenId].renderer = newRenderer;
-        IERC1155Renderer(configInfo[tokenId].renderer).initializeWithData(tokenId, newRendererInit);
+        IERC1155TokenRenderer(configInfo[tokenId].renderer).initializeWithData(tokenId, newRendererInit);
 
         emit UpdatedConfig({
             tokenId: tokenId,
@@ -498,7 +498,7 @@ contract ERC1155Press is
         uint16 newRoyaltyBPS,
         IERC1155PressTokenLogic newLogic,
         bytes memory newLogicInit,        
-        IERC1155Renderer newRenderer,
+        IERC1155TokenRenderer newRenderer,
         bytes memory newRendererInit
     ) external nonReentrant {
         // Call logic contract to check is msg.sender can update config for given Press + token
@@ -543,7 +543,7 @@ contract ERC1155Press is
         uint16 newRoyaltyBPS,
         IERC1155PressTokenLogic newLogic,
         bytes memory newLogicInit,        
-        IERC1155Renderer newRenderer,
+        IERC1155TokenRenderer newRenderer,
         bytes memory newRendererInit
     ) internal returns (bool) {
         // Check if supplied addresses are the zero address
@@ -676,7 +676,7 @@ contract ERC1155Press is
 
     /// @notice URI getter for a given tokenId
     function uri(uint256 tokenId) public view virtual override(ERC1155, IERC1155Press) returns (string memory) {
-        return IERC1155Renderer(configInfo[tokenId].renderer).uri(tokenId);
+        return IERC1155TokenRenderer(configInfo[tokenId].renderer).uri(tokenId);
     }
 
     /// @dev Total amount of existing tokens with a given tokenId.
@@ -705,8 +705,8 @@ contract ERC1155Press is
     }    
 
     /// @notice Getter for renderer contract stored in configInfo for a given tokenId
-    function getRenderer(uint256 tokenId) external view returns (IERC1155Renderer) {
-        return IERC1155Renderer(configInfo[tokenId].renderer);
+    function getRenderer(uint256 tokenId) external view returns (IERC1155TokenRenderer) {
+        return IERC1155TokenRenderer(configInfo[tokenId].renderer);
     }    
 
     /// @notice Getter for fundsRecipent address stored in configInfo for a given tokenId
