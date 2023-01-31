@@ -4,10 +4,10 @@ pragma solidity ^0.8.16;
 import {Test} from "forge-std/Test.sol";
 import {console2} from "forge-std/console2.sol";
 
-import {ERC721Press} from "../../../src/tokens/ERC721/ERC721Press.sol";
-import {ERC721PressProxy} from "../../../src/tokens/ERC721/proxy/ERC721PressProxy.sol";
+import {ERC721Press} from "../../../src/token/ERC721/ERC721Press.sol";
+import {ERC721PressProxy} from "../../../src/token/ERC721/proxy/ERC721PressProxy.sol";
 
-import {DefaultLogic} from "../../../src/tokens/ERC721/logic/DefaultLogic.sol";
+import {DefaultLogic} from "../../../src/token/ERC721/logic/DefaultLogic.sol";
 
 import {MockLogic} from "../mocks/MockLogic.sol";
 import {MockRenderer} from "../mocks/MockRenderer.sol";

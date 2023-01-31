@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {ILogic} from "../../../src/tokens/ERC721/interfaces/ILogic.sol";
+import {ILogic} from "../../../src/token/ERC721/interfaces/ILogic.sol";
 
 contract MockLogic is ILogic {
     
