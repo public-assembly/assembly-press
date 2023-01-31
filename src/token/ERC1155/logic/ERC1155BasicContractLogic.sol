@@ -74,7 +74,7 @@ contract ERC1155BasicContractLogic is IERC1155PressContractLogic {
     uint16 public constant ADMIN = 2;
 
     /// @notice Press -> wallet -> uint256 access role
-    mapping(address => mapping(address => uint256)) public accessInfo;         
+    mapping(address => mapping(address => uint16)) public accessInfo;         
 
     /// @notice Press -> {mintNewPrice, initialized}
     mapping(address => ContractConfig) public contractInfo;
@@ -199,7 +199,7 @@ contract ERC1155BasicContractLogic is IERC1155PressContractLogic {
         uint256 quantity
     ) external view requireInitialized(targetPress) returns (uint256) {
         // return mintNewPrice for targetPress
-        return contractInfo[targetPress].mintNewPrice;
+        return contractInfo[targetPress].mintNewPrice * quantity;
     }       
 
     // ||||||||||||||||||||||||||||||||
@@ -241,7 +241,7 @@ contract ERC1155BasicContractLogic is IERC1155PressContractLogic {
     function setAccessControl(
         address targetPress,
         address[] memory receivers,
-        uint256[] memory roles
+        uint16[] memory roles
     ) external requireInitialized(targetPress) requireSenderAdmin(targetPress) {
 
         // check for input mismatch between receivers & roles

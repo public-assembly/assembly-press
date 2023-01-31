@@ -8,13 +8,11 @@ contract ERC1155PressStorageV1 {
     /// @dev Counter to keep track of tokenId. First token minted will be tokenId #1
     uint256 internal _tokenCount = 0;
     /// @notice Contract name
-    string public contractName;
+    string public name;
     /// @notice Contract sumbol
-    string public contractSymbol;
+    string public symbol;
     /// @notice Contract level logic storage
     IERC1155PressContractLogic public contractLogic;
-    /// @notice contract level non transferrable storage value
-    uint16 public nonTransferability;
     /// @notice Logic + renderer press contract storage. Stored at tokenId level
     mapping(uint256 => IERC1155Press.Configuration) public configInfo;      
     /// @notice Mapping keeping track of funds generated from mints of a given token 

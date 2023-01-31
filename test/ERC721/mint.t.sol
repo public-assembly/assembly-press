@@ -3,13 +3,13 @@ pragma solidity ^0.8.16;
 
 import {console2} from "forge-std/console2.sol";
 
-import {PressConfig} from "./utils/PressConfig.sol";
+import {ERC721PressConfig} from "./utils/ERC721PressConfig.sol";
 import {DefaultLogic} from "../../src/token/ERC721/logic/DefaultLogic.sol";
 import {MockRenderer} from "./mocks/MockRenderer.sol";
 
-contract ERC721Press_mint is PressConfig {
+contract ERC721Press_mint is ERC721PressConfig {
 
-    function test_mintWithEmptyData(uint16 mintQuantity) public setUpPressBase {
+    function test_mintWithEmptyData(uint16 mintQuantity) public setUpERC721PressBase {
         address mintRecipient = address(0x03);
         bytes memory mintData;
         // Remove the zero quantity mint edge case
@@ -17,7 +17,7 @@ contract ERC721Press_mint is PressConfig {
         erc721Press.mintWithData(mintRecipient, mintQuantity, mintData);
     }
 
-    function test_mintWithData(uint16 mintQuantity) public setUpPressBase {
+    function test_mintWithData(uint16 mintQuantity) public setUpERC721PressBase {
         address mintRecipient = address(0x03);
         string memory testString = "testString";
         // Remove the zero quantity mint edge case        
@@ -31,7 +31,7 @@ contract ERC721Press_mint is PressConfig {
         console2.log(mockRenderer.tokenURI(1));
     }
 
-    function test_mintToTheZeroAddress() public setUpPressBase {
+    function test_mintToTheZeroAddress() public setUpERC721PressBase {
         address mintRecipient = address(0);
         uint16 mintQuantity = 1;
         bytes memory mintData = "";

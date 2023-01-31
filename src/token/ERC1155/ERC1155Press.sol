@@ -87,8 +87,8 @@ contract ERC1155Press is
         __Ownable_init(_initialOwner);
 
         // Setup contract name + contract symbol. Cannot be updated after initialization
-        contractName = _name;
-        contractSymbol = _symbol;
+        name = _name;
+        symbol = _symbol;
 
         // Setup contract level logic
         contractLogic = _contractLogic;

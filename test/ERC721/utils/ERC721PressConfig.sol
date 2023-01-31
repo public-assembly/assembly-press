@@ -12,7 +12,7 @@ import {DefaultLogic} from "../../../src/token/ERC721/logic/DefaultLogic.sol";
 import {MockLogic} from "../mocks/MockLogic.sol";
 import {MockRenderer} from "../mocks/MockRenderer.sol";
 
-contract PressConfig is Test {
+contract ERC721PressConfig is Test {
     address public constant INITIAL_OWNER = address(0x01);
     address public constant FUNDS_RECIPIENT = address(0x02);
     address public constant ADMIN = address(0x03);
@@ -41,7 +41,7 @@ contract PressConfig is Test {
 
     // Set up called before each test
     function setUp() public {
-        // Deploy a Press instance
+        // Deploy an ERC721Press instance
         erc721PressImpl = address(new ERC721Press());
 
         // Create a proxy for that instance
@@ -50,7 +50,7 @@ contract PressConfig is Test {
         erc721Press = ERC721Press(pressProxy);
     }
 
-    modifier setUpPressBase() {
+    modifier setUpERC721PressBase() {
         // Initialize the proxy
         erc721Press.initialize({
             _contractName: "Press Test",
