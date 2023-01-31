@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 import {console2} from "forge-std/console2.sol";
 
 import {PressConfig} from "./utils/PressConfig.sol";
-import {DefaultLogic} from "../../../src/tokens/ERC721/logic/DefaultLogic.sol";
+import {DefaultLogic} from "../../src/tokens/ERC721/logic/DefaultLogic.sol";
 import {MockRenderer} from "./mocks/MockRenderer.sol";
 
 contract ERC721Press_mint is PressConfig {
