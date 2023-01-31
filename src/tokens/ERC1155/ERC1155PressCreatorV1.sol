@@ -2,12 +2,11 @@
 pragma solidity ^0.8.16;
 
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IERC1155PressCreator} from "./interfaces/IERC1155PressCreator.sol";
+import {IERC1155PressCreatorV1} from "./interfaces/IERC1155PressCreatorV1.sol";
 import {IERC1155PressContractLogic} from "./interfaces/IERC1155PressContractLogic.sol";
-import {IRenderer} from "./interfaces/IRenderer.sol";
 import {ERC1155PressProxy} from "./proxy/ERC1155PressProxy.sol";
-import {OwnableUpgradeable} from "./utils/OwnableUpgradeable.sol";
-import {Version} from "./utils/Version.sol";
+import {OwnableUpgradeable} from "../../utils/utils/OwnableUpgradeable.sol";
+import {Version} from "../../utils/utils/Version.sol";
 import {ERC1155Press} from "./ERC1155Press.sol";
 
 /**
@@ -17,7 +16,7 @@ import {ERC1155Press} from "./ERC1155Press.sol";
  * @author Max Bochman
  * @author Salief Lewis
  */
-contract ERC1155PressCreator is IERC1155PressCreator, OwnableUpgradeable, UUPSUpgradeable, Version(1) {
+contract ERC1155PressCreator is IERC1155PressCreatorV1, OwnableUpgradeable, UUPSUpgradeable, Version(1) {
     /// @notice Implementation contract behind Press proxies
     address public immutable pressImpl;
 

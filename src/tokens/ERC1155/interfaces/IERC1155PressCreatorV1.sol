@@ -3,7 +3,7 @@ pragma solidity ^0.8.16;
 
 import {IERC1155PressContractLogic} from "./IERC1155PressContractLogic.sol";
 
-interface IERC1155PressCreator {
+interface IERC1155PressCreatorV1 {
     // ||||||||||||||||||||||||||||||||
     // ||| ERRORS |||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||

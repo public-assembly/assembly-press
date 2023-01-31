@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {ILogic} from "../../src/interfaces/ILogic.sol";
+import {ILogic} from "../../../../src/tokens/ERC721/interfaces/ILogic.sol";
 
 contract MockLogic is ILogic {
     
-    function initializeWithData(bytes memory initData) external {}
+    bytes storageTest;
+
+    function initializeWithData(bytes memory initData) external {
+        storageTest = initData;
+    }
 
     function canUpdatePressConfig(address targetPress, address updateCaller) external view returns (bool) {}
 

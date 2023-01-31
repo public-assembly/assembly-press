@@ -2,22 +2,22 @@
 pragma solidity ^0.8.16;
 
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IPressFactory} from "./interfaces/IPressFactory.sol";
+import {IERC721PressCreatorV1} from "./interfaces/IERC721PressCreatorV1.sol";
 import {ILogic} from "./interfaces/ILogic.sol";
 import {IRenderer} from "./interfaces/IRenderer.sol";
 import {ERC721PressProxy} from "./proxy/ERC721PressProxy.sol";
-import {OwnableUpgradeable} from "./utils/OwnableUpgradeable.sol";
-import {Version} from "./utils/Version.sol";
+import {OwnableUpgradeable} from "../../utils/utils/OwnableUpgradeable.sol";
+import {Version} from "../../utils/utils/Version.sol";
 import {ERC721Press} from "./ERC721Press.sol";
 
 /**
- * @title PressFactory
+ * @title ERC721PressCreatorV1
  * @notice A factory contract that deploys a Press, a UUPS proxy of `ERC721Press.sol`
  *
  * @author Max Bochman
  * @author Salief Lewis
  */
-contract PressFactory is IPressFactory, OwnableUpgradeable, UUPSUpgradeable, Version(1) {
+contract ERC721PressCreatorV1 is IERC721PressCreatorV1, OwnableUpgradeable, UUPSUpgradeable, Version(1) {
     /// @notice Implementation contract behind Press proxies
     address public immutable pressImpl;
 

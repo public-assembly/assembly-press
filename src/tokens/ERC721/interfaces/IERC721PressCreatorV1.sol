@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 import {ILogic} from "./ILogic.sol";
 import {IRenderer} from "./IRenderer.sol";
 
-interface IPressFactory {
+interface IERC721PressCreatorV1 {
     // ||||||||||||||||||||||||||||||||
     // ||| ERRORS |||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||

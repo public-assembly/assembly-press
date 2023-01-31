@@ -6,7 +6,7 @@ import {IERC721Press} from "../../interfaces/IERC721Press.sol";
 import {ILogic} from "../../interfaces/ILogic.sol";
 import {ITokenDecoder} from "../../interfaces/ITokenDecoder.sol";
 import {ERC721Press} from "../../ERC721Press.sol";
-import {BytecodeStorage} from "../../utils/BytecodeStorage.sol";
+import {BytecodeStorage} from "../../../../utils/utils/BytecodeStorage.sol";
 
 /**
  @notice ArtifactRenderer

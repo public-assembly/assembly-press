@@ -10,12 +10,12 @@ import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UU
 
 import {IERC721Press} from "./interfaces/IERC721Press.sol";
 import {ILogic} from "./interfaces/ILogic.sol";
-import {IOwnableUpgradeable} from "./interfaces/IOwnableUpgradeable.sol";
+import {IOwnableUpgradeable} from "../../utils/interfaces/IOwnableUpgradeable.sol";
 import {IRenderer} from "./interfaces/IRenderer.sol";
 
-import {OwnableUpgradeable} from "./utils/OwnableUpgradeable.sol";
-import {Version} from "./utils/Version.sol";
-import {FundsReceiver} from "./utils/FundsReceiver.sol";
+import {OwnableUpgradeable} from "../../utils/utils/OwnableUpgradeable.sol";
+import {Version} from "../../utils/utils/Version.sol";
+import {FundsReceiver} from "../../utils/utils/FundsReceiver.sol";
 
 import {ERC721PressStorageV1} from "./storage/ERC721PressStorageV1.sol";
 
@@ -150,15 +150,17 @@ contract ERC721Press is
     // ||||||||||||||||||||||||||||||||
 
     /// @notice Allows user to mint token(s) from the Press contract
+    /// @dev mintQuantity is restricted to uint16 even tho maxSupply = uint64
     /// @param recipient address to mint NFTs to
     /// @param mintQuantity number of NFTs to mint
     /// @param mintData metadata to associate with the minted token(s)
-    function mintWithData(address recipient, uint64 mintQuantity, bytes memory mintData)
+    function mintWithData(address recipient, uint16 mintQuantity, bytes memory mintData)
         external
         payable
         nonReentrant
         returns (uint256)
     {
+
         // Call logic contract to check if user can mint
         if (ILogic(config.logic).canMint(address(this), mintQuantity, msg.sender) != true) {
             revert No_Mint_Access();

@@ -6,16 +6,16 @@ import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-up
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {Initializable} from "openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
-import {OwnableUpgradeable} from "./utils/OwnableUpgradeable.sol";
-import {Version} from "./utils/Version.sol";
-import {FundsReceiver} from "./utils/FundsReceiver.sol";
-import {IOwnableUpgradeable} from "./interfaces/IOwnableUpgradeable.sol";
+import {OwnableUpgradeable} from "../../utils/utils/OwnableUpgradeable.sol";
+import {Version} from "../../utils/utils/Version.sol";
+import {FundsReceiver} from "../../utils/utils/FundsReceiver.sol";
+import {IOwnableUpgradeable} from "../../utils/interfaces/IOwnableUpgradeable.sol";
 import {IERC1155Renderer} from "./interfaces/IERC1155Renderer.sol";
 import {IERC1155PressContractLogic} from "./interfaces/IERC1155PressContractLogic.sol";
 import {IERC1155PressTokenLogic} from "./interfaces/IERC1155PressTokenLogic.sol";
 import {ERC1155PressStorageV1} from "./storage/ERC1155PressStorageV1.sol";
 import {IERC1155Press} from "./interfaces/IERC1155Press.sol";
-import {IERC5633} from "./interfaces/IERC5633.sol";
+import {IERC5633} from "../../utils//interfaces/IERC5633.sol";
 
 /* 
     WIP references
