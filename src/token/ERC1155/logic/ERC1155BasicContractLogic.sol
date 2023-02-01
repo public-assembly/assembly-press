@@ -142,7 +142,7 @@ contract ERC1155BasicContractLogic is IERC1155PressContractLogic {
     /// @notice checks transfer access for a given transfer caller
     /// @param targetPress press contract to check access for
     /// @param transferCaller address of transferCaller to check access for
-    function canTransferOwnership(
+    function canSetOwner(
         address targetPress, 
         address transferCaller
     ) external view requireInitialized(targetPress) returns (bool) {

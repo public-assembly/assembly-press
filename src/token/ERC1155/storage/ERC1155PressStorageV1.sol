@@ -16,7 +16,7 @@ contract ERC1155PressStorageV1 {
     /// @notice Logic + renderer press contract storage. Stored at tokenId level
     mapping(uint256 => IERC1155Press.Configuration) public configInfo;      
     /// @notice Mapping keeping track of funds generated from mints of a given token 
-    mapping(uint256 => uint256) tokenFundsInfo;    
+    mapping(uint256 => uint256) public tokenFundsInfo;    
     /// @notice Token level total supply
     mapping(uint256 => uint256) internal _totalSupply;    
     /// @notice Token level minted tracker

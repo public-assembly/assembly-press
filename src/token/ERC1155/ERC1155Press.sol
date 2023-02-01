@@ -580,7 +580,7 @@ contract ERC1155Press is
     /// @param newOwner address of the new owner
     function setOwner(address newOwner) public {
         // Check if msg.sender can transfer ownership
-        if (msg.sender != owner() && IERC1155PressContractLogic(contractLogic).canTransferOwnership(address(this), msg.sender) != true) {
+        if (msg.sender != owner() && IERC1155PressContractLogic(contractLogic).canSetOwner(address(this), msg.sender) != true) {
             revert No_Transfer_Access();
         }
 

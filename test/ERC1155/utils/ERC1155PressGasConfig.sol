@@ -13,7 +13,7 @@ import {ERC1155BasicTokenLogic} from "../../../src/token/ERC1155/logic/ERC1155Ba
 import {ERC1155BasicRenderer} from "../../../src/token/ERC1155/metadata/ERC1155BasicRenderer.sol";
 
 
-contract ERC1155PressConfig is Test {
+contract ERC1155PressGasConfig is Test {
     // test roles
     address public constant INITIAL_OWNER = address(0x01);
     address public constant FUNDS_RECIPIENT = address(0x02);
@@ -59,10 +59,7 @@ contract ERC1155PressConfig is Test {
         address payable pressProxy = payable(address(new ERC1155PressProxy(erc1155PressImpl, "")));
 
         erc1155Press = ERC1155Press(pressProxy);
-    }
 
-    modifier setUpERC1155PressBase() {
-        // Initialize the proxy
         erc1155Press.initialize({
             _name: contractName,
             _symbol: contractSymbol,
@@ -71,6 +68,5 @@ contract ERC1155PressConfig is Test {
             _contractLogicInit: contractLogicInit
         });
 
-        _;
     }
 }
