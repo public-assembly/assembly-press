@@ -32,7 +32,7 @@ contract ERC1155BasicRenderer is IERC1155TokenRenderer {
     // ||||||||||||||||||||||||||||||||  
 
     // ERC1155Press => tokenId => uri string
-    mapping(address => mapping(uint256 => string)) tokenUriInfo;
+    mapping(address => mapping(uint256 => string)) public tokenUriInfo;
 
     // ||||||||||||||||||||||||||||||||
     // ||| EVENTS |||||||||||||||||||||
@@ -83,7 +83,7 @@ contract ERC1155BasicRenderer is IERC1155TokenRenderer {
         }
 
         // update string URI stored for given Press + tokenId
-        tokenUriInfo[msg.sender][tokenId] = newURI;
+        tokenUriInfo[targetPress][tokenId] = newURI;
 
         // emit URI update event as defined in EIP-1155
         emit URI(newURI, tokenId);

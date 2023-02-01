@@ -5,7 +5,11 @@ import {console2} from "forge-std/console2.sol";
 
 import {ERC1155PressConfig} from "./utils/ERC1155PressConfig.sol";
 import {ERC1155BasicContractLogic} from "../../src/token/ERC1155/logic/ERC1155BasicContractLogic.sol";
+import {ERC1155BasicTokenLogic} from "../../src/token/ERC1155/logic/ERC1155BasicTokenLogic.sol";
+import {ERC1155BasicRenderer} from "../../src/token/ERC1155/metadata/ERC1155BasicRenderer.sol";
 import {ERC1155Press} from "../../src/token/ERC1155/ERC1155Press.sol";
+import {IERC1155PressTokenLogic} from "../../src/token/ERC1155/interfaces/IERC1155PressTokenLogic.sol";
+import {IERC1155TokenRenderer} from "../../src/token/ERC1155/interfaces/IERC1155TokenRenderer.sol";
 
 contract ERC1155PressTest is ERC1155PressConfig {
 
@@ -34,8 +38,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
         (uint256 mintNewPrice, uint8 initialized) = ERC1155BasicContractLogic(address(erc1155Press.contractLogic())).contractInfo(address(erc1155Press));
         require(accessRole == 2, "admin role was set wrong");
         require(mintNewPrice == 0.01 ether, "mintprice is wrong");
-        require(initialized == 1, "initialized is wrong");
-        require(erc1155Press.contractLogic().isInitialized(address(erc1155Press)) == true, "isInitialized incorrect");                  
+        require(initialized == 1, "initialized is wrong");              
 
         // check to see if contract logic interface works correctly 
         //      erc1155Press.contractLogic() returns IERC1155PressContractLogic
@@ -54,7 +57,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
                 RANDOM_WALLET,
                 minters,
                 mintQuantity
-            ) == (mintNewPrice * mintQuantity), "mintNewPrice incorrect:"
+            ) == (mintNewPrice * mintQuantity), "mintNewPrice incorrect"
         );
 
         // canMintNew
@@ -251,10 +254,260 @@ contract ERC1155PressTest is ERC1155PressConfig {
         erc1155Press.upgradeTo(erc1155PressImpl3);
     }    
 
+    /*
+        TOKEN LEVEL TESTS
+    */
 
-    // mintNew token logic set up confirmation
-    // mintNew token renderer set up
-    // mintExisting -- gas snapshot
+    function test_mintNew_Deps() public setUpERC1155PressBase {    
+        
+        vm.startPrank(INITIAL_OWNER);
+        vm.deal(INITIAL_OWNER, 10 ether);
+        address[] memory mintNewRecipients = new address[](2);
+        mintNewRecipients[0] = ADMIN;
+        mintNewRecipients[1] = MINTER;
+        uint256 quantity = 1000;
+        address payable fundsRecipient = payable(ADMIN);
+        uint16 royaltyBPS = 10_00; // 10%
+        address payable primarySaleFeeRecipient = payable(MINTER);
+        uint16 primarySaleFeeBPS = 5_00; // 5%
+        bool soulbound = false;
+        erc1155Press.mintNew{
+            value: erc1155Press.contractLogic().mintNewPrice(
+                address(erc1155Press),
+                INITIAL_OWNER,
+                mintNewRecipients,
+                quantity
+            )
+        }(
+            mintNewRecipients,
+            quantity,
+            tokenLogic,
+            tokenLogicInit,
+            basicRenderer,
+            tokenRendererInit,
+            fundsRecipient,
+            royaltyBPS,
+            primarySaleFeeRecipient,
+            primarySaleFeeBPS,
+            soulbound
+        );
+        uint256 tokenToCheck = erc1155Press.tokenCount();
+        require(erc1155Press.getFundsRecipient(tokenToCheck) == fundsRecipient, "token info set incorrectly");
+        require(erc1155Press.getTokenLogic(tokenToCheck) == tokenLogic, "token info set incorrectly");
+        require(erc1155Press.getRenderer(tokenToCheck) == basicRenderer, "token info set incorrectly");
+        require(erc1155Press.getPrimarySaleFeeRecipient(tokenToCheck) == primarySaleFeeRecipient, "token info set incorrectly");
+        require(erc1155Press.isSoulbound(tokenToCheck) == soulbound, "token info set incorrectly");
+        require(erc1155Press.getPrimarySaleFeeBPS(tokenToCheck) == primarySaleFeeBPS, "token info set incorrectly");
+
+        // token logic level checks
+        (
+            uint256 startTime, 
+            uint256 mintExistingPrice, 
+            uint256 mintCapPerAddress, 
+            uint8 initialized
+        ) = ERC1155BasicTokenLogic(address(erc1155Press.getTokenLogic(tokenToCheck))).tokenInfo(address(erc1155Press), tokenToCheck);
+        require(startTime == startTimePast, "token initialized incorectly");
+        require(mintExistingPrice == mintExistingPriceInit, "token initialized incorectly");
+        require(mintCapPerAddress == type(uint256).max, "token initialized incorectly");
+        require(initialized == 1, "token initialized incorectly");
+        uint256 accessRole = ERC1155BasicTokenLogic(address(erc1155Press.getTokenLogic(tokenToCheck))).accessInfo(address(erc1155Press), tokenToCheck, tokenAdminInit);
+        require(accessRole == 2, "token initialized incorrectly");
+
+
+        // mintExistingPrice
+        uint256 mintQuantity = 3;
+        address[] memory minters = new address[](1);
+        minters[0] = RANDOM_WALLET;
+        require(
+            erc1155Press.getTokenLogic(1).mintExistingPrice(
+                address(erc1155Press), 
+                tokenToCheck, 
+                RANDOM_WALLET, 
+                minters, 
+                mintQuantity
+            ) == (mintExistingPriceInit * mintQuantity), "mintExistingPrice incorrect:"
+        );
+
+        // canMintExisting     
+        require(
+            erc1155Press.getTokenLogic(1).canMintExisting(
+                address(erc1155Press), 
+                RANDOM_WALLET, 
+                tokenToCheck, 
+                minters, 
+                mintQuantity
+            ) == true, "canEditMetadata incorrect"
+        );  
+        require(
+            erc1155Press.getTokenLogic(1).canMintExisting(
+                address(erc1155Press), 
+                tokenAdminInit, 
+                tokenToCheck, 
+                minters, 
+                mintQuantity
+            ) == true, "canEditMetadata incorrect"
+        );          
+
+        // canEditMetadata     
+        require(
+            erc1155Press.getTokenLogic(1).canEditMetadata(
+                address(erc1155Press), 
+                tokenToCheck, 
+                RANDOM_WALLET
+            ) == false, "canEditMetadata incorrect"
+        );          
+        require(
+            erc1155Press.getTokenLogic(1).canEditMetadata(
+                address(erc1155Press), 
+                tokenToCheck, 
+                tokenAdminInit
+            ) == true, "canEditMetadata incorrect"
+        );     
+
+        // canUpdateConfig     
+        require(
+            erc1155Press.getTokenLogic(1).canUpdateConfig(
+                address(erc1155Press), 
+                tokenToCheck, 
+                RANDOM_WALLET
+            ) == false, "canUpdateConfig incorrect"
+        );          
+        require(
+            erc1155Press.getTokenLogic(1).canUpdateConfig(
+                address(erc1155Press), 
+                tokenToCheck, 
+                tokenAdminInit
+            ) == true, "canUpdateConfig incorrect"
+        );         
+
+        // canWithdraw     
+        require(
+            erc1155Press.getTokenLogic(1).canWithdraw(
+                address(erc1155Press), 
+                tokenToCheck, 
+                RANDOM_WALLET
+            ) == true, "canWithdraw incorrect"
+        );            
+        require(
+            erc1155Press.getTokenLogic(1).canUpdateConfig(
+                address(erc1155Press), 
+                tokenToCheck, 
+                tokenAdminInit
+            ) == true, "canWithdraw incorrect"
+        );              
+
+        // canBurn     
+        require(
+            erc1155Press.getTokenLogic(1).canBurn(
+                address(erc1155Press), 
+                tokenToCheck, 
+                1,
+                RANDOM_WALLET
+            ) == false, "cant burn if not in wallet"
+        );            
+        require(
+            erc1155Press.getTokenLogic(1).canBurn(
+                address(erc1155Press), 
+                tokenToCheck, 
+                1001,
+                ADMIN
+            ) == false, "cant burn more than you have"
+        );           
+        require(
+            erc1155Press.getTokenLogic(1).canBurn(
+                address(erc1155Press), 
+                tokenToCheck, 
+                1000,
+                ADMIN
+            ) == true, "token initialized incorrectly"
+        );                            
+
+        // token level renderer checks
+        (string memory uri) = ERC1155BasicRenderer(address(erc1155Press.getRenderer(tokenToCheck))).tokenUriInfo(address(erc1155Press), tokenToCheck);
+        require(keccak256(bytes(uri)) == keccak256(bytes(exampleString1)), "uri not initd correctly");
+    }
+
+
+    function test_mintExisting() public setUpERC1155PressBase setUpExistingMint {        
+        vm.startPrank(INITIAL_OWNER);
+        vm.deal(INITIAL_OWNER, 10 ether);
+        address[] memory recips = new address[](2);
+        recips[0] = address(0x666);
+        recips[1] = address(0x777);
+        uint256 quant = 1;
+        erc1155Press.mintExisting{ value: mintExistingPriceInit * quant}(1, recips, quant);
+        require(erc1155Press.balanceOf(address(0x666), 1) == quant, "balanceOf incorrect"); 
+    }
+    
+    function test_editMetadata() public setUpERC1155PressBase setUpExistingMint {        
+        vm.startPrank(INITIAL_OWNER);
+        ERC1155BasicRenderer(address(erc1155Press.getRenderer(1))).setTokenURI(
+            address(erc1155Press),
+            1,
+            "new_string"
+        );
+        require(keccak256(bytes(erc1155Press.uri(1))) == keccak256(bytes("new_string")), "metadata update didnt work");
+        vm.stopPrank();
+        vm.startPrank(RANDOM_WALLET);
+        // non permissioned user has no access to edit uri
+        //      basicRenderer is targeted directly here to test the expectRevert
+        vm.expectRevert();
+        basicRenderer.setTokenURI(
+            address(erc1155Press),
+            1,
+            "malicious_string"
+        );        
+    }    
+
+    function test_updateConfig() public setUpERC1155PressBase setUpExistingMint {        
+        vm.startPrank(INITIAL_OWNER);
+        uint256 tokenToCheck = 1;
+        ERC1155BasicTokenLogic tokenLogic2 = new ERC1155BasicTokenLogic();
+        ERC1155BasicRenderer basicRenderer2 = new ERC1155BasicRenderer();
+        erc1155Press.setConfig(
+            tokenToCheck, 
+            payable(address(0x777)), 
+            1_00, 
+            tokenLogic2, 
+            tokenLogicInit, 
+            basicRenderer2, 
+            tokenRendererInit
+        );
+        require(erc1155Press.getFundsRecipient(tokenToCheck) == payable(address(0x777)), "config updated incorrectly");
+        require(erc1155Press.getTokenLogic(tokenToCheck) == tokenLogic2, "config updated incorrectly");
+        require(erc1155Press.getRenderer(tokenToCheck) == basicRenderer2, "config updated incorrectly");
+    }   
+
+    function test_withdraw() public setUpERC1155PressBase setUpExistingMint {        
+        vm.startPrank(INITIAL_OWNER);        
+        vm.deal(address(erc1155Press), 1 ether);
+        uint256 tokenToCheck = 1;               
+        uint256 contractBalanceBeforeWithdraw = address(erc1155Press).balance;        
+        uint256 tokenToCheckBalanceBeforeWithdraw = erc1155Press.tokenFundsInfo(tokenToCheck);
+        // uint256 expectedFinalContractBalance = contractBalanceBeforeWithdraw - tokenToCheckBalanceBeforeWithdraw;
+
+        address feeRecip = erc1155Press.getPrimarySaleFeeRecipient(tokenToCheck);
+        uint256 feeRecipPrebalance = feeRecip.balance;
+    
+        address fundsRecip = erc1155Press.getFundsRecipient(tokenToCheck);
+        uint256 fundsRecipPrebalance = fundsRecip.balance;
+
+        uint256 fees = tokenToCheckBalanceBeforeWithdraw * erc1155Press.getPrimarySaleFeeBPS(tokenToCheck) / 10_000;
+        uint256 funds = tokenToCheckBalanceBeforeWithdraw - fees;
+
+        erc1155Press.withdraw(1);
+        
+        require(fundsRecip.balance == (fundsRecipPrebalance + funds), "math not good");
+        require(feeRecip.balance == (feeRecipPrebalance + fees), "math not good");
+        // require(erc1155Press.tokenFundsInfo(tokenToCheck) == expectedFinalContractBalance, "math not good");
+        console2.log(address(erc1155Press).balance);
+        // require(fundsRecip.balance == fundsRecipBalanceCheck, "math not good");
+        // require(address(erc1155Press).balance == 0);
+    }       
+
+    // canWithdraw
+    // canBurn
+
     // batchMintExisting -- gas snapshot
     // burn
     // batchburn
@@ -263,4 +516,5 @@ contract ERC1155PressTest is ERC1155PressConfig {
     // soulbound related tests
     //      cant transfer tokens
     //      can still burn tokens even if soulbound
+    // forge gas snapshot https://book.getfoundry.sh/forge/gas-snapshots
 }

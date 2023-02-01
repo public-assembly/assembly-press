@@ -300,8 +300,13 @@ contract ERC1155Press is
             if (_totalSupply[tokenIds[i]] + quantities[i] > maxSupply) {
                 revert Exceeds_MaxSupply();
             }          
-            // Add mintExistingPrice for individual token to msgValue chcek
-            msgValueCheck += IERC1155PressTokenLogic(configInfo[tokenIds[i]].logic).mintExistingPrice(address(this), tokenIds[i], msg.sender, recipient, quantities[i]);
+            
+            // Cache mintExisting Price for this iteration in for loop
+            uint256 cachedPrice = IERC1155PressTokenLogic(configInfo[tokenIds[i]].logic).mintExistingPrice(address(this), tokenIds[i], msg.sender, recipient, quantities[i]);
+            // Update tokenId => tokenFundsInfo mapping
+            tokenFundsInfo[tokenIds[i]] += cachedPrice;            
+            // Add mintExistingPrice for individual token to msgValue chcek    
+            msgValueCheck += cachedPrice;
         } 
 
         // Check if msgValue check is correct

@@ -199,38 +199,6 @@ contract ERC1155BasicTokenLogic is IERC1155PressTokenLogic {
         return true;
     }            
 
-    /// @notice checks batchMintExisting access
-    /// @param targetPress press contract to check access for
-    /// @param mintCaller address of mintCaller to check access for
-    /// @param tokenIds tokenIds check access for
-    /// @param recipient recipient to check access for
-    /// @param quantities quantities to check access for    
-    function canBatchMintExisting(
-        address targetPress, 
-        address mintCaller,
-        uint256[] memory tokenIds,
-        address recipient,
-        uint256[] memory quantities
-    ) external view returns (bool) {
-
-        for (uint256 i; i < tokenIds.length; ++i) {
-            // check to see if startTime has passed yet
-            if (block.timestamp < tokenInfo[targetPress][tokenIds[i]].startTime) {
-                return false;
-            }
-            // chcek to see if mint will take user over their mint cap
-            if (
-                ERC1155Press(payable(targetPress)).numMinted(tokenIds[i], mintCaller) + quantities[i] 
-                >  tokenInfo[targetPress][tokenIds[i]].mintCapPerAddress
-            ) {
-                return false;
-            }
-        }
-
-        // allow user to mint if none of the above are true
-        return true;
-    }      
-
     /// @notice checks withdraw access for given press -> tokenId -> msg caller
     /// @param targetPress press contract to check access for
     /// @param tokenId tokenId to check access for
@@ -295,7 +263,7 @@ contract ERC1155BasicTokenLogic is IERC1155PressTokenLogic {
         uint256 quantity
     ) external view requireInitialized(targetPress, tokenId) returns (uint256) {
         // return mintExistingPrice for targetPress + tokenId
-        return tokenInfo[targetPress][tokenId].mintExistingPrice;
+        return tokenInfo[targetPress][tokenId].mintExistingPrice * quantity;
     }       
 
     // ||||||||||||||||||||||||||||||||

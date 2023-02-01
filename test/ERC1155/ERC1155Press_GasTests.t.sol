@@ -11,9 +11,8 @@ contract ERC1155Press_GasTests is ERC1155PressGasConfig {
     function test_mintNew() public {    
         vm.startPrank(INITIAL_OWNER);
         vm.deal(INITIAL_OWNER, 10 ether);
-        address[] memory mintNewRecipients = new address[](2);
+        address[] memory mintNewRecipients = new address[](1);
         mintNewRecipients[0] = ADMIN;
-        mintNewRecipients[1] = MINTER;
         uint256 quantity = 1;
         address payable fundsRecipient = payable(ADMIN);
         uint16 royaltyBPS = 10_00; // 10%
@@ -36,5 +35,14 @@ contract ERC1155Press_GasTests is ERC1155PressGasConfig {
             soulbound
         );
     }
+
+    function test_mintExisting() public {        
+        vm.startPrank(INITIAL_OWNER);
+        vm.deal(INITIAL_OWNER, 10 ether);
+        address[] memory recips = new address[](1);
+        recips[0] = address(0x666);
+        uint256 quant = 1;
+        erc1155Press.mintExisting{ value: 0.001 ether}(1, recips, quant);      
+    }    
 
 }

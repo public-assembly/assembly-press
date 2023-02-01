@@ -9,7 +9,6 @@ import {ERC1155PressProxy} from "../../../src/token/ERC1155/proxy/ERC1155PressPr
 
 import {ERC1155BasicContractLogic} from "../../../src/token/ERC1155/logic/ERC1155BasicContractLogic.sol";
 import {ERC1155BasicTokenLogic} from "../../../src/token/ERC1155/logic/ERC1155BasicTokenLogic.sol";
-
 import {ERC1155BasicRenderer} from "../../../src/token/ERC1155/metadata/ERC1155BasicRenderer.sol";
 
 
@@ -70,6 +69,43 @@ contract ERC1155PressConfig is Test {
             _contractLogic: contractLogic,
             _contractLogicInit: contractLogicInit
         });
+
+        _;
+    }
+
+    modifier setUpExistingMint() {
+        vm.startPrank(INITIAL_OWNER);
+        vm.deal(INITIAL_OWNER, 10 ether);
+        address[] memory mintNewRecipients = new address[](2);
+        mintNewRecipients[0] = ADMIN;
+        mintNewRecipients[1] = MINTER;
+        uint256 quantity = 1000;
+        address payable fundsRecipient = payable(ADMIN);
+        uint16 royaltyBPS = 10_00; // 10%
+        address payable primarySaleFeeRecipient = payable(MINTER);
+        uint16 primarySaleFeeBPS = 5_00; // 5%
+        bool soulbound = false;
+        erc1155Press.mintNew{
+            value: erc1155Press.contractLogic().mintNewPrice(
+                address(erc1155Press),
+                INITIAL_OWNER,
+                mintNewRecipients,
+                quantity
+            )
+        }(
+            mintNewRecipients,
+            quantity,
+            tokenLogic,
+            tokenLogicInit,
+            basicRenderer,
+            tokenRendererInit,
+            fundsRecipient,
+            royaltyBPS,
+            primarySaleFeeRecipient,
+            primarySaleFeeBPS,
+            soulbound
+        );        
+        vm.stopPrank();
 
         _;
     }

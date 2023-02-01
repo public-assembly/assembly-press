@@ -60,6 +60,7 @@ contract ERC1155PressGasConfig is Test {
 
         erc1155Press = ERC1155Press(pressProxy);
 
+        // initialize erc1155 contract
         erc1155Press.initialize({
             _name: contractName,
             _symbol: contractSymbol,
@@ -68,5 +69,32 @@ contract ERC1155PressGasConfig is Test {
             _contractLogicInit: contractLogicInit
         });
 
+        // mint new token to be used in mintExisting call
+        vm.startPrank(INITIAL_OWNER);
+        vm.deal(INITIAL_OWNER, 10 ether);
+        address[] memory mintNewRecipients = new address[](1);
+        mintNewRecipients[0] = ADMIN;
+        uint256 quantity = 1;
+        address payable fundsRecipient = payable(ADMIN);
+        uint16 royaltyBPS = 10_00; // 10%
+        address payable primarySaleFeeRecipient = payable(MINTER);
+        uint16 primarySaleFeeBPS = 5_00; // 5%
+        bool soulbound = false;
+        erc1155Press.mintNew{
+            value: 0.01 ether 
+        }(
+            mintNewRecipients,
+            quantity,
+            tokenLogic,
+            tokenLogicInit,
+            basicRenderer,
+            tokenRendererInit,
+            fundsRecipient,
+            royaltyBPS,
+            primarySaleFeeRecipient,
+            primarySaleFeeBPS,
+            soulbound
+        );
+        vm.stopPrank();
     }
 }
