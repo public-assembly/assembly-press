@@ -554,6 +554,8 @@ contract ERC1155PressTest is ERC1155PressConfig {
             soulboundTrue
         );        
         require(erc1155Press.isSoulbound(1) == true, "soulbound didnt work");
+        // make sure eip-5633 compliand interfaceId is supported
+        require(erc1155Press.supportsInterface(0x911ec470) == true, "doesn't support");
         bytes memory emptyData = new bytes(0);
         // transaction should revert because token is soulbound
         vm.expectRevert();
