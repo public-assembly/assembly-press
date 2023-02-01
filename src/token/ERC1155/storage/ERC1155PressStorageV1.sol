@@ -20,7 +20,5 @@ contract ERC1155PressStorageV1 {
     /// @notice Token level total supply
     mapping(uint256 => uint256) internal _totalSupply;    
     /// @notice Token level minted tracker
-    mapping(uint256 => mapping(address => uint256)) internal _numMinted;        
-    // Token level isSoulbound value mapping
-    mapping(uint256 => bool) internal _soulboundInfo;    
+    mapping(uint256 => mapping(address => uint256)) internal _numMinted;
 }

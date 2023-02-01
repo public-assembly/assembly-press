@@ -480,11 +480,11 @@ contract ERC1155PressTest is ERC1155PressConfig {
 
     function test_withdraw() public setUpERC1155PressBase setUpExistingMint {        
         vm.startPrank(INITIAL_OWNER);        
-        vm.deal(address(erc1155Press), 1 ether);
+        vm.deal(address(erc1155Press), 2 ether);
         uint256 tokenToCheck = 1;               
         uint256 contractBalanceBeforeWithdraw = address(erc1155Press).balance;        
         uint256 tokenToCheckBalanceBeforeWithdraw = erc1155Press.tokenFundsInfo(tokenToCheck);
-        // uint256 expectedFinalContractBalance = contractBalanceBeforeWithdraw - tokenToCheckBalanceBeforeWithdraw;
+        uint256 expectedFinalContractBalance = contractBalanceBeforeWithdraw - tokenToCheckBalanceBeforeWithdraw;
 
         address feeRecip = erc1155Press.getPrimarySaleFeeRecipient(tokenToCheck);
         uint256 feeRecipPrebalance = feeRecip.balance;
@@ -499,22 +499,95 @@ contract ERC1155PressTest is ERC1155PressConfig {
         
         require(fundsRecip.balance == (fundsRecipPrebalance + funds), "math not good");
         require(feeRecip.balance == (feeRecipPrebalance + fees), "math not good");
-        // require(erc1155Press.tokenFundsInfo(tokenToCheck) == expectedFinalContractBalance, "math not good");
-        console2.log(address(erc1155Press).balance);
-        // require(fundsRecip.balance == fundsRecipBalanceCheck, "math not good");
-        // require(address(erc1155Press).balance == 0);
+        require(address(erc1155Press).balance == expectedFinalContractBalance, "math not good");
     }       
 
-    // canWithdraw
-    // canBurn
+    function test_burn() public setUpERC1155PressBase setUpExistingMint {   
+        vm.startPrank(INITIAL_OWNER);
+        // INITIAL OWNER DOESNT HAVE ANY COPIES OF TOKEN #1 SO CANT BURN
+        vm.expectRevert();
+        erc1155Press.burn(INITIAL_OWNER, 1, 1);
+        vm.stopPrank();
+        vm.startPrank(ADMIN);
+        uint256 balanceBeforeBurn = erc1155Press.balanceOf(ADMIN, 1);
+        // ex[ect revert because burning more than balance]
+        vm.expectRevert();
+        erc1155Press.burn(ADMIN, 1, (balanceBeforeBurn + 1));
+        // reset
+        uint256 amountToBurn = 1;
+        erc1155Press.burn(ADMIN, 1, amountToBurn);
+        require(erc1155Press.balanceOf(ADMIN, 1) == (balanceBeforeBurn - amountToBurn), "burn didnt work");
+    }
 
-    // batchMintExisting -- gas snapshot
-    // burn
+    function test_soulbound() public setUpERC1155PressBase {
+        vm.startPrank(INITIAL_OWNER);
+        vm.deal(INITIAL_OWNER, 10 ether);
+        address[] memory mintNewRecipients = new address[](2);
+        mintNewRecipients[0] = INITIAL_OWNER;
+        mintNewRecipients[1] = MINTER;
+        uint256 quantity = 1;
+        address payable fundsRecipient = payable(ADMIN);
+        uint16 royaltyBPS = 10_00; // 10%
+        address payable primarySaleFeeRecipient = payable(MINTER);
+        uint16 primarySaleFeeBPS = 5_00; // 5%
+        // SET TOKENS SOULBOUND
+        bool soulboundTrue = true;        
+        bool soulboundFalse = false;        
+        erc1155Press.mintNew{
+            value: erc1155Press.contractLogic().mintNewPrice(
+                address(erc1155Press),
+                INITIAL_OWNER,
+                mintNewRecipients,
+                quantity
+            )
+        }(
+            mintNewRecipients,
+            quantity,
+            tokenLogic,
+            tokenLogicInit,
+            basicRenderer,
+            tokenRendererInit,
+            fundsRecipient,
+            royaltyBPS,
+            primarySaleFeeRecipient,
+            primarySaleFeeBPS,
+            soulboundTrue
+        );        
+        require(erc1155Press.isSoulbound(1) == true, "soulbound didnt work");
+        bytes memory emptyData = new bytes(0);
+        // transaction should revert because token is soulbound
+        vm.expectRevert();
+        erc1155Press.safeTransferFrom(INITIAL_OWNER, ADMIN, 1, 1, emptyData);
+        // check that user can still burn even if they cant transfer token
+        erc1155Press.burn(INITIAL_OWNER, 1, 1);        
+        // testing that non soulbound tokens CAN be transferred
+        erc1155Press.mintNew{
+            value: erc1155Press.contractLogic().mintNewPrice(
+                address(erc1155Press),
+                INITIAL_OWNER,
+                mintNewRecipients,
+                quantity
+            )
+        }(
+            mintNewRecipients,
+            quantity,
+            tokenLogic,
+            tokenLogicInit,
+            basicRenderer,
+            tokenRendererInit,
+            fundsRecipient,
+            royaltyBPS,
+            primarySaleFeeRecipient,
+            primarySaleFeeBPS,
+            soulboundFalse
+        );            
+        require(erc1155Press.isSoulbound(2) == false, "soulbound didnt work");       
+        // transfer should go through because not soulbound
+        erc1155Press.safeTransferFrom(INITIAL_OWNER, ADMIN, 2, 1, emptyData); 
+    }
+
+    // batchMintExisting 
     // batchburn
-    // withdraw -- gas snapshot
-    // batchWithdraw -- gas snapshot
-    // soulbound related tests
-    //      cant transfer tokens
-    //      can still burn tokens even if soulbound
+    // batchWithdraw 
     // forge gas snapshot https://book.getfoundry.sh/forge/gas-snapshots
 }

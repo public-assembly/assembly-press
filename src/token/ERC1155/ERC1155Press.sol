@@ -16,6 +16,7 @@ import {IERC1155PressTokenLogic} from "./interfaces/IERC1155PressTokenLogic.sol"
 import {ERC1155PressStorageV1} from "./storage/ERC1155PressStorageV1.sol";
 import {IERC1155Press} from "./interfaces/IERC1155Press.sol";
 import {IERC5633} from "../../utils//interfaces/IERC5633.sol";
+import {ERC5633} from "../../utils/ERC5633.sol";
 
 /* 
     WIP references
@@ -44,8 +45,7 @@ contract ERC1155Press is
     OwnableUpgradeable,
     Version(1),
     ERC1155PressStorageV1,
-    FundsReceiver,
-    IERC5633
+    FundsReceiver
 {
 
     // ||||||||||||||||||||||||||||||||
@@ -735,8 +735,8 @@ contract ERC1155Press is
     }    
 
     /// @notice returns true if token type `id` is soulbound
-    function isSoulbound(uint256 id) public view virtual override(IERC5633, IERC1155Press) returns (bool) {
-        return _soulboundInfo[id];
+    function isSoulbound(uint256 id) public view virtual override(IERC1155Press) returns (bool) {
+        return configInfo[id].soulbound;
     }       
 
     /// @notice Config level details
@@ -823,6 +823,39 @@ contract ERC1155Press is
             unchecked { ++i; }
         }
     }
+
+    /*
+        the following changes enable EIP-5633 style soulbound functionality
+    */    
+
+    function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes calldata data) public override{
+        super.safeTransferFrom(from, to, id, amount, data);
+        uint256[] memory ids = _asSingletonArray(id);
+        _beforeTokenTransfer(from, to, ids);
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256[] memory ids
+    ) internal virtual {
+
+        for (uint256 i = 0; i < ids.length; ++i) {
+            if (isSoulbound(ids[i])) {
+                require(
+                    from == address(0) || to == address(0),
+                    "ERC5633: Soulbound, Non-Transferable"
+                );
+            }
+        }
+    }    
+
+    function _asSingletonArray(uint256 element) private pure returns (uint256[] memory) {
+        uint256[] memory array = new uint256[](1);
+        array[0] = element;
+
+        return array;
+    }    
 
     // ||||||||||||||||||||||||||||||||
     // ||| UPGRADES |||||||||||||||||||

@@ -79,7 +79,7 @@ contract ERC1155PressConfig is Test {
         address[] memory mintNewRecipients = new address[](2);
         mintNewRecipients[0] = ADMIN;
         mintNewRecipients[1] = MINTER;
-        uint256 quantity = 1000;
+        uint256 quantity = 1;
         address payable fundsRecipient = payable(ADMIN);
         uint16 royaltyBPS = 10_00; // 10%
         address payable primarySaleFeeRecipient = payable(MINTER);
