@@ -428,7 +428,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
     }
 
 
-    function test_mintExisting() public setUpERC1155PressBase setUpExistingMint {        
+    function test_mintExisting() public setUpERC1155PressBase setUpExistingMint(1) {        
         vm.startPrank(INITIAL_OWNER);
         vm.deal(INITIAL_OWNER, 10 ether);
         address[] memory recips = new address[](2);
@@ -439,7 +439,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
         require(erc1155Press.balanceOf(address(0x666), 1) == quant, "balanceOf incorrect"); 
     }
     
-    function test_editMetadata() public setUpERC1155PressBase setUpExistingMint {        
+    function test_editMetadata() public setUpERC1155PressBase setUpExistingMint(1) {        
         vm.startPrank(INITIAL_OWNER);
         ERC1155BasicRenderer(address(erc1155Press.getRenderer(1))).setTokenURI(
             address(erc1155Press),
@@ -459,7 +459,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
         );        
     }    
 
-    function test_updateConfig() public setUpERC1155PressBase setUpExistingMint {        
+    function test_updateConfig() public setUpERC1155PressBase setUpExistingMint(1) {        
         vm.startPrank(INITIAL_OWNER);
         uint256 tokenToCheck = 1;
         ERC1155BasicTokenLogic tokenLogic2 = new ERC1155BasicTokenLogic();
@@ -478,7 +478,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
         require(erc1155Press.getRenderer(tokenToCheck) == basicRenderer2, "config updated incorrectly");
     }   
 
-    function test_withdraw() public setUpERC1155PressBase setUpExistingMint {        
+    function test_withdraw() public setUpERC1155PressBase setUpExistingMint(1) {        
         vm.startPrank(INITIAL_OWNER);        
         vm.deal(address(erc1155Press), 2 ether);
         uint256 tokenToCheck = 1;               
@@ -495,27 +495,28 @@ contract ERC1155PressTest is ERC1155PressConfig {
         uint256 fees = tokenToCheckBalanceBeforeWithdraw * erc1155Press.getPrimarySaleFeeBPS(tokenToCheck) / 10_000;
         uint256 funds = tokenToCheckBalanceBeforeWithdraw - fees;
 
-        erc1155Press.withdraw(1);
+        erc1155Press.withdraw(tokenToCheck);
         
         require(fundsRecip.balance == (fundsRecipPrebalance + funds), "math not good");
         require(feeRecip.balance == (feeRecipPrebalance + fees), "math not good");
         require(address(erc1155Press).balance == expectedFinalContractBalance, "math not good");
+        require(erc1155Press.tokenFundsInfo(tokenToCheck) == 0, "math not good");    
     }       
 
-    function test_burn() public setUpERC1155PressBase setUpExistingMint {   
+    function test_burn() public setUpERC1155PressBase setUpExistingMint(1) {   
         vm.startPrank(INITIAL_OWNER);
         // INITIAL OWNER DOESNT HAVE ANY COPIES OF TOKEN #1 SO CANT BURN
         vm.expectRevert();
-        erc1155Press.burn(INITIAL_OWNER, 1, 1);
+        erc1155Press.burn(1, 1);
         vm.stopPrank();
         vm.startPrank(ADMIN);
         uint256 balanceBeforeBurn = erc1155Press.balanceOf(ADMIN, 1);
         // ex[ect revert because burning more than balance]
         vm.expectRevert();
-        erc1155Press.burn(ADMIN, 1, (balanceBeforeBurn + 1));
+        erc1155Press.burn(1, (balanceBeforeBurn + 1));
         // reset
         uint256 amountToBurn = 1;
-        erc1155Press.burn(ADMIN, 1, amountToBurn);
+        erc1155Press.burn(1, amountToBurn);
         require(erc1155Press.balanceOf(ADMIN, 1) == (balanceBeforeBurn - amountToBurn), "burn didnt work");
     }
 
@@ -561,7 +562,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
         vm.expectRevert();
         erc1155Press.safeTransferFrom(INITIAL_OWNER, ADMIN, 1, 1, emptyData);
         // check that user can still burn even if they cant transfer token
-        erc1155Press.burn(INITIAL_OWNER, 1, 1);        
+        erc1155Press.burn(1, 1);        
         // testing that non soulbound tokens CAN be transferred
         erc1155Press.mintNew{
             value: erc1155Press.contractLogic().mintNewPrice(
@@ -588,8 +589,104 @@ contract ERC1155PressTest is ERC1155PressConfig {
         erc1155Press.safeTransferFrom(INITIAL_OWNER, ADMIN, 2, 1, emptyData); 
     }
 
-    // batchMintExisting 
-    // batchburn
-    // batchWithdraw 
+    // batchMintExisting --> multi token checkout flow
+    function test_batchMintExisting() public setUpERC1155PressBase setUpExistingMint(2) {        
+        vm.startPrank(INITIAL_OWNER);
+        vm.deal(INITIAL_OWNER, 10 ether);
+        uint256[] memory quants = new uint256[](2);
+        quants[0] = 100;
+        quants[1] = 50;
+        uint256[] memory tokenIds = new uint256[](2);
+        tokenIds[0] = 1;
+        tokenIds[1] = 2;
+        address recipient = address(0x666);
+        erc1155Press.batchMintExisting{ value: mintExistingPriceInit * (quants[0] + quants[1])}(tokenIds, recipient, quants);
+        require(erc1155Press.balanceOf(recipient, 1) == quants[0], "balanceOf incorrect");
+        require(erc1155Press.balanceOf(recipient, 2) == quants[1], "balanceOf incorrect");
+    }    
+
+    function test_batchWithdraw() public setUpERC1155PressBase setUpExistingMint(1) {     
+        // custom set up to add a second different funds recipient for bath withdraw testing
+        vm.startPrank(INITIAL_OWNER);
+        address[] memory mintNewRecipients = new address[](2);
+        mintNewRecipients[0] = ADMIN;
+        mintNewRecipients[1] = MINTER;
+        uint256 quantity = 1;
+        address payable fundsRecipient = payable(address(0x333));
+        uint16 royaltyBPS = 10_00; // 10%
+        address payable primarySaleFeeRecipient = payable(address(0x222));
+        uint16 primarySaleFeeBPS = 5_00; // 5%
+        bool soulbound = false;
+            erc1155Press.mintNew{
+                value: erc1155Press.contractLogic().mintNewPrice(
+                    address(erc1155Press),
+                    INITIAL_OWNER,
+                    mintNewRecipients,
+                    quantity
+                )
+            }(
+                mintNewRecipients,
+                quantity,
+                tokenLogic,
+                tokenLogicInit,
+                basicRenderer,
+                tokenRendererInit,
+                fundsRecipient,
+                royaltyBPS,
+                primarySaleFeeRecipient,
+                primarySaleFeeBPS,
+                soulbound
+            );        
+        // end custom setup
+        vm.deal(address(erc1155Press), 2 ether);
+        uint256[] memory tokensToCheck = new uint256[](2);
+        tokensToCheck[0] = 1;           
+        tokensToCheck[1] = 2;           
+        uint256 contractBalanceBefore = address(erc1155Press).balance;
+        uint256 token1_funds_before = erc1155Press.tokenFundsInfo(tokensToCheck[0]);
+        uint256 token1_fees = token1_funds_before * erc1155Press.getPrimarySaleFeeBPS(tokensToCheck[0]) / 10_000;        
+        address fundsRecip1 = erc1155Press.getFundsRecipient(tokensToCheck[0]);
+        address feeRecip1 = erc1155Press.getPrimarySaleFeeRecipient(tokensToCheck[0]);        
+        uint256 token2_funds_before = erc1155Press.tokenFundsInfo(tokensToCheck[1]);
+        uint256 token2_fees = token2_funds_before * erc1155Press.getPrimarySaleFeeBPS(tokensToCheck[1]) / 10_000; 
+        address fundsRecip2 = erc1155Press.getFundsRecipient(tokensToCheck[1]);
+        address feeRecip2 = erc1155Press.getPrimarySaleFeeRecipient(tokensToCheck[1]);       
+
+        erc1155Press.batchWithdraw(tokensToCheck);        
+        
+        require(fundsRecip1.balance == (token1_funds_before - token1_fees), "math not good");
+        require(feeRecip1.balance == (token1_fees), "math not good");
+        require(fundsRecip2.balance == (token2_funds_before - token2_fees), "math not good");
+        require(feeRecip2.balance == (token2_fees), "math not good"); 
+        require(address(erc1155Press).balance == contractBalanceBefore - (token1_funds_before + token2_funds_before), "math not good");       
+    }           
+
+    function test_batchBurn() public setUpERC1155PressBase setUpExistingMint(2) {   
+        vm.startPrank(INITIAL_OWNER);
+        uint256[] memory tokenIds = new uint256[](2);
+        tokenIds[0] = 1;
+        tokenIds[1] = 2;
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 1;
+        amounts[1] = 1;        
+        // INITIAL OWNER DOESNT HAVE ANY COPIES OF TOKEN #1 SO CANT BURN
+        vm.expectRevert();
+        erc1155Press.batchBurn(tokenIds, amounts);
+        vm.stopPrank();
+        vm.startPrank(ADMIN);
+        uint256 balanceBeforeBurn = erc1155Press.balanceOf(ADMIN, 1);
+        // ex[ect revert because burning more than balance]
+        amounts[0] ++;
+        amounts[1] ++;           
+        vm.expectRevert();
+        erc1155Press.batchBurn(tokenIds, amounts);
+        // reset
+        amounts[0] --;
+        amounts[1] --;
+        erc1155Press.batchBurn(tokenIds, amounts);
+        require(erc1155Press.balanceOf(ADMIN, tokenIds[0]) == (balanceBeforeBurn - amounts[0]), "burn didnt work");
+        require(erc1155Press.balanceOf(ADMIN, tokenIds[1]) == (balanceBeforeBurn - amounts[1]), "burn didnt work");
+    }    
+
     // forge gas snapshot https://book.getfoundry.sh/forge/gas-snapshots
 }

@@ -263,11 +263,11 @@ contract ERC1155Press is
     /// @notice Allows user to use ERC1155 batch mint call. Helpful for checkout-esque flows
     ///         whre a user is minting multiple different items at once
     /// @param tokenIds tokenIds to mint
-    /// @param recipient specific recipient address to mint to. is an array but length must == 1
+    /// @param recipient specific recipient address to batch mint to
     /// @param quantities quantities of tokenIds to mint
     function batchMintExisting(
         uint256[] memory tokenIds,
-        address[] memory recipient,
+        address recipient,
         uint256[] memory quantities
     ) external payable nonReentrant {
 
@@ -275,11 +275,11 @@ contract ERC1155Press is
         uint256 newTokens = tokenIds.length;
 
         // Check if input lengths are correct
-        if (newTokens != quantities.length || newTokens == 0 || recipient.length != 1) {
+        if (newTokens != quantities.length || newTokens == 0) {
             revert Invalid_Input();
         }
         // Check to see if any recipient is zero address
-        if (recipient[0] == address(0)) {
+        if (recipient == address(0)) {
             revert Cannot_Set_Zero_Address();
         }
 
@@ -293,7 +293,7 @@ contract ERC1155Press is
                 revert Token_Doesnt_Exist(tokenIds[i]);
             }
             // Call token level logic contract to check if user can mint
-            if (IERC1155PressTokenLogic(configInfo[tokenIds[i]].logic).canMintExisting(address(this), msg.sender, tokenIds[i], recipient, quantities[i]) != true) {
+            if (IERC1155PressTokenLogic(configInfo[tokenIds[i]].logic).canMintExisting(address(this), msg.sender, tokenIds[i], _asSingletonArrayAddress(recipient), quantities[i]) != true) {
                 revert No_MintExisting_Access();
             }   
             // Check to see if minted quantity exceeds maxSupply
@@ -302,7 +302,7 @@ contract ERC1155Press is
             }          
             
             // Cache mintExisting Price for this iteration in for loop
-            uint256 cachedPrice = IERC1155PressTokenLogic(configInfo[tokenIds[i]].logic).mintExistingPrice(address(this), tokenIds[i], msg.sender, recipient, quantities[i]);
+            uint256 cachedPrice = IERC1155PressTokenLogic(configInfo[tokenIds[i]].logic).mintExistingPrice(address(this), tokenIds[i], msg.sender, _asSingletonArrayAddress(recipient), quantities[i]);
             // Update tokenId => tokenFundsInfo mapping
             tokenFundsInfo[tokenIds[i]] += cachedPrice;            
             // Add mintExistingPrice for individual token to msgValue chcek    
@@ -315,41 +315,47 @@ contract ERC1155Press is
         }
 
         // Process _batchMint call
-        _batchMint(recipient[0], tokenIds, quantities, new bytes(0));
+        _batchMint(recipient, tokenIds, quantities, new bytes(0));
 
         // Emit event for each token being minted
         for (uint256 i; i < newTokens; ++i) {
             emit ExistingTokenMinted({
                 tokenId: tokenIds[i],
                 sender: msg.sender,
-                recipient: recipient[i],
+                recipient: recipient,
                 quantity: quantities[i]
             });    
         }        
     }    
+
+    // create an array of length 1
+    function _asSingletonArrayAddress(address element) private pure returns (address[] memory) {
+        address[] memory array = new address[](1);
+        array[0] = element;
+
+        return array;
+    }        
 
     // ||||||||||||||||||||||||||||||||
     // ||| BURN FUNCTIONS |||||||||||||
     // ||||||||||||||||||||||||||||||||
 
     /// @notice User burn function for given tokenId
-    /// @param account wallet address to burn supply for
     /// @param id tokenId to burn
     /// @param amount quantity to burn
-    function burn(address account, uint256 id, uint256 amount) public {
+    function burn(uint256 id, uint256 amount) public {
         // Check if burn is allowed for sender
         if (IERC1155PressTokenLogic(configInfo[id].logic).canBurn(address(this), id, amount, msg.sender) != true) {
             revert No_Burn_Access();
         }
 
-        _burn(account, id, amount);
+        _burn(msg.sender, id, amount);
     }
 
     /// @notice User batch burn function for given tokenIds
-    /// @param account wallet address to burn supply for
     /// @param ids tokenIds to burn
     /// @param amounts quantities to burn
-    function batchBurn(address account, uint256[] memory ids, uint256[] memory amounts) public {
+    function batchBurn(uint256[] memory ids, uint256[] memory amounts) public {
         
         // prevents users from submitting invalid inputs
         if (ids.length != amounts.length) {
@@ -364,7 +370,7 @@ contract ERC1155Press is
             }            
         }
 
-        _batchBurn(account, ids, amounts);
+        _batchBurn(msg.sender, ids, amounts);
     }   
 
     // ||||||||||||||||||||||||||||||||
@@ -604,6 +610,10 @@ contract ERC1155Press is
         if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canWithdraw(address(this), tokenId, msg.sender) != true) {
             revert No_Withdraw_Access();
         }
+        // Check to see if tokenId has a balance
+        if (tokenFundsInfo[tokenId] == 0) {
+            revert No_Withdrawable_Balance(tokenId);
+        }  
 
         // Call internal withdraw function
         _withdraw(tokenId, msg.sender);
@@ -621,7 +631,7 @@ contract ERC1155Press is
                 revert No_Withdraw_Access();
             }
             // Check to see if tokenId has a balance
-            if (tokenFundsInfo[tokenIds[i]] != 0) {
+            if (tokenFundsInfo[tokenIds[i]] == 0) {
                 revert No_Withdrawable_Balance(tokenIds[i]);
             }  
 

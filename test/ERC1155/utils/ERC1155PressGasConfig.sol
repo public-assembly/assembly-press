@@ -69,7 +69,7 @@ contract ERC1155PressGasConfig is Test {
             _contractLogicInit: contractLogicInit
         });
 
-        // mint new token to be used in mintExisting call
+        // mint new tokens to be used in mintExisting + batchMintExisting calls
         vm.startPrank(INITIAL_OWNER);
         vm.deal(INITIAL_OWNER, 10 ether);
         address[] memory mintNewRecipients = new address[](1);
@@ -95,6 +95,21 @@ contract ERC1155PressGasConfig is Test {
             primarySaleFeeBPS,
             soulbound
         );
+        erc1155Press.mintNew{
+            value: 0.01 ether 
+        }(
+            mintNewRecipients,
+            quantity,
+            tokenLogic,
+            tokenLogicInit,
+            basicRenderer,
+            tokenRendererInit,
+            fundsRecipient,
+            royaltyBPS,
+            primarySaleFeeRecipient,
+            primarySaleFeeBPS,
+            soulbound
+        );        
         vm.stopPrank();
     }
 }

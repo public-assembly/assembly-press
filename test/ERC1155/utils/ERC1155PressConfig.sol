@@ -73,7 +73,7 @@ contract ERC1155PressConfig is Test {
         _;
     }
 
-    modifier setUpExistingMint() {
+    modifier setUpExistingMint(uint256 howManyTokens) {
         vm.startPrank(INITIAL_OWNER);
         vm.deal(INITIAL_OWNER, 10 ether);
         address[] memory mintNewRecipients = new address[](2);
@@ -85,26 +85,28 @@ contract ERC1155PressConfig is Test {
         address payable primarySaleFeeRecipient = payable(MINTER);
         uint16 primarySaleFeeBPS = 5_00; // 5%
         bool soulbound = false;
-        erc1155Press.mintNew{
-            value: erc1155Press.contractLogic().mintNewPrice(
-                address(erc1155Press),
-                INITIAL_OWNER,
+        for (uint256 i; i < howManyTokens; ++i) {
+            erc1155Press.mintNew{
+                value: erc1155Press.contractLogic().mintNewPrice(
+                    address(erc1155Press),
+                    INITIAL_OWNER,
+                    mintNewRecipients,
+                    quantity
+                )
+            }(
                 mintNewRecipients,
-                quantity
-            )
-        }(
-            mintNewRecipients,
-            quantity,
-            tokenLogic,
-            tokenLogicInit,
-            basicRenderer,
-            tokenRendererInit,
-            fundsRecipient,
-            royaltyBPS,
-            primarySaleFeeRecipient,
-            primarySaleFeeBPS,
-            soulbound
-        );        
+                quantity,
+                tokenLogic,
+                tokenLogicInit,
+                basicRenderer,
+                tokenRendererInit,
+                fundsRecipient,
+                royaltyBPS,
+                primarySaleFeeRecipient,
+                primarySaleFeeBPS,
+                soulbound
+            );        
+        }
         vm.stopPrank();
 
         _;
