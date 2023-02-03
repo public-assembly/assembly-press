@@ -1,0 +1,6 @@
+ERC1155Press_GasTests:test_batchBurn() (gas: 42992)
+ERC1155Press_GasTests:test_batchMintExisting() (gas: 194720)
+ERC1155Press_GasTests:test_burn() (gas: 26108)
+ERC1155Press_GasTests:test_deployAndInitERC1155Press() (gas: 461166)
+ERC1155Press_GasTests:test_mintExisting() (gas: 112563)
+ERC1155Press_GasTests:test_mintNew() (gas: 381995)
