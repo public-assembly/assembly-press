@@ -41,7 +41,7 @@ contract ERC721Press_mint is ERC721PressConfig {
 
     function test_defaultLogicSetup() public setUpPressDefaultLogic {
         vm.prank(address(ADMIN));
-        defaultLogic.canUpdatePressConfig(address(erc721Press), ADMIN);
+        defaultLogic.canUpdateConfig(address(erc721Press), ADMIN);
     }
 
 }

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IRenderer} from "../../interfaces/IRenderer.sol";
+import {IERC721PressRenderer} from "../../interfaces/IERC721PressRenderer.sol";
 import {IERC721Press} from "../../interfaces/IERC721Press.sol";
-import {ILogic} from "../../interfaces/ILogic.sol";
+import {IERC721PressLogic} from "../../interfaces/IERC721PressLogic.sol";
 import {ITokenDecoder} from "../../interfaces/ITokenDecoder.sol";
 import {ERC721Press} from "../../ERC721Press.sol";
 import {BytecodeStorage} from "../../../../utils/utils/BytecodeStorage.sol";
@@ -13,7 +13,7 @@ import {BytecodeStorage} from "../../../../utils/utils/BytecodeStorage.sol";
  @author Max Bochman
  @author Salief Lewis
  */
-contract ArtifactRenderer is IRenderer {
+contract ArtifactRenderer is IERC721PressRenderer {
 
     // ||||||||||||||||||||||||||||||||
     // ||| TYPES ||||||||||||||||||||||
@@ -47,7 +47,7 @@ contract ArtifactRenderer is IRenderer {
     error NotInitialized_Or_WrongPress();
     /// @notice prevents users from submitting invalid inputs to the grant role function
     error Invalid_Input_Length();
-  
+
     // ||||||||||||||||||||||||||||||||
     // ||| STORAGE ||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||  
@@ -117,7 +117,7 @@ contract ArtifactRenderer is IRenderer {
     /// @param newContractURI new string contractURI value
     function updateContractURI(address targetPress, string memory newContractURI) external {
 
-        if (ILogic(ERC721Press(payable(targetPress)).logic()).canEditMetadata(targetPress, msg.sender) != true) {
+        if (ERC721Press(payable(targetPress)).getLogic().canEditMetadata(targetPress, msg.sender) != true) {
             revert No_Edit_Access();
         } 
         
@@ -144,7 +144,7 @@ contract ArtifactRenderer is IRenderer {
     function initializeTokenMetadata(bytes memory tokenInit) external {
 
         // check if target Press has been initialized
-        if (ILogic(ERC721Press(payable(msg.sender)).logic()).isInitialized(msg.sender) != true) {
+        if (ERC721Press(payable(msg.sender)).getLogic().isInitialized(msg.sender) != true) {
             revert Press_NotInitialized();
         }
 
@@ -219,7 +219,7 @@ contract ArtifactRenderer is IRenderer {
     ) external {
 
         // check for metadta edit access on given target Press contract
-        if (ILogic(ERC721Press(payable(targetPress)).logic()).canEditMetadata(targetPress, msg.sender) != true) {
+        if (ERC721Press(payable(targetPress)).getLogic().canEditMetadata(targetPress, msg.sender) != true) {
             revert No_Edit_Access();
         } 
         
@@ -336,7 +336,7 @@ contract ArtifactRenderer is IRenderer {
         returns (string memory, string memory)
     {
         
-        if (ILogic(ERC721Press(payable(targetPress)).logic()).isInitialized(targetPress) != true) {
+        if (ERC721Press(payable(targetPress)).getLogic().isInitialized(targetPress) != true) {
             revert Press_NotInitialized();
         }
 

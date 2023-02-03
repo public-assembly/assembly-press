@@ -6,7 +6,4 @@ import {IERC721Press} from "../interfaces/IERC721Press.sol";
 contract ERC721PressStorageV1 {
     /// @notice Configuration for Press contract storage
     IERC721Press.Configuration public config;      
-
-    /// @notice PrimarySaleFee for Press contract storage
-    IERC721Press.PrimarySaleFee public primarySaleFeeDetails;
 }

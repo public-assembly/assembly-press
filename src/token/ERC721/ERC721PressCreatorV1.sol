@@ -1,10 +1,38 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
+/*
+
+
+                                                             .:^!?JJJJ?7!^..                    
+                                                         .^?PB#&&&&&&&&&&&#B57:                 
+                                                       :JB&&&&&&&&&&&&&&&&&&&&&G7.              
+                                                  .  .?#&&&&#7!77??JYYPGB&&&&&&&&#?.            
+                                                ^.  :PB5?7G&#.          ..~P&&&&&&&B^           
+                                              .5^  .^.  ^P&&#:    ~5YJ7:    ^#&&&&&&&7          
+                                             !BY  ..  ^G&&&&#^    J&&&&#^    ?&&&&&&&&!         
+..           : .           . !.             Y##~  .   G&&&&&#^    ?&&&&G.    7&&&&&&&&B.        
+..           : .            ?P             J&&#^  .   G&&&&&&^    :777^.    .G&&&&&&&&&~        
+~GPPP55YYJJ??? ?7!!!!~~~~~~7&G^^::::::::::^&&&&~  .   G&&&&&&^          ....P&&&&&&&&&&7  .     
+ 5&&&&&&&&&&&Y #&&&&&&&&&&#G&&&&&&&###&&G.Y&&&&5. .   G&&&&&&^    .??J?7~.  7&&&&&&&&&#^  .     
+  P#######&&&J B&&&&&&&&&&~J&&&&&&&&&&#7  P&&&&#~     G&&&&&&^    ^#P7.     :&&&&&&&##5. .      
+     ........  ...::::::^: .~^^~!!!!!!.   ?&&&&&B:    G&&&&&&^    .         .&&&&&#BBP:  .      
+                                          .#&&&&&B:   Y&&&&&&~              7&&&BGGGY:  .       
+                                           ~&&&&&&#!  .!B&&&&BP5?~.        :##BP55Y~. ..        
+                                            !&&&&&&&P^  .~P#GY~:          ^BPYJJ7^. ...         
+                                             :G&&&&&&&G7.  .            .!Y?!~:.  .::           
+                                               ~G&&&&&&&#P7:.          .:..   .:^^.             
+                                                 :JB&&&&&&&&BPJ!^:......::^~~~^.                
+                                                    .!YG#&&&&&&&&##GPY?!~:..                    
+                                                         .:^^~~^^:.
+
+
+*/
+
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IERC721PressCreatorV1} from "./interfaces/IERC721PressCreatorV1.sol";
-import {ILogic} from "./interfaces/ILogic.sol";
-import {IRenderer} from "./interfaces/IRenderer.sol";
+import {IERC721PressLogic} from "./interfaces/IERC721PressLogic.sol";
+import {IERC721PressRenderer} from "./interfaces/IERC721PressRenderer.sol";
 import {ERC721PressProxy} from "./proxy/ERC721PressProxy.sol";
 import {OwnableUpgradeable} from "../../utils/utils/OwnableUpgradeable.sol";
 import {Version} from "../../utils/utils/Version.sol";
@@ -58,9 +86,9 @@ contract ERC721PressCreatorV1 is IERC721PressCreatorV1, OwnableUpgradeable, UUPS
         address defaultAdmin,
         address payable fundsRecipient,
         uint16 royaltyBPS,
-        ILogic logic,
+        IERC721PressLogic logic,
         bytes memory logicInit,
-        IRenderer renderer,
+        IERC721PressRenderer renderer,
         bytes memory rendererInit,
         uint16 primarySaleFeeBPS,
         address payable primarySaleFeeRecipient

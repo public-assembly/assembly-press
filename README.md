@@ -1,4 +1,4 @@
-# AssemblyPress ✣
+# AssemblyPress ℗
 
 ## THIS BRANCH IS UNDER CONSTRUCTION
 

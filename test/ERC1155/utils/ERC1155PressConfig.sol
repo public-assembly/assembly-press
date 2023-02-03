@@ -11,7 +11,6 @@ import {ERC1155BasicContractLogic} from "../../../src/token/ERC1155/logic/ERC115
 import {ERC1155BasicTokenLogic} from "../../../src/token/ERC1155/logic/ERC1155BasicTokenLogic.sol";
 import {ERC1155BasicRenderer} from "../../../src/token/ERC1155/metadata/ERC1155BasicRenderer.sol";
 
-
 contract ERC1155PressConfig is Test {
     // test roles
     address public constant INITIAL_OWNER = address(0x01);

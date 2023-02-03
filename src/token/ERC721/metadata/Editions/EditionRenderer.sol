@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IRenderer} from "../../interfaces/IRenderer.sol";
+import {IERC721PressRenderer} from "../../interfaces/IERC721PressRenderer.sol";
 import {IERC721Press} from "../../interfaces/IERC721Press.sol";
-import {ILogic} from "../../interfaces/ILogic.sol";
+import {IERC721PressLogic} from "../../interfaces/IERC721PressLogic.sol";
 import {ITokenDecoder} from "../../interfaces/ITokenDecoder.sol";
 import {ERC721Press} from "../../ERC721Press.sol";
 import {BytecodeStorage} from "../../../../utils/utils/BytecodeStorage.sol";
@@ -13,7 +13,7 @@ import {BytecodeStorage} from "../../../../utils/utils/BytecodeStorage.sol";
  @author Max Bochman
  @author Salief Lewis
  */
-contract EditionRenderer is IRenderer {
+contract EditionRenderer is IERC721PressRenderer {
     
     // ===== VARIABLES
     /// @notice event emitted when provenance initialized

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {ILogic} from "../interfaces/ILogic.sol";
+import {IERC721PressLogic} from "../interfaces/IERC721PressLogic.sol";
 import {IERC721Press} from "../interfaces/IERC721Press.sol";
 import {ERC721Press} from "../ERC721Press.sol";
 
@@ -12,7 +12,7 @@ import {ERC721Press} from "../ERC721Press.sol";
 * @author Max Bochman
 * @author Salief Lewis
 */
-contract DefaultLogic is ILogic {
+contract DefaultLogic is IERC721PressLogic {
 
     // ||||||||||||||||||||||||||||||||
     // ||| TYPES ||||||||||||||||||||||
@@ -135,7 +135,7 @@ contract DefaultLogic is ILogic {
     /// @notice checks update access for a given update caller
     /// @param targetPress press contract to check access for
     /// @param updateCaller address of updateCaller to check access for
-    function canUpdatePressConfig(
+    function canUpdateConfig(
         address targetPress, 
         address updateCaller
     ) external view requireInitialized(targetPress) returns (bool) {

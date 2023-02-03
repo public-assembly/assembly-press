@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {ILogic} from "../../../src/token/ERC721/interfaces/ILogic.sol";
+import {IERC721PressLogic} from "../../../src/token/ERC721/interfaces/IERC721PressLogic.sol";
 
-contract MockLogic is ILogic {
+contract MockLogic is IERC721PressLogic {
     
     bytes storageTest;
 
@@ -11,7 +11,7 @@ contract MockLogic is ILogic {
         storageTest = initData;
     }
 
-    function canUpdatePressConfig(address targetPress, address updateCaller) external view returns (bool) {}
+    function canUpdateConfig(address targetPress, address updateCaller) external view returns (bool) {}
 
     function canMint(address targetPress, uint64 mintQuantity, address mintCaller) external view returns (bool) {
         return true;
