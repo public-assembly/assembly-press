@@ -166,7 +166,7 @@ interface IERC721Press {
     ) external;
 
     /// @notice allows user to mint token(s) from the Press contract
-    function mintWithData(address recipient, uint16 mintQuantity, bytes memory mintData)
+    function mintWithData(uint16 mintQuantity, bytes memory mintData)
         external
         payable
         returns (uint256);

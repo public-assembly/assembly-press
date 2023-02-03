@@ -10,20 +10,18 @@ import {MockRenderer} from "./mocks/MockRenderer.sol";
 contract ERC721Press_mint is ERC721PressConfig {
 
     function test_mintWithEmptyData(uint16 mintQuantity) public setUpERC721PressBase {
-        address mintRecipient = address(0x03);
         bytes memory mintData;
         // Remove the zero quantity mint edge case
         vm.assume(mintQuantity > 1);
-        erc721Press.mintWithData(mintRecipient, mintQuantity, mintData);
+        erc721Press.mintWithData(mintQuantity, mintData);
     }
 
     function test_mintWithData(uint16 mintQuantity) public setUpERC721PressBase {
-        address mintRecipient = address(0x03);
         string memory testString = "testString";
         // Remove the zero quantity mint edge case        
         vm.assume(mintQuantity > 1);
         bytes memory mintData = abi.encode(testString);
-        erc721Press.mintWithData(mintRecipient, mintQuantity, mintData);
+        erc721Press.mintWithData(mintQuantity, mintData);
         assertEq(mockRenderer.tokenURI(1), testString);
         assertEq(erc721Press.tokenURI(1), testString);
 
@@ -32,11 +30,10 @@ contract ERC721Press_mint is ERC721PressConfig {
     }
 
     function test_mintToTheZeroAddress() public setUpERC721PressBase {
-        address mintRecipient = address(0);
         uint16 mintQuantity = 1;
         bytes memory mintData = "";
         vm.expectRevert();
-        erc721Press.mintWithData(mintRecipient, mintQuantity, mintData);
+        erc721Press.mintWithData(mintQuantity, mintData);
     }
 
     function test_defaultLogicSetup() public setUpPressDefaultLogic {

@@ -165,33 +165,32 @@ contract ERC721Press is
 
     /// @notice Allows user to mint token(s) from the Press contract
     /// @dev mintQuantity is restricted to uint16 even though maxSupply = uint64
-    /// @param recipient address to mint NFTs to
     /// @param mintQuantity number of NFTs to mint
     /// @param mintData metadata to associate with the minted token(s)
-    function mintWithData(address recipient, uint16 mintQuantity, bytes memory mintData)
+    function mintWithData(uint16 mintQuantity, bytes memory mintData)
         external
         payable
         nonReentrant
         returns (uint256)
     {
+        // Cache msg.sender address
+        address sender = msg.sender;
 
         // Call logic contract to check if user can mint
-        if (IERC721PressLogic(config.logic).canMint(address(this), mintQuantity, msg.sender) != true) {
+        if (IERC721PressLogic(config.logic).canMint(address(this), mintQuantity, sender) != true) {
             revert No_Mint_Access();
         }
 
+        // Cache msg.value
+        uint256 msgValue = msg.value;
+
         // Call logic contract to check what mintPrice is for given quantity + user
-        if (msg.value != IERC721PressLogic(config.logic).totalMintPrice(address(this), mintQuantity, msg.sender)) {
+        if (msgValue != IERC721PressLogic(config.logic).totalMintPrice(address(this), mintQuantity, sender)) {
             revert Incorrect_Msg_Value();
         }
 
-        // Check if recipient is the zero address
-        if (recipient == address(0)) {
-            revert Cannot_Set_Zero_Address();
-        }
-
         // Batch mint NFTs to recipient address
-        _mintNFTs(recipient, mintQuantity);
+        _mintNFTs(sender, mintQuantity);
 
         // Cache tokenId of first minted token so tokenId mint range can be reconstituted using events
         uint256 firstMintedTokenId = lastMintedTokenId() - mintQuantity;
@@ -202,10 +201,10 @@ contract ERC721Press is
         }
 
         emit IERC721Press.MintWithData({
-            recipient: msg.sender,
+            recipient: sender,
             quantity: mintQuantity,
             mintData: mintData,
-            totalMintPrice: msg.value,
+            totalMintPrice: msgValue,
             firstMintedTokenId: firstMintedTokenId
         });
 
