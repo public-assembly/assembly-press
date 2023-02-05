@@ -90,7 +90,7 @@ contract DefaultLogic is IERC721PressLogic {
     // ||||||||||||||||||||||||||||||||  
 
     // Public constants for access roles
-    uint16 public constant NO_ACCESS = 0;
+    uint16 public constant ANYONE = 0;
     uint16 public constant MINTER = 1;
     uint16 public constant MANAGER = 2;
     uint16 public constant ADMIN = 3;    

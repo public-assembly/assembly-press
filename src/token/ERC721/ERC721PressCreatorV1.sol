@@ -73,6 +73,7 @@ contract ERC721PressCreatorV1 is IERC721PressCreatorV1, OwnableUpgradeable, UUPS
     ///  @param symbol Contract symbol
     ///  @param defaultAdmin User that owns the contract upon deployment
     ///  @param fundsRecipient Address that receives funds from sale
+    ///  @param maxSupply maxSupply value
     ///  @param royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty
     ///  @param logic Logic contract to use (access control + pricing dynamics)
     ///  @param logicInit Logic contract initial data
@@ -85,6 +86,7 @@ contract ERC721PressCreatorV1 is IERC721PressCreatorV1, OwnableUpgradeable, UUPS
         string memory symbol,
         address defaultAdmin,
         address payable fundsRecipient,
+        uint64 maxSupply,
         uint16 royaltyBPS,
         IERC721PressLogic logic,
         bytes memory logicInit,
@@ -92,19 +94,17 @@ contract ERC721PressCreatorV1 is IERC721PressCreatorV1, OwnableUpgradeable, UUPS
         bytes memory rendererInit,
         uint16 primarySaleFeeBPS,
         address payable primarySaleFeeRecipient
-    ) public returns (address payable newPressAddress) {
+    ) public {
         /// Configure ownership details in proxy constructor
         ERC721PressProxy newPress = new ERC721PressProxy(pressImpl, "");
 
-        /// Declare a new variable to track contract creation
-        newPressAddress = payable(address(newPress));
-
         /// Initialize the new Press instance
-        ERC721Press(newPressAddress).initialize({
+        ERC721Press(payable(address(newPress))).initialize({
             _contractName: name,
             _contractSymbol: symbol,
             _initialOwner: defaultAdmin,
             _fundsRecipient: fundsRecipient,
+            _maxSupply: maxSupply,
             _royaltyBPS: royaltyBPS,
             _logic: logic,
             _logicInit: logicInit,

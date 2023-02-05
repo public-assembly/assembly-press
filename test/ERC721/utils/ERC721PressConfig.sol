@@ -20,6 +20,8 @@ contract ERC721PressConfig is Test {
     uint256 defaultLogicMintPriceInit = 0.01 ether;
     uint64 defaultLogicMaxSupplyInit = 100;
     uint64 defaultLogicMintCapPerAddressInit = 5;    
+    /* ===== DEFAULT CONFIG INIT INPUTS ===== */
+    uint64 maxSupply = type(uint64).max;
 
     ERC721Press erc721Press;
     address public erc721PressImpl;
@@ -57,6 +59,7 @@ contract ERC721PressConfig is Test {
             _contractSymbol: "TEST",
             _initialOwner: INITIAL_OWNER,
             _fundsRecipient: payable(FUNDS_RECIPIENT),
+            _maxSupply: maxSupply,
             _royaltyBPS: 1000,
             _logic: mockLogic,
             _logicInit: defaultLogicInit,
@@ -76,6 +79,7 @@ contract ERC721PressConfig is Test {
             _contractSymbol: "TEST",
             _initialOwner: INITIAL_OWNER,
             _fundsRecipient: payable(FUNDS_RECIPIENT),
+            _maxSupply: maxSupply,
             _royaltyBPS: 1000,
             _logic: defaultLogic,
             _logicInit: defaultLogicInit,

@@ -87,6 +87,7 @@ contract ERC721Press is
     ///  @param _contractSymbol Contract symbol
     ///  @param _initialOwner User that owns the contract upon deployment
     ///  @param _fundsRecipient Address that receives funds from sale
+    ///  @param _maxSupply uint64 max supply value
     ///  @param _royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty
     ///  @param _logic Logic contract to use (access control + pricing dynamics)
     ///  @param _logicInit Logic contract initial data
@@ -99,6 +100,7 @@ contract ERC721Press is
         string memory _contractSymbol,
         address _initialOwner,
         address payable _fundsRecipient,
+        uint64 _maxSupply,
         uint16 _royaltyBPS,
         IERC721PressLogic _logic,
         bytes memory _logicInit,
@@ -128,6 +130,7 @@ contract ERC721Press is
 
         // Setup config variables
         config.fundsRecipient = _fundsRecipient;
+        config.maxSupply = _maxSupply;
         config.royaltyBPS = _royaltyBPS;
         config.logic = _logic;
         config.renderer = _renderer;
@@ -175,6 +178,10 @@ contract ERC721Press is
     {
         // Cache msg.sender address
         address sender = msg.sender;
+
+        if (totalSupply() + mintQuantity > config.maxSupply) {
+            revert Exceeds_Total_Supply();
+        }
 
         // Call logic contract to check if user can mint
         if (IERC721PressLogic(config.logic).canMint(address(this), mintQuantity, sender) != true) {
@@ -495,11 +502,9 @@ contract ERC721Press is
         return IERC721PressRenderer(config.renderer).tokenURI(tokenId);
     }
 
-    /// @notice Getter for fundsRecipent address stored in config
-    /// @dev May return 0 or revert if incorrect external logic has been configured
-    /// @dev Can use maxSupplyFallback instead in the above scenario
+    /// @notice Getter for maxSupply value stored in config
     function maxSupply() external view returns (uint64) {
-        return IERC721PressLogic(config.logic).maxSupply();
+        return config.maxSupply;
     }
 
     /// @notice Getter for fundsRecipent address stored in config
@@ -522,6 +527,11 @@ contract ERC721Press is
         return IERC721PressLogic(config.logic);
     }
 
+    /// @notice Getter for maxSupply value stored in config
+    function getMaxSupply() external view returns (uint64) {
+        return config.maxSupply;
+    }    
+
     /// @notice Getter for `feeRecipient` address stored in `primarySaleFeeDetails`
     function getPrimarySaleFeeRecipient() external view returns (address payable) {
         return config.primarySaleFeeRecipient;
@@ -537,6 +547,7 @@ contract ERC721Press is
     function getConfigDetails() external view returns (IERC721Press.Configuration memory) {
         return IERC721Press.Configuration({
             fundsRecipient: config.fundsRecipient,
+            maxSupply: config.maxSupply,
             royaltyBPS: config.royaltyBPS,
             logic: config.logic,
             renderer: config.renderer,
@@ -585,6 +596,19 @@ contract ERC721Press is
 
         _burn(tokenId, true);
     }
+
+    /// @notice User burn function for tokenIds
+    /// @param tokenIds token ids to burn
+    function burnBatch(uint256[] memory tokenIds) public {
+        // For each tokenId, check if burn is allowed for sender
+        for (uint256 i; i < tokenIds.length; ++i) {
+            if (IERC721PressLogic(config.logic).canBurn(address(this), tokenIds[i], msg.sender) != true) {
+                revert No_Burn_Access();
+            }
+
+            _burn(tokenIds[i], true);
+        }
+    }    
 
     /// @notice Start token ID for minting (1-100 vs 0-99)
     function _startTokenId() internal pure override returns (uint256) {

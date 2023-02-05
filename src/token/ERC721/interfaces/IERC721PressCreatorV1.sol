@@ -63,6 +63,7 @@ interface IERC721PressCreatorV1 {
         string memory _contractSymbol,
         address _initialOwner,
         address payable _fundsRecipient,
+        uint64 maxSupply,
         uint16 _royaltyBPS,
         IERC721PressLogic _logic,
         bytes memory _logicInit,
@@ -70,5 +71,5 @@ interface IERC721PressCreatorV1 {
         bytes memory _rendererInit,
         uint16 _primarySaleFeeBPS,
         address payable _primarySaleFeeRecipient
-    ) external returns (address payable newPressAddress);
+    ) external;
 }

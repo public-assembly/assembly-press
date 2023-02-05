@@ -18,6 +18,7 @@ ERC721
 - Concerned with maxSupply living in an external contract. Could break contract if updated incorrectly?
     - Also is it ok being capped at uint64? This is what zora drops are capped at, but the erc1155 maxSuppies were generally capped at uint256
 - Related, testing made it seem like I needed to restrict mintQuantity to uint16 due to the fact you pass in data in the mintWithData call, and you can run into gas comp failures at higher quantities?
+- Had to remove the return `address payable newPress` in ERC721PressCreatorV1 to avoid stack to deep errors. Is this an issue?
 
 Bugs
 - Because erc1155press is using OwnableUpgradeable, it means that the entire “canTransferOwnership” check is irrelevant

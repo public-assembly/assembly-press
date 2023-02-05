@@ -28,6 +28,4 @@ interface IERC721PressLogic {
     function totalMintPrice(address targetPress, uint64 mintQuantity, address mintCaller) external view returns (uint256);    
     /// @notice checks if a given Press has been initialized
     function isInitialized(address targetPress) external view returns (bool);    
-    /// @notice returns maxSupply for givenPress
-    function maxSupply() external view returns (uint64);
 }

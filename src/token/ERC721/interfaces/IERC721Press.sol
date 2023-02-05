@@ -43,6 +43,7 @@ interface IERC721Press {
         address payable primarySaleFeeRecipient;
         IERC721PressLogic logic;
         IERC721PressRenderer renderer;
+        uint64 maxSupply;
         uint16 royaltyBPS;
         uint16 primarySaleFeeBPS;
     }
@@ -66,6 +67,8 @@ interface IERC721Press {
     error No_Transfer_Access();
 
     // Constraint/failure errors
+    /// @notice Exceeds total supply
+    error Exceeds_Total_Supply();
     /// @notice Royalty percentage too high
     error Setup_RoyaltyPercentageTooHigh(uint16 maxRoyaltyBPS);
     /// @notice cannot set address to address(0)
@@ -156,6 +159,7 @@ interface IERC721Press {
         string memory _contractSymbol,
         address _initialOwner,
         address payable _fundsRecipient,
+        uint64 maxSupply,
         uint16 _royaltyBPS,
         IERC721PressLogic _logic,
         bytes memory _logicInit,

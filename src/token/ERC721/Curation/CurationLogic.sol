@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IERC721PressLogic} from "./IERC721PressLogic.sol";
+import {IERC721PressLogic} from "../interfaces/IERC721PressLogic.sol";
 import {IERC721Press} from "../interfaces/IERC721Press.sol";
 import {ERC721Press} from "../ERC721Press.sol";
+import {CurationStorageV1} from "./CurationStorageV1.sol";
+import {ICurationLogic} from "./ICurationLogic.sol";
+// import {IAccessControlRegistry} from "onchain/interfaces/IAccessControlRegistry.sol";
+import {IAccessControlRegistry} from "../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
 
 /**
 * @title ERC721Press
@@ -12,94 +16,7 @@ import {ERC721Press} from "../ERC721Press.sol";
 * @author Max Bochman
 * @author Salief Lewis
 */
-contract CurationLogic is IERC721PressLogic {
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| TYPES ||||||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||  
-
-    struct MintConfig {
-        uint256 mintPrice;
-        uint64 maxSupply;
-        uint64 mintCapPerAddress;
-        uint8 initialized;
-    }    
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| ERRORS |||||||||||||||||||||
-    // |||||||||||||||||||||||||||||||| 
-
-    /// @notice Target Press has not been initialized
-    error Press_Not_Initialized();
-    /// @notice Cannot set address to the zero address
-    error Cannot_Set_Zero_Address();
-    /// @notice Address does not have admin role
-    error Not_Admin();
-    /// @notice Cannot check results for given mint params
-    error Invalid_Mint_Config();
-    /// @notice Protects maxSupply from breaking when swapping in new logic
-    error Cannot_Set_MaxSupply_Below_TotalMinted();
-    /// @notice Array input lengths don't match for access control updates
-    error Invalid_Input_Length();
-    /// @notice Role value is not available 
-    error Invalid_Role();
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| EVENTS |||||||||||||||||||||
-    // |||||||||||||||||||||||||||||||| 
-
-    /// @notice Event emitted when mint config updated
-    /// @param press Press that initialized logic file
-    /// @param mintPrice universal mint price for contract
-    /// @param maxSupply Press maxSupply
-    /// @param mintCapPerAddress Press mintCapPerAddress
-    event MintConfigInitialized(
-        address indexed press,
-        uint256 mintPrice,
-        uint64 maxSupply,
-        uint64 mintCapPerAddress
-    );    
-
-    /// @notice Event emitted when mint config updated
-    /// @param press Press that initialized logic file
-    /// @param mintPrice universal mint price for contract
-    /// @param maxSupply Press maxSupply
-    /// @param mintCapPerAddress Press mintCapPerAddress
-    event MintConfigUpdated(
-        address indexed sender,
-        address indexed press,
-        uint256 mintPrice,
-        uint64 maxSupply,
-        uint64 mintCapPerAddress
-    );
-
-    /// @notice Event emitted when access role is granted to an address
-    /// @param sender address that sent txn
-    /// @param targetPress Press contract role is being issued for
-    /// @param receiver address recieving role
-    /// @param role role being given
-    event RoleGranted(
-        address indexed sender,
-        address indexed targetPress,
-        address indexed receiver,
-        uint256 role
-    );        
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| STORAGE ||||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||  
-
-    // Public constants for access roles
-    uint16 public constant NO_ACCESS = 0;
-    uint16 public constant MINTER = 1;
-    uint16 public constant MANAGER = 2;
-    uint16 public constant ADMIN = 3;    
-
-    /// @notice Press -> wallet -> uint256 access role
-    mapping(address => mapping(address => uint256)) public accessInfo;         
-
-    /// @notice Press -> {mintPrice, initialized, maxSupply, mintCapPerAddress}
-    mapping(address => MintConfig) public mintInfo;           
+contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 { 
 
     // ||||||||||||||||||||||||||||||||
     // ||| MODIFERS |||||||||||||||||||
@@ -108,7 +25,7 @@ contract CurationLogic is IERC721PressLogic {
     /// @notice Checks if target Press has been initialized
     modifier requireInitialized(address targetPress) {
 
-        if (mintInfo[targetPress].initialized == 0) {
+        if (configInfo[targetPress].initialized == 0) {
             revert Press_Not_Initialized();
         }
 
@@ -116,17 +33,34 @@ contract CurationLogic is IERC721PressLogic {
     }        
 
     /// @notice Checks if msg.sender has admin level privileges for given Press contract
-    modifier requireSenderAdmin(address target) {
+    modifier requireSenderAdmin(address targetPress, address senderToCheck) {
 
         if (
-            msg.sender != target && accessInfo[target][msg.sender] < ADMIN
-            && msg.sender != IERC721Press(target).owner()  
+            configInfo[targetPress].accessControl.getAccessLevel(targetPress, senderToCheck) < ADMIN
+            && msg.sender != IERC721Press(targetPress).owner() 
         ) { 
             revert Not_Admin();
         }
 
         _;
     }                
+
+    /// @notice Modifier that ensures curation functionality is active and not frozen
+    ///     and that msg.sender is not the admin
+    modifier onlyActive(address targetPress) {
+        if (
+            configInfo[targetPress].isPaused && 
+            configInfo[targetPress].accessControl.getAccessLevel(targetPress, msg.sender) < ADMIN
+        ) {
+            revert CURATION_PAUSED();
+        }
+
+        if (configInfo[targetPress].frozenAt != 0 && configInfo[targetPress].frozenAt < block.timestamp) {
+            revert CURATION_FROZEN();
+        }
+
+        _;
+    }    
 
     // ||||||||||||||||||||||||||||||||
     // ||| ACCESS CONTROL CHECKS ||||||
@@ -139,9 +73,11 @@ contract CurationLogic is IERC721PressLogic {
         address targetPress, 
         address updateCaller
     ) external view requireInitialized(targetPress) returns (bool) {
-
-        // check if update caller has update access for given target Press
-        if (accessInfo[targetPress][updateCaller] < ADMIN) {            
+        // check if update caller has admin role for given Press
+        if (
+            configInfo[targetPress].accessControl.getAccessLevel(targetPress, updateCaller) < ADMIN
+            && msg.sender != IERC721Press(targetPress).owner() 
+        ) { 
             return false;
         }
 
@@ -156,30 +92,19 @@ contract CurationLogic is IERC721PressLogic {
         address targetPress, 
         uint64 mintQuantity, 
         address mintCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-
+    ) external view requireInitialized(targetPress) onlyActive(targetPress) returns (bool) {
+        // check if mint caller has minter role for given Press
+        if (
+            configInfo[targetPress].accessControl.getAccessLevel(targetPress, mintCaller) < CURATOR
+            && msg.sender != IERC721Press(targetPress).owner() 
+        ) { 
+            return false;
+        }        
         // check if mintQuantity + mintCaller are valid inputs
         if (mintQuantity == 0 || mintCaller == address(0)) {
             return false;
         }
-
-        // check if mint caller has minting access for given mint quantity for given targetPress
-        if (accessInfo[targetPress][mintCaller] < MINTER) {
-            return false;
-        }
         
-        // check to see if mint call will mint tokens over maxSupply
-        if (maxSupplyCheck(targetPress, mintQuantity) != true) {
-            return false;
-        }
-
-        // check to see if mintCaller will exceed per wallet mint cap
-        if (
-            IERC721Press(targetPress).numberMinted(mintCaller)
-            + mintQuantity > mintInfo[targetPress].mintCapPerAddress   
-        ) {
-            return false;
-        }
 
         return true;
     }              
@@ -192,10 +117,14 @@ contract CurationLogic is IERC721PressLogic {
         address editCaller
     ) external view requireInitialized(targetPress) returns (bool) {
 
-        // check if edit caller has metadata editing access for given target Press
-        if (accessInfo[targetPress][editCaller] < MANAGER) {
+        // check if edit caller has edit role for given Press
+        if (
+            configInfo[targetPress].accessControl.getAccessLevel(targetPress, editCaller) < MANAGER
+            && msg.sender != IERC721Press(targetPress).owner() 
+        ) { 
             return false;
-        }
+        }        
+
 
         return true;
     }           
@@ -208,10 +137,13 @@ contract CurationLogic is IERC721PressLogic {
         address withdrawCaller
     ) external view requireInitialized(targetPress) returns (bool) {
 
-        // check if withdrawCaller caller has withdraw access for given target Press
-        if (accessInfo[targetPress][withdrawCaller] < MANAGER) {            
+        // check if withdraw caller has anyone role for given Press
+        if (
+            configInfo[targetPress].accessControl.getAccessLevel(targetPress, withdrawCaller) < ANYONE
+            && msg.sender != IERC721Press(targetPress).owner() 
+        ) { 
             return false;
-        }
+        }  
 
         return true;
     }                   
@@ -224,10 +156,13 @@ contract CurationLogic is IERC721PressLogic {
         address upgradeCaller
     ) external view requireInitialized(targetPress) returns (bool) {
 
-        // check if upgradeCaller has upgrade access for given target Press
-        if (accessInfo[targetPress][upgradeCaller] < ADMIN) {
+        // check if withdraw caller has admin role for given Press
+        if (
+            configInfo[targetPress].accessControl.getAccessLevel(targetPress, upgradeCaller) < ADMIN
+            && msg.sender != IERC721Press(targetPress).owner() 
+        ) { 
             return false;
-        }
+        }  
 
         return true;
     }            
@@ -243,11 +178,11 @@ contract CurationLogic is IERC721PressLogic {
     ) external view requireInitialized(targetPress) returns (bool) {
 
         // check if burnCaller caller has burn access for given target Press
-        if (burnCaller == ERC721Press(payable(targetPress)).ownerOf(tokenId)) {
-            return true;
+        if (burnCaller != ERC721Press(payable(targetPress)).ownerOf(tokenId)) {
+            return false;
         }
 
-        return false;
+        return true;
     }          
 
     /// @notice checks transfer access for a given transfer caller
@@ -258,10 +193,13 @@ contract CurationLogic is IERC721PressLogic {
         address transferCaller
     ) external view requireInitialized(targetPress) returns (bool) {
 
-        // check if transferCaller caller has transfer access for given target Press
-        if (accessInfo[targetPress][transferCaller] < ADMIN) {
+        // check if transfer caller has admin role for given Press
+        if (
+            configInfo[targetPress].accessControl.getAccessLevel(targetPress, transferCaller) < ADMIN
+            && msg.sender != IERC721Press(targetPress).owner() 
+        ) { 
             return false;
-        }
+        }  
 
         return true;
     }      
@@ -275,7 +213,7 @@ contract CurationLogic is IERC721PressLogic {
     function isInitialized(address targetPress) external view returns (bool) {
 
         // return false if targetPress has not been initialized
-        if (mintInfo[targetPress].initialized == 0) {
+        if (configInfo[targetPress].initialized == 0) {
             return false;
         }
 
@@ -292,39 +230,9 @@ contract CurationLogic is IERC721PressLogic {
         address mintCaller
     ) external view requireInitialized(targetPress) returns (uint256) {
 
-        // check if mintQuantity + mintCaller are valid inputs
-        if (mintQuantity == 0 || mintCaller == address(0)) {
-            revert Invalid_Mint_Config();
-        }
-
-        return mintInfo[targetPress].mintPrice;
+        // there is no fee (besides gas) to curate a listing
+        return 0;
     }       
-
-    /// @notice checks value of maxSupply variable in mintInfo mapping for msg.sender
-    /// @dev reverts if msg.sender has not been initialized
-    function maxSupply() external view requireInitialized(msg.sender) returns (uint64) {
-        return mintInfo[msg.sender].maxSupply;
-    }            
-
-    /// @notice checks to see if mint call will mint tokens over maxSupply
-    /// @dev reverts if msg.sender has not been initialized
-    /// @dev returns false if will breach maxSupply, true if not
-    function maxSupplyCheck(address targetPress, uint64 mintQuantity) 
-        internal 
-        view
-        requireInitialized(msg.sender) 
-        returns (bool) 
-    {
-        // check to see if mint call will mint tokens over maxSupply
-        if (
-            IERC721Press(targetPress).lastMintedTokenId() + mintQuantity
-            < mintInfo[targetPress].maxSupply
-        ) {
-            return false;
-        }      
-
-        return true;
-    }           
 
     // ||||||||||||||||||||||||||||||||
     // ||| LOGIC SETUP FUNCTIONS ||||||
@@ -335,113 +243,199 @@ contract CurationLogic is IERC721PressLogic {
     /// @dev updates mappings for msg.sender, so no need to add access control to this function
     /// @param logicInit data to init with
     function initializeWithData(bytes memory logicInit) external {
-        // data format: admin, mintPrice, maxSupply, mintCapPerAddress
-        (
-            address adminInit,
-            uint256 mintPriceInit,
-            uint64 maxSupplyInit,
-            uint64 mintCapPerAddressInit
-        ) = abi.decode(logicInit, (address, uint256, uint64, uint64));
+        address sender = msg.sender;
+        
+        // data format: initialPause, initialListings, accessControl, accessControlInit
+        (   bool initialPause,
+            Listing[] memory initialListings,
+            IAccessControlRegistry accessControl,
+            bytes memory accessControlInit
+        ) = abi.decode(logicInit, (bool, Listing[], IAccessControlRegistry, bytes));
 
-        // check if admin set to the zero address
-        if (adminInit == address(0)) {
+        // check if accessControl set to the zero address
+        if (address(accessControl) == address(0)) {
             revert Cannot_Set_Zero_Address();
         }
 
-        // set initial admin in accessInfo mapping
-        accessInfo[msg.sender][adminInit] = ADMIN;
-
-        // check to see if maxSupply is lower than count of tokens aleady minted
-        if (maxSupplyInit < IERC721Press(msg.sender).lastMintedTokenId()) {
-            revert Cannot_Set_MaxSupply_Below_TotalMinted();
-        }        
-
-        // update mutable values in mintInfo mapping
-        mintInfo[msg.sender].mintPrice = mintPriceInit;
-        mintInfo[msg.sender].maxSupply = maxSupplyInit;
-        mintInfo[msg.sender].mintCapPerAddress = mintCapPerAddressInit;
-
-        // update immutable values in mintInfo mapping
-        mintInfo[msg.sender].initialized = 1;
-
-        emit MintConfigInitialized({
-            press: msg.sender,
-            mintPrice: mintPriceInit,
-            maxSupply: maxSupplyInit,
-            mintCapPerAddress: mintCapPerAddressInit
-        });                   
-    }   
-
-    /// @notice Update access control
-    /// @param targetPress target Press to update access control for
-    /// @param receivers addresses to give roles to
-    /// @param roles roles to give receiver addresses
-    function setAccessControl(
-        address targetPress,
-        address[] memory receivers,
-        uint256[] memory roles
-    ) external requireInitialized(targetPress) requireSenderAdmin(targetPress) {
-
-        // check for input mismatch between receivers & roles
-        if (receivers.length != roles.length) {
-            revert Invalid_Input_Length();
+        // set configInfo[targetPress]
+        configInfo[sender].initialized = 1;
+        configInfo[sender].isPaused = initialPause;
+        configInfo[sender].accessControl = accessControl;
+        // initialize access control
+        accessControl.initializeWithData(accessControlInit);
+        // add listings if any
+        if (initialListings.length != 0) {
+            _addListings(msg.sender, initialListings);
         }
 
-        // initiate for loop for length of receivers array
-        for (uint256 i; i < receivers.length; i++) {
+        emit SetAccessControl(sender, accessControl);                   
+    }       
 
-            // cannot give address(0) a role
-            if (receivers[i] == address(0)) {
-                revert Cannot_Set_Zero_Address();
+    // ||||||||||||||||||||||||||||||||
+    // ||| CURATION FUNCTIONS |||||||||
+    // ||||||||||||||||||||||||||||||||    
+
+    // function called by mintWithData function in ERC721Press mint call that
+    // updates Press specific listings mapping in CuratorStorageV1
+    function updateLogicWithData(bytes memory logicData) external {
+        // logicData: listings
+        (Listing[] memory listings) = abi.decode(logicData, (Listing[]));
+
+        _addListings(msg.sender, listings);
+
+    }
+
+    /// @dev Getter for acessing Listing information for a specific tokenId
+    /// @param targetPress ERC721Press to target 
+    /// @param index aka tokenId to retrieve Listing info for 
+    function getListing(address targetPress, uint256 index) external view override returns (Listing memory) {
+        return idToListing[targetPress][index];
+    }
+
+    /// @dev Getter for acessing Listing information for all active listings
+    /// @param targetPress ERC721Press to target     
+    function getListings(address targetPress) external view override returns (Listing[] memory activeListings) {
+        unchecked {
+            activeListings = new Listing[](configInfo[targetPress].numAdded - configInfo[targetPress].numRemoved);
+
+            uint256 activeIndex;
+
+            for (uint256 i; i < configInfo[targetPress].numAdded; ++i) {
+                // skip this listing if curator has burned the token (sent to zero address)
+                if (ERC721Press(payable(targetPress)).ownerOf(activeIndex) == address(0)) {
+                    continue;
+                }
+
+                activeListings[activeIndex] = idToListing[targetPress][i];
+                ++activeIndex;
             }
+        }
+    }
 
-            // check to see if role value is valid 
-            if (roles[i] > ADMIN ) {
-                revert Invalid_Role();
-            }            
+    /// @dev Getter for acessing Listing information for all active listings
+    /// @param targetPress ERC721Press to target     
+    function getListingsForCurator(address targetPress, address curator) external view returns (Listing[] memory activeListings) {
+        unchecked {
+            activeListings = new Listing[](configInfo[targetPress].numAdded - configInfo[targetPress].numRemoved);
 
-            // grant access role to designated receiever
-            accessInfo[targetPress][receivers[i]] = roles[i];
+            uint256 activeIndex;
+
+            for (uint256 i; i < configInfo[targetPress].numAdded; ++i) {
+                // skip this listing if curator has burned the token (sent to zero address)
+                if (ERC721Press(payable(address(this))).ownerOf(activeIndex) == address(0)) {
+                    continue;
+                }
+                // skip listing if inputted curator address doesnt equal curator for listing
+                if (activeListings[i].curator != curator) {
+                    continue;
+                }
+
+                activeListings[activeIndex] = idToListing[targetPress][i];
+                ++activeIndex;
+            }
+        }
+    }    
+
+
+    /// @dev Allows contract owner to update the ERC721 Curation Pass being used to restrict access to curation functionality
+    /// @param targetPress address of Press to target
+    /// @param setPaused boolean of new curation active state
+    function setCurationPaused(address targetPress, bool setPaused) external {
+        // Checks role of msg.sender for access
+        if (
+            configInfo[targetPress].accessControl.getAccessLevel(targetPress, msg.sender) < ADMIN
+            && msg.sender != IERC721Press(targetPress).owner() 
+        ) { 
+            revert No_Pause_Access();
+        }
+        // Prevents owner from updating the curation active state to the current active state
+        if (configInfo[targetPress].isPaused == setPaused) {
+            revert CANNOT_SET_SAME_PAUSED_STATE();
+        }
+
+        _setCurationPaused(targetPress, setPaused);
+    }
+
+    // internal handler for setCurationPaused function
+    function _setCurationPaused(address targetPress, bool _setPaused) internal {
+        configInfo[targetPress].isPaused = _setPaused;
+
+        emit CurationPauseUpdated(msg.sender, targetPress, _setPaused);
+    }
+
+    /// @dev Allows owner or curator to curate Listings --> which mints a listingRecord token to the msg.sender
+    /// @param listings array of Listing structs
+    function _addListings(address targetPress, Listing[] memory listings) internal {        
             
-            // emit new role as event
-            emit RoleGranted({
-                sender: msg.sender,
-                targetPress: targetPress,
-                receiver: receivers[i],
-                role: roles[i]
-            });
+        // Access control to prevent non curators/manager/admins from accessing
+        if (IAccessControlRegistry(configInfo[targetPress].accessControl).getAccessLevel(address(this), msg.sender) < CURATOR ) {
+            revert ACCESS_NOT_ALLOWED();
+        }            
+
+        _processAddListings(targetPress, listings, msg.sender);
+    }
+
+    function _processAddListings(address targetPress, Listing[] memory listings, address sender) internal {
+        for (uint256 i = 0; i < listings.length; ++i) {
+            if (listings[i].curator != sender) {
+                revert WRONG_CURATOR_FOR_LISTING(listings[i].curator, sender);
+            }
+            if (listings[i].chainId == 0) {
+                listings[i].chainId = uint16(block.chainid);
+            }
+            idToListing[targetPress][configInfo[targetPress].numAdded] = listings[i];
+            ++configInfo[targetPress].numAdded;
         }
-    }        
+    }
 
-    /// @notice Update minting logic
-    /// @param targetPress target for contract to update minting logic for
-    /// @param mintPrice mintPrice uint256
-    /// @param maxSupply maxSupply uint64
-    /// @param mintCapPerAddress mintCapPerAddress uint64
-    /// @dev does not provide ability to edit initialized variable
-    function updateMintConfig(
-        address targetPress,
-        uint256 mintPrice,
-        uint64 maxSupply,
-        uint64 mintCapPerAddress
-    ) external requireInitialized(targetPress) requireSenderAdmin(targetPress) {
-
-        // check to see if maxSupply is lower than count of tokens aleady minted
-        if (maxSupply < IERC721Press(targetPress).lastMintedTokenId()) {
-            revert Cannot_Set_MaxSupply_Below_TotalMinted();
+    /// @dev Allows owner or curator to curate Listings --> which mints listingRecords to the msg.sender
+    /// @param targetPress address of target ERC721Press    
+    /// @param tokenIds listingRecords to update SortOrders for    
+    /// @param sortOrders sortOrdres to update listingRecords
+    function updateSortOrders(
+        address targetPress, 
+        uint256[] calldata tokenIds, 
+        int32[] calldata sortOrders
+    ) external onlyActive(targetPress) {
+        
+        // prevents users from submitting invalid inputs
+        if (tokenIds.length != sortOrders.length) {
+            revert INVALID_INPUT_LENGTH();
         }
 
-        // update MintConfig for target Press
-        mintInfo[targetPress].mintPrice = mintPrice;
-        mintInfo[targetPress].maxSupply = maxSupply;
-        mintInfo[targetPress].mintCapPerAddress = mintCapPerAddress;
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            // skip this listing if curator has burned the token (sent to zero address)
+            if (ERC721Press(payable(address(targetPress))).ownerOf(tokenIds[i]) != msg.sender) {
+                revert No_SortOrder_Access();
+            }          
+            _setSortOrder(targetPress, tokenIds[i], sortOrders[i]);
+        }
+        emit UpdatedSortOrder(targetPress, tokenIds, sortOrders, msg.sender);
+    }
 
-        emit MintConfigUpdated({
-            sender: msg.sender,
-            press: targetPress,
-            mintPrice: mintPrice,
-            maxSupply: maxSupply,
-            mintCapPerAddress: mintCapPerAddress
-        });
-    }         
+    // prevents non-owners from updating the SortOrder on a listingRecord they did not curate themselves 
+    function _setSortOrder(address targetPress, uint256 listingId, int32 sortOrder) internal {
+        idToListing[targetPress][listingId].sortOrder = sortOrder;
+    }
+
+    /// @dev Allows contract owner to freeze all contract functionality starting from a given Unix timestamp
+    /// @param targetPress ERC721Press to target
+    /// @param timestamp unix timestamp in seconds
+    function freezeAt(address targetPress, uint256 timestamp) external {
+
+        if (
+            configInfo[targetPress].accessControl.getAccessLevel(targetPress, msg.sender) < ADMIN
+            && msg.sender != IERC721Press(targetPress).owner() 
+        ) { 
+            revert No_Freeze_Access();
+        }
+
+        // Prevents owner from adjusting freezeAt time if contract alrady frozen
+        if (configInfo[targetPress].frozenAt != 0 && configInfo[targetPress].frozenAt < block.timestamp) {
+            revert CURATION_FROZEN();
+        }
+        // update frozen at value
+        configInfo[targetPress].frozenAt = timestamp;
+        emit ScheduledFreeze(targetPress, timestamp);
+    }  
 }
