@@ -245,12 +245,11 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     function initializeWithData(bytes memory logicInit) external {
         address sender = msg.sender;
         
-        // data format: initialPause, initialListings, accessControl, accessControlInit
+        // data format: initialPause, accessControl, accessControlInit
         (   bool initialPause,
-            Listing[] memory initialListings,
             IAccessControlRegistry accessControl,
             bytes memory accessControlInit
-        ) = abi.decode(logicInit, (bool, Listing[], IAccessControlRegistry, bytes));
+        ) = abi.decode(logicInit, (bool, IAccessControlRegistry, bytes));
 
         // check if accessControl set to the zero address
         if (address(accessControl) == address(0)) {
@@ -260,13 +259,8 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         // set configInfo[targetPress]
         configInfo[sender].initialized = 1;
         configInfo[sender].isPaused = initialPause;
-        configInfo[sender].accessControl = accessControl;
         // initialize access control
         accessControl.initializeWithData(accessControlInit);
-        // add listings if any
-        if (initialListings.length != 0) {
-            _addListings(msg.sender, initialListings);
-        }
 
         emit SetAccessControl(sender, accessControl);                   
     }       
@@ -322,7 +316,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
 
             for (uint256 i; i < configInfo[targetPress].numAdded; ++i) {
                 // skip this listing if curator has burned the token (sent to zero address)
-                if (ERC721Press(payable(address(this))).ownerOf(activeIndex) == address(0)) {
+                if (ERC721Press(payable(targetPress)).ownerOf(activeIndex) == address(0)) {
                     continue;
                 }
                 // skip listing if inputted curator address doesnt equal curator for listing
@@ -368,7 +362,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     function _addListings(address targetPress, Listing[] memory listings) internal {        
             
         // Access control to prevent non curators/manager/admins from accessing
-        if (IAccessControlRegistry(configInfo[targetPress].accessControl).getAccessLevel(address(this), msg.sender) < CURATOR ) {
+        if (IAccessControlRegistry(configInfo[targetPress].accessControl).getAccessLevel(address(this), msg.sender) < CURATOR) {
             revert ACCESS_NOT_ALLOWED();
         }            
 
@@ -383,8 +377,9 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
             if (listings[i].chainId == 0) {
                 listings[i].chainId = uint16(block.chainid);
             }
-            idToListing[targetPress][configInfo[targetPress].numAdded] = listings[i];
+            // increase numAdded by one so that it matches tokenId being minted
             ++configInfo[targetPress].numAdded;
+            idToListing[targetPress][configInfo[targetPress].numAdded] = listings[i];            
         }
     }
 
