@@ -5,3 +5,5 @@ openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contr
 openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/
 erc721a-upgradeable/=lib/erc721a-upgradeable/contracts/
 solmate/=lib/solmate/src/
+onchain/=lib/onchain/remote-access-control/src/
+micro-onchain-metadata-utils/=lib/micro-onchain-metadata-utils/src/

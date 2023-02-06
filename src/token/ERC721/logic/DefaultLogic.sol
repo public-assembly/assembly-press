@@ -90,7 +90,7 @@ contract DefaultLogic is IERC721PressLogic {
     // ||||||||||||||||||||||||||||||||  
 
     // Public constants for access roles
-    uint16 public constant NO_ACCESS = 0;
+    uint16 public constant ANYONE = 0;
     uint16 public constant MINTER = 1;
     uint16 public constant MANAGER = 2;
     uint16 public constant ADMIN = 3;    
@@ -328,7 +328,9 @@ contract DefaultLogic is IERC721PressLogic {
 
     // ||||||||||||||||||||||||||||||||
     // ||| LOGIC SETUP FUNCTIONS ||||||
-    // ||||||||||||||||||||||||||||||||          
+    // ||||||||||||||||||||||||||||||||
+    
+    function updateLogicWithData(address targetPress, bytes memory initData) public {}              
 
     /// @notice Default logic initializer for a given Press
     /// @notice admin cannot be set to the zero address

@@ -33,6 +33,7 @@ import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UU
 import {IERC721PressCreatorV1} from "./interfaces/IERC721PressCreatorV1.sol";
 import {IERC721PressLogic} from "./interfaces/IERC721PressLogic.sol";
 import {IERC721PressRenderer} from "./interfaces/IERC721PressRenderer.sol";
+import {IERC721Press} from "./interfaces/IERC721Press.sol";
 import {ERC721PressProxy} from "./proxy/ERC721PressProxy.sol";
 import {OwnableUpgradeable} from "../../utils/utils/OwnableUpgradeable.sol";
 import {Version} from "../../utils/utils/Version.sol";
@@ -49,14 +50,41 @@ contract ERC721PressCreatorV1 is IERC721PressCreatorV1, OwnableUpgradeable, UUPS
     /// @notice Implementation contract behind Press proxies
     address public immutable pressImpl;
 
+    /// @notice Logic contract for Curation strategy
+    IERC721PressLogic public immutable curatorLogicImpl;    
+
+    /// @notice Metadata renderer contract for Curation strategy
+    IERC721PressRenderer public immutable curatorRendererImpl;       
+
+    /// @notice Access control module that creates non-admin controlled open access environment
+    address public immutable openAccessImpl;        
+
+    /// @notice recommended IERC721Press.Config params for configuring curaiton contracts
+    ///     that are fully open to the public
+    IERC721Press.Configuration openCurationConfig = IERC721Press.Configuration({
+        fundsRecipient: payable(address(0)),
+        maxSupply: type(uint64).max,
+        royaltyBPS: 0,
+        primarySaleFeeRecipient: payable(address(0)),
+        primarySaleFeeBPS: 0
+    });    
+
     /// @notice Sets the implementation address upon deployment
-    constructor(address _pressImpl) {
+    constructor(address _pressImpl, IERC721PressLogic _curLogImpl, IERC721PressRenderer _curRendImpl, address _openAccessImpl) {
         /// Reverts if the given implementation address is zero.
-        if (_pressImpl == address(0)) revert Address_Cannot_Be_Zero();
+        if (_pressImpl == address(0) || address(_curLogImpl) == address(0) || address(_curRendImpl) == address(0)) revert Address_Cannot_Be_Zero();
 
         pressImpl = _pressImpl;
 
+        curatorLogicImpl = _curLogImpl;
+
+        curatorRendererImpl = _curRendImpl;
+
+        openAccessImpl = _openAccessImpl;
+
         emit PressInitialized(pressImpl);
+
+        emit CurationStrategyInitialized(curatorLogicImpl, curatorRendererImpl, openAccessImpl);
     }
 
     /// @notice Initializes the proxy behind `PressFactory.sol`
@@ -68,51 +96,69 @@ contract ERC721PressCreatorV1 is IERC721PressCreatorV1, OwnableUpgradeable, UUPS
     }
 
     /// @notice Creates a new, creator-owned proxy of `ERC721Press.sol`
-    ///  @dev Optional `primarySaleFeeBPS` + `primarySaleFeeRecipient` cannot be adjusted after initialization
-    ///  @param name Contract name
-    ///  @param symbol Contract symbol
-    ///  @param defaultAdmin User that owns the contract upon deployment
-    ///  @param fundsRecipient Address that receives funds from sale
-    ///  @param royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty
-    ///  @param logic Logic contract to use (access control + pricing dynamics)
-    ///  @param logicInit Logic contract initial data
-    ///  @param renderer Renderer contract to use
-    ///  @param rendererInit Renderer initial data
-    ///  @param primarySaleFeeBPS Optional fee to set on primary sales
-    ///  @param primarySaleFeeRecipient Funds recipient on primary sales
+    /// @param name Contract name
+    /// @param symbol Contract symbol
+    /// @param initialOwner User that owns the contract upon deployment
+    /// @param logic Logic contract to use
+    /// @param logicInit Logic contract initial data
+    /// @param renderer Renderer contract to use
+    /// @param rendererInit Renderer initial data
+    /// @param soulbound false = tokens in contract are transferrable, true = tokens are non-transferrable
+    /// @param configuration see IERC721Press for details  
     function createPress(
         string memory name,
         string memory symbol,
-        address defaultAdmin,
-        address payable fundsRecipient,
-        uint16 royaltyBPS,
+        address initialOwner,
         IERC721PressLogic logic,
         bytes memory logicInit,
         IERC721PressRenderer renderer,
         bytes memory rendererInit,
-        uint16 primarySaleFeeBPS,
-        address payable primarySaleFeeRecipient
-    ) public returns (address payable newPressAddress) {
+        bool soulbound,
+        IERC721Press.Configuration memory configuration        
+    ) public returns (address) {
         /// Configure ownership details in proxy constructor
         ERC721PressProxy newPress = new ERC721PressProxy(pressImpl, "");
 
-        /// Declare a new variable to track contract creation
-        newPressAddress = payable(address(newPress));
-
         /// Initialize the new Press instance
-        ERC721Press(newPressAddress).initialize({
+        ERC721Press(payable(address(newPress))).initialize({
             _contractName: name,
             _contractSymbol: symbol,
-            _initialOwner: defaultAdmin,
-            _fundsRecipient: fundsRecipient,
-            _royaltyBPS: royaltyBPS,
+            _initialOwner: initialOwner,
             _logic: logic,
             _logicInit: logicInit,
             _renderer: renderer,
-            _rendererInit: rendererInit,
-            _primarySaleFeeBPS: primarySaleFeeBPS,
-            _primarySaleFeeRecipient: primarySaleFeeRecipient
+            _rendererInit: rendererInit,                   
+            _soulbound: soulbound,
+            _configuration: configuration            
         });
+
+        return address(newPress);
+    }
+
+    function createCuration(
+        string memory name,
+        string memory symbol
+    ) public returns (address) {
+        /// @notice recommended param used in conjunction with openCurationConfig 
+        bytes memory openCurationInit = abi.encode(false, openAccessImpl, ""); 
+
+        /// Configure ownership details in proxy constructor
+        ERC721PressProxy newPress = new ERC721PressProxy(pressImpl, "");
+
+        /// Initialize the new Press instance
+        ERC721Press(payable(address(newPress))).initialize({
+            _contractName: name,
+            _contractSymbol: symbol,
+            _initialOwner: 0x000000000000000000000000000000000000dEaD,
+            _logic: curatorLogicImpl,
+            _logicInit: openCurationInit,
+            _renderer: curatorRendererImpl,
+            _rendererInit: "",                   
+            _soulbound: true,
+            _configuration: openCurationConfig            
+        });        
+
+        return address(newPress);
     }
 
     /// @dev Can only be called by the contract owner

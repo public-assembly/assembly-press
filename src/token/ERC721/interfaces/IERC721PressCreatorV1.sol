@@ -31,44 +31,51 @@ pragma solidity ^0.8.16;
 
 import {IERC721PressLogic} from "./IERC721PressLogic.sol";
 import {IERC721PressRenderer} from "./IERC721PressRenderer.sol";
+import {IERC721Press} from "./IERC721Press.sol";
 
 interface IERC721PressCreatorV1 {
-    // ||||||||||||||||||||||||||||||||
-    // ||| ERRORS |||||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||
+  // ||||||||||||||||||||||||||||||||
+  // ||| ERRORS |||||||||||||||||||||
+  // ||||||||||||||||||||||||||||||||
 
-    /// @notice Implementation address cannot be set to zero
-    error Address_Cannot_Be_Zero();
+  /// @notice Implementation address cannot be set to zero
+  error Address_Cannot_Be_Zero();
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| EVENTS |||||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||
+  // ||||||||||||||||||||||||||||||||
+  // ||| EVENTS |||||||||||||||||||||
+  // ||||||||||||||||||||||||||||||||
 
-    /// @notice Emitted when a Press instance is initialized
-    event PressInitialized(address indexed pressImpl);
+  /// @notice Emitted when a Press instance is initialized
+  event PressInitialized(address indexed pressImpl);
 
-    /// @notice Emitted when the PressFactory is initialized
-    event PressFactoryInitialized();
+  /// @notice Emitted when a Press instance is initialized
+  event CurationStrategyInitialized(IERC721PressLogic indexed curLogImpl, IERC721PressRenderer indexed curRendImpl, address indexed openAccessImpl);
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| FUNCTIONS ||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||
+  /// @notice Emitted when the PressFactory is initialized
+  event PressFactoryInitialized();
 
-    /// @notice Initializes the proxy behind a PressFactory
-    function initialize(address _initialOwner) external;
+  // ||||||||||||||||||||||||||||||||
+  // ||| FUNCTIONS ||||||||||||||||||
+  // ||||||||||||||||||||||||||||||||
 
-    /// @notice Creates a new, creator-owned proxy of `ERC721Press.sol`
-    function createPress(
-        string memory _contractName,
-        string memory _contractSymbol,
-        address _initialOwner,
-        address payable _fundsRecipient,
-        uint16 _royaltyBPS,
-        IERC721PressLogic _logic,
-        bytes memory _logicInit,
-        IERC721PressRenderer _renderer,
-        bytes memory _rendererInit,
-        uint16 _primarySaleFeeBPS,
-        address payable _primarySaleFeeRecipient
-    ) external returns (address payable newPressAddress);
+  /// @notice Initializes the proxy behind a PressFactory
+  function initialize(address _initialOwner) external;
+
+  /// @notice Creates a new, creator-owned proxy of `ERC721Press.sol`
+  function createPress(
+    string memory name,
+    string memory symbol,
+    address initialOwner,
+    IERC721PressLogic logic,
+    bytes memory logicInit,
+    IERC721PressRenderer renderer,
+    bytes memory rendererInit,
+    bool soulbound,
+    IERC721Press.Configuration memory configuration   
+  ) external returns (address);
+
+  function createCuration(
+    string memory name,
+    string memory symbol
+  ) external returns (address)  ;
 }
