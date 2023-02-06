@@ -9,16 +9,13 @@ General
 - What pragma solidity should we use?
 
 ERC1155
-- Need extensive review on how I customized the solmate 1155 impl to enable soulbound functionality following eip-5633
+- Need review on how I customized the solmate 1155 impl to enable soulbound functionality following eip-5633
 - Need review on the withdraw functions which implement an internal tracking system to associate funds received with certain tokenIds
 - Some of the imports stored in utils folders could/should just be direct imports from OZ (ex: OwnableUpgradeable)
 
 ERC721
 - Not sure how to implement EIP4096 for metadata updates — since metadata is updated through the external metadataRenderer but EIP4096 compliance requires event to be called from the erc721 contract
-- Concerned with maxSupply living in an external contract. Could break contract if updated incorrectly?
-    - Also is it ok being capped at uint64? This is what zora drops are capped at, but the erc1155 maxSuppies were generally capped at uint256
 - Related, testing made it seem like I needed to restrict mintQuantity to uint16 due to the fact you pass in data in the mintWithData call, and you can run into gas comp failures at higher quantities?
-- Had to remove the return `address payable newPress` in ERC721PressCreatorV1 to avoid stack to deep errors. Is this an issue?
 
 Bugs
 - Because erc1155press is using OwnableUpgradeable, it means that the entire “canTransferOwnership” check is irrelevant
