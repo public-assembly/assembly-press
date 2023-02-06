@@ -1,12 +1,39 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
+/*
+
+
+                                                             .:^!?JJJJ?7!^..                    
+                                                         .^?PB#&&&&&&&&&&&#B57:                 
+                                                       :JB&&&&&&&&&&&&&&&&&&&&&G7.              
+                                                  .  .?#&&&&#7!77??JYYPGB&&&&&&&&#?.            
+                                                ^.  :PB5?7G&#.          ..~P&&&&&&&B^           
+                                              .5^  .^.  ^P&&#:    ~5YJ7:    ^#&&&&&&&7          
+                                             !BY  ..  ^G&&&&#^    J&&&&#^    ?&&&&&&&&!         
+..           : .           . !.             Y##~  .   G&&&&&#^    ?&&&&G.    7&&&&&&&&B.        
+..           : .            ?P             J&&#^  .   G&&&&&&^    :777^.    .G&&&&&&&&&~        
+~GPPP55YYJJ??? ?7!!!!~~~~~~7&G^^::::::::::^&&&&~  .   G&&&&&&^          ....P&&&&&&&&&&7  .     
+ 5&&&&&&&&&&&Y #&&&&&&&&&&#G&&&&&&&###&&G.Y&&&&5. .   G&&&&&&^    .??J?7~.  7&&&&&&&&&#^  .     
+  P#######&&&J B&&&&&&&&&&~J&&&&&&&&&&#7  P&&&&#~     G&&&&&&^    ^#P7.     :&&&&&&&##5. .      
+     ........  ...::::::^: .~^^~!!!!!!.   ?&&&&&B:    G&&&&&&^    .         .&&&&&#BBP:  .      
+                                          .#&&&&&B:   Y&&&&&&~              7&&&BGGGY:  .       
+                                           ~&&&&&&#!  .!B&&&&BP5?~.        :##BP55Y~. ..        
+                                            !&&&&&&&P^  .~P#GY~:          ^BPYJJ7^. ...         
+                                             :G&&&&&&&G7.  .            .!Y?!~:.  .::           
+                                               ~G&&&&&&&#P7:.          .:..   .:^^.             
+                                                 :JB&&&&&&&&BPJ!^:......::^~~~^.                
+                                                    .!YG#&&&&&&&&##GPY?!~:..                    
+                                                         .:^^~~^^:.
+
+
+*/
+
 import {IERC721PressLogic} from "../interfaces/IERC721PressLogic.sol";
 import {IERC721Press} from "../interfaces/IERC721Press.sol";
 import {ERC721Press} from "../ERC721Press.sol";
 import {CurationStorageV1} from "./CurationStorageV1.sol";
 import {ICurationLogic} from "./ICurationLogic.sol";
-// import {IAccessControlRegistry} from "onchain/interfaces/IAccessControlRegistry.sol";
 import {IAccessControlRegistry} from "../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
 
 /**
@@ -35,10 +62,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     /// @notice Checks if msg.sender has admin level privileges for given Press contract
     modifier requireSenderAdmin(address targetPress, address senderToCheck) {
 
-        if (
-            configInfo[targetPress].accessControl.getAccessLevel(targetPress, senderToCheck) < ADMIN
-            && msg.sender != IERC721Press(targetPress).owner() 
-        ) { 
+        if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, senderToCheck) < ADMIN) { 
             revert Not_Admin();
         }
 
@@ -76,7 +100,6 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         // check if update caller has admin role for given Press
         if (
             configInfo[targetPress].accessControl.getAccessLevel(targetPress, updateCaller) < ADMIN
-            && msg.sender != IERC721Press(targetPress).owner() 
         ) { 
             return false;
         }
@@ -92,12 +115,9 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         address targetPress, 
         uint64 mintQuantity, 
         address mintCaller
-    ) external view requireInitialized(targetPress) onlyActive(targetPress) returns (bool) {
+    ) external view requireInitialized(targetPress)  returns (bool) {
         // check if mint caller has minter role for given Press
-        if (
-            configInfo[targetPress].accessControl.getAccessLevel(targetPress, mintCaller) < CURATOR
-            && msg.sender != IERC721Press(targetPress).owner() 
-        ) { 
+        if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, mintCaller) < CURATOR) { 
             return false;
         }        
         // check if mintQuantity + mintCaller are valid inputs
@@ -105,7 +125,6 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
             return false;
         }
         
-
         return true;
     }              
 
@@ -118,13 +137,9 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     ) external view requireInitialized(targetPress) returns (bool) {
 
         // check if edit caller has edit role for given Press
-        if (
-            configInfo[targetPress].accessControl.getAccessLevel(targetPress, editCaller) < MANAGER
-            && msg.sender != IERC721Press(targetPress).owner() 
-        ) { 
+        if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, editCaller) < MANAGER) { 
             return false;
         }        
-
 
         return true;
     }           
@@ -138,10 +153,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     ) external view requireInitialized(targetPress) returns (bool) {
 
         // check if withdraw caller has anyone role for given Press
-        if (
-            configInfo[targetPress].accessControl.getAccessLevel(targetPress, withdrawCaller) < ANYONE
-            && msg.sender != IERC721Press(targetPress).owner() 
-        ) { 
+        if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, withdrawCaller) < ANYONE) { 
             return false;
         }  
 
@@ -157,10 +169,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     ) external view requireInitialized(targetPress) returns (bool) {
 
         // check if withdraw caller has admin role for given Press
-        if (
-            configInfo[targetPress].accessControl.getAccessLevel(targetPress, upgradeCaller) < ADMIN
-            && msg.sender != IERC721Press(targetPress).owner() 
-        ) { 
+        if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, upgradeCaller) < ADMIN) { 
             return false;
         }  
 
@@ -230,7 +239,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         address mintCaller
     ) external view requireInitialized(targetPress) returns (uint256) {
 
-        // there is no fee (besides gas) to curate a listing
+        // There is no fee (besides gas) to curate a listing
         return 0;
     }       
 
@@ -246,7 +255,8 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         address sender = msg.sender;
         
         // data format: initialPause, accessControl, accessControlInit
-        (   bool initialPause,
+        (   
+            bool initialPause,
             IAccessControlRegistry accessControl,
             bytes memory accessControlInit
         ) = abi.decode(logicInit, (bool, IAccessControlRegistry, bytes));
@@ -259,8 +269,9 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         // set configInfo[targetPress]
         configInfo[sender].initialized = 1;
         configInfo[sender].isPaused = initialPause;
+        configInfo[sender].accessControl = accessControl;
         // initialize access control
-        accessControl.initializeWithData(accessControlInit);
+        accessControl.initializeWithData(accessControlInit);   
 
         emit SetAccessControl(sender, accessControl);                   
     }       
@@ -271,19 +282,27 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
 
     // function called by mintWithData function in ERC721Press mint call that
     // updates Press specific listings mapping in CuratorStorageV1
-    function updateLogicWithData(bytes memory logicData) external {
+    function updateLogicWithData(address updateSender, bytes memory logicData) external {
         // logicData: listings
         (Listing[] memory listings) = abi.decode(logicData, (Listing[]));
 
-        _addListings(msg.sender, listings);
-
+        // Access control to prevent non curators/manager/admins from accessing
+        if (configInfo[msg.sender].accessControl.getAccessLevel(msg.sender, updateSender) < CURATOR) {
+            revert ACCESS_NOT_ALLOWED();
+        }              
+        
+        // msg.sender must be the ERC721Press contract in this instance. 
+        // even if someone wanted to put in a fake updateSender address by calling this through etherscan
+        // they wouldnt be able to spoof the fact that msg.sender on this is the ERC721Press
+        // in that case, they would be both the msg.sender AND the updateSender
+        _addListings(msg.sender, updateSender, listings);
     }
 
     /// @dev Getter for acessing Listing information for a specific tokenId
     /// @param targetPress ERC721Press to target 
-    /// @param index aka tokenId to retrieve Listing info for 
-    function getListing(address targetPress, uint256 index) external view override returns (Listing memory) {
-        return idToListing[targetPress][index];
+    /// @param tokenId tokenId to retrieve Listing info for 
+    function getListing(address targetPress, uint256 tokenId) external view override returns (Listing memory) {
+        return idToListing[targetPress][tokenId-1];
     }
 
     /// @dev Getter for acessing Listing information for all active listings
@@ -292,15 +311,16 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         unchecked {
             activeListings = new Listing[](configInfo[targetPress].numAdded - configInfo[targetPress].numRemoved);
 
-            uint256 activeIndex;
+            // first tokenId in ERC721Press impl is #1
+            uint256 activeIndex = 1;
 
             for (uint256 i; i < configInfo[targetPress].numAdded; ++i) {
                 // skip this listing if curator has burned the token (sent to zero address)
-                if (ERC721Press(payable(targetPress)).ownerOf(activeIndex) == address(0)) {
+                if (ERC721Press(payable(targetPress)).exists(activeIndex) != true) {
                     continue;
                 }
 
-                activeListings[activeIndex] = idToListing[targetPress][i];
+                activeListings[activeIndex-1] = idToListing[targetPress][i];
                 ++activeIndex;
             }
         }
@@ -308,11 +328,12 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
 
     /// @dev Getter for acessing Listing information for all active listings
     /// @param targetPress ERC721Press to target     
-    function getListingsForCurator(address targetPress, address curator) external view returns (Listing[] memory activeListings) {
+    function getListingsForCurator(address targetPress, address curator) external view override returns (Listing[] memory activeListings) {
         unchecked {
             activeListings = new Listing[](configInfo[targetPress].numAdded - configInfo[targetPress].numRemoved);
 
-            uint256 activeIndex;
+            // first tokenId in ERC721Press impl is #1
+            uint256 activeIndex = 1;
 
             for (uint256 i; i < configInfo[targetPress].numAdded; ++i) {
                 // skip this listing if curator has burned the token (sent to zero address)
@@ -320,16 +341,15 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
                     continue;
                 }
                 // skip listing if inputted curator address doesnt equal curator for listing
-                if (activeListings[i].curator != curator) {
+                if (idToListing[targetPress][i].curator != curator) {       
                     continue;
                 }
 
-                activeListings[activeIndex] = idToListing[targetPress][i];
+                activeListings[activeIndex-1] = idToListing[targetPress][i];
                 ++activeIndex;
             }
         }
     }    
-
 
     /// @dev Allows contract owner to update the ERC721 Curation Pass being used to restrict access to curation functionality
     /// @param targetPress address of Press to target
@@ -359,27 +379,17 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
 
     /// @dev Allows owner or curator to curate Listings --> which mints a listingRecord token to the msg.sender
     /// @param listings array of Listing structs
-    function _addListings(address targetPress, Listing[] memory listings) internal {        
-            
-        // Access control to prevent non curators/manager/admins from accessing
-        if (IAccessControlRegistry(configInfo[targetPress].accessControl).getAccessLevel(address(this), msg.sender) < CURATOR) {
-            revert ACCESS_NOT_ALLOWED();
-        }            
+    function _addListings(address targetPress, address curator, Listing[] memory listings) internal {                          
 
-        _processAddListings(targetPress, listings, msg.sender);
-    }
-
-    function _processAddListings(address targetPress, Listing[] memory listings, address sender) internal {
         for (uint256 i = 0; i < listings.length; ++i) {
-            if (listings[i].curator != sender) {
-                revert WRONG_CURATOR_FOR_LISTING(listings[i].curator, sender);
+            if (listings[i].curator != curator) {
+                revert WRONG_CURATOR_FOR_LISTING(listings[i].curator, curator);
             }
             if (listings[i].chainId == 0) {
                 listings[i].chainId = uint16(block.chainid);
             }
-            // increase numAdded by one so that it matches tokenId being minted
-            ++configInfo[targetPress].numAdded;
-            idToListing[targetPress][configInfo[targetPress].numAdded] = listings[i];            
+            idToListing[targetPress][configInfo[targetPress].numAdded] = listings[i];                    
+            ++configInfo[targetPress].numAdded;            
         }
     }
 

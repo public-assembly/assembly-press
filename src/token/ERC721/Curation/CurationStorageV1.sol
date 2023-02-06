@@ -12,7 +12,7 @@ abstract contract CurationStorageV1 is ICurationLogic {
     /// @dev Can contain blank entries (not garbage compacted!)
     mapping(address => mapping(uint256 => Listing)) public idToListing;
 
-    /// @notice address => config information
+    /// @notice Press => config information
     mapping(address => Config) public configInfo;
 
     // Public constants for curation types.

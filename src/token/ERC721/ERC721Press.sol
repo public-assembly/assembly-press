@@ -46,11 +46,13 @@ import {Version} from "../../utils/utils/Version.sol";
 import {FundsReceiver} from "../../utils/utils/FundsReceiver.sol";
 
 import {ERC721PressStorageV1} from "./storage/ERC721PressStorageV1.sol";
+import {IERC5192} from "./Curation/IERC5192.sol";
 
 /**
  * @title ERC721Press
  * @notice Extensible ERC721A implementation
  * @dev Functionality is configurable using external renderer + logic contracts
+ * @dev Uses EIP-5192 for optional non-transferrable token implementation
  * @author Max Bochman
  * @author Salief Lewis
  */
@@ -63,7 +65,8 @@ contract ERC721Press is
     OwnableUpgradeable,
     Version(1),
     ERC721PressStorageV1,
-    FundsReceiver
+    FundsReceiver,
+    IERC5192
 {
     /// @dev Recommended max mint batch size for ERC721A
     uint256 internal immutable MAX_MINT_BATCH_SIZE = 8;
@@ -78,36 +81,30 @@ contract ERC721Press is
     // ||| INITIALIZER ||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    ///  @notice Initializes a new, creator-owned proxy of ERC721Press.sol
-    ///  @dev Optional primarySaleFeeBPS + primarySaleFeeRecipient
-    ///       cannot be adjusted after initialization
-    ///  @dev initializerERC721A for ERC721AUpgradeable
-    //        initializer` for OpenZeppelin's OwnableUpgradeable
-    ///  @param _contractName Contract name
-    ///  @param _contractSymbol Contract symbol
-    ///  @param _initialOwner User that owns the contract upon deployment
-    ///  @param _fundsRecipient Address that receives funds from sale
-    ///  @param _maxSupply uint64 max supply value
-    ///  @param _royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty
-    ///  @param _logic Logic contract to use (access control + pricing dynamics)
-    ///  @param _logicInit Logic contract initial data
-    ///  @param _renderer Renderer contract to use
-    ///  @param _rendererInit Renderer initial data
-    ///  @param _primarySaleFeeRecipient Funds recipient on primary sales    
-    ///  @param _primarySaleFeeBPS Optional fee to set on primary sales
+    /// @notice Initializes a new, creator-owned proxy of ERC721Press.sol
+    /// @dev Optional config.primarySaleFeeBPS + config.primarySaleFeeRecipient
+    ///      + config.soulbound cannot be adjusted after initialization
+    /// @dev initializerERC721A for ERC721AUpgradeable
+    ///      initializer` for OpenZeppelin's OwnableUpgradeable
+    /// @param _contractName Contract name
+    /// @param _contractSymbol Contract symbol
+    /// @param _initialOwner User that owns the contract upon deployment
+    /// @param _logic Logic contract to use (access control + pricing dynamics)
+    /// @param _logicInit Logic contract initial data    
+    /// @param _renderer Renderer contract to use    
+    /// @param _rendererInit Renderer initial data
+    /// @param _soulbound false = tokens in contract are transferrable, true = tokens are non-transferrable
+    /// @param _configuration see IERC721Press for details        
     function initialize(
         string memory _contractName,
         string memory _contractSymbol,
         address _initialOwner,
-        address payable _fundsRecipient,
-        uint64 _maxSupply,
-        uint16 _royaltyBPS,
         IERC721PressLogic _logic,
         bytes memory _logicInit,
-        IERC721PressRenderer _renderer,
+        IERC721PressRenderer _renderer,            
         bytes memory _rendererInit,
-        address payable _primarySaleFeeRecipient,
-        uint16 _primarySaleFeeBPS        
+        bool _soulbound,
+        Configuration memory _configuration
     ) public initializerERC721A initializer {
         // Setup ERC721A
         __ERC721A_init(_contractName, _contractSymbol);
@@ -118,48 +115,42 @@ contract ERC721Press is
         // Set ownership to original sender of contract call
         __Ownable_init(_initialOwner);
 
-        // Check if fundsRecipient, logic, or renderer are being set to the zero address
-        if (_fundsRecipient == address(0) || address(_logic) == address(0) || address(_renderer) == address(0)) {
-            revert Cannot_Set_Zero_Address();
-        }
-
-        // Check if _royaltyBPS is higher than immutable MAX_ROYALTY_BPS value
-        if (_royaltyBPS > MAX_ROYALTY_BPS) {
-            revert Setup_RoyaltyPercentageTooHigh(MAX_ROYALTY_BPS);
-        }
+        // Setup non-config variables
+        _logicImpl = _logic;
+        _rendererImpl = _renderer;
+        _isSoulbound = _soulbound;
 
         // Setup config variables
-        config.fundsRecipient = _fundsRecipient;
-        config.maxSupply = _maxSupply;
-        config.royaltyBPS = _royaltyBPS;
-        config.logic = _logic;
-        config.renderer = _renderer;
+        config.fundsRecipient = _configuration.fundsRecipient;
+        config.maxSupply = _configuration.maxSupply;
+        config.royaltyBPS = _configuration.royaltyBPS;
 
-        // Initialize logic + renderer
+        // Initialize logic + renderer contracts
         _logic.initializeWithData(_logicInit);
-        _renderer.initializeWithData(_rendererInit);
+        _renderer.initializeWithData(_rendererInit);        
 
         // Setup optional primary sales fee, skip if primarySalefeeBPS is set to zero
-        if (_primarySaleFeeBPS != 0) {
+        if (_configuration.primarySaleFeeBPS != 0) {
             // Cannot set primarySaleFeeRecipient to zero address if feeBPS does not equal zero
-            if (_primarySaleFeeRecipient == address(0)) {
+            if (_configuration.primarySaleFeeRecipient == address(0)) {
                 revert Cannot_Set_Zero_Address();
             }
 
             // Update primarySaleFee values in config, can not be updated after
-            config.primarySaleFeeRecipient = _primarySaleFeeRecipient;
-            config.primarySaleFeeBPS = _primarySaleFeeBPS;
-        }
+            config.primarySaleFeeRecipient = _configuration.primarySaleFeeRecipient;
+            config.primarySaleFeeBPS = _configuration.primarySaleFeeBPS;
+        }        
 
-        emit IERC721Press.ERC1155PressInitialized({
+        emit IERC721Press.ERC721PressInitialized({
             sender: msg.sender,
             logic: _logic,
             renderer: _renderer,
-            fundsRecipient: _fundsRecipient,
-            royaltyBPS: _royaltyBPS,
-            primarySaleFeeRecipient: _primarySaleFeeRecipient,
-            primarySaleFeeBPS: _primarySaleFeeBPS
-        });
+            fundsRecipient: _configuration.fundsRecipient,
+            royaltyBPS: _configuration.royaltyBPS,
+            primarySaleFeeRecipient: _configuration.primarySaleFeeRecipient,
+            primarySaleFeeBPS: _configuration.primarySaleFeeBPS,
+            soulbound: _soulbound
+        });        
     }
 
     // ||||||||||||||||||||||||||||||||
@@ -184,7 +175,7 @@ contract ERC721Press is
         }
 
         // Call logic contract to check if user can mint
-        if (IERC721PressLogic(config.logic).canMint(address(this), mintQuantity, sender) != true) {
+        if (IERC721PressLogic(_logicImpl).canMint(address(this), mintQuantity, sender) != true) {
             revert No_Mint_Access();
         }
 
@@ -192,7 +183,7 @@ contract ERC721Press is
         uint256 msgValue = msg.value;
 
         // Call logic contract to check what mintPrice is for given quantity + user
-        if (msgValue != IERC721PressLogic(config.logic).totalMintPrice(address(this), mintQuantity, sender)) {
+        if (msgValue != IERC721PressLogic(_logicImpl).totalMintPrice(address(this), mintQuantity, sender)) {
             revert Incorrect_Msg_Value();
         }
 
@@ -200,12 +191,10 @@ contract ERC721Press is
         _mintNFTs(sender, mintQuantity);
 
         // Cache tokenId of first minted token so tokenId mint range can be reconstituted using events
-        uint256 firstMintedTokenId = lastMintedTokenId() - mintQuantity;
+        uint256 firstMintedTokenId = lastMintedTokenId() - mintQuantity + 1;
 
-        // Initialize the token's metadata if mintData is not empty
-        if (mintData.length != 0) {
-            IERC721PressRenderer(config.renderer).initializeTokenMetadata(mintData);
-        }
+        // Update external logic file with data corresponding to this mint
+        IERC721PressLogic(_logicImpl).updateLogicWithData(msg.sender, mintData);
 
         emit IERC721Press.MintWithData({
             recipient: sender,
@@ -214,6 +203,13 @@ contract ERC721Press is
             totalMintPrice: msgValue,
             firstMintedTokenId: firstMintedTokenId
         });
+
+        // emit locked events if contract tokens' have been configured as soulbound
+        if (_isSoulbound == true) {
+            for (uint256 i; i < mintQuantity; ++i) {
+                emit Locked(firstMintedTokenId + i);
+            }   
+        }
 
         return firstMintedTokenId;
     }
@@ -239,7 +235,7 @@ contract ERC721Press is
     /// @param newOwner address of the new owner
     function setOwner(address newOwner) public {
         // Check if msg.sender can transfer ownership
-        if (msg.sender != owner() && IERC721PressLogic(config.logic).canTransfer(address(this), msg.sender) != true) {
+        if (msg.sender != owner() && IERC721PressLogic(_logicImpl).canTransfer(address(this), msg.sender) != true) {
             revert No_Transfer_Access();
         }
 
@@ -256,7 +252,7 @@ contract ERC721Press is
     /// @param newRoyaltyBPS uint16 value of `royaltyBPS`
     function setRoyaltyBPS(uint16 newRoyaltyBPS) external nonReentrant {
         // Call logic contract to check is msg.sender can update
-        if (IERC721PressLogic(config.logic).canUpdateConfig(address(this), msg.sender) != true) {
+        if (IERC721PressLogic(_logicImpl).canUpdateConfig(address(this), msg.sender) != true) {
             revert No_Config_Access();
         }
 
@@ -270,8 +266,8 @@ contract ERC721Press is
 
         emit UpdatedConfig({
             sender: msg.sender,
-            logic: config.logic,
-            renderer: config.renderer,
+            logic: _logicImpl,
+            renderer: _rendererImpl,
             fundsRecipient: config.fundsRecipient,
             royaltyBPS: newRoyaltyBPS
         });        
@@ -282,7 +278,7 @@ contract ERC721Press is
     /// @param newFundsRecipient payable address to receive funds via withdraw
     function setFundsRecipient(address payable newFundsRecipient) external nonReentrant {
         // Call logic contract to check is msg.sender can update
-        if (IERC721PressLogic(config.logic).canUpdateConfig(address(this), msg.sender) != true) {
+        if (IERC721PressLogic(_logicImpl).canUpdateConfig(address(this), msg.sender) != true) {
             revert No_Config_Access();
         }
 
@@ -296,20 +292,20 @@ contract ERC721Press is
 
         emit UpdatedConfig({
             sender: msg.sender,
-            logic: config.logic,
-            renderer: config.renderer,
+            logic: _logicImpl,
+            renderer: _rendererImpl,
             fundsRecipient: newFundsRecipient,
             royaltyBPS: config.royaltyBPS
         }); 
     }
 
-    /// @notice Function to set config.logic
+    /// @notice Function to set _logicImpl
     /// @dev Cannot set logic to the zero address
     /// @param newLogic logic address to handle general contract logic
     /// @param newLogicInit data to initialize logic
     function setLogic(IERC721PressLogic newLogic, bytes memory newLogicInit) external nonReentrant {
         // Call logic contract to check is msg.sender can update
-        if (IERC721PressLogic(config.logic).canUpdateConfig(address(this), msg.sender) != true) {
+        if (IERC721PressLogic(_logicImpl).canUpdateConfig(address(this), msg.sender) != true) {
             revert No_Config_Access();
         }
 
@@ -319,25 +315,25 @@ contract ERC721Press is
         }
 
         // Update logic contract in config and initialize it
-        config.logic = newLogic;
+        _logicImpl = newLogic;
         IERC721PressLogic(newLogic).initializeWithData(newLogicInit);
 
         emit UpdatedConfig({
             sender: msg.sender,
             logic: newLogic,
-            renderer: config.renderer,
+            renderer: _rendererImpl,
             fundsRecipient: config.fundsRecipient,
             royaltyBPS: config.royaltyBPS
         }); 
     }
 
-    /// @notice Function to set config.renderer
+    /// @notice Function to set _rendererImpl
     /// @dev Cannot set renderer to the zero address
     /// @param newRenderer renderer address to handle metadata logic
     /// @param newRendererInit data to initialize renderer
     function setRenderer(IERC721PressRenderer newRenderer, bytes memory newRendererInit) external nonReentrant {
         // Call logic contract to check is msg.sender can update
-        if (IERC721PressLogic(config.logic).canUpdateConfig(address(this), msg.sender) != true) {
+        if (IERC721PressLogic(_logicImpl).canUpdateConfig(address(this), msg.sender) != true) {
             revert No_Config_Access();
         }
 
@@ -347,19 +343,19 @@ contract ERC721Press is
         }
 
         // Update renderer in config
-        config.renderer = newRenderer;
+        _rendererImpl = newRenderer;
         IERC721PressRenderer(newRenderer).initializeWithData(newRendererInit);
 
         emit UpdatedConfig({
             sender: msg.sender,
-            logic: config.logic,
+            logic: _logicImpl,
             renderer: newRenderer,
             fundsRecipient: config.fundsRecipient,
             royaltyBPS: config.royaltyBPS
         }); 
     }
 
-    /// @notice Function to set config.logic
+    /// @notice Function to set _logicImpl
     /// @dev Cannot set fundsRecipient or logic or renderer to address(0)
     /// @dev Max `newRoyaltyBPS` value = 5000
     /// @param newFundsRecipient payable address to recieve funds via withdraw
@@ -377,7 +373,7 @@ contract ERC721Press is
         bytes memory newRendererInit
     ) external nonReentrant {
         // Call logic contract to check is msg.sender can update
-        if (IERC721PressLogic(config.logic).canUpdateConfig(address(this), msg.sender) != true) {
+        if (IERC721PressLogic(_logicImpl).canUpdateConfig(address(this), msg.sender) != true) {
             revert No_Config_Access();
         }
 
@@ -429,11 +425,11 @@ contract ERC721Press is
         config.royaltyBPS = newRoyaltyBPS;
 
         // Update logic in config + initialize it
-        config.logic = newLogic;
+        _logicImpl = newLogic;
         IERC721PressLogic(newLogic).initializeWithData(newLogicInit);
 
         // Update renderer in config + initialize it
-        config.renderer = newRenderer;
+        _rendererImpl = newRenderer;
         IERC721PressRenderer(newRenderer).initializeWithData(newRendererInit);
 
         return true;
@@ -449,7 +445,7 @@ contract ERC721Press is
         address sender = msg.sender;
 
         // Check if withdraw is allowed for sender
-        if (sender != owner() && IERC721PressLogic(config.logic).canWithdraw(address(this), sender) != true) {
+        if (sender != owner() && IERC721PressLogic(_logicImpl).canWithdraw(address(this), sender) != true) {
             revert No_Withdraw_Access();
         }
 
@@ -487,7 +483,7 @@ contract ERC721Press is
     /// @notice Contract uri getter
     /// @dev Call proxies to renderer
     function contractURI() external view returns (string memory) {
-        return IERC721PressRenderer(config.renderer).contractURI();
+        return IERC721PressRenderer(_rendererImpl).contractURI();
     }
 
     /// @notice Token uri getter
@@ -499,7 +495,7 @@ contract ERC721Press is
             revert IERC721AUpgradeable.URIQueryForNonexistentToken();
         }
 
-        return IERC721PressRenderer(config.renderer).tokenURI(tokenId);
+        return IERC721PressRenderer(_rendererImpl).tokenURI(tokenId);
     }
 
     /// @notice Getter for maxSupply value stored in config
@@ -519,12 +515,12 @@ contract ERC721Press is
 
     /// @notice Getter for renderer contract stored in config
     function getRenderer() external view returns (IERC721PressRenderer) {
-        return IERC721PressRenderer(config.renderer);
+        return _rendererImpl;
     }
 
     /// @notice Getter for logic contract stored in config
     function getLogic() external view returns (IERC721PressLogic) {
-        return IERC721PressLogic(config.logic);
+        return _logicImpl;
     }
 
     /// @notice Getter for maxSupply value stored in config
@@ -542,6 +538,11 @@ contract ERC721Press is
         return config.primarySaleFeeBPS;
     }
 
+    /// @notice Getter for contract tokens' non-transferability status
+    function isSoulbound() external view returns (bool) {
+        return _isSoulbound;
+    }
+
     /// @notice Config details
     /// @return IERC721Press.Configuration details
     function getConfigDetails() external view returns (IERC721Press.Configuration memory) {
@@ -549,12 +550,19 @@ contract ERC721Press is
             fundsRecipient: config.fundsRecipient,
             maxSupply: config.maxSupply,
             royaltyBPS: config.royaltyBPS,
-            logic: config.logic,
-            renderer: config.renderer,
             primarySaleFeeRecipient: config.primarySaleFeeRecipient,
             primarySaleFeeBPS: config.primarySaleFeeBPS
         });
     }
+
+    function locked(uint256 tokenId) external virtual override(IERC5192, IERC721Press) view returns (bool) {
+        // if soulbound == true, return true (IS SOULBOUND)
+        if (_isSoulbound == true) {
+            return true;
+        } else {
+            return false;
+        }
+    }     
 
     /// @dev Get royalty information for token
     /// @param _salePrice sale price for the token
@@ -579,7 +587,8 @@ contract ERC721Press is
         returns (bool)
     {
         return super.supportsInterface(interfaceId) || type(IOwnableUpgradeable).interfaceId == interfaceId
-            || type(IERC2981Upgradeable).interfaceId == interfaceId || type(IERC721Press).interfaceId == interfaceId;
+            || type(IERC2981Upgradeable).interfaceId == interfaceId || type(IERC721Press).interfaceId == interfaceId
+            || interfaceId == type(IERC5192).interfaceId;                    
     }
 
     // ||||||||||||||||||||||||||||||||
@@ -590,7 +599,7 @@ contract ERC721Press is
     /// @param tokenId token id to burn
     function burn(uint256 tokenId) public {
         // Check if burn is allowed for sender
-        if (IERC721PressLogic(config.logic).canBurn(address(this), tokenId, msg.sender) != true) {
+        if (IERC721PressLogic(_logicImpl).canBurn(address(this), tokenId, msg.sender) != true) {
             revert No_Burn_Access();
         }
 
@@ -602,7 +611,7 @@ contract ERC721Press is
     function burnBatch(uint256[] memory tokenIds) public {
         // For each tokenId, check if burn is allowed for sender
         for (uint256 i; i < tokenIds.length; ++i) {
-            if (IERC721PressLogic(config.logic).canBurn(address(this), tokenIds[i], msg.sender) != true) {
+            if (IERC721PressLogic(_logicImpl).canBurn(address(this), tokenIds[i], msg.sender) != true) {
                 revert No_Burn_Access();
             }
 
@@ -626,6 +635,51 @@ contract ERC721Press is
         return _numberMinted(ownerAddress);
     }    
 
+    // @notice Getter that returns true if token has been minted and not burned
+    function exists(uint256 tokenId) external view returns (bool) {
+        return _exists(tokenId);   
+    }
+
+    /*
+        The following overrdes enable an optional soulbound
+        implementation that conforms to EIP-5192
+    */
+
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public payable override {
+        super.safeTransferFrom(from, to, tokenId, data);
+        if (_isSoulbound == true) {
+            revert Non_Transferrable_Token();
+        }
+    }
+
+    function safeTransferFrom(address from, address to, uint256 tokenId) public payable override {
+        super.safeTransferFrom(from, to, tokenId);
+        if (_isSoulbound == true) {
+            revert Non_Transferrable_Token();
+        }
+    }    
+
+    function transferFrom(address from, address to, uint256 tokenId) public payable override {
+        super.transferFrom(from, to, tokenId);
+        if (_isSoulbound == true) {
+            revert Non_Transferrable_Token();
+        }
+    }        
+
+    function approve(address approved, uint256 tokenId) public payable override {
+        super.approve(approved, tokenId);
+        if (_isSoulbound == true) {
+            revert Non_Transferrable_Token();
+        }        
+    }
+
+    function setApprovalForAll(address operator, bool approved) public override {
+        super.setApprovalForAll(operator, approved);
+        if (_isSoulbound == true) {
+            revert Non_Transferrable_Token();
+        }        
+    }        
+
     // ||||||||||||||||||||||||||||||||
     // ||| UPGRADES |||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
@@ -636,7 +690,7 @@ contract ERC721Press is
 
     modifier canUpgrade() {
         // call logic contract to check is msg.sender can upgrade
-        if (IERC721PressLogic(config.logic).canUpgrade(address(this), msg.sender) != true && owner() != msg.sender) {
+        if (IERC721PressLogic(_logicImpl).canUpgrade(address(this), msg.sender) != true && owner() != msg.sender) {
             revert No_Upgrade_Access();
         }
 

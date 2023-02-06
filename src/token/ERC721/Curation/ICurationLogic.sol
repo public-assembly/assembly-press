@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-// import { IAccessControlRegistry } from "onchain/interfaces/IAccessControlRegistry.sol";
 import {IAccessControlRegistry} from "../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
 
 /**
@@ -23,7 +22,6 @@ interface ICurationLogic {
     // ||||||||||||||||||||||||||||||||
     // ||| FUNCTIONS ||||||||||||||||||
     // ||||||||||||||||||||||||||||||||    
-    
     
     /// @notice Convience getter for Generic/unknown types (default 0). Used for metadata as well.
     function CURATION_TYPE_GENERIC() external view returns (uint16);
@@ -79,6 +77,10 @@ interface ICurationLogic {
 
     /// @notice Getter for a all listings
     function getListings(address targetPress) external view returns (Listing[] memory activeListings);
+
+    /// @dev Getter for acessing Listing information for all active listings
+    /// @param targetPress ERC721Press to target     
+    function getListingsForCurator(address targetPress, address curator) external view returns (Listing[] memory activeListings);
 
     // ||||||||||||||||||||||||||||||||
     // ||| EVENTS |||||||||||||||||||||

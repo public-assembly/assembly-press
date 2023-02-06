@@ -38,11 +38,17 @@ interface IERC721Press {
     // ||| TYPES ||||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
+
+    /// @param _fundsRecipient Address that receives funds from sale
+    /// @param _maxSupply uint64 max supply value
+    /// @param _royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty
+    /// @param _logic Logic contract to use (access control + pricing dynamics)
+    /// @param _renderer Renderer contract to use
+    /// @param _primarySaleFeeRecipient Funds recipient on primary sales    
+    /// @param _primarySaleFeeBPS Optional fee to set on primary sales
     struct Configuration {
         address payable fundsRecipient;
         address payable primarySaleFeeRecipient;
-        IERC721PressLogic logic;
-        IERC721PressRenderer renderer;
         uint64 maxSupply;
         uint16 royaltyBPS;
         uint16 primarySaleFeeBPS;
@@ -79,6 +85,8 @@ interface IERC721Press {
     error Withdraw_FundsSendFailure();
     /// @notice error setting config varibles
     error Set_Config_Fail();
+    /// @notice error when transferring non-transferrable token
+    error Non_Transferrable_Token();
 
     // ||||||||||||||||||||||||||||||||
     // ||| EVENTS |||||||||||||||||||||
@@ -97,14 +105,16 @@ interface IERC721Press {
     /// @param royaltyBPS ERC2981 compliant secondary sales basis points (divide by 10_000 for %)
     /// @param primarySaleFeeRecipient recipient address of optional primary sale fees
     /// @param primarySaleFeeBPS percent BPS of optimal primary sale fee
-    event ERC1155PressInitialized(
+    /// @param soulbound false = tokens in contract are transferrable, true = non-transferrable
+    event ERC721PressInitialized(
         address indexed sender,
         IERC721PressLogic indexed logic,
         IERC721PressRenderer indexed renderer,
         address payable fundsRecipient,
         uint16 royaltyBPS,
         address payable primarySaleFeeRecipient,
-        uint16 primarySaleFeeBPS 
+        uint16 primarySaleFeeBPS,
+        bool soulbound
     );
 
     /// @notice Event emitted for each mint
@@ -158,15 +168,12 @@ interface IERC721Press {
         string memory _contractName,
         string memory _contractSymbol,
         address _initialOwner,
-        address payable _fundsRecipient,
-        uint64 maxSupply,
-        uint16 _royaltyBPS,
         IERC721PressLogic _logic,
         bytes memory _logicInit,
         IERC721PressRenderer _renderer,
         bytes memory _rendererInit,
-        address payable _primarySaleFeeRecipient,        
-        uint16 _primarySaleFeeBPS
+        bool _soulbound,
+        Configuration memory configuration
     ) external;
 
     /// @notice allows user to mint token(s) from the Press contract
@@ -223,7 +230,7 @@ interface IERC721Press {
     function withdraw() external;
 
     /// @notice Public owner setting that can be set by the contract admin
-    function owner() external view returns (address);
+    function owner() external view returns (address); 
 
     /// @notice Contract uri getter
     /// @dev Call proxies to renderer
@@ -257,8 +264,17 @@ interface IERC721Press {
     /// @notice Getter for `feeBPS` stored in `primarySaleFeeDetails`
     function getPrimarySaleFeeBPS() external view returns (uint16);      
 
+    /// @notice Getter for contract tokens' non-transferability status
+    function isSoulbound() external view returns (bool);
+
     /// @notice Function to return global config details for the given Press
-    function getConfigDetails() external view returns (Configuration memory);
+    function getConfigDetails() external view returns (Configuration memory);       
+
+    /// @notice Returns the locking status of an Soulbound Token
+    /// @dev SBTs assigned to zero address are considered invalid, and queries
+    /// about them do throw.
+    /// @param tokenId The identifier for an SBT.
+    function locked(uint256 tokenId) external view returns (bool); 
 
     /// @dev Get royalty information for token
     /// @param _salePrice sale price for the token
@@ -273,4 +289,7 @@ interface IERC721Press {
 
     /// @notice Getter that returns number of tokens minted for a given address
     function numberMinted(address ownerAddress) external view returns (uint256);
+
+    // @notice Getter that returns true if token has been minted and not burned
+    function exists(uint256 tokenId) external view returns (bool);    
 }

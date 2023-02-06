@@ -328,7 +328,9 @@ contract DefaultLogic is IERC721PressLogic {
 
     // ||||||||||||||||||||||||||||||||
     // ||| LOGIC SETUP FUNCTIONS ||||||
-    // ||||||||||||||||||||||||||||||||          
+    // ||||||||||||||||||||||||||||||||
+    
+    function updateLogicWithData(address targetPress, bytes memory initData) public {}              
 
     /// @notice Default logic initializer for a given Press
     /// @notice admin cannot be set to the zero address
