@@ -71,7 +71,7 @@ contract ERC1155Press is
     // ||| CONSTANTS ||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    /// @dev Max basis points (BPS) for secondary royalties + finders fee
+    /// @dev Max basis points (BPS) for secondary royalties + primary sales fee
     uint16 constant public MAX_BPS = 50_00;
 
     /// @dev Gas limit to send funds
@@ -98,21 +98,17 @@ contract ERC1155Press is
         IERC1155PressContractLogic _contractLogic,
         bytes memory _contractLogicInit
     ) public initializer {
-
         // Setup reentrancy guard
         __ReentrancyGuard_init();
-
-        // Set ownership to original sender of contract call
+        // Setup owner for Ownable 
         __Ownable_init(_initialOwner);
 
         // Setup contract name + contract symbol. Cannot be updated after initialization
         name = _name;
         symbol = _symbol;
 
-        // Setup contract level logic
+        // Setup + initialize contract level logic
         contractLogic = _contractLogic;
-
-        // Initialize contract level logic
         IERC1155PressContractLogic(_contractLogic).initializeWithData(_contractLogicInit);
 
         emit ERC1155PressInitialized({
@@ -161,10 +157,6 @@ contract ERC1155Press is
         if (msg.value != IERC1155PressContractLogic(contractLogic).mintNewPrice(address(this), msg.sender, recipients, quantity)) {
             revert Incorrect_Msg_Value();
         }        
-        // Check to see if logic or renderer set to zero address
-        if (address(logic) == address(0) || address(renderer) == address(0)) {
-            revert Cannot_Set_Zero_Address();
-        }
         // Check to see if royaltyBPS and feeBPS set to acceptable levels
         if (royaltyBPS > MAX_BPS || primarySaleFeeBPS > MAX_BPS) {
             revert Setup_PercentageTooHigh(MAX_BPS);
@@ -187,25 +179,21 @@ contract ERC1155Press is
         configInfo[tokenId].fundsRecipient = fundsRecipient;
         configInfo[tokenId].royaltyBPS = royaltyBPS;
         // Set token specific primry sale fee recipient + feeBPS. Cannot be updated after set 
-        if (primarySaleFeeRecipient != address(0)) {            
-            configInfo[tokenId].primarySaleFeeRecipient = primarySaleFeeRecipient;        
-            configInfo[tokenId].primarySaleFeeBPS = primarySaleFeeBPS;
-        }        
+        configInfo[tokenId].primarySaleFeeRecipient = primarySaleFeeRecipient;        
+        configInfo[tokenId].primarySaleFeeBPS = primarySaleFeeBPS;
         // Set token specific soulbound value. false = transferable, true = non-transferable
         configInfo[tokenId].soulbound = soulbound;
 
-        // Initialize token and logic + renderer
+        // Initialize token logic + renderer
         IERC1155PressTokenLogic(logic).initializeWithData(tokenId, logicInit);
         IERC1155TokenRenderer(renderer).initializeWithData(tokenId, rendererInit);  
 
         // For each recipient provided, mint them given quantity of tokenId being newly minted
         for (uint256 i = 0; i < recipients.length; ++i) {
-            
             // Check to see if any recipient is zero address
             if (recipients[i] == address(0)) {
                 revert Cannot_Set_Zero_Address();
             }
-
             // Mint quantity of given tokenId to recipient
             _mint(recipients[i], tokenId, quantity, new bytes(0));
 
@@ -237,16 +225,19 @@ contract ERC1155Press is
         address[] memory recipients,
         uint256 quantity
     ) external payable nonReentrant {
+        // Cache msg.sender + msg.value
+        (uint256 msgValue, address sender) = (msg.value, msg.sender);
+
         // Check to see if tokenId being minted exists
         if (tokenId > _tokenCount) {
             revert Token_Doesnt_Exist(tokenId);
         }
         // Call token level logic contract to check if user can mint
-        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canMintExisting(address(this), msg.sender, tokenId, recipients, quantity) != true) {
+        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canMintExisting(address(this), sender, tokenId, recipients, quantity) != true) {
             revert No_MintExisting_Access();
         }   
         // Call logic contract to check what msg.value needs to be sent for given Press + tokenIds + quantities + msg.sender
-        if (msg.value != IERC1155PressTokenLogic(configInfo[tokenId].logic).mintExistingPrice(address(this), tokenId, msg.sender, recipients, quantity)) {
+        if (msg.value != IERC1155PressTokenLogic(configInfo[tokenId].logic).mintExistingPrice(address(this), tokenId, sender, recipients, quantity)) {
             revert Incorrect_Msg_Value();
         }        
         // Check to see if minted quantity exceeds maxSupply
@@ -256,26 +247,25 @@ contract ERC1155Press is
 
         // Mint desired quantity of desired tokenId to each provided recipient
         for (uint256 i; i < recipients.length; ++i) {
-
             // Mint quantity of given tokenId to recipient
             _mint(recipients[i], tokenId, quantity, new bytes(0));
 
             emit ExistingTokenMinted({
                 tokenId: tokenId,
-                sender: msg.sender,
+                sender: sender,
                 recipient: recipients[i],
                 quantity: quantity
             });    
         }
 
         // Update tokenId => tokenFundsInfo mapping
-        tokenFundsInfo[tokenId] += msg.value;
+        tokenFundsInfo[tokenId] += msgValue;
 
         // Update tracking of funds associated with given tokenId in tokenFundsInfo
         emit TokenFundsIncreased({
             tokenId: tokenId,
-            sender: msg.sender,            
-            amount: msg.value
+            sender: sender,            
+            amount: msgValue
         });        
     }
 
@@ -375,6 +365,8 @@ contract ERC1155Press is
     /// @param ids tokenIds to burn
     /// @param amounts quantities to burn
     function batchBurn(uint256[] memory ids, uint256[] memory amounts) public {
+        // Cache msg.sender
+        address sender = msg.sender;
         
         // prevents users from submitting invalid inputs
         if (ids.length != amounts.length) {
@@ -384,12 +376,12 @@ contract ERC1155Press is
         // check for burn perimssion for each token
         for (uint256 i; i < ids.length; ++i) {
             // Check if burn is allowed for sender
-            if (IERC1155PressTokenLogic(configInfo[ids[i]].logic).canBurn(address(this), ids[i], amounts[i], msg.sender) != true) {
+            if (IERC1155PressTokenLogic(configInfo[ids[i]].logic).canBurn(address(this), ids[i], amounts[i], sender) != true) {
                 revert No_Burn_Access();
             }            
         }
 
-        _batchBurn(msg.sender, ids, amounts);
+        _batchBurn(sender, ids, amounts);
     }   
 
     // ||||||||||||||||||||||||||||||||
@@ -404,10 +396,6 @@ contract ERC1155Press is
         // Call logic contract to check is msg.sender can update
         if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
             revert No_Config_Access();
-        }
-        // Check if `newFundsRecipient` is the zero address
-        if (newFundsRecipient == address(0)) {
-            revert Cannot_Set_Zero_Address();
         }
 
         // Update `fundsRecipient` address in config
@@ -424,47 +412,17 @@ contract ERC1155Press is
         });
     }
 
-    /// @notice Function to set configInfo[tokenId].royaltyBPS
-    /// @dev Max value = 5000
-    /// @param tokenId tokenId to target
-    /// @param newRoyaltyBPS uint16 value of `royaltyBPS`
-    function setRoyaltyBPS(uint256 tokenId, uint16 newRoyaltyBPS) external nonReentrant {
-        // Call logic contract to check is msg.sender can update config for given Press + token
-        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
-            revert No_Config_Access();
-        }
-        // Check if `newRoyaltyBPS` is higher than immutable `MAX_BPS` value
-        if (newRoyaltyBPS > MAX_BPS) {
-            revert Setup_PercentageTooHigh(MAX_BPS);
-        }
-
-        // Update `royaltyBPS in config
-        configInfo[tokenId].royaltyBPS = newRoyaltyBPS;
-
-        emit UpdatedConfig({
-            tokenId: tokenId,
-            sender: msg.sender, 
-            logic: configInfo[tokenId].logic,
-            renderer: configInfo[tokenId].renderer,
-            fundsRecipient: configInfo[tokenId].fundsRecipient,
-            royaltyBPS: newRoyaltyBPS,
-            soulbound: configInfo[tokenId].soulbound
-        });
-    }
-
     /// @notice Function to set configInfo[tokenId].logic
     /// @dev Cannot set `logic` to the zero address
     /// @param tokenId tokenId to target
     /// @param newLogic logic address to handle general contract logic
     /// @param newLogicInit data to initialize logic
     function setLogic(uint256 tokenId, IERC1155PressTokenLogic newLogic, bytes memory newLogicInit) external nonReentrant {
+        // Cache msg.sender
+        address sender = msg.sender;        
         // Call logic contract to check is msg.sender can update config for given Press + token
-        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
+        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, sender) != true) {
             revert No_Config_Access();
-        }
-        // Check if `newLogic` is the zero address
-        if (address(newLogic) == address(0)) {
-            revert Cannot_Set_Zero_Address();
         }
 
         // Update logic in config and initialize it
@@ -473,7 +431,7 @@ contract ERC1155Press is
 
         emit UpdatedConfig({
             tokenId: tokenId,
-            sender: msg.sender, 
+            sender: sender, 
             logic: newLogic,
             renderer: configInfo[tokenId].renderer,
             fundsRecipient: configInfo[tokenId].fundsRecipient,
@@ -488,13 +446,11 @@ contract ERC1155Press is
     /// @param newRenderer renderer address to handle general contract renderer
     /// @param newRendererInit data to initialize renderer
     function setRenderer(uint256 tokenId, IERC1155TokenRenderer newRenderer, bytes memory newRendererInit) external nonReentrant {
+        // Cache msg.sender
+        address sender = msg.sender;
         // Call logic contract to check is msg.sender can update config for given Press + token
-        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
+        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, sender) != true) {
             revert No_Config_Access();
-        }
-        // Check if `newRenderer` is the zero address
-        if (address(newRenderer) == address(0)) {
-            revert Cannot_Set_Zero_Address();
         }
 
         // Update renderer in config and initialize it
@@ -503,7 +459,7 @@ contract ERC1155Press is
 
         emit UpdatedConfig({
             tokenId: tokenId,
-            sender: msg.sender, 
+            sender: sender, 
             logic: configInfo[tokenId].logic,
             renderer: newRenderer,
             fundsRecipient: configInfo[tokenId].fundsRecipient,
@@ -535,7 +491,6 @@ contract ERC1155Press is
         if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canUpdateConfig(address(this), tokenId, msg.sender) != true) {
             revert No_Config_Access();
         }
-
         // Store success bool of _setConfig() operation
         (bool setSuccess) = _setConfig(
             tokenId, 
@@ -546,12 +501,10 @@ contract ERC1155Press is
             newRenderer, 
             newRendererInit
         );
-
         // Check if config update was successful
         if (!setSuccess) {
             revert Set_Config_Fail();
         }
-
         // Fetch soulbound value to avoid stack too deep in event emission
         bool soulboundValue = configInfo[tokenId].soulbound;
 
@@ -576,10 +529,6 @@ contract ERC1155Press is
         IERC1155TokenRenderer newRenderer,
         bytes memory newRendererInit
     ) internal returns (bool) {
-        // Check if supplied addresses are the zero address
-        if (newFundsRecipient == address(0) || address(newLogic) == address(0) || address(newRenderer) == address(0)) {
-            revert Cannot_Set_Zero_Address();
-        }
         // Check if newRoyaltyBPS is higher than immutable MAX_BPS value
         if (newRoyaltyBPS > MAX_BPS) {
             revert Setup_PercentageTooHigh(MAX_BPS);
@@ -587,14 +536,11 @@ contract ERC1155Press is
 
         // Update fundsRecipient address in config
         configInfo[tokenId].fundsRecipient = newFundsRecipient;
-
         // Update royaltyBPS in config
         configInfo[tokenId].royaltyBPS = newRoyaltyBPS;
-
         // Update logic contract address in config + initialize it
         configInfo[tokenId].logic = newLogic;
         newLogic.initializeWithData(tokenId, newLogicInit);
-
         // Update renderer address in config + initialize it
         configInfo[tokenId].renderer = newRenderer;
         newRenderer.initializeWithData(tokenId, newRendererInit);
@@ -625,8 +571,10 @@ contract ERC1155Press is
     /// @notice Allows user to withdraw funds generated by a given tokenId to the designated funds recipient for that token
     /// @param tokenId which tokenId to withdraw funds from
     function withdraw(uint256 tokenId) external nonReentrant {
+        // Cache msg.sender
+        address sender = msg.sender;
         // Check if withdraw is allowed for sender
-        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canWithdraw(address(this), tokenId, msg.sender) != true) {
+        if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canWithdraw(address(this), tokenId, sender) != true) {
             revert No_Withdraw_Access();
         }
         // Check to see if tokenId has a balance
@@ -635,27 +583,28 @@ contract ERC1155Press is
         }  
 
         // Call internal withdraw function
-        _withdraw(tokenId, msg.sender);
+        _withdraw(tokenId, sender);
     }        
 
     /// @notice Allows user to withdraw funds generated by a given tokenIds to the designated funds recipient for those tokens
     /// @dev reverts if any withdraw call is invalid for any provided tokenId
     /// @param tokenIds which tokenIds to withdraw funds from
     function batchWithdraw(uint256[] memory tokenIds) external nonReentrant {
+        // Cache msg.sender
+        address sender = msg.sender;
+
         // Attempt to process withdraws for each tokenId provided
         for (uint256 i; i < tokenIds.length; ++i) {  
-
             // Check if withdraw is allowed for sender
-            if (IERC1155PressTokenLogic(configInfo[tokenIds[i]].logic).canWithdraw(address(this), tokenIds[i], msg.sender) != true) {
+            if (IERC1155PressTokenLogic(configInfo[tokenIds[i]].logic).canWithdraw(address(this), tokenIds[i], sender) != true) {
                 revert No_Withdraw_Access();
             }
             // Check to see if tokenId has a balance
             if (tokenFundsInfo[tokenIds[i]] == 0) {
                 revert No_Withdrawable_Balance(tokenIds[i]);
             }  
-
             // Call internal withdraw function
-            _withdraw(tokenIds[i], msg.sender);
+            _withdraw(tokenIds[i], sender);
         }
     }    
 
@@ -728,11 +677,6 @@ contract ERC1155Press is
         return _tokenCount;
     }
 
-    /// @notice Getter for contract level logic contract
-    function getContractLogic() external view returns (IERC1155PressContractLogic) {
-        return IERC1155PressContractLogic(contractLogic);
-    }    
-
     /// @notice Getter for logic contract stored in configInfo for a given tokenId
     function getTokenLogic(uint256 tokenId) external view returns (IERC1155PressTokenLogic) {
         return IERC1155PressTokenLogic(configInfo[tokenId].logic);
@@ -748,20 +692,10 @@ contract ERC1155Press is
         return configInfo[tokenId].fundsRecipient;
     }    
 
-    /// @notice Getter for logic contract stored in configInfo for a given tokenId
-    function getRoyaltyBPS(uint256 tokenId) external view returns (uint16) {
-        return configInfo[tokenId].royaltyBPS;
-    }    
-
-    /// @notice Getter for `primarySaleFeeRecipient` address stored in configInfo for a given tokenId
-    function getPrimarySaleFeeRecipient(uint256 tokenId) external view returns (address payable) {
-        return configInfo[tokenId].primarySaleFeeRecipient;
+    /// @notice Getter for primarySaleFee details stored in configInfo for a given tokenId
+    function getPrimarySaleFeeDetails(uint256 tokenId) external view returns (address payable, uint16) {
+        return (configInfo[tokenId].primarySaleFeeRecipient, configInfo[tokenId].primarySaleFeeBPS);
     }
-
-    /// @notice Getter for `primarySaleFeeBPS` stored in configInfo for a given tokenId
-    function getPrimarySaleFeeBPS(uint256 tokenId) external view returns (uint16) {
-        return configInfo[tokenId].primarySaleFeeBPS;
-    }    
 
     /// @notice returns true if token type `id` is soulbound
     function isSoulbound(uint256 id) public view virtual override(IERC1155Press, IERC5633) returns (bool) {

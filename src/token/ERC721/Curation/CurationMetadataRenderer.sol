@@ -127,14 +127,14 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
         MetadataBuilder.JSONItem[] memory items = new MetadataBuilder.JSONItem[](3);
 
         items[0].key = MetadataJSONKeys.keyName;
-        items[0].value = string.concat("Curator: ", press.name());
+        items[0].value = string.concat(press.name());
         items[0].quote = true;
 
         items[1].key = MetadataJSONKeys.keyDescription;
         items[1].value = string.concat(
             "This curation contract is owned by ",
             Strings.toHexString(press.owner()),
-            "\\n\\nThe tokens in this collection provide proof-of-curation and are non-transferrable."
+            "\\n\\nThe tokens in this collection provide proof-of-curation and are non-transferable."
             "\\n\\nThis curation protocol is a project of Public Assembly."
             "\\n\\nTo learn more, visit: https://public---assembly.com/"
         );
@@ -162,15 +162,15 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
         if (listing.curationTargetType == curator.CURATION_TYPE_NFT_ITEM()) {
             renderingType = RenderingType.NFT;
             properties[0].key = "type";
-            properties[0].value = "nft item";
+            properties[0].value = "nftItem";
         } else if (listing.curationTargetType == curator.CURATION_TYPE_NFT_CONTRACT()) {
             renderingType = RenderingType.CONTRACT;
             properties[0].key = "type";
-            properties[0].value = "nft contract";
+            properties[0].value = "nftContract";
         } else if (listing.curationTargetType == curator.CURATION_TYPE_CURATION_CONTRACT()) {
             renderingType = RenderingType.CURATION;
             properties[0].key = "type";
-            properties[0].value = "curation contract";
+            properties[0].value = "curationContract";
         }
 
         properties[1].key = "contract";
@@ -200,7 +200,7 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
         items[0].quote = true;
         items[1].key = MetadataJSONKeys.keyDescription;
         items[1].value = string.concat(
-            "This non-transferrable NFT represents a listing curated by ",
+            "This non-transferable NFT represents a listing curated by ",
             Strings.toHexString(listing.curator),
             "\\n\\nYou can remove this record of curation by burning the NFT. "
             "\\n\\nThis curation protocol is a project of Public Assembly."

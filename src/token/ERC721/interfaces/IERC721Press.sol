@@ -38,12 +38,9 @@ interface IERC721Press {
     // ||| TYPES ||||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-
     /// @param _fundsRecipient Address that receives funds from sale
     /// @param _maxSupply uint64 max supply value
     /// @param _royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty
-    /// @param _logic Logic contract to use (access control + pricing dynamics)
-    /// @param _renderer Renderer contract to use
     /// @param _primarySaleFeeRecipient Funds recipient on primary sales    
     /// @param _primarySaleFeeBPS Optional fee to set on primary sales
     struct Configuration {
@@ -73,10 +70,10 @@ interface IERC721Press {
     error No_Transfer_Access();
 
     // Constraint/failure errors
-    /// @notice Exceeds total supply
-    error Exceeds_Total_Supply();
+    /// @notice Exceeds maxSupply
+    error Exceeds_Max_Supply();
     /// @notice Royalty percentage too high
-    error Setup_RoyaltyPercentageTooHigh(uint16 maxRoyaltyBPS);
+    error Setup_PercentageTooHigh(uint16 bps);
     /// @notice cannot set address to address(0)
     error Cannot_Set_Zero_Address();
     /// @notice msg.value incorrect for mint call
@@ -145,17 +142,31 @@ interface IERC721Press {
         uint256 feeAmount
     );
 
-    /// @notice Event emitted when config is updated post initialization
+    /// @notice Event emitted when logic is updated post initialization
     /// @param sender address that sent update txn
     /// @param logic new logic contract address
+    event UpdatedLogic(
+        address indexed sender,
+        IERC721PressLogic logic 
+    );    
+
+    /// @notice Event emitted when renderer is updated post initialization
+    /// @param sender address that sent update txn
     /// @param renderer new renderer contract address
+    event UpdatedRenderer(
+        address indexed sender,
+        IERC721PressRenderer renderer
+    );        
+
+    /// @notice Event emitted when config is updated post initialization
+    /// @param sender address that sent update txn
     /// @param fundsRecipient new fundsRecipient
+    /// @param maxSupply new maxSupply
     /// @param royaltyBPS new royaltyBPS
     event UpdatedConfig(
         address indexed sender,
-        IERC721PressLogic indexed logic,
-        IERC721PressRenderer indexed renderer,
         address fundsRecipient,
+        uint64 maxSupply,
         uint16 royaltyBPS
     );
 
@@ -184,46 +195,35 @@ interface IERC721Press {
 
     /// @dev Set new owner for access control + frontends
     /// @param newOwner address of the new owner
-    function setOwner(address newOwner) external;
-
-    /// @notice Function to set config.royaltyBPS
-    /// @dev Max value = 5000
-    /// @param newRoyaltyBPS uint16 value of `royaltyBPS`
-    function setRoyaltyBPS(uint16 newRoyaltyBPS) external;    
+    function setOwner(address newOwner) external;  
 
     /// @notice Function to set config.fundsRecipient
     /// @dev Cannot set `fundsRecipient` to the zero address
     /// @param newFundsRecipient payable address to receive funds via withdraw
     function setFundsRecipient(address payable newFundsRecipient) external;    
 
-    /// @notice Function to set config.logic
+    /// @notice Function to set logic
     /// @dev cannot set logic to address(0)
     /// @param newLogic logic address to handle general contract logic
     /// @param newLogicInit data to initialize logic
     function setLogic(IERC721PressLogic newLogic, bytes memory newLogicInit) external;
 
-    /// @notice Function to set config.renderer
+    /// @notice Function to set renderer
     /// @dev cannot set renderer to address(0)
     /// @param newRenderer renderer address to handle metadata logic
     /// @param newRendererInit data to initialize renderer
     function setRenderer(IERC721PressRenderer newRenderer, bytes memory newRendererInit) external;
 
-    /// @notice Function to set config.logic
+    /// @notice Function to set config
     /// @dev Cannot set fundsRecipient or logic or renderer to address(0)
     /// @dev Max `newRoyaltyBPS` value = 5000
-    /// @param newFundsRecipient payable address to recieve funds via withdraw
-    /// @param newRoyaltyBPS uint16 value of royaltyBPS
-    /// @param newLogic logic address to handle general contract logic
-    /// @param newLogicInit data to initialize logic    
-    /// @param newRenderer renderer address to handle metadata logic
-    /// @param newRendererInit data to initialize renderer
+    /// @param fundsRecipient payable address to recieve funds via withdraw
+    /// @param maxSupply uint64 value of maxSupply
+    /// @param royaltyBPS uint16 value of royaltyBPS
     function setConfig(
-        address payable newFundsRecipient,
-        uint16 newRoyaltyBPS,
-        IERC721PressLogic newLogic,
-        bytes memory newLogicInit,        
-        IERC721PressRenderer newRenderer,
-        bytes memory newRendererInit
+        address payable fundsRecipient,
+        uint64 maxSupply,
+        uint16 royaltyBPS
     ) external;    
 
     /// @notice This withdraws ETH from the contract to the contract owner.
@@ -241,16 +241,11 @@ interface IERC721Press {
     /// @param tokenId id of token to get the uri for
     function tokenURI(uint256 tokenId) external view returns (string memory);    
 
-    /// @notice Getter for fundsRecipent address stored in config
-    /// @dev May return 0 or revert if incorrect external logic has been configured
-    /// @dev Can use maxSupplyFallback instead in the above scenario
-    function maxSupply() external view returns (uint64);    
+    /// @notice Getter for maxSupply stored in config
+    function getMaxSupply() external view returns (uint64);    
 
     /// @notice Getter for fundsRecipent address stored in config
     function getFundsRecipient() external view returns (address payable);
-
-    /// @notice Getter for logic contract stored in config
-    function getRoyaltyBPS() external view returns (uint16);
 
     /// @notice Getter for renderer contract stored in config
     function getRenderer() external view returns (IERC721PressRenderer);    
@@ -258,11 +253,8 @@ interface IERC721Press {
     /// @notice Getter for logic contract stored in config
     function getLogic() external view returns (IERC721PressLogic);    
 
-    /// @notice Getter for `feeRecipient` address stored in `primarySaleFeeDetails`
-    function getPrimarySaleFeeRecipient() external view returns (address payable);  
-
-    /// @notice Getter for `feeBPS` stored in `primarySaleFeeDetails`
-    function getPrimarySaleFeeBPS() external view returns (uint16);      
+    /// @notice Getter for primarySaleFeeRecipient & BPS details stored in config
+    function getPrimarySaleFeeDetails() external view returns (address payable, uint16);    
 
     /// @notice Getter for contract tokens' non-transferability status
     function isSoulbound() external view returns (bool);

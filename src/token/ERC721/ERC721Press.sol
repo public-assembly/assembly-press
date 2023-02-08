@@ -74,16 +74,16 @@ contract ERC721Press is
     /// @dev Gas limit to send funds
     uint256 internal immutable FUNDS_SEND_GAS_LIMIT = 210_000;
 
-    /// @dev Max royalty basis points (BPS)
-    uint16 constant MAX_ROYALTY_BPS = 50_00;
+    /// @dev Max basis points (BPS) for secondary royalties + primary sales fee
+    uint16 constant MAX_BPS = 50_00;
 
     // ||||||||||||||||||||||||||||||||
     // ||| INITIALIZER ||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
     /// @notice Initializes a new, creator-owned proxy of ERC721Press.sol
-    /// @dev Optional config.primarySaleFeeBPS + config.primarySaleFeeRecipient
-    ///      + config.soulbound cannot be adjusted after initialization
+    /// @dev Optional primarySaleFeeBPS + primarySaleFeeRecipient
+    ///      + soulbound cannot be adjusted after initialization
     /// @dev initializerERC721A for ERC721AUpgradeable
     ///      initializer` for OpenZeppelin's OwnableUpgradeable
     /// @param _contractName Contract name
@@ -108,38 +108,29 @@ contract ERC721Press is
     ) public initializerERC721A initializer {
         // Setup ERC721A
         __ERC721A_init(_contractName, _contractSymbol);
-
         // Setup reentrancy guard
         __ReentrancyGuard_init();
-
-        // Set ownership to original sender of contract call
+        // Setup owner for Ownable
         __Ownable_init(_initialOwner);
 
-        // Setup non-config variables
+        // Setup + initialize non-config variables
         _logicImpl = _logic;
         _rendererImpl = _renderer;
         _isSoulbound = _soulbound;
+        _logic.initializeWithData(_logicInit);
+        _renderer.initializeWithData(_rendererInit);      
 
-        // Setup config variables
+        // Check to see if royaltyBPS and feeBPS set to acceptable levels
+        if (_configuration.royaltyBPS > MAX_BPS || _configuration.primarySaleFeeBPS > MAX_BPS) {
+            revert Setup_PercentageTooHigh(MAX_BPS);
+        }           
+
+        // Setup config values
         config.fundsRecipient = _configuration.fundsRecipient;
         config.maxSupply = _configuration.maxSupply;
         config.royaltyBPS = _configuration.royaltyBPS;
-
-        // Initialize logic + renderer contracts
-        _logic.initializeWithData(_logicInit);
-        _renderer.initializeWithData(_rendererInit);        
-
-        // Setup optional primary sales fee, skip if primarySalefeeBPS is set to zero
-        if (_configuration.primarySaleFeeBPS != 0) {
-            // Cannot set primarySaleFeeRecipient to zero address if feeBPS does not equal zero
-            if (_configuration.primarySaleFeeRecipient == address(0)) {
-                revert Cannot_Set_Zero_Address();
-            }
-
-            // Update primarySaleFee values in config, can not be updated after
-            config.primarySaleFeeRecipient = _configuration.primarySaleFeeRecipient;
-            config.primarySaleFeeBPS = _configuration.primarySaleFeeBPS;
-        }        
+        config.primarySaleFeeRecipient = _configuration.primarySaleFeeRecipient;
+        config.primarySaleFeeBPS = _configuration.primarySaleFeeBPS;        
 
         emit IERC721Press.ERC721PressInitialized({
             sender: msg.sender,
@@ -167,20 +158,18 @@ contract ERC721Press is
         nonReentrant
         returns (uint256)
     {
-        // Cache msg.sender address
-        address sender = msg.sender;
+        // Cache msg.sender + msg.value
+        (uint256 msgValue, address sender) = (msg.value, msg.sender);
 
-        if (totalSupply() + mintQuantity > config.maxSupply) {
-            revert Exceeds_Total_Supply();
+        // Check to make sure mintQuantity wont takeSupply over maxSupply
+        if (_totalMinted() + mintQuantity > config.maxSupply) {
+            revert Exceeds_Max_Supply();
         }
 
         // Call logic contract to check if user can mint
         if (IERC721PressLogic(_logicImpl).canMint(address(this), mintQuantity, sender) != true) {
             revert No_Mint_Access();
         }
-
-        // Cache msg.value
-        uint256 msgValue = msg.value;
 
         // Call logic contract to check what mintPrice is for given quantity + user
         if (msgValue != IERC721PressLogic(_logicImpl).totalMintPrice(address(this), mintQuantity, sender)) {
@@ -243,58 +232,27 @@ contract ERC721Press is
         _transferOwnership(newOwner);
     }
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| CONFIG ACCESS ||||||||||||||
-    // ||||||||||||||||||||||||||||||||
+    // // ||||||||||||||||||||||||||||||||
+    // // ||| CONFIG ACCESS ||||||||||||||
+    // // ||||||||||||||||||||||||||||||||
 
-    /// @notice Function to set config.royaltyBPS
-    /// @dev Max value = 5000
-    /// @param newRoyaltyBPS uint16 value of `royaltyBPS`
-    function setRoyaltyBPS(uint16 newRoyaltyBPS) external nonReentrant {
-        // Call logic contract to check is msg.sender can update
-        if (IERC721PressLogic(_logicImpl).canUpdateConfig(address(this), msg.sender) != true) {
-            revert No_Config_Access();
-        }
-
-        // Check if `newRoyaltyBPS` is higher than immutable `MAX_ROYALTY_BPS` value
-        if (newRoyaltyBPS > MAX_ROYALTY_BPS) {
-            revert Setup_RoyaltyPercentageTooHigh(MAX_ROYALTY_BPS);
-        }
-
-        // Update `royaltyBPS` in config
-        config.royaltyBPS = newRoyaltyBPS;
-
-        emit UpdatedConfig({
-            sender: msg.sender,
-            logic: _logicImpl,
-            renderer: _rendererImpl,
-            fundsRecipient: config.fundsRecipient,
-            royaltyBPS: newRoyaltyBPS
-        });        
-    }
 
     /// @notice Function to set config.fundsRecipient
     /// @dev Cannot set `fundsRecipient` to the zero address
-    /// @param newFundsRecipient payable address to receive funds via withdraw
-    function setFundsRecipient(address payable newFundsRecipient) external nonReentrant {
+    /// @param fundsRecipient payable address to receive funds via withdraw
+    function setFundsRecipient(address payable fundsRecipient) external nonReentrant {
         // Call logic contract to check is msg.sender can update
         if (IERC721PressLogic(_logicImpl).canUpdateConfig(address(this), msg.sender) != true) {
             revert No_Config_Access();
         }
 
-        // Check if `newFundsRecipient` is the zero address
-        if (newFundsRecipient == address(0)) {
-            revert Cannot_Set_Zero_Address();
-        }
-
         // Update `fundsRecipient` address in config and initialize it
-        config.fundsRecipient = newFundsRecipient;
+        config.fundsRecipient = fundsRecipient;
 
         emit UpdatedConfig({
             sender: msg.sender,
-            logic: _logicImpl,
-            renderer: _rendererImpl,
-            fundsRecipient: newFundsRecipient,
+            fundsRecipient: fundsRecipient,
+            maxSupply: config.maxSupply,
             royaltyBPS: config.royaltyBPS
         }); 
     }
@@ -309,22 +267,14 @@ contract ERC721Press is
             revert No_Config_Access();
         }
 
-        // Check if `newLogic` is the zero address
-        if (address(newLogic) == address(0)) {
-            revert Cannot_Set_Zero_Address();
-        }
-
         // Update logic contract in config and initialize it
         _logicImpl = newLogic;
         IERC721PressLogic(newLogic).initializeWithData(newLogicInit);
 
-        emit UpdatedConfig({
+        emit UpdatedLogic({
             sender: msg.sender,
-            logic: newLogic,
-            renderer: _rendererImpl,
-            fundsRecipient: config.fundsRecipient,
-            royaltyBPS: config.royaltyBPS
-        }); 
+            logic: newLogic
+        });
     }
 
     /// @notice Function to set _rendererImpl
@@ -337,53 +287,37 @@ contract ERC721Press is
             revert No_Config_Access();
         }
 
-        // Check if newRenderer is the zero address
-        if (address(newRenderer) == address(0)) {
-            revert Cannot_Set_Zero_Address();
-        }
-
         // Update renderer in config
         _rendererImpl = newRenderer;
         IERC721PressRenderer(newRenderer).initializeWithData(newRendererInit);
 
-        emit UpdatedConfig({
+        emit UpdatedRenderer({
             sender: msg.sender,
-            logic: _logicImpl,
-            renderer: newRenderer,
-            fundsRecipient: config.fundsRecipient,
-            royaltyBPS: config.royaltyBPS
-        }); 
+            renderer: newRenderer
+        });
     }
 
     /// @notice Function to set _logicImpl
     /// @dev Cannot set fundsRecipient or logic or renderer to address(0)
     /// @dev Max `newRoyaltyBPS` value = 5000
-    /// @param newFundsRecipient payable address to recieve funds via withdraw
-    /// @param newRoyaltyBPS uint16 value of royaltyBPS
-    /// @param newLogic logic address to handle general contract logic
-    /// @param newLogicInit data to initialize logic    
-    /// @param newRenderer renderer address to handle metadata logic
-    /// @param newRendererInit data to initialize renderer
+    /// @param fundsRecipient payable address to recieve funds via withdraw
+    /// @param maxSupply uint64 value of maxSupply
+    /// @param royaltyBPS uint16 value of royaltyBPS
     function setConfig(
-        address payable newFundsRecipient,
-        uint16 newRoyaltyBPS,
-        IERC721PressLogic newLogic,
-        bytes memory newLogicInit,        
-        IERC721PressRenderer newRenderer,
-        bytes memory newRendererInit
+        address payable fundsRecipient,
+        uint64 maxSupply,
+        uint16 royaltyBPS
     ) external nonReentrant {
         // Call logic contract to check is msg.sender can update
         if (IERC721PressLogic(_logicImpl).canUpdateConfig(address(this), msg.sender) != true) {
             revert No_Config_Access();
         }
-
+        
+        // Run internal _setConfig function and record result
         (bool setSuccess) = _setConfig(
-            newFundsRecipient, 
-            newRoyaltyBPS, 
-            newLogic, 
-            newLogicInit,            
-            newRenderer, 
-            newRendererInit
+            fundsRecipient,
+            maxSupply, 
+            royaltyBPS 
         );
 
         // Check if config update was successful
@@ -393,44 +327,29 @@ contract ERC721Press is
 
         emit UpdatedConfig({
             sender: msg.sender,
-            logic: newLogic,
-            renderer: newRenderer,
-            fundsRecipient: newFundsRecipient,
-            royaltyBPS: newRoyaltyBPS
+            fundsRecipient: fundsRecipient,
+            maxSupply: maxSupply,
+            royaltyBPS: royaltyBPS
         });
     }
 
     /// @notice Internal handler to set config
     function _setConfig(
-        address payable newFundsRecipient,
-        uint16 newRoyaltyBPS,
-        IERC721PressLogic newLogic,
-        bytes memory newLogicInit,        
-        IERC721PressRenderer newRenderer,
-        bytes memory newRendererInit
+        address payable fundsRecipient,
+        uint64 maxSupply,
+        uint16 royaltyBPS
     ) internal returns (bool) {
-        // Check if supplied addresses are the zero address
-        if (newFundsRecipient == address(0) || address(newRenderer) == address(0) || address(newLogic) == address(0)) {
-            revert Cannot_Set_Zero_Address();
-        }
-        // Check if newRoyaltyBPS is higher than immutable MAX_ROYALTY_BPS value
-        if (newRoyaltyBPS > MAX_ROYALTY_BPS) {
-            revert Setup_RoyaltyPercentageTooHigh(MAX_ROYALTY_BPS);
+        // Check if fundsRecipient is the zero address
+        _checkForZeroAddress(fundsRecipient);
+        // Check if newRoyaltyBPS is higher than immutable MAX_BPS value
+        if (royaltyBPS > MAX_BPS) {
+            revert Setup_PercentageTooHigh(MAX_BPS);
         }
 
-        // Update fundsRecipient address in config
-        config.fundsRecipient = newFundsRecipient;
-
-        // Update royaltyBPS in config
-        config.royaltyBPS = newRoyaltyBPS;
-
-        // Update logic in config + initialize it
-        _logicImpl = newLogic;
-        IERC721PressLogic(newLogic).initializeWithData(newLogicInit);
-
-        // Update renderer in config + initialize it
-        _rendererImpl = newRenderer;
-        IERC721PressRenderer(newRenderer).initializeWithData(newRendererInit);
+        // Update fundsRecipient + maxSupply + royaltyBPS
+        config.fundsRecipient = fundsRecipient;
+        config.maxSupply = maxSupply;        
+        config.royaltyBPS = royaltyBPS;
 
         return true;
     }
@@ -445,7 +364,7 @@ contract ERC721Press is
         address sender = msg.sender;
 
         // Check if withdraw is allowed for sender
-        if (sender != owner() && IERC721PressLogic(_logicImpl).canWithdraw(address(this), sender) != true) {
+        if (IERC721PressLogic(_logicImpl).canWithdraw(address(this), sender) != true) {
             revert No_Withdraw_Access();
         }
 
@@ -468,7 +387,7 @@ contract ERC721Press is
             revert Withdraw_FundsSendFailure();
         }
 
-        emit FundsWithdrawn(msg.sender, config.fundsRecipient, funds, config.primarySaleFeeRecipient, fee);
+        emit FundsWithdrawn(sender, config.fundsRecipient, funds, config.primarySaleFeeRecipient, fee);
     }
 
     // ||||||||||||||||||||||||||||||||
@@ -499,7 +418,7 @@ contract ERC721Press is
     }
 
     /// @notice Getter for maxSupply value stored in config
-    function maxSupply() external view returns (uint64) {
+    function getMaxSupply() external view returns (uint64) {
         return config.maxSupply;
     }
 
@@ -508,34 +427,19 @@ contract ERC721Press is
         return config.fundsRecipient;
     }
 
-    /// @notice Getter for logic contract stored in config
-    function getRoyaltyBPS() external view returns (uint16) {
-        return config.royaltyBPS;
-    }
-
-    /// @notice Getter for renderer contract stored in config
-    function getRenderer() external view returns (IERC721PressRenderer) {
-        return _rendererImpl;
-    }
-
-    /// @notice Getter for logic contract stored in config
+    /// @notice Getter for logic contract stored in _logicImpl
     function getLogic() external view returns (IERC721PressLogic) {
         return _logicImpl;
     }
 
-    /// @notice Getter for maxSupply value stored in config
-    function getMaxSupply() external view returns (uint64) {
-        return config.maxSupply;
-    }    
-
-    /// @notice Getter for `feeRecipient` address stored in `primarySaleFeeDetails`
-    function getPrimarySaleFeeRecipient() external view returns (address payable) {
-        return config.primarySaleFeeRecipient;
+    /// @notice Getter for renderer contract stored in _rendererImpl
+    function getRenderer() external view returns (IERC721PressRenderer) {
+        return _rendererImpl;
     }
 
-    /// @notice Getter for `feeBPS` stored in `primarySaleFeeDetails`
-    function getPrimarySaleFeeBPS() external view returns (uint16) {
-        return config.primarySaleFeeBPS;
+    /// @notice Getter for primarySaleFeeRecipient & BPS details stored in config
+    function getPrimarySaleFeeDetails() external view returns (address payable, uint16) {
+        return (config.primarySaleFeeRecipient, config.primarySaleFeeBPS);
     }
 
     /// @notice Getter for contract tokens' non-transferability status
@@ -695,5 +599,15 @@ contract ERC721Press is
         }
 
         _;
+    }
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| MISC |||||||||||||||||||||||
+    // ||||||||||||||||||||||||||||||||    
+    
+    function _checkForZeroAddress(address addressToCheck) internal pure {
+        if (addressToCheck == address(0)) {
+            revert Cannot_Set_Zero_Address();
+        }
     }
 }

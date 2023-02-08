@@ -11,6 +11,7 @@ General
 ERC1155
 - Need review on how I customized the solmate 1155 impl to enable soulbound functionality following eip-5633
 - Need review on the withdraw functions which implement an internal tracking system to associate funds received with certain tokenIds
+- Need review on the upgrade path for the proxies of the 1155. Opted out of OZupgradeable to use solmate and had to re implement upgrade myself
 - Some of the imports stored in utils folders could/should just be direct imports from OZ (ex: OwnableUpgradeable)
 
 ERC721
