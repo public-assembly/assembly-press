@@ -192,9 +192,6 @@ interface IERC1155Press {
     /// @notice Getter for last minted tokenId
     function tokenCount() external view returns (uint256);
 
-    /// @notice Getter for contract level logic contract
-    function getContractLogic() external view returns (IERC1155PressContractLogic); 
-
     /// @notice Getter for logic contract stored in configInfo for a given tokenId
     function getTokenLogic(uint256 tokenId) external view returns (IERC1155PressTokenLogic); 
 
@@ -204,14 +201,8 @@ interface IERC1155Press {
     /// @notice Getter for fundsRecipent address stored in configInfo for a given tokenId
     function getFundsRecipient(uint256 tokenId) external view returns (address payable); 
 
-    /// @notice Getter for secondary royaltyBPS stored in configInfo for a given tokenId
-    function getRoyaltyBPS(uint256 tokenId) external view returns (uint16);
-
-    /// @notice Getter for `primarySaleFeeRecipient` address stored in configInfo for a given tokenId
-    function getPrimarySaleFeeRecipient(uint256 tokenId) external view returns (address payable);
-
-    /// @notice Getter for `primarySaleFeeBPS` stored in configInfo for a given tokenId
-    function getPrimarySaleFeeBPS(uint256 tokenId) external view returns (uint16);
+    /// @notice Getter for primarySaleFee details stored in configInfo for a given tokenId
+    function getPrimarySaleFeeDetails(uint256 tokenId) external view returns (address payable, uint16);
 
     /// @notice returns true if token type `id` is soulbound
     function isSoulbound(uint256 id) external view returns (bool);

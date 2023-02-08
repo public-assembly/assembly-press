@@ -295,9 +295,10 @@ contract ERC1155PressTest is ERC1155PressConfig {
         require(erc1155Press.getFundsRecipient(tokenToCheck) == fundsRecipient, "token info set incorrectly");
         require(erc1155Press.getTokenLogic(tokenToCheck) == tokenLogic, "token info set incorrectly");
         require(erc1155Press.getRenderer(tokenToCheck) == basicRenderer, "token info set incorrectly");
-        require(erc1155Press.getPrimarySaleFeeRecipient(tokenToCheck) == primarySaleFeeRecipient, "token info set incorrectly");
+        (address payable recipient, uint16 bps) = erc1155Press.getPrimarySaleFeeDetails(tokenToCheck);
+        require(recipient == primarySaleFeeRecipient, "token info set incorrectly");
         require(erc1155Press.isSoulbound(tokenToCheck) == soulbound, "token info set incorrectly");
-        require(erc1155Press.getPrimarySaleFeeBPS(tokenToCheck) == primarySaleFeeBPS, "token info set incorrectly");
+        require(bps == primarySaleFeeBPS, "token info set incorrectly");
 
         // token logic level checks
         (
@@ -486,13 +487,13 @@ contract ERC1155PressTest is ERC1155PressConfig {
         uint256 tokenToCheckBalanceBeforeWithdraw = erc1155Press.tokenFundsInfo(tokenToCheck);
         uint256 expectedFinalContractBalance = contractBalanceBeforeWithdraw - tokenToCheckBalanceBeforeWithdraw;
 
-        address feeRecip = erc1155Press.getPrimarySaleFeeRecipient(tokenToCheck);
+        (address payable feeRecip, uint16 bps) = erc1155Press.getPrimarySaleFeeDetails(tokenToCheck);
         uint256 feeRecipPrebalance = feeRecip.balance;
     
         address fundsRecip = erc1155Press.getFundsRecipient(tokenToCheck);
         uint256 fundsRecipPrebalance = fundsRecip.balance;
 
-        uint256 fees = tokenToCheckBalanceBeforeWithdraw * erc1155Press.getPrimarySaleFeeBPS(tokenToCheck) / 10_000;
+        uint256 fees = tokenToCheckBalanceBeforeWithdraw * bps / 10_000;
         uint256 funds = tokenToCheckBalanceBeforeWithdraw - fees;
 
         erc1155Press.withdraw(tokenToCheck);
@@ -644,13 +645,13 @@ contract ERC1155PressTest is ERC1155PressConfig {
         tokensToCheck[1] = 2;           
         uint256 contractBalanceBefore = address(erc1155Press).balance;
         uint256 token1_funds_before = erc1155Press.tokenFundsInfo(tokensToCheck[0]);
-        uint256 token1_fees = token1_funds_before * erc1155Press.getPrimarySaleFeeBPS(tokensToCheck[0]) / 10_000;        
-        address fundsRecip1 = erc1155Press.getFundsRecipient(tokensToCheck[0]);
-        address feeRecip1 = erc1155Press.getPrimarySaleFeeRecipient(tokensToCheck[0]);        
+        (address payable feeRecip1, uint16 bps1) = erc1155Press.getPrimarySaleFeeDetails(tokensToCheck[0]);
+        uint256 token1_fees = token1_funds_before * bps1 / 10_000;        
+        address fundsRecip1 = erc1155Press.getFundsRecipient(tokensToCheck[0]);        
         uint256 token2_funds_before = erc1155Press.tokenFundsInfo(tokensToCheck[1]);
-        uint256 token2_fees = token2_funds_before * erc1155Press.getPrimarySaleFeeBPS(tokensToCheck[1]) / 10_000; 
+        (address payable feeRecip2, uint16 bps2) = erc1155Press.getPrimarySaleFeeDetails(tokensToCheck[1]);        
+        uint256 token2_fees = token2_funds_before * bps2 / 10_000; 
         address fundsRecip2 = erc1155Press.getFundsRecipient(tokensToCheck[1]);
-        address feeRecip2 = erc1155Press.getPrimarySaleFeeRecipient(tokensToCheck[1]);       
 
         erc1155Press.batchWithdraw(tokensToCheck);        
         
