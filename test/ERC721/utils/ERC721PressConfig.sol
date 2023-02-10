@@ -57,15 +57,9 @@ contract ERC721PressConfig is Test {
     ); 
     bytes defaultRendererInit = abi.encode("youknowthevibes");
 
-    // /* FACTORY STUFF */
+    /***** FACTORY SETUP ******/
     ERC721PressCreatorV1 public erc721Creator;
     ERC721Press public curationContract;
-    // AssemblyPress public assemblyPress;
-    // Publisher public publisher;
-    // DefaultMetadataDecoder public defaultMetaDecoder;
-    // OnlyAdminAccessControl public onlyAdminAC;
-    // bytes public accessControlInit = abi.encode(DEFAULT_OWNER_ADDRESS);
-
 
     // Set up called before each test
     function setUp() public {

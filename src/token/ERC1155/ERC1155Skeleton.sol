@@ -2,7 +2,6 @@
 pragma solidity ^0.8.16;
 
 import {ERC1155} from "solmate/tokens/ERC1155.sol";
-import {Version} from "../../utils/utils/Version.sol";
 import {FundsReceiver} from "../../utils/utils/FundsReceiver.sol";
 import {ERC1155PressStorageV1} from "./storage/ERC1155PressStorageV1.sol";
 import {IERC5633} from "../../utils/interfaces/IERC5633.sol";
@@ -17,7 +16,6 @@ import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-up
  */
 contract ERC1155Skeleton is
     ERC1155,
-    Version(1),
     ERC1155PressStorageV1,
     FundsReceiver,
     IERC1155Skeleton,

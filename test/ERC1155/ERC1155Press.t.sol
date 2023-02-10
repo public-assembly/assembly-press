@@ -8,6 +8,7 @@ import {ERC1155BasicContractLogic} from "../../src/token/ERC1155/logic/ERC1155Ba
 import {ERC1155InfiniteArtifactLogic} from "../../src/token/ERC1155/logic/ERC1155InfiniteArtifactLogic.sol";
 import {ERC1155EditionRenderer} from "../../src/token/ERC1155/metadata/ERC1155EditionRenderer.sol";
 import {ERC1155Press} from "../../src/token/ERC1155/ERC1155Press.sol";
+import {ERC1155PressCreatorV1} from "../../src/token/ERC1155/ERC1155PressCreatorV1.sol";
 import {IERC1155PressTokenLogic} from "../../src/token/ERC1155/interfaces/IERC1155PressTokenLogic.sol";
 import {IERC1155TokenRenderer} from "../../src/token/ERC1155/interfaces/IERC1155TokenRenderer.sol";
 import {IERC5633} from "../../src/utils/interfaces/IERC5633.sol";
@@ -350,7 +351,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
                 tokenToCheck, 
                 minters, 
                 mintQuantity
-            ) == true, "canEditMetadata incorrect"
+            ) == true, "cantMintExisting incorrect"
         );  
         require(
             erc1155Press.getTokenLogic(1).canMintExisting(
@@ -359,7 +360,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
                 tokenToCheck, 
                 minters, 
                 mintQuantity
-            ) == true, "canEditMetadata incorrect"
+            ) == true, "cantMintExisting incorrect"
         );          
 
         // canEditMetadata     
@@ -675,5 +676,73 @@ contract ERC1155PressTest is ERC1155PressConfig {
         require(erc1155Press.balanceOf(ADMIN, tokenIds[1]) == (balanceBeforeBurn - amounts[1]), "burn didnt work");
     }    
 
-    // forge gas snapshot https://book.getfoundry.sh/forge/gas-snapshots
+    function test_factory() public {
+        vm.startPrank(INITIAL_OWNER);
+
+        erc1155Creator = new ERC1155PressCreatorV1(
+            erc1155PressImpl,
+            contractLogic,
+            tokenLogic,
+            editionRenderer
+        );        
+
+        infiniteEditions = ERC1155Press(payable(erc1155Creator.createPress(
+            "Infinte Editions", // name
+            "IE", // symbol
+            INITIAL_OWNER, // initial owner
+            contractLogic, // contract level logic
+            altContractLogicInit // contract level logic init
+        )));
+
+        address[] memory mintNewRecipients = new address[](1);
+        mintNewRecipients[0] = INITIAL_OWNER;
+        bytes memory infiniteEditionLogicIinit = abi.encode(
+            INITIAL_OWNER, // initial token admin address
+            0, // edition start time
+            0 // mintPrice
+        );
+        string memory tokenURI = "https://studio.api.manifoldxyz.dev/asset_uploader/1/asset/3607672823/metadata/full";
+        bytes memory editionRendererInit = abi.encode(tokenURI);
+
+
+        infiniteEditions.mintNew(
+            mintNewRecipients, // recipients
+            1, // quantity 
+            tokenLogic, // token level logic
+            infiniteEditionLogicIinit, // token logic init
+            editionRenderer, // token level renderer 
+            editionRendererInit, // token level renderer init
+            payable(INITIAL_OWNER), // funds recipient
+            0, // royaltyBPS
+            payable(address(0)), // primarySaleFeeRecipient
+            0, // primarySaleFeeBPS
+            false // soulbound
+        );
+        vm.stopPrank();
+        // need to change addresses since the mintCapPerAddress limit
+        // on infinite editions for free mints is 1
+        vm.startPrank(address(0x1243));
+
+        address[] memory mintExistingRecipients = new address[](1);
+        mintExistingRecipients[0] = address(0x1243);
+        infiniteEditions.mintExisting(
+            1, // tokenId
+            mintExistingRecipients, // mint recipients
+            1 // quantity
+        );
+
+        require(infiniteEditions.balanceOf(address(0x1243), 1) == 1, "balanceOf incorrect");
+        require(keccak256(bytes(infiniteEditions.uri(1))) == keccak256(bytes(tokenURI)), "uri is wrong");
+        
+        // ERC1155Press anotherPress;
+        // string memory anotherTokenURI = "https://studio.api.manifoldxyz.dev/asset_uploader/1/asset/3423123447/metadata/full";
+        // anotherPress = ERC1155Press(erc1155Creator.createPressAndEdition(
+        //     "Could it be?", 
+        //     "CIB", 
+        //     anotherTokenURI
+        // ));
+
+        // require(anotherPress.balanceOf(address(0x1243), 1) == 1, "balanceOf incorrect");
+        // require(keccak256(bytes(infiniteEditions.uri(1))) == keccak256(bytes(anotherTokenURI)), "uri is wrong");
+    }
 }
