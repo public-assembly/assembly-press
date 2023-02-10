@@ -32,8 +32,10 @@ pragma solidity ^0.8.16;
 import {IERC1155PressTokenLogic} from "./IERC1155PressTokenLogic.sol";
 import {IERC1155TokenRenderer} from "./IERC1155TokenRenderer.sol";
 import {IERC1155PressContractLogic} from "./IERC1155PressContractLogic.sol";
+import {IERC1155Skeleton} from "./IERC1155Skeleton.sol";
 
-interface IERC1155Press {
+interface IERC1155Press is IERC1155Skeleton {
+
     // ||||||||||||||||||||||||||||||||
     // ||| TYPES ||||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
@@ -183,15 +185,6 @@ interface IERC1155Press {
     /// @notice URI getter for a given tokenId
     function uri(uint256 tokenId) external view returns (string memory);
 
-    /// @notice Amount of existing (minted & not burned) tokens with a given tokenId
-    function totalSupply(uint256 tokenId) external view returns (uint256);
-
-    /// @notice getter for internal _numMinted counter which keeps track of quantity minted per tokenId per wallet address
-    function numMinted(uint256 tokenId, address account) external view returns (uint256);    
-
-    /// @notice Getter for last minted tokenId
-    function tokenCount() external view returns (uint256);
-
     /// @notice Getter for logic contract stored in configInfo for a given tokenId
     function getTokenLogic(uint256 tokenId) external view returns (IERC1155PressTokenLogic); 
 
@@ -201,19 +194,9 @@ interface IERC1155Press {
     /// @notice Getter for fundsRecipent address stored in configInfo for a given tokenId
     function getFundsRecipient(uint256 tokenId) external view returns (address payable); 
 
-    /// @notice Getter for primarySaleFee details stored in configInfo for a given tokenId
-    function getPrimarySaleFeeDetails(uint256 tokenId) external view returns (address payable, uint16);
-
-    /// @notice returns true if token type `id` is soulbound
-    function isSoulbound(uint256 id) external view returns (bool);
-
     /// @notice Config level details
     /// @return Configuration (defined in IERC1155Press) 
     function getConfigDetails(uint256 tokenId) external view returns (Configuration memory);
-
-    /// @dev Get royalty information for token
-    /// @param _salePrice Sale price for the token
-    function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount);
 
     /// @notice ERC165 supports interface
     /// @param interfaceId interface id to check if supported

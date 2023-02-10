@@ -6,13 +6,13 @@ import {IERC1155Press} from "../interfaces/IERC1155Press.sol";
 import {ERC1155Press} from "../ERC1155Press.sol";
 
 /**
-* @title ERC1155BasicTokenLogic
-* @notice Example token level logic impl for AssemblyPress ERC1155 architecture
+* @title ERC1155InfiniteArtifactLogic
+* @notice Infinte artifact token level logic impl for AssemblyPress ERC1155 architecture
 *
 * @author Max Bochman
 * @author Salief Lewis
 */
-contract ERC1155BasicTokenLogic is IERC1155PressTokenLogic {
+contract ERC1155InfiniteArtifactLogic is IERC1155PressTokenLogic {
 
     // ||||||||||||||||||||||||||||||||
     // ||| TYPES ||||||||||||||||||||||

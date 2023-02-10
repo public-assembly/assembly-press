@@ -6,11 +6,11 @@ import {IERC1155PressTokenLogic} from "../interfaces/IERC1155PressTokenLogic.sol
 import {IERC1155Press} from "../interfaces/IERC1155Press.sol";
 
 /**
- @notice ERC1155BasicRenderer
+ @notice ERC1155EditionRenderer
  @author Max Bochman
  @author Salief Lewis
  */
-contract ERC1155BasicRenderer is IERC1155TokenRenderer {
+contract ERC1155EditionRenderer is IERC1155TokenRenderer {
 
     // ||||||||||||||||||||||||||||||||
     // ||| ERRORS |||||||||||||||||||||

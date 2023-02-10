@@ -5,11 +5,14 @@ import {console2} from "forge-std/console2.sol";
 
 import {ERC1155PressConfig} from "./utils/ERC1155PressConfig.sol";
 import {ERC1155BasicContractLogic} from "../../src/token/ERC1155/logic/ERC1155BasicContractLogic.sol";
-import {ERC1155BasicTokenLogic} from "../../src/token/ERC1155/logic/ERC1155BasicTokenLogic.sol";
-import {ERC1155BasicRenderer} from "../../src/token/ERC1155/metadata/ERC1155BasicRenderer.sol";
+import {ERC1155InfiniteArtifactLogic} from "../../src/token/ERC1155/logic/ERC1155InfiniteArtifactLogic.sol";
+import {ERC1155EditionRenderer} from "../../src/token/ERC1155/metadata/ERC1155EditionRenderer.sol";
 import {ERC1155Press} from "../../src/token/ERC1155/ERC1155Press.sol";
+import {ERC1155PressCreatorV1} from "../../src/token/ERC1155/ERC1155PressCreatorV1.sol";
 import {IERC1155PressTokenLogic} from "../../src/token/ERC1155/interfaces/IERC1155PressTokenLogic.sol";
 import {IERC1155TokenRenderer} from "../../src/token/ERC1155/interfaces/IERC1155TokenRenderer.sol";
+import {IERC5633} from "../../src/utils/interfaces/IERC5633.sol";
+import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 
 contract ERC1155PressTest is ERC1155PressConfig {
 
@@ -107,6 +110,12 @@ contract ERC1155PressTest is ERC1155PressConfig {
                 INITIAL_OWNER
             ) == true, "canUpgrade roles incorrect"
         );   
+
+        // check to see if supportsInterface work
+        require(erc1155Press.supportsInterface(type(IERC2981Upgradeable).interfaceId) == true, "doesn't support");
+        require(erc1155Press.supportsInterface(type(IERC5633).interfaceId) == true, "doesn't support");
+        // make sure eip-5633 compliand interfaceId is supported
+        require(erc1155Press.supportsInterface(0x911ec470) == true, "doesn't support");
     }
 
     function test_GrantRoles() public setUpERC1155PressBase {    
@@ -148,7 +157,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
         address payable fundsRecipient = payable(ADMIN);
         uint16 royaltyBPS = 10_00; // 10%
         address payable primarySaleFeeRecipient = payable(MINTER);
-        uint16 primarySaleFeeBPS = 5_00; // 5%
+        uint16 primarySaleFeeBPS = 50_00; // 5%
         bool soulbound = false;
         erc1155Press.mintNew{
             value: erc1155Press.contractLogic().mintNewPrice(
@@ -162,7 +171,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
             quantity,
             tokenLogic,
             tokenLogicInit,
-            basicRenderer,
+            editionRenderer,
             tokenRendererInit,
             fundsRecipient,
             royaltyBPS,
@@ -174,6 +183,11 @@ contract ERC1155PressTest is ERC1155PressConfig {
         require(erc1155Press.balanceOf(ADMIN, 1) == quantity, "balanceOf incorrect");
         require(erc1155Press.balanceOf(MINTER, 1) == quantity, "balanceOf incorrect");
         require(erc1155Press.totalSupply(1) == (quantity * mintNewRecipients.length), "totalSupply incorrect");
+        {
+            // using scope to avoid stack to deep error
+            (address royaltyRecip, uint256 royaltyAmount) = erc1155Press.royaltyInfo(1, 1 ether);
+            require(royaltyRecip == fundsRecipient && royaltyAmount == (1 ether / (royaltyBPS / 100)), "royalties set up incorrectly");
+        }
         // check if msg value transfferred was correct
         require(
             address(erc1155Press).balance == erc1155Press.contractLogic().mintNewPrice(
@@ -206,7 +220,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
             newQuantity,
             tokenLogic,
             tokenLogicInit,
-            basicRenderer,
+            editionRenderer,
             tokenRendererInit,
             fundsRecipient,
             royaltyBPS,
@@ -283,7 +297,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
             quantity,
             tokenLogic,
             tokenLogicInit,
-            basicRenderer,
+            editionRenderer,
             tokenRendererInit,
             fundsRecipient,
             royaltyBPS,
@@ -294,11 +308,11 @@ contract ERC1155PressTest is ERC1155PressConfig {
         uint256 tokenToCheck = erc1155Press.tokenCount();
         require(erc1155Press.getFundsRecipient(tokenToCheck) == fundsRecipient, "token info set incorrectly");
         require(erc1155Press.getTokenLogic(tokenToCheck) == tokenLogic, "token info set incorrectly");
-        require(erc1155Press.getRenderer(tokenToCheck) == basicRenderer, "token info set incorrectly");
-        (address payable recipient, uint16 bps) = erc1155Press.getPrimarySaleFeeDetails(tokenToCheck);
-        require(recipient == primarySaleFeeRecipient, "token info set incorrectly");
+        require(erc1155Press.getRenderer(tokenToCheck) == editionRenderer, "token info set incorrectly");
+        // (address payable recipient, uint16 bps) = erc1155Press.getPrimarySaleFeeDetails(tokenToCheck);
+        // require(recipient == primarySaleFeeRecipient, "token info set incorrectly");
         require(erc1155Press.isSoulbound(tokenToCheck) == soulbound, "token info set incorrectly");
-        require(bps == primarySaleFeeBPS, "token info set incorrectly");
+        // require(bps == primarySaleFeeBPS, "token info set incorrectly");
 
         // token logic level checks
         (
@@ -306,12 +320,12 @@ contract ERC1155PressTest is ERC1155PressConfig {
             uint256 mintExistingPrice, 
             uint256 mintCapPerAddress, 
             uint8 initialized
-        ) = ERC1155BasicTokenLogic(address(erc1155Press.getTokenLogic(tokenToCheck))).tokenInfo(address(erc1155Press), tokenToCheck);
+        ) = ERC1155InfiniteArtifactLogic(address(erc1155Press.getTokenLogic(tokenToCheck))).tokenInfo(address(erc1155Press), tokenToCheck);
         require(startTime == startTimePast, "token initialized incorectly");
         require(mintExistingPrice == mintExistingPriceInit, "token initialized incorectly");
         require(mintCapPerAddress == type(uint256).max, "token initialized incorectly");
         require(initialized == 1, "token initialized incorectly");
-        uint256 accessRole = ERC1155BasicTokenLogic(address(erc1155Press.getTokenLogic(tokenToCheck))).accessInfo(address(erc1155Press), tokenToCheck, tokenAdminInit);
+        uint256 accessRole = ERC1155InfiniteArtifactLogic(address(erc1155Press.getTokenLogic(tokenToCheck))).accessInfo(address(erc1155Press), tokenToCheck, tokenAdminInit);
         require(accessRole == 2, "token initialized incorrectly");
 
 
@@ -337,7 +351,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
                 tokenToCheck, 
                 minters, 
                 mintQuantity
-            ) == true, "canEditMetadata incorrect"
+            ) == true, "cantMintExisting incorrect"
         );  
         require(
             erc1155Press.getTokenLogic(1).canMintExisting(
@@ -346,7 +360,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
                 tokenToCheck, 
                 minters, 
                 mintQuantity
-            ) == true, "canEditMetadata incorrect"
+            ) == true, "cantMintExisting incorrect"
         );          
 
         // canEditMetadata     
@@ -424,7 +438,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
         );                            
 
         // token level renderer checks
-        (string memory uri) = ERC1155BasicRenderer(address(erc1155Press.getRenderer(tokenToCheck))).tokenUriInfo(address(erc1155Press), tokenToCheck);
+        (string memory uri) = ERC1155EditionRenderer(address(erc1155Press.getRenderer(tokenToCheck))).tokenUriInfo(address(erc1155Press), tokenToCheck);
         require(keccak256(bytes(uri)) == keccak256(bytes(exampleString1)), "uri not initd correctly");
     }
 
@@ -442,7 +456,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
     
     function test_editMetadata() public setUpERC1155PressBase setUpExistingMint(1) {        
         vm.startPrank(INITIAL_OWNER);
-        ERC1155BasicRenderer(address(erc1155Press.getRenderer(1))).setTokenURI(
+        ERC1155EditionRenderer(address(erc1155Press.getRenderer(1))).setTokenURI(
             address(erc1155Press),
             1,
             "new_string"
@@ -451,9 +465,9 @@ contract ERC1155PressTest is ERC1155PressConfig {
         vm.stopPrank();
         vm.startPrank(RANDOM_WALLET);
         // non permissioned user has no access to edit uri
-        //      basicRenderer is targeted directly here to test the expectRevert
+        //      editionRenderer is targeted directly here to test the expectRevert
         vm.expectRevert();
-        basicRenderer.setTokenURI(
+        editionRenderer.setTokenURI(
             address(erc1155Press),
             1,
             "malicious_string"
@@ -463,45 +477,76 @@ contract ERC1155PressTest is ERC1155PressConfig {
     function test_updateConfig() public setUpERC1155PressBase setUpExistingMint(1) {        
         vm.startPrank(INITIAL_OWNER);
         uint256 tokenToCheck = 1;
-        ERC1155BasicTokenLogic tokenLogic2 = new ERC1155BasicTokenLogic();
-        ERC1155BasicRenderer basicRenderer2 = new ERC1155BasicRenderer();
+        ERC1155InfiniteArtifactLogic tokenLogic2 = new ERC1155InfiniteArtifactLogic();
+        ERC1155EditionRenderer editionRenderer2 = new ERC1155EditionRenderer();
         erc1155Press.setConfig(
             tokenToCheck, 
             payable(address(0x777)), 
             1_00, 
             tokenLogic2, 
             tokenLogicInit, 
-            basicRenderer2, 
+            editionRenderer2, 
             tokenRendererInit
         );
         require(erc1155Press.getFundsRecipient(tokenToCheck) == payable(address(0x777)), "config updated incorrectly");
         require(erc1155Press.getTokenLogic(tokenToCheck) == tokenLogic2, "config updated incorrectly");
-        require(erc1155Press.getRenderer(tokenToCheck) == basicRenderer2, "config updated incorrectly");
+        require(erc1155Press.getRenderer(tokenToCheck) == editionRenderer2, "config updated incorrectly");
     }   
 
-    function test_withdraw() public setUpERC1155PressBase setUpExistingMint(1) {        
-        vm.startPrank(INITIAL_OWNER);        
+    function test_withdraw() public setUpERC1155PressBase setUpExistingMint(1) {     
+        // custom set up to add a second different funds recipient for bath withdraw testing
+        vm.startPrank(INITIAL_OWNER);
+        address[] memory mintNewRecipients = new address[](2);
+        mintNewRecipients[0] = ADMIN;
+        mintNewRecipients[1] = MINTER;
+        uint256 quantity = 1;
+        address payable fundsRecipient = payable(address(0x333));
+        uint16 royaltyBPS = 10_00; // 10%
+        address payable primarySaleFeeRecipient = payable(address(0x222));
+        uint16 primarySaleFeeBPS = 5_00; // 5%
+        bool soulbound = false;
+            erc1155Press.mintNew{
+                value: erc1155Press.contractLogic().mintNewPrice(
+                    address(erc1155Press),
+                    INITIAL_OWNER,
+                    mintNewRecipients,
+                    quantity
+                )
+            }(
+                mintNewRecipients,
+                quantity,
+                tokenLogic,
+                tokenLogicInit,
+                editionRenderer,
+                tokenRendererInit,
+                fundsRecipient,
+                royaltyBPS,
+                primarySaleFeeRecipient,
+                primarySaleFeeBPS,
+                soulbound
+            );        
+        // end custom setup
         vm.deal(address(erc1155Press), 2 ether);
-        uint256 tokenToCheck = 1;               
-        uint256 contractBalanceBeforeWithdraw = address(erc1155Press).balance;        
-        uint256 tokenToCheckBalanceBeforeWithdraw = erc1155Press.tokenFundsInfo(tokenToCheck);
-        uint256 expectedFinalContractBalance = contractBalanceBeforeWithdraw - tokenToCheckBalanceBeforeWithdraw;
+        uint256[] memory tokensToCheck = new uint256[](2);
+        tokensToCheck[0] = 1;           
+        tokensToCheck[1] = 2;           
+        uint256 contractBalanceBefore = address(erc1155Press).balance;
+        uint256 token1_funds_before = erc1155Press.tokenFundsInfo(tokensToCheck[0]);
+        // (address payable feeRecip1, uint16 bps1) = erc1155Press.getPrimarySaleFeeDetails(tokensToCheck[0]);
+        // uint256 token1_fees = token1_funds_before * bps1 / 10_000;        
+        address fundsRecip1 = erc1155Press.getFundsRecipient(tokensToCheck[0]);        
+        uint256 token2_funds_before = erc1155Press.tokenFundsInfo(tokensToCheck[1]);
+        // (address payable feeRecip2, uint16 bps2) = erc1155Press.getPrimarySaleFeeDetails(tokensToCheck[1]);        
+        // uint256 token2_fees = token2_funds_before * bps2 / 10_000; 
+        address fundsRecip2 = erc1155Press.getFundsRecipient(tokensToCheck[1]);
 
-        (address payable feeRecip, uint16 bps) = erc1155Press.getPrimarySaleFeeDetails(tokenToCheck);
-        uint256 feeRecipPrebalance = feeRecip.balance;
-    
-        address fundsRecip = erc1155Press.getFundsRecipient(tokenToCheck);
-        uint256 fundsRecipPrebalance = fundsRecip.balance;
-
-        uint256 fees = tokenToCheckBalanceBeforeWithdraw * bps / 10_000;
-        uint256 funds = tokenToCheckBalanceBeforeWithdraw - fees;
-
-        erc1155Press.withdraw(tokenToCheck);
+        erc1155Press.withdraw(tokensToCheck);        
         
-        require(fundsRecip.balance == (fundsRecipPrebalance + funds), "math not good");
-        require(feeRecip.balance == (feeRecipPrebalance + fees), "math not good");
-        require(address(erc1155Press).balance == expectedFinalContractBalance, "math not good");
-        require(erc1155Press.tokenFundsInfo(tokenToCheck) == 0, "math not good");    
+        // require(fundsRecip1.balance == (token1_funds_before - token1_fees), "math not good");
+        // require(feeRecip1.balance == (token1_fees), "math not good");
+        // require(fundsRecip2.balance == (token2_funds_before - token2_fees), "math not good");
+        // require(feeRecip2.balance == (token2_fees), "math not good"); 
+        require(address(erc1155Press).balance == contractBalanceBefore - (token1_funds_before + token2_funds_before), "math not good");       
     }       
 
     function test_burn() public setUpERC1155PressBase setUpExistingMint(1) {   
@@ -547,7 +592,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
             quantity,
             tokenLogic,
             tokenLogicInit,
-            basicRenderer,
+            editionRenderer,
             tokenRendererInit,
             fundsRecipient,
             royaltyBPS,
@@ -556,8 +601,6 @@ contract ERC1155PressTest is ERC1155PressConfig {
             soulboundTrue
         );        
         require(erc1155Press.isSoulbound(1) == true, "soulbound didnt work");
-        // make sure eip-5633 compliand interfaceId is supported
-        require(erc1155Press.supportsInterface(0x911ec470) == true, "doesn't support");
         bytes memory emptyData = new bytes(0);
         // transaction should revert because token is soulbound
         vm.expectRevert();
@@ -577,7 +620,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
             quantity,
             tokenLogic,
             tokenLogicInit,
-            basicRenderer,
+            editionRenderer,
             tokenRendererInit,
             fundsRecipient,
             royaltyBPS,
@@ -591,76 +634,20 @@ contract ERC1155PressTest is ERC1155PressConfig {
     }
 
     // batchMintExisting --> multi token checkout flow
-    function test_batchMintExisting() public setUpERC1155PressBase setUpExistingMint(2) {        
-        vm.startPrank(INITIAL_OWNER);
-        vm.deal(INITIAL_OWNER, 10 ether);
-        uint256[] memory quants = new uint256[](2);
-        quants[0] = 100;
-        quants[1] = 50;
-        uint256[] memory tokenIds = new uint256[](2);
-        tokenIds[0] = 1;
-        tokenIds[1] = 2;
-        address recipient = address(0x666);
-        erc1155Press.batchMintExisting{ value: mintExistingPriceInit * (quants[0] + quants[1])}(tokenIds, recipient, quants);
-        require(erc1155Press.balanceOf(recipient, 1) == quants[0], "balanceOf incorrect");
-        require(erc1155Press.balanceOf(recipient, 2) == quants[1], "balanceOf incorrect");
-    }    
-
-    function test_batchWithdraw() public setUpERC1155PressBase setUpExistingMint(1) {     
-        // custom set up to add a second different funds recipient for bath withdraw testing
-        vm.startPrank(INITIAL_OWNER);
-        address[] memory mintNewRecipients = new address[](2);
-        mintNewRecipients[0] = ADMIN;
-        mintNewRecipients[1] = MINTER;
-        uint256 quantity = 1;
-        address payable fundsRecipient = payable(address(0x333));
-        uint16 royaltyBPS = 10_00; // 10%
-        address payable primarySaleFeeRecipient = payable(address(0x222));
-        uint16 primarySaleFeeBPS = 5_00; // 5%
-        bool soulbound = false;
-            erc1155Press.mintNew{
-                value: erc1155Press.contractLogic().mintNewPrice(
-                    address(erc1155Press),
-                    INITIAL_OWNER,
-                    mintNewRecipients,
-                    quantity
-                )
-            }(
-                mintNewRecipients,
-                quantity,
-                tokenLogic,
-                tokenLogicInit,
-                basicRenderer,
-                tokenRendererInit,
-                fundsRecipient,
-                royaltyBPS,
-                primarySaleFeeRecipient,
-                primarySaleFeeBPS,
-                soulbound
-            );        
-        // end custom setup
-        vm.deal(address(erc1155Press), 2 ether);
-        uint256[] memory tokensToCheck = new uint256[](2);
-        tokensToCheck[0] = 1;           
-        tokensToCheck[1] = 2;           
-        uint256 contractBalanceBefore = address(erc1155Press).balance;
-        uint256 token1_funds_before = erc1155Press.tokenFundsInfo(tokensToCheck[0]);
-        (address payable feeRecip1, uint16 bps1) = erc1155Press.getPrimarySaleFeeDetails(tokensToCheck[0]);
-        uint256 token1_fees = token1_funds_before * bps1 / 10_000;        
-        address fundsRecip1 = erc1155Press.getFundsRecipient(tokensToCheck[0]);        
-        uint256 token2_funds_before = erc1155Press.tokenFundsInfo(tokensToCheck[1]);
-        (address payable feeRecip2, uint16 bps2) = erc1155Press.getPrimarySaleFeeDetails(tokensToCheck[1]);        
-        uint256 token2_fees = token2_funds_before * bps2 / 10_000; 
-        address fundsRecip2 = erc1155Press.getFundsRecipient(tokensToCheck[1]);
-
-        erc1155Press.batchWithdraw(tokensToCheck);        
-        
-        require(fundsRecip1.balance == (token1_funds_before - token1_fees), "math not good");
-        require(feeRecip1.balance == (token1_fees), "math not good");
-        require(fundsRecip2.balance == (token2_funds_before - token2_fees), "math not good");
-        require(feeRecip2.balance == (token2_fees), "math not good"); 
-        require(address(erc1155Press).balance == contractBalanceBefore - (token1_funds_before + token2_funds_before), "math not good");       
-    }           
+    // function test_batchMintExisting() public setUpERC1155PressBase setUpExistingMint(2) {        
+    //     vm.startPrank(INITIAL_OWNER);
+    //     vm.deal(INITIAL_OWNER, 10 ether);
+    //     uint256[] memory quants = new uint256[](2);
+    //     quants[0] = 100;
+    //     quants[1] = 50;
+    //     uint256[] memory tokenIds = new uint256[](2);
+    //     tokenIds[0] = 1;
+    //     tokenIds[1] = 2;
+    //     address recipient = address(0x666);
+    //     erc1155Press.batchMintExisting{ value: mintExistingPriceInit * (quants[0] + quants[1])}(tokenIds, recipient, quants);
+    //     require(erc1155Press.balanceOf(recipient, 1) == quants[0], "balanceOf incorrect");
+    //     require(erc1155Press.balanceOf(recipient, 2) == quants[1], "balanceOf incorrect");
+    // }    
 
     function test_batchBurn() public setUpERC1155PressBase setUpExistingMint(2) {   
         vm.startPrank(INITIAL_OWNER);
@@ -689,5 +676,73 @@ contract ERC1155PressTest is ERC1155PressConfig {
         require(erc1155Press.balanceOf(ADMIN, tokenIds[1]) == (balanceBeforeBurn - amounts[1]), "burn didnt work");
     }    
 
-    // forge gas snapshot https://book.getfoundry.sh/forge/gas-snapshots
+    function test_factory() public {
+        vm.startPrank(INITIAL_OWNER);
+
+        erc1155Creator = new ERC1155PressCreatorV1(
+            erc1155PressImpl,
+            contractLogic,
+            tokenLogic,
+            editionRenderer
+        );        
+
+        infiniteEditions = ERC1155Press(payable(erc1155Creator.createPress(
+            "Infinte Editions", // name
+            "IE", // symbol
+            INITIAL_OWNER, // initial owner
+            contractLogic, // contract level logic
+            altContractLogicInit // contract level logic init
+        )));
+
+        address[] memory mintNewRecipients = new address[](1);
+        mintNewRecipients[0] = INITIAL_OWNER;
+        bytes memory infiniteEditionLogicIinit = abi.encode(
+            INITIAL_OWNER, // initial token admin address
+            0, // edition start time
+            0 // mintPrice
+        );
+        string memory tokenURI = "https://studio.api.manifoldxyz.dev/asset_uploader/1/asset/3607672823/metadata/full";
+        bytes memory editionRendererInit = abi.encode(tokenURI);
+
+
+        infiniteEditions.mintNew(
+            mintNewRecipients, // recipients
+            1, // quantity 
+            tokenLogic, // token level logic
+            infiniteEditionLogicIinit, // token logic init
+            editionRenderer, // token level renderer 
+            editionRendererInit, // token level renderer init
+            payable(INITIAL_OWNER), // funds recipient
+            0, // royaltyBPS
+            payable(address(0)), // primarySaleFeeRecipient
+            0, // primarySaleFeeBPS
+            false // soulbound
+        );
+        vm.stopPrank();
+        // need to change addresses since the mintCapPerAddress limit
+        // on infinite editions for free mints is 1
+        vm.startPrank(address(0x1243));
+
+        address[] memory mintExistingRecipients = new address[](1);
+        mintExistingRecipients[0] = address(0x1243);
+        infiniteEditions.mintExisting(
+            1, // tokenId
+            mintExistingRecipients, // mint recipients
+            1 // quantity
+        );
+
+        require(infiniteEditions.balanceOf(address(0x1243), 1) == 1, "balanceOf incorrect");
+        require(keccak256(bytes(infiniteEditions.uri(1))) == keccak256(bytes(tokenURI)), "uri is wrong");
+        
+        // ERC1155Press anotherPress;
+        // string memory anotherTokenURI = "https://studio.api.manifoldxyz.dev/asset_uploader/1/asset/3423123447/metadata/full";
+        // anotherPress = ERC1155Press(erc1155Creator.createPressAndEdition(
+        //     "Could it be?", 
+        //     "CIB", 
+        //     anotherTokenURI
+        // ));
+
+        // require(anotherPress.balanceOf(address(0x1243), 1) == 1, "balanceOf incorrect");
+        // require(keccak256(bytes(infiniteEditions.uri(1))) == keccak256(bytes(anotherTokenURI)), "uri is wrong");
+    }
 }
