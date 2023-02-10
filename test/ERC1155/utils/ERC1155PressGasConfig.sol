@@ -8,9 +8,9 @@ import {ERC1155Press} from "../../../src/token/ERC1155/ERC1155Press.sol";
 import {ERC1155PressProxy} from "../../../src/token/ERC1155/proxy/ERC1155PressProxy.sol";
 
 import {ERC1155BasicContractLogic} from "../../../src/token/ERC1155/logic/ERC1155BasicContractLogic.sol";
-import {ERC1155BasicTokenLogic} from "../../../src/token/ERC1155/logic/ERC1155BasicTokenLogic.sol";
+import {ERC1155InfiniteArtifactLogic} from "../../../src/token/ERC1155/logic/ERC1155InfiniteArtifactLogic.sol";
 
-import {ERC1155BasicRenderer} from "../../../src/token/ERC1155/metadata/ERC1155BasicRenderer.sol";
+import {ERC1155EditionRenderer} from "../../../src/token/ERC1155/metadata/ERC1155EditionRenderer.sol";
 
 
 contract ERC1155PressGasConfig is Test {
@@ -45,10 +45,10 @@ contract ERC1155PressGasConfig is Test {
 
     // Deploy basic contract and token level logic
     ERC1155BasicContractLogic public contractLogic = new ERC1155BasicContractLogic();
-    ERC1155BasicTokenLogic public tokenLogic = new ERC1155BasicTokenLogic();
+    ERC1155InfiniteArtifactLogic public tokenLogic = new ERC1155InfiniteArtifactLogic();
 
     // Deploy basic renderer contract
-    ERC1155BasicRenderer public basicRenderer = new ERC1155BasicRenderer();
+    ERC1155EditionRenderer public editionRenderer = new ERC1155EditionRenderer();
 
     // Set up called before each test
     function setUp() public {
@@ -87,7 +87,7 @@ contract ERC1155PressGasConfig is Test {
             quantity,
             tokenLogic,
             tokenLogicInit,
-            basicRenderer,
+            editionRenderer,
             tokenRendererInit,
             fundsRecipient,
             royaltyBPS,
@@ -102,7 +102,7 @@ contract ERC1155PressGasConfig is Test {
             quantity,
             tokenLogic,
             tokenLogicInit,
-            basicRenderer,
+            editionRenderer,
             tokenRendererInit,
             fundsRecipient,
             royaltyBPS,

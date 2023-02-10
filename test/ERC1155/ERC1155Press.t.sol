@@ -5,8 +5,8 @@ import {console2} from "forge-std/console2.sol";
 
 import {ERC1155PressConfig} from "./utils/ERC1155PressConfig.sol";
 import {ERC1155BasicContractLogic} from "../../src/token/ERC1155/logic/ERC1155BasicContractLogic.sol";
-import {ERC1155BasicTokenLogic} from "../../src/token/ERC1155/logic/ERC1155BasicTokenLogic.sol";
-import {ERC1155BasicRenderer} from "../../src/token/ERC1155/metadata/ERC1155BasicRenderer.sol";
+import {ERC1155InfiniteArtifactLogic} from "../../src/token/ERC1155/logic/ERC1155InfiniteArtifactLogic.sol";
+import {ERC1155EditionRenderer} from "../../src/token/ERC1155/metadata/ERC1155EditionRenderer.sol";
 import {ERC1155Press} from "../../src/token/ERC1155/ERC1155Press.sol";
 import {IERC1155PressTokenLogic} from "../../src/token/ERC1155/interfaces/IERC1155PressTokenLogic.sol";
 import {IERC1155TokenRenderer} from "../../src/token/ERC1155/interfaces/IERC1155TokenRenderer.sol";
@@ -170,7 +170,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
             quantity,
             tokenLogic,
             tokenLogicInit,
-            basicRenderer,
+            editionRenderer,
             tokenRendererInit,
             fundsRecipient,
             royaltyBPS,
@@ -219,7 +219,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
             newQuantity,
             tokenLogic,
             tokenLogicInit,
-            basicRenderer,
+            editionRenderer,
             tokenRendererInit,
             fundsRecipient,
             royaltyBPS,
@@ -296,7 +296,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
             quantity,
             tokenLogic,
             tokenLogicInit,
-            basicRenderer,
+            editionRenderer,
             tokenRendererInit,
             fundsRecipient,
             royaltyBPS,
@@ -307,7 +307,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
         uint256 tokenToCheck = erc1155Press.tokenCount();
         require(erc1155Press.getFundsRecipient(tokenToCheck) == fundsRecipient, "token info set incorrectly");
         require(erc1155Press.getTokenLogic(tokenToCheck) == tokenLogic, "token info set incorrectly");
-        require(erc1155Press.getRenderer(tokenToCheck) == basicRenderer, "token info set incorrectly");
+        require(erc1155Press.getRenderer(tokenToCheck) == editionRenderer, "token info set incorrectly");
         // (address payable recipient, uint16 bps) = erc1155Press.getPrimarySaleFeeDetails(tokenToCheck);
         // require(recipient == primarySaleFeeRecipient, "token info set incorrectly");
         require(erc1155Press.isSoulbound(tokenToCheck) == soulbound, "token info set incorrectly");
@@ -319,12 +319,12 @@ contract ERC1155PressTest is ERC1155PressConfig {
             uint256 mintExistingPrice, 
             uint256 mintCapPerAddress, 
             uint8 initialized
-        ) = ERC1155BasicTokenLogic(address(erc1155Press.getTokenLogic(tokenToCheck))).tokenInfo(address(erc1155Press), tokenToCheck);
+        ) = ERC1155InfiniteArtifactLogic(address(erc1155Press.getTokenLogic(tokenToCheck))).tokenInfo(address(erc1155Press), tokenToCheck);
         require(startTime == startTimePast, "token initialized incorectly");
         require(mintExistingPrice == mintExistingPriceInit, "token initialized incorectly");
         require(mintCapPerAddress == type(uint256).max, "token initialized incorectly");
         require(initialized == 1, "token initialized incorectly");
-        uint256 accessRole = ERC1155BasicTokenLogic(address(erc1155Press.getTokenLogic(tokenToCheck))).accessInfo(address(erc1155Press), tokenToCheck, tokenAdminInit);
+        uint256 accessRole = ERC1155InfiniteArtifactLogic(address(erc1155Press.getTokenLogic(tokenToCheck))).accessInfo(address(erc1155Press), tokenToCheck, tokenAdminInit);
         require(accessRole == 2, "token initialized incorrectly");
 
 
@@ -437,7 +437,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
         );                            
 
         // token level renderer checks
-        (string memory uri) = ERC1155BasicRenderer(address(erc1155Press.getRenderer(tokenToCheck))).tokenUriInfo(address(erc1155Press), tokenToCheck);
+        (string memory uri) = ERC1155EditionRenderer(address(erc1155Press.getRenderer(tokenToCheck))).tokenUriInfo(address(erc1155Press), tokenToCheck);
         require(keccak256(bytes(uri)) == keccak256(bytes(exampleString1)), "uri not initd correctly");
     }
 
@@ -455,7 +455,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
     
     function test_editMetadata() public setUpERC1155PressBase setUpExistingMint(1) {        
         vm.startPrank(INITIAL_OWNER);
-        ERC1155BasicRenderer(address(erc1155Press.getRenderer(1))).setTokenURI(
+        ERC1155EditionRenderer(address(erc1155Press.getRenderer(1))).setTokenURI(
             address(erc1155Press),
             1,
             "new_string"
@@ -464,9 +464,9 @@ contract ERC1155PressTest is ERC1155PressConfig {
         vm.stopPrank();
         vm.startPrank(RANDOM_WALLET);
         // non permissioned user has no access to edit uri
-        //      basicRenderer is targeted directly here to test the expectRevert
+        //      editionRenderer is targeted directly here to test the expectRevert
         vm.expectRevert();
-        basicRenderer.setTokenURI(
+        editionRenderer.setTokenURI(
             address(erc1155Press),
             1,
             "malicious_string"
@@ -476,20 +476,20 @@ contract ERC1155PressTest is ERC1155PressConfig {
     function test_updateConfig() public setUpERC1155PressBase setUpExistingMint(1) {        
         vm.startPrank(INITIAL_OWNER);
         uint256 tokenToCheck = 1;
-        ERC1155BasicTokenLogic tokenLogic2 = new ERC1155BasicTokenLogic();
-        ERC1155BasicRenderer basicRenderer2 = new ERC1155BasicRenderer();
+        ERC1155InfiniteArtifactLogic tokenLogic2 = new ERC1155InfiniteArtifactLogic();
+        ERC1155EditionRenderer editionRenderer2 = new ERC1155EditionRenderer();
         erc1155Press.setConfig(
             tokenToCheck, 
             payable(address(0x777)), 
             1_00, 
             tokenLogic2, 
             tokenLogicInit, 
-            basicRenderer2, 
+            editionRenderer2, 
             tokenRendererInit
         );
         require(erc1155Press.getFundsRecipient(tokenToCheck) == payable(address(0x777)), "config updated incorrectly");
         require(erc1155Press.getTokenLogic(tokenToCheck) == tokenLogic2, "config updated incorrectly");
-        require(erc1155Press.getRenderer(tokenToCheck) == basicRenderer2, "config updated incorrectly");
+        require(erc1155Press.getRenderer(tokenToCheck) == editionRenderer2, "config updated incorrectly");
     }   
 
     function test_withdraw() public setUpERC1155PressBase setUpExistingMint(1) {     
@@ -516,7 +516,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
                 quantity,
                 tokenLogic,
                 tokenLogicInit,
-                basicRenderer,
+                editionRenderer,
                 tokenRendererInit,
                 fundsRecipient,
                 royaltyBPS,
@@ -591,7 +591,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
             quantity,
             tokenLogic,
             tokenLogicInit,
-            basicRenderer,
+            editionRenderer,
             tokenRendererInit,
             fundsRecipient,
             royaltyBPS,
@@ -619,7 +619,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
             quantity,
             tokenLogic,
             tokenLogicInit,
-            basicRenderer,
+            editionRenderer,
             tokenRendererInit,
             fundsRecipient,
             royaltyBPS,

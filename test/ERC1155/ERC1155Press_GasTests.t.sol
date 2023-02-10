@@ -43,7 +43,7 @@ contract ERC1155Press_GasTests is ERC1155PressGasConfig {
             quantity,
             tokenLogic,
             tokenLogicInit,
-            basicRenderer,
+            editionRenderer,
             tokenRendererInit,
             fundsRecipient,
             royaltyBPS,
