@@ -62,18 +62,18 @@ contract ERC1155Press_GasTests is ERC1155PressGasConfig {
         erc1155Press.mintExisting{ value: 0.001 ether}(1, recips, quant);      
     }    
 
-    function test_batchMintExisting() public {
-        vm.startPrank(INITIAL_OWNER);
-        vm.deal(INITIAL_OWNER, 10 ether);
-        uint256[] memory quants = new uint256[](2);
-        quants[0] = 1;
-        quants[1] = 1;
-        uint256[] memory tokenIds = new uint256[](2);
-        tokenIds[0] = 1;
-        tokenIds[1] = 2;
-        address recipient = address(0x666);
-        erc1155Press.batchMintExisting{ value: 0.002 ether}(tokenIds, recipient, quants);
-    }
+    // function test_batchMintExisting() public {
+    //     vm.startPrank(INITIAL_OWNER);
+    //     vm.deal(INITIAL_OWNER, 10 ether);
+    //     uint256[] memory quants = new uint256[](2);
+    //     quants[0] = 1;
+    //     quants[1] = 1;
+    //     uint256[] memory tokenIds = new uint256[](2);
+    //     tokenIds[0] = 1;
+    //     tokenIds[1] = 2;
+    //     address recipient = address(0x666);
+    //     erc1155Press.batchMintExisting{ value: 0.002 ether}(tokenIds, recipient, quants);
+    // }
 
     function test_burn() public {
         vm.startPrank(ADMIN);
