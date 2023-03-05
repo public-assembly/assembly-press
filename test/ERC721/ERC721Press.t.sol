@@ -146,4 +146,32 @@ contract ERC721PressTest is ERC721PressConfig {
         curationContract.mintWithData(1, encodedListings);
         require(curationContract.ownerOf(1) == curatorPersona_1, "minted incorrectly");  
     }
+
+    function test_curatorEncoding() public {
+        erc721Creator = new ERC721PressCreatorV1(
+            erc721PressImpl,
+            curationLogic,
+            curationRenderer,
+            address(openAccess)
+        );
+
+        curationContract = ERC721Press(payable(erc721Creator.createCuration(
+            "MOVEMENT", 
+            "SYMBOL"
+        )));
+
+        address curatorPersona_1 = 0x153D2A196dc8f1F6b9Aa87241864B3e4d4FEc170;        
+        vm.startPrank(curatorPersona_1);        
+        ICurationLogic.Listing[] memory listings = new ICurationLogic.Listing[](1);        
+        listings[0].curatedAddress = 0x9c05Ae01E80EaBe46023b8847FbcbC4aFb25D959;
+        listings[0].selectedTokenId = 1;
+        listings[0].curator = curatorPersona_1;
+        listings[0].curationTargetType = 4; // curationType = NFT Item
+        listings[0].sortOrder = 0;
+        listings[0].hasTokenId = true;
+        listings[0].chainId = 5;
+        bytes memory encodedListings = abi.encode(listings);  
+        curationContract.mintWithData(1, encodedListings);
+        require(curationContract.ownerOf(1) == curatorPersona_1, "minted incorrectly");          
+    }
 }

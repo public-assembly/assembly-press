@@ -11,9 +11,9 @@ import {ERC721PressCreatorV1} from "../../../src/token/ERC721/ERC721PressCreator
 import {ERC721PressCreatorProxy} from "../../../src/token/ERC721/proxy/ERC721PressCreatorProxy.sol";
 
 import {CurationLogic} from "../../../src/token/ERC721/Curation/CurationLogic.sol";
+
 import {CurationMetadataRenderer} from "../../../src/token/ERC721/Curation/CurationMetadataRenderer.sol";
 import {OpenAccess} from "../../../src/token/ERC721/Curation/OpenAccess.sol";
-
 
 contract ERC721Press_GasConfig is Test {
     address public constant INITIAL_OWNER = address(0x01);
@@ -30,6 +30,7 @@ contract ERC721Press_GasConfig is Test {
     CurationMetadataRenderer public curationRenderer = new CurationMetadataRenderer();
     // Deploy the OpenAccess contract
     OpenAccess public openAccess = new OpenAccess();
+    // set up curation logic init
     bytes curLogicInit = abi.encode(initialPauseState, openAccess, "");
 
     // Set up called before each test
@@ -62,6 +63,6 @@ contract ERC721Press_GasConfig is Test {
             _rendererInit: "",
             _soulbound: true,            
             _configuration: configuration                        
-        });        
+        });              
     }
 }

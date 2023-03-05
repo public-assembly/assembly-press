@@ -69,22 +69,4 @@ contract ERC1155PressPermissions is ERC1155PressStorageV1 {
             revert IERC1155Press.No_Upgrade_Access();
         }    
     }
-
-
-
-
-        // // Call token level logic contract to check if user can mint
-        // if (IERC1155PressTokenLogic(configInfo[tokenId].logic).canMintExisting(address(this), sender, tokenId, recipients, quantity)) {
-        //     revert No_MintExisting_Access();
-        // }   
-        // Call logic contract to check what msg.value needs to be sent for given Press + tokenIds + quantities + msg.sender
-        // if (msg.value != IERC1155PressTokenLogic(configInfo[tokenId].logic).mintExistingPrice(address(this), tokenId, sender, recipients, quantity)) {
-        //     revert Incorrect_Msg_Value();
-        // }         
-
-        // // Call logic contract to check what msg.value needs to be sent for given Press + msg.sender
-        // if (msg.value != IERC1155PressContractLogic(contractLogic).mintNewPrice(address(this), msg.sender, recipients, quantity)) {
-        //     revert Incorrect_Msg_Value();
-        // }            
-
 }
