@@ -43,6 +43,7 @@ contract ERC721PressConfig is Test {
     bool initialPauseState = true;
     // Deploy the CurationLogic contract
     CurationLogic public curationLogic = new CurationLogic();
+    CurationLogic public curLogic2 = new CurationLogic();
     // Deploy the CurationMetadataRenderer contract
     CurationMetadataRenderer public curationRenderer = new CurationMetadataRenderer();
     // Deploy the OpenAccess contract

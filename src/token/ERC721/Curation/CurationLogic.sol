@@ -283,13 +283,13 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     // function called by mintWithData function in ERC721Press mint call that
     // updates Press specific listings mapping in CuratorStorageV1
     function updateLogicWithData(address updateSender, bytes memory logicData) external {
-        // logicData: listings
-        (Listing[] memory listings) = abi.decode(logicData, (Listing[]));
-
         // Access control to prevent non curators/manager/admins from accessing
         if (configInfo[msg.sender].accessControl.getAccessLevel(msg.sender, updateSender) < CURATOR) {
             revert ACCESS_NOT_ALLOWED();
         }              
+
+        // logicData: listings
+        (Listing[] memory listings) = abi.decode(logicData, (Listing[]));
         
         // msg.sender must be the ERC721Press contract in this instance. 
         // even if someone wanted to put in a fake updateSender address by calling this through etherscan
