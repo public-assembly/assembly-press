@@ -20,7 +20,6 @@ contract ERC721Press_GasConfig is Test {
     address public constant FUNDS_RECIPIENT = address(0x02);   
     uint64 maxSupply = type(uint64).max;
     ERC721Press erc721Press;
-    ERC721Press erc721Press2;
     address public erc721PressImpl;
 
     /* CURATION STUFF HERE */
@@ -41,10 +40,8 @@ contract ERC721Press_GasConfig is Test {
 
         // Create a proxy for that instance
         address payable pressProxy = payable(address(new ERC721PressProxy(erc721PressImpl, "")));
-        address payable pressProxy2 = payable(address(new ERC721PressProxy(erc721PressImpl, "")));
 
         erc721Press = ERC721Press(pressProxy);
-        erc721Press2 = ERC721Press(pressProxy2);
 
         // set up configuration
         IERC721Press.Configuration memory configuration = IERC721Press.Configuration({
