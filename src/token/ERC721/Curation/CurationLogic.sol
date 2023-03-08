@@ -34,7 +34,8 @@ import {IERC721Press} from "../interfaces/IERC721Press.sol";
 import {ERC721Press} from "../ERC721Press.sol";
 import {CurationStorageV1} from "./CurationStorageV1.sol";
 import {ICurationLogic} from "./ICurationLogic.sol";
-import {IAccessControlRegistry} from "../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
+// import {IAccessControlRegistry} from "../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
+import {IAccessControlRegistry} from "./IAccessControlRegistry.sol";
 
 /**
 * @title ERC721Press
@@ -271,7 +272,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         configInfo[sender].isPaused = initialPause;
         configInfo[sender].accessControl = accessControl;
         // initialize access control
-        accessControl.initializeWithData(accessControlInit);   
+        accessControl.initializeWithData(sender, accessControlInit);   
 
         emit SetAccessControl(sender, accessControl);                   
     }       

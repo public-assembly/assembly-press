@@ -13,6 +13,7 @@ import {ERC721PressCreatorProxy} from "../../../src/token/ERC721/proxy/ERC721Pre
 import {CurationLogic} from "../../../src/token/ERC721/Curation/CurationLogic.sol";
 import {CurationMetadataRenderer} from "../../../src/token/ERC721/Curation/CurationMetadataRenderer.sol";
 import {OpenAccess} from "../../../src/token/ERC721/Curation/OpenAccess.sol";
+import {RoleAccess} from "../../../src/token/ERC721/Curation/RoleAccess.sol";
 
 import {DefaultLogic} from "../../../src/token/ERC721/logic/DefaultLogic.sol";
 import {MockLogic} from "../mocks/MockLogic.sol";
@@ -47,7 +48,20 @@ contract ERC721PressConfig is Test {
     CurationMetadataRenderer public curationRenderer = new CurationMetadataRenderer();
     // Deploy the OpenAccess contract
     OpenAccess public openAccess = new OpenAccess();
+    // Deploy the RoleAccess contract
+    RoleAccess public roleAccess = new RoleAccess();
+    // set up open access curation logic init
     bytes curLogicInit = abi.encode(initialPauseState, openAccess, "");
+    // set up types for role based curation access control init
+    enum Roles {
+        NO_ROLE,
+        MANAGER,
+        ADMIN
+    }       
+    struct RoleDetails {
+        address account;
+        Roles role;
+    } 
 
     bytes defaultLogicInit = abi.encode(
         ADMIN, 
@@ -124,6 +138,41 @@ contract ERC721PressConfig is Test {
 
         _;
     }    
+
+    modifier setUpPressCurationLogic_Roles() {
+        
+        RoleDetails[] memory initialRoles = new RoleDetails[](2);
+        initialRoles[0].account = INITIAL_OWNER;
+        initialRoles[0].role = Roles.ADMIN;
+        initialRoles[1].account = FUNDS_RECIPIENT;
+        initialRoles[1].role = Roles.MANAGER;        
+
+        bytes memory curLogicInit_Roles = abi.encode(initialPauseState, roleAccess, abi.encode(initialRoles));
+
+        // set up configuration
+        IERC721Press.Configuration memory configuration = IERC721Press.Configuration({
+            fundsRecipient: payable(FUNDS_RECIPIENT),
+            maxSupply: maxSupply,
+            royaltyBPS: 1000,
+            primarySaleFeeRecipient: payable(FUNDS_RECIPIENT),
+            primarySaleFeeBPS: 1000
+        });
+
+         // Initialize the proxy
+        erc721Press.initialize({
+            _contractName: "Press Test",
+            _contractSymbol: "TEST",
+            _initialOwner: INITIAL_OWNER,
+            _logic: curationLogic,
+            _logicInit: curLogicInit_Roles,
+            _renderer: curationRenderer,
+            _rendererInit: "",
+            _soulbound: true,            
+            _configuration: configuration                        
+        });
+
+        _;
+    }       
 
     // modifier setUpPressDefaultLogic() {
     //      // Initialize the proxy
