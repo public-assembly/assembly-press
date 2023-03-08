@@ -3,6 +3,7 @@ pragma solidity ^0.8.16;
 
 import {Test} from "forge-std/Test.sol";
 import {console2} from "forge-std/console2.sol";
+import {console} from "forge-std/console.sol";
 
 import {ERC721Press} from "../../../src/token/ERC721/ERC721Press.sol";
 import {ERC721PressProxy} from "../../../src/token/ERC721/proxy/ERC721PressProxy.sol";
@@ -147,7 +148,16 @@ contract ERC721PressConfig is Test {
         initialRoles[1].account = FUNDS_RECIPIENT;
         initialRoles[1].role = Roles.MANAGER;        
 
+        // RoleDetails[] memory rolesForEtherscan = new RoleDetails[](1);
+        // rolesForEtherscan[0].account = 0x153D2A196dc8f1F6b9Aa87241864B3e4d4FEc170;
+        // rolesForEtherscan[0].role = Roles.ADMIN;        
+
         bytes memory curLogicInit_Roles = abi.encode(initialPauseState, roleAccess, abi.encode(initialRoles));
+        // address yo = 0x5ADdf759DB2925a4f5821d5Eb2F1d2eda4a5140E;
+        
+        // bytes memory curLogicInit_RolesForEtherscan = abi.encode(initialPauseState, yo, abi.encode(rolesForEtherscan));
+
+        // console.logBytes(curLogicInit_RolesForEtherscan);
 
         // set up configuration
         IERC721Press.Configuration memory configuration = IERC721Press.Configuration({
@@ -165,6 +175,7 @@ contract ERC721PressConfig is Test {
             _initialOwner: INITIAL_OWNER,
             _logic: curationLogic,
             _logicInit: curLogicInit_Roles,
+            // _logicInit: curLogicInit_RolesForEtherscan,
             _renderer: curationRenderer,
             _rendererInit: "",
             _soulbound: true,            

@@ -29,5 +29,5 @@ contract DeployCore is Script {
 // ======= DEPLOY SCRIPTS =====
 
 // source .env
-// forge script script/ERC721Curaiton_RoleAccess.s.sol:DeployCore --rpc-url $GOERLI_RPC_URL --broadcast --verify  -vvvv
+// forge script script/ERC721Curation_RoleAccess.s.sol:DeployCore --rpc-url $GOERLI_RPC_URL --broadcast --verify  -vvvv
 // forge script script/ERC721Curaiton_RoleAccess.s.sol:DeployCore --rpc-url $MAINNET_RPC_URL --broadcast --verify  -vvvv
