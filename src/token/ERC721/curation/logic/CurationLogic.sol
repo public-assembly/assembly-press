@@ -279,7 +279,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         configInfo[sender].isPaused = initialPause;
         configInfo[sender].accessControl = accessControl;
         // initialize access control
-        accessControl.initializeWithData(accessControlInit);   
+        accessControl.initializeWithData(sender, accessControlInit);   
 
         emit SetAccessControl(sender, accessControl);                   
     }       

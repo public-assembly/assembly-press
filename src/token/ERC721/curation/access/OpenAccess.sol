@@ -28,12 +28,6 @@ contract OpenAccess is IAccessControlRegistry {
     /// @dev data format: admin
     function initializeWithData(bytes memory data) external {}
 
-    /// @notice updates strategy of already initialized access control mapping
-    /// @dev will always revert since this access control scheme cannotbe updated
-    function updateWithData(bytes memory data) external {
-        revert Access_Cannot_Be_Updated();
-    }
-
     //////////////////////////////////////////////////
     // VIEW FUNCTIONS
     //////////////////////////////////////////////////
