@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IAccessControlRegistry} from "../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
+import {IAccessControlRegistry} from "../../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
 
 contract OpenAccess is IAccessControlRegistry {
 
@@ -13,7 +13,7 @@ contract OpenAccess is IAccessControlRegistry {
     error Access_Cannot_Be_Updated();
 
     //////////////////////////////////////////////////
-    // VARIABLES
+    // STORAGE
     //////////////////////////////////////////////////
 
     string public constant name = "OpenAccess";
@@ -47,4 +47,15 @@ contract OpenAccess is IAccessControlRegistry {
     {
         return 1;
     }
+
+    /// @notice returns access level of a user address calling function
+    /// @dev called via the external contract initializing access control
+    function getMintPrice(address accessMappingTarget, address addressToGetAccessFor, uint256 mintQuantity)
+        external
+        view
+        returns (uint256)
+    {
+        // always returns zero to hardcode no fee necessary
+        return 0;
+    }    
 }

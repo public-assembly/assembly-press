@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IAccessControlRegistry} from "../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
+import {IAccessControlRegistry} from "../../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
 
 /**
  * Curation interfaces
@@ -58,16 +58,18 @@ interface ICurationLogic {
     struct Config {
         /// @notice Address of the accessControl contract
         IAccessControlRegistry accessControl;    
+        /// @notice If curation is paused by the owner
+        bool isPaused;        
+        /// @notice timestamp that the curation is frozen at (if never, frozen = 0)
+        uint256 frozenAt;                
+        /// @notice price to curate per listing
+        uint256 priceToCurate;                        
         /// Stores virtual mapping array length parameters
         /// @notice Array total size (total size)
         uint40 numAdded;
         /// @notice Array active size = numAdded - numRemoved
         /// @dev Blank entries are retained within array
         uint40 numRemoved;
-        /// @notice If curation is paused by the owner
-        bool isPaused;
-        /// @notice timestamp that the curation is frozen at (if never, frozen = 0)
-        uint256 frozenAt;        
         /// @notice initialized uint. 0 = not initialized, 1 = initialized
         uint8 initialized;        
     }

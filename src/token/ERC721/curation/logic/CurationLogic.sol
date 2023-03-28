@@ -29,15 +29,15 @@ pragma solidity ^0.8.16;
 
 */
 
-import {IERC721PressLogic} from "../interfaces/IERC721PressLogic.sol";
-import {IERC721Press} from "../interfaces/IERC721Press.sol";
-import {ERC721Press} from "../ERC721Press.sol";
-import {CurationStorageV1} from "./CurationStorageV1.sol";
-import {ICurationLogic} from "./ICurationLogic.sol";
-import {IAccessControlRegistry} from "../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
+import {IERC721PressLogic} from "../../core/interfaces/IERC721PressLogic.sol";
+import {IERC721Press} from "../../core/interfaces/IERC721Press.sol";
+import {ERC721Press} from "../../ERC721Press.sol";
+import {CurationStorageV1} from "../storage/CurationStorageV1.sol";
+import {ICurationLogic} from "../interfaces/ICurationLogic.sol";
+import {IAccessControlRegistry} from "../../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
 
 /**
-* @title ERC721Press
+* @title CurationLogic
 * @notice CurationLogic for AssemblyPress architecture
 *
 * @author Max Bochman
@@ -125,6 +125,11 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
             return false;
         }
         
+        // check if mintQuantity + mintCaller are valid inputs
+        if (mintQuantity == 0 || mintCaller == address(0)) {
+            return false;
+        }
+
         return true;
     }              
 
@@ -187,7 +192,10 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     ) external view requireInitialized(targetPress) returns (bool) {
 
         // check if burnCaller caller has burn access for given target Press
-        if (burnCaller != ERC721Press(payable(targetPress)).ownerOf(tokenId)) {
+        if (
+            burnCaller != ERC721Press(payable(targetPress)).ownerOf(tokenId)
+            && configInfo[targetPress].accessControl.getAccessLevel(targetPress, burnCaller) < ADMIN
+        ) {
             return false;
         }
 
@@ -240,7 +248,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     ) external view requireInitialized(targetPress) returns (uint256) {
 
         // There is no fee (besides gas) to curate a listing
-        return 0;
+        return configInfo[targetPress].accessControl.getMintPrice(targetPress, mintCaller, mintQuantity);
     }       
 
     // ||||||||||||||||||||||||||||||||

@@ -36,17 +36,17 @@ import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-up
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import {IERC721Press} from "./interfaces/IERC721Press.sol";
-import {IERC721PressLogic} from "./interfaces/IERC721PressLogic.sol";
-import {IOwnableUpgradeable} from "../../utils/interfaces/IOwnableUpgradeable.sol";
-import {IERC721PressRenderer} from "./interfaces/IERC721PressRenderer.sol";
+import {IERC721Press} from "./core/interfaces/IERC721Press.sol";
+import {IERC721PressLogic} from "./core/interfaces/IERC721PressLogic.sol";
+import {IOwnableUpgradeable} from "../../core/interfaces/IOwnableUpgradeable.sol";
+import {IERC721PressRenderer} from "./core/interfaces/IERC721PressRenderer.sol";
 
-import {OwnableUpgradeable} from "../../utils/utils/OwnableUpgradeable.sol";
-import {Version} from "../../utils/utils/Version.sol";
-import {FundsReceiver} from "../../utils/utils/FundsReceiver.sol";
+import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
+import {Version} from "../../core/utils/Version.sol";
+import {FundsReceiver} from "../../core/utils/FundsReceiver.sol";
 
-import {ERC721PressStorageV1} from "./storage/ERC721PressStorageV1.sol";
-import {IERC5192} from "./Curation/IERC5192.sol";
+import {ERC721PressStorageV1} from "./core/storage/ERC721PressStorageV1.sol";
+import {IERC5192} from "./core/interfaces/IERC5192.sol";
 
 /**
  * @title ERC721Press

@@ -4,13 +4,11 @@ pragma solidity ^0.8.16;
 import {console2} from "forge-std/console2.sol";
 
 import {ERC721PressConfig} from "./utils/ERC721PressConfig.sol";
-import {DefaultLogic} from "../../src/token/ERC721/logic/DefaultLogic.sol";
-import {MockRenderer} from "./mocks/MockRenderer.sol";
 
-import {OpenAccess} from "../../src/token/ERC721/Curation/OpenAccess.sol";
-import {CurationLogic} from "../../src/token/ERC721/Curation/CurationLogic.sol";
-import {OpenAccess} from "../../src/token/ERC721/Curation/OpenAccess.sol";
-import {ICurationLogic} from "../../src/token/ERC721/Curation/ICurationLogic.sol";
+import {OpenAccess} from "../../src/token/ERC721/curation/access/OpenAccess.sol";
+import {CurationLogic} from "../../src/token/ERC721/curation/logic/CurationLogic.sol";
+import {OpenAccess} from "../../src/token/ERC721/curation/access/OpenAccess.sol";
+import {ICurationLogic} from "../../src/token/ERC721/curation/interfaces/ICurationLogic.sol";
 import {MetadataBuilder} from "micro-onchain-metadata-utils/MetadataBuilder.sol";
 
 import {ERC721PressCreatorV1} from "../../src/token/ERC721/ERC721PressCreatorV1.sol";
@@ -18,7 +16,7 @@ import {ERC721Press} from "../../src/token/ERC721/ERC721Press.sol";
 
 contract ERC721PressTest is ERC721PressConfig {
 
-    function test_initialize() public setUpERC721PressBase {
+    function test_initialize() public setUpPressCurationLogic {
         // Test contract owner is supplied owner
         require(erc721Press.owner() == INITIAL_OWNER, "owner incorrect");
     }

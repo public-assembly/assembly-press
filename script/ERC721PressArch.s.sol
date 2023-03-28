@@ -4,15 +4,15 @@ pragma solidity ^0.8.13;
 import "forge-std/Script.sol";
 
 import {ERC721Press} from "../src/token/ERC721/ERC721Press.sol";
-import {CurationLogic} from "../src/token/ERC721/Curation/CurationLogic.sol";
-import {CurationMetadataRenderer} from "../src/token/ERC721/Curation/CurationMetadataRenderer.sol";
-import {OpenAccess} from "../src/token/ERC721/Curation/OpenAccess.sol";
+import {CurationLogic} from "../src/token/ERC721/curation/logic/CurationLogic.sol";
+import {CurationMetadataRenderer} from "../src/token/ERC721/curation/metadata/CurationMetadataRenderer.sol";
+import {OpenAccess} from "../src/token/ERC721/curation/access/OpenAccess.sol";
 import {ERC721PressCreatorV1} from "../src/token/ERC721/ERC721PressCreatorV1.sol";
 
-import {IERC721PressCreatorV1} from "../src/token/ERC721/interfaces/IERC721PressCreatorV1.sol";
-import {IERC721PressLogic} from "../src/token/ERC721/interfaces/IERC721PressLogic.sol";
-import {IERC721PressRenderer} from "../src/token/ERC721/interfaces/IERC721PressRenderer.sol";
-import {IERC721Press} from "../src/token/ERC721/interfaces/IERC721Press.sol";
+import {IERC721PressCreatorV1} from "../src/token/ERC721/core/interfaces/IERC721PressCreatorV1.sol";
+import {IERC721PressLogic} from "../src/token/ERC721/core/interfaces/IERC721PressLogic.sol";
+import {IERC721PressRenderer} from "../src/token/ERC721/core/interfaces/IERC721PressRenderer.sol";
+import {IERC721Press} from "../src/token/ERC721/core/interfaces/IERC721Press.sol";
 import {IAccessControlRegistry} from "../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
 
 contract DeployCore is Script {

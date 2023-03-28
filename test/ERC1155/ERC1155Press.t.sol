@@ -11,7 +11,7 @@ import {ERC1155Press} from "../../src/token/ERC1155/ERC1155Press.sol";
 import {ERC1155PressCreatorV1} from "../../src/token/ERC1155/ERC1155PressCreatorV1.sol";
 import {IERC1155PressTokenLogic} from "../../src/token/ERC1155/interfaces/IERC1155PressTokenLogic.sol";
 import {IERC1155TokenRenderer} from "../../src/token/ERC1155/interfaces/IERC1155TokenRenderer.sol";
-import {IERC5633} from "../../src/utils/interfaces/IERC5633.sol";
+import {IERC5633} from "../../src/core/interfaces/IERC5633.sol";
 import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 
 contract ERC1155PressTest is ERC1155PressConfig {

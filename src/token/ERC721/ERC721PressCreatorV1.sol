@@ -30,13 +30,13 @@ pragma solidity ^0.8.16;
 */
 
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IERC721PressCreatorV1} from "./interfaces/IERC721PressCreatorV1.sol";
-import {IERC721PressLogic} from "./interfaces/IERC721PressLogic.sol";
-import {IERC721PressRenderer} from "./interfaces/IERC721PressRenderer.sol";
-import {IERC721Press} from "./interfaces/IERC721Press.sol";
-import {ERC721PressProxy} from "./proxy/ERC721PressProxy.sol";
-import {OwnableUpgradeable} from "../../utils/utils/OwnableUpgradeable.sol";
-import {Version} from "../../utils/utils/Version.sol";
+import {IERC721PressCreatorV1} from "./core/interfaces/IERC721PressCreatorV1.sol";
+import {IERC721PressLogic} from "./core/interfaces/IERC721PressLogic.sol";
+import {IERC721PressRenderer} from "./core/interfaces/IERC721PressRenderer.sol";
+import {IERC721Press} from "./core/interfaces/IERC721Press.sol";
+import {ERC721PressProxy} from "./core/proxy/ERC721PressProxy.sol";
+import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
+import {Version} from "../../core/utils/Version.sol";
 import {ERC721Press} from "./ERC721Press.sol";
 
 /**

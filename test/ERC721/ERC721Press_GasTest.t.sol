@@ -3,7 +3,7 @@ pragma solidity ^0.8.16;
 
 import {console2} from "forge-std/console2.sol";
 import {ERC721Press_GasConfig} from "./utils/ERC721Press_GasConfig.sol";
-import {ICurationLogic} from "../../src/token/ERC721/Curation/ICurationLogic.sol";
+import {ICurationLogic} from "../../src/token/ERC721/curation/interfaces/ICurationLogic.sol";
 
 contract ERC721Press_GasTest is ERC721Press_GasConfig {
 

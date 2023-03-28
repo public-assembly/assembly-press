@@ -33,8 +33,8 @@ import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UU
 import {IERC1155PressCreatorV1} from "./interfaces/IERC1155PressCreatorV1.sol";
 import {IERC1155PressContractLogic} from "./interfaces/IERC1155PressContractLogic.sol";
 import {ERC1155PressProxy} from "./proxy/ERC1155PressProxy.sol";
-import {OwnableUpgradeable} from "../../utils/utils/OwnableUpgradeable.sol";
-import {Version} from "../../utils/utils/Version.sol";
+import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
+import {Version} from "../../core/utils/Version.sol";
 import {ERC1155Press} from "./ERC1155Press.sol";
 
 import {ERC1155BasicContractLogic} from "./logic/ERC1155BasicContractLogic.sol";
