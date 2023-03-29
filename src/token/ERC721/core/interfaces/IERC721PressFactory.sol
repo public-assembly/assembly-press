@@ -33,7 +33,8 @@ import {IERC721PressLogic} from "./IERC721PressLogic.sol";
 import {IERC721PressRenderer} from "./IERC721PressRenderer.sol";
 import {IERC721Press} from "./IERC721Press.sol";
 
-interface IERC721PressCreatorV1 {
+interface IERC721PressFactory {
+  
   // ||||||||||||||||||||||||||||||||
   // ||| ERRORS |||||||||||||||||||||
   // ||||||||||||||||||||||||||||||||
@@ -47,9 +48,6 @@ interface IERC721PressCreatorV1 {
 
   /// @notice Emitted when a Press instance is initialized
   event PressInitialized(address indexed pressImpl);
-
-  /// @notice Emitted when a Press instance is initialized
-  event CurationStrategyInitialized(IERC721PressLogic indexed curLogImpl, IERC721PressRenderer indexed curRendImpl, address indexed openAccessImpl);
 
   /// @notice Emitted when the PressFactory is initialized
   event PressFactoryInitialized();
@@ -73,9 +71,4 @@ interface IERC721PressCreatorV1 {
     bool soulbound,
     IERC721Press.Configuration memory configuration   
   ) external returns (address);
-
-  function createCuration(
-    string memory name,
-    string memory symbol
-  ) external returns (address)  ;
 }

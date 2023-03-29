@@ -7,9 +7,9 @@ import {ERC721Press} from "../src/token/ERC721/ERC721Press.sol";
 import {CurationLogic} from "../src/token/ERC721/curation/logic/CurationLogic.sol";
 import {CurationMetadataRenderer} from "../src/token/ERC721/curation/metadata/CurationMetadataRenderer.sol";
 import {OpenAccess} from "../src/token/ERC721/curation/access/OpenAccess.sol";
-import {ERC721PressCreatorV1} from "../src/token/ERC721/ERC721PressCreatorV1.sol";
+import {ERC721PressFactory} from "../src/token/ERC721/ERC721PressFactory.sol";
 
-import {IERC721PressCreatorV1} from "../src/token/ERC721/core/interfaces/IERC721PressCreatorV1.sol";
+import {IERC721PressFactory} from "../src/token/ERC721/core/interfaces/IERC721PressFactory.sol";
 import {IERC721PressLogic} from "../src/token/ERC721/core/interfaces/IERC721PressLogic.sol";
 import {IERC721PressRenderer} from "../src/token/ERC721/core/interfaces/IERC721PressRenderer.sol";
 import {IERC721Press} from "../src/token/ERC721/core/interfaces/IERC721Press.sol";
@@ -26,19 +26,8 @@ contract DeployCore is Script {
         vm.startBroadcast(deployerPrivateKey);        
 
         IERC721Press erc721Press = new ERC721Press();
-
-        IERC721PressLogic curLogic = new CurationLogic();
-
-        IERC721PressRenderer curRenderer = new CurationMetadataRenderer();
-
-        IAccessControlRegistry openAccess = new OpenAccess();
-
-        IERC721PressCreatorV1 erc721Creator = new ERC721PressCreatorV1(
-            address(erc721Press),
-            curLogic,
-            curRenderer,
-            address(openAccess)
-        );
+        
+        IERC721PressFactory erc721Factory = new ERC721PressFactory(address(erc721Press));
 
         vm.stopBroadcast();
     }

@@ -1,0 +1,87 @@
+function decodeListings(bytes memory data) internal pure returns (ICurationLogic.Listing[] memory) {
+    // Calculate the number of listings by dividing the total length of data by the size of a single listing
+    uint256 numListings = data.length / LISTING_SIZE;
+
+    // Create a new memory array of listings with the calculated length
+    ICurationLogic.Listing[] memory listings = new ICurationLogic.Listing[](numListings);
+
+    // Define variables that will be used in the assembly block
+    uint256 srcPtr;
+    uint256 dstPtr;
+
+    // Assembly block for decoding the packed data
+    assembly {
+        // Get the memory address of the data input
+        srcPtr := add(data, 0x20)
+
+        // Get the memory address of the listings array
+        dstPtr := add(listings, 0x20)
+    }
+
+    // Iterate through the listings and decode each one
+    for (uint256 i = 0; i < numListings; i++) {
+        // Decode each field of the listing struct from the packed data
+
+        // 1. curatedAddress (20 bytes)
+        address curatedAddress;
+        assembly {
+            curatedAddress := shr(96, mload(srcPtr))
+            srcPtr := add(srcPtr, 20)
+        }
+
+        // 2. selectedTokenId (32 bytes)
+        uint256 selectedTokenId;
+        assembly {
+            selectedTokenId := mload(srcPtr)
+            srcPtr := add(srcPtr, 32)
+        }
+
+        // 3. curator (20 bytes)
+        address curator;
+        assembly {
+            curator := shr(96, mload(srcPtr))
+            srcPtr := add(srcPtr, 20)
+        }
+
+        // 4. curationTargetType (1 byte)
+        uint8 curationTargetType;
+        assembly {
+            curationTargetType := byte(0, mload(srcPtr))
+            srcPtr := add(srcPtr, 1)
+        }
+
+        // 5. sortOrder (32 bytes)
+        int256 sortOrder;
+        assembly {
+            sortOrder := mload(srcPtr)
+            srcPtr := add(srcPtr, 32)
+        }
+
+        // 6. hasTokenId (1 byte)
+        bool hasTokenId;
+        assembly {
+            hasTokenId := byte(0, mload(srcPtr)) == 1
+            srcPtr := add(srcPtr, 1)
+        }
+
+        // 7. chainId (32 bytes)
+        uint256 chainId;
+        assembly {
+            chainId := mload(srcPtr)
+            srcPtr := add(srcPtr, 32)
+        }
+
+        // Populate the listing struct with the decoded fields
+        listings[i] = ICurationLogic.Listing({
+            curatedAddress: curatedAddress,
+            selectedTokenId: selectedTokenId,
+            curator: curator,
+            curationTargetType: curationTargetType,
+            sortOrder: sortOrder,
+            hasTokenId: hasTokenId,
+            chainId: chainId
+        });
+    }
+
+    return listings;
+}

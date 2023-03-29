@@ -57,17 +57,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         }
 
         _;
-    }        
-
-    /// @notice Checks if msg.sender has admin level privileges for given Press contract
-    modifier requireSenderAdmin(address targetPress, address senderToCheck) {
-
-        if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, senderToCheck) < ADMIN) { 
-            revert Not_Admin();
-        }
-
-        _;
-    }                
+    }            
 
     /// @notice Modifier that ensures curation functionality is active and not frozen
     ///     and that msg.sender is not the admin
@@ -115,20 +105,11 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         address targetPress, 
         uint64 mintQuantity, 
         address mintCaller
-    ) external view requireInitialized(targetPress)  returns (bool) {
+    ) external view requireInitialized(targetPress) onlyActive(targetPress)  returns (bool) {
         // check if mint caller has minter role for given Press
         if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, mintCaller) < CURATOR) { 
             return false;
         }        
-        // check if mintQuantity + mintCaller are valid inputs
-        if (mintQuantity == 0 || mintCaller == address(0)) {
-            return false;
-        }
-        
-        // check if mintQuantity + mintCaller are valid inputs
-        if (mintQuantity == 0 || mintCaller == address(0)) {
-            return false;
-        }
 
         return true;
     }              
@@ -140,7 +121,6 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         address targetPress, 
         address editCaller
     ) external view requireInitialized(targetPress) returns (bool) {
-
         // check if edit caller has edit role for given Press
         if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, editCaller) < MANAGER) { 
             return false;
@@ -156,7 +136,6 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         address targetPress, 
         address withdrawCaller
     ) external view requireInitialized(targetPress) returns (bool) {
-
         // check if withdraw caller has anyone role for given Press
         if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, withdrawCaller) < ANYONE) { 
             return false;
@@ -172,7 +151,6 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         address targetPress, 
         address upgradeCaller
     ) external view requireInitialized(targetPress) returns (bool) {
-
         // check if withdraw caller has admin role for given Press
         if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, upgradeCaller) < ADMIN) { 
             return false;
@@ -190,7 +168,6 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         uint256 tokenId,
         address burnCaller
     ) external view requireInitialized(targetPress) returns (bool) {
-
         // check if burnCaller caller has burn access for given target Press
         if (
             burnCaller != ERC721Press(payable(targetPress)).ownerOf(tokenId)
@@ -209,7 +186,6 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         address targetPress, 
         address transferCaller
     ) external view requireInitialized(targetPress) returns (bool) {
-
         // check if transfer caller has admin role for given Press
         if (
             configInfo[targetPress].accessControl.getAccessLevel(targetPress, transferCaller) < ADMIN
@@ -225,16 +201,22 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     // ||| STATUS CHECKS ||||||||||||||
     // ||||||||||||||||||||||||||||||||      
 
-    /// @notice checks value of initialized variable in mintInfo mapping for target Press
+    /// @notice checks value of initialized variable in configInfo mapping for target Press
     /// @param targetPress press contract to check initialization status
     function isInitialized(address targetPress) external view returns (bool) {
-
         // return false if targetPress has not been initialized
         if (configInfo[targetPress].initialized == 0) {
             return false;
         }
 
         return true;
+    }       
+
+    /// @notice checks value of isPaused variable in configInfo mapping for target Press
+    /// @param targetPress press contract to check pause status
+    function isPaused(address targetPress) external view returns (bool) {
+        // return bool state of isPaused variable
+        return configInfo[targetPress].isPaused;
     }       
 
     /// @notice checks mint access for a given mintQuantity x mintCaller
@@ -246,7 +228,6 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         uint64 mintQuantity, 
         address mintCaller
     ) external view requireInitialized(targetPress) returns (uint256) {
-
         // There is no fee (besides gas) to curate a listing
         return configInfo[targetPress].accessControl.getMintPrice(targetPress, mintCaller, mintQuantity);
     }       
@@ -261,18 +242,12 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     /// @param logicInit data to init with
     function initializeWithData(bytes memory logicInit) external {
         address sender = msg.sender;
-        
         // data format: initialPause, accessControl, accessControlInit
         (   
             bool initialPause,
             IAccessControlRegistry accessControl,
             bytes memory accessControlInit
         ) = abi.decode(logicInit, (bool, IAccessControlRegistry, bytes));
-
-        // check if accessControl set to the zero address
-        if (address(accessControl) == address(0)) {
-            revert Cannot_Set_Zero_Address();
-        }
 
         // set configInfo[targetPress]
         configInfo[sender].initialized = 1;
@@ -289,7 +264,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     // ||||||||||||||||||||||||||||||||    
 
     // function called by mintWithData function in ERC721Press mint call that
-    // updates Press specific listings mapping in CuratorStorageV1
+    // updates Press specific listings mapping in CurationStorageV1
     function updateLogicWithData(address updateSender, bytes memory logicData) external {
         // Access control to prevent non curators/manager/admins from accessing
         if (configInfo[msg.sender].accessControl.getAccessLevel(msg.sender, updateSender) < CURATOR) {
@@ -302,9 +277,193 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         // msg.sender must be the ERC721Press contract in this instance. 
         // even if someone wanted to put in a fake updateSender address by calling this through etherscan
         // they wouldnt be able to spoof the fact that msg.sender on this is the ERC721Press
-        // in that case, they would be both the msg.sender AND the updateSender
+        // _addListings(msg.sender, updateSender, decodeListings(logicData));
         _addListings(msg.sender, updateSender, listings);
     }
+
+    // /**
+    // * @notice Decodes packed listings data into Listing structs
+    // * @dev Assumes that the input data is correctly packed, and will produce undefined behavior if it is not.
+    // * @param data Packed listing data
+    // * @return listings Array of decoded Listing structs
+    // */
+    // function decodeListings(bytes memory data) internal pure returns (ICurationLogic.Listing[] memory) {
+    //     // Calculate the number of listings by dividing the total length of data by the size of a single listing
+    //     uint256 numListings = data.length / LISTING_SIZE;
+
+    //     // Create a new memory array of listings with the calculated length
+    //     ICurationLogic.Listing[] memory listings = new ICurationLogic.Listing[](numListings);
+
+    //     // Define variables that will be used in the assembly block
+    //     uint256 srcPtr;
+    //     uint256 dstPtr;
+
+    //     // Assembly block for decoding the packed data
+    //     assembly {
+    //         // Get the memory address of the data input
+    //         srcPtr := add(data, 0x20)
+
+    //         // Get the memory address of the listings array
+    //         dstPtr := add(listings, 0x20)
+    //     }
+
+    //     // Iterate through the listings and decode each one
+    //     for (uint256 i = 0; i < numListings; i++) {
+    //         // Decode each field of the listing struct from the packed data
+
+    //         // 1. curatedAddress (20 bytes)
+    //         // Load data from the source pointer, shift right by 96 bits to align the address,
+    //         // and store the result in the curatedAddress variable.
+    //         address curatedAddress;
+    //         assembly {
+    //             curatedAddress := shr(96, mload(srcPtr))
+    //             srcPtr := add(srcPtr, 20)
+    //         }
+
+    //         // 2. selectedTokenId (12 bytes)
+    //         // Load data from the source pointer, shift right by 224 bits to align the uint96,
+    //         // and store the result in the selectedTokenId variable.
+    //         uint96 selectedTokenId;
+    //         assembly {
+    //             selectedTokenId := shr(224, mload(srcPtr))
+    //             srcPtr := add(srcPtr, 12)
+    //         }
+
+    //         // 3. curator (20 bytes)
+    //         // Load data from the source pointer, shift right by 96 bits to align the address,
+    //         // and store the result in the curator variable.
+    //         address curator;
+    //         assembly {
+    //             curator := shr(128, mload(srcPtr))
+    //             srcPtr := add(srcPtr, 20)
+    //         }
+
+    //         // 4. sortOrder (4 bytes)
+    //         // Load data from the source pointer, shift right by 224 bits to align the int32,
+    //         // and store the result in the sortOrder variable.
+    //         int32 sortOrder;
+    //         assembly {
+    //             sortOrder := shr(224, mload(srcPtr))
+    //             srcPtr := add(srcPtr, 4)
+    //         }
+
+    //         // 5. chainId (2 bytes)
+    //         // Load data from the source pointer, shift right by 240 bits to align the uint16,
+    //         // and store the result in the chainId variable.
+    //         uint16 chainId;
+    //         assembly {
+    //             chainId := shr(240, mload(srcPtr))
+    //             srcPtr := add(srcPtr, 2)
+    //         }
+
+    //         // 6. curationTargetType (2 bytes)
+    //         // Load data from the source pointer, shift right by 240 bits to align the uint16,
+    //         // and store the result in the curationTargetType variable.
+    //         uint16 curationTargetType;
+    //         assembly {
+    //             curationTargetType := shr(240, mload(srcPtr))
+    //             srcPtr := add(srcPtr, 2)
+    //         }     
+
+    //         // 7. hasTokenId (1 byte)
+    //         // Load data from the source pointer, extract the least significant byte,
+    //         // compare it with 1, and store the result in the hasTokenId variable.
+    //         bool hasTokenId;
+    //         assembly {
+    //             hasTokenId := eq(byte(0, mload(srcPtr)), byte(0, 1))
+    //             srcPtr := add(srcPtr, 1)
+    //         }
+
+    //         // Populate the listing struct with the decoded fields
+    //         // Assign the decoded values to the corresponding fields of the Listing struct
+    //         // and store it in the listings array at index i.
+    //         listings[i] = ICurationLogic.Listing({
+    //             curatedAddress: curatedAddress,
+    //             selectedTokenId: selectedTokenId,
+    //             curator: curator,
+    //             sortOrder: sortOrder,
+    //             chainId: chainId,
+    //             curationTargetType: curationTargetType,
+    //             hasTokenId: hasTokenId
+    //         });        
+    //     }
+
+    //     // Return the decoded listings array
+    //     return listings;
+    // }        
+
+    // /**
+    // * @notice Decodes packed listings data into Listing structs
+    // * @dev Assumes that the input data is correctly packed, and will produce undefined behavior if it is not.
+    // * @param data Packed listing data
+    // * @return listings Array of decoded Listing structs
+    // */
+    // function decodeListings(bytes memory data) internal pure returns (ICurationLogic.Listing[] memory) {
+    //     // Calculate the number of listings by dividing the total length of data by the size of a single listing
+    //     uint256 numListings = data.length / LISTING_SIZE;
+
+    //     // Create a new memory array of listings with the calculated length
+    //     ICurationLogic.Listing[] memory listings = new ICurationLogic.Listing[](numListings);
+
+    //     // Define the source pointer variable
+    //     uint256 srcPtr;
+
+    //     // Assembly block for initializing the source pointer
+    //     assembly {
+    //         // Get the memory address of the data input
+    //         srcPtr := add(data, 0x20)
+    //     }
+
+    //     // Iterate through the listings and decode each one
+    //     for (uint256 i = 0; i < numListings; i++) {
+    //         // Assembly block for decoding the packed data and populating the Listing struct
+    //         assembly {
+    //             // 1. curatedAddress (20 bytes)
+    //             let curatedAddress := shr(96, mload(srcPtr))
+    //             srcPtr := add(srcPtr, 20)
+
+    //             // 2. selectedTokenId (12 bytes)
+    //             let selectedTokenId := shr(224, mload(srcPtr))
+    //             srcPtr := add(srcPtr, 12)
+
+    //             // 3. curator (20 bytes)
+    //             let curator := shr(96, mload(srcPtr))
+    //             srcPtr := add(srcPtr, 20)
+
+    //             // 4. sortOrder (4 bytes)
+    //             let sortOrder := shr(224, mload(srcPtr))
+    //             srcPtr := add(srcPtr, 4)
+
+    //             // 5. chainId (2 bytes)
+    //             let chainId := shr(240, mload(srcPtr))
+    //             srcPtr := add(srcPtr, 2)
+
+    //             // 6. curationTargetType (2 bytes)
+    //             let curationTargetType := shr(240, mload(srcPtr))
+    //             srcPtr := add(srcPtr, 2)
+
+    //             // 7. hasTokenId (1 byte)
+    //             let hasTokenId := eq(byte(0, mload(srcPtr)), byte(0, 1))
+    //             srcPtr := add(srcPtr, 1)
+
+    //             // Get the memory address of the listings array at index i
+    //             let dstPtr := add(add(listings, mul(i, 64)), 0x20)
+
+    //             // Store the decoded fields in the Listing struct at the destination pointer
+    //             mstore(dstPtr, curatedAddress)
+    //             mstore(add(dstPtr, 20), selectedTokenId)
+    //             mstore(add(dstPtr, 32), curator)
+    //             mstore(add(dstPtr, 52), sortOrder)
+    //             mstore(add(dstPtr, 56), chainId)
+    //             mstore(add(dstPtr, 58), curationTargetType)
+    //             mstore(add(dstPtr, 60), hasTokenId)
+    //         }
+    //     }
+
+    //     // Return the decoded listings array
+    //     return listings;
+    // }
+    
 
     /// @dev Getter for acessing Listing information for a specific tokenId
     /// @param targetPress ERC721Press to target 
@@ -319,7 +478,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         unchecked {
             activeListings = new Listing[](configInfo[targetPress].numAdded - configInfo[targetPress].numRemoved);
 
-            // first tokenId in ERC721Press impl is #1
+            // first tokenId minted in ERC721Press impl is #1
             uint256 activeIndex = 1;
 
             for (uint256 i; i < configInfo[targetPress].numAdded; ++i) {
@@ -404,7 +563,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     /// @dev Allows owner or curator to curate Listings --> which mints listingRecords to the msg.sender
     /// @param targetPress address of target ERC721Press    
     /// @param tokenIds listingRecords to update SortOrders for    
-    /// @param sortOrders sortOrdres to update listingRecords
+    /// @param sortOrders sortOrders to update existing listingRecords
     function updateSortOrders(
         address targetPress, 
         uint256[] calldata tokenIds, 
@@ -417,7 +576,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         }
 
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            // skip this listing if curator has burned the token (sent to zero address)
+            // prevents non-owners from updating the SortOrder on a listingRecord they did not curate themselves 
             if (ERC721Press(payable(address(targetPress))).ownerOf(tokenIds[i]) != msg.sender) {
                 revert No_SortOrder_Access();
             }          
@@ -431,7 +590,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         idToListing[targetPress][listingId].sortOrder = sortOrder;
     }
 
-    /// @dev Allows contract owner to freeze all contract functionality starting from a given Unix timestamp
+    /// @dev Allows contract owner to freeze all add/sort functionality starting from a given Unix timestamp
     /// @param targetPress ERC721Press to target
     /// @param timestamp unix timestamp in seconds
     function freezeAt(address targetPress, uint256 timestamp) external {

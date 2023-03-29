@@ -6,13 +6,6 @@ import {IAccessControlRegistry} from "../../../../../lib/onchain/remote-access-c
 contract OpenAccess is IAccessControlRegistry {
 
     //////////////////////////////////////////////////
-    // ERRORS
-    //////////////////////////////////////////////////
-
-    /// @notice Error for trying to update access
-    error Access_Cannot_Be_Updated();
-
-    //////////////////////////////////////////////////
     // STORAGE
     //////////////////////////////////////////////////
 
@@ -25,8 +18,7 @@ contract OpenAccess is IAccessControlRegistry {
     /// @notice initializes mapping of access control
     /// @dev contract initializing access control => admin address
     /// @dev called by other contracts initiating access control
-    /// @dev data format: admin
-    function initializeWithData(bytes memory data) external {}
+    function initializeWithData(address sender, bytes memory data) external {}
 
     //////////////////////////////////////////////////
     // VIEW FUNCTIONS
@@ -42,8 +34,8 @@ contract OpenAccess is IAccessControlRegistry {
         return 1;
     }
 
-    /// @notice returns access level of a user address calling function
-    /// @dev called via the external contract initializing access control
+    /// @notice returns mintPrice for a given Press + account + mintQuantity
+    /// @dev called via the logic contract that has been set for a given Press
     function getMintPrice(address accessMappingTarget, address addressToGetAccessFor, uint256 mintQuantity)
         external
         view

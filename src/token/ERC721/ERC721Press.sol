@@ -297,7 +297,7 @@ contract ERC721Press is
         });
     }
 
-    /// @notice Function to set _logicImpl
+    /// @notice Function to set non logic/renderer values of config
     /// @dev Cannot set fundsRecipient or logic or renderer to address(0)
     /// @dev Max `newRoyaltyBPS` value = 5000
     /// @param fundsRecipient payable address to recieve funds via withdraw

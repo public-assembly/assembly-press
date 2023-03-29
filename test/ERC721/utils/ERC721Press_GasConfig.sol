@@ -7,8 +7,8 @@ import {console2} from "forge-std/console2.sol";
 import {ERC721Press} from "../../../src/token/ERC721/ERC721Press.sol";
 import {ERC721PressProxy} from "../../../src/token/ERC721/core/proxy/ERC721PressProxy.sol";
 import {IERC721Press} from "../../../src/token/ERC721/core/interfaces/IERC721Press.sol";
-import {ERC721PressCreatorV1} from "../../../src/token/ERC721/ERC721PressCreatorV1.sol";
-import {ERC721PressCreatorProxy} from "../../../src/token/ERC721/core/proxy/ERC721PressCreatorProxy.sol";
+import {ERC721PressFactory} from "../../../src/token/ERC721/ERC721PressFactory.sol";
+import {ERC721PressFactoryProxy} from "../../../src/token/ERC721/core/proxy/ERC721PressFactoryProxy.sol";
 
 import {CurationLogic} from "../../../src/token/ERC721/curation/logic/CurationLogic.sol";
 

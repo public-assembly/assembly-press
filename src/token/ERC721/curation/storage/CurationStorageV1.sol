@@ -15,6 +15,16 @@ abstract contract CurationStorageV1 is ICurationLogic {
     /// @notice Press => config information
     mapping(address => Config) public configInfo;
 
+    // `Listing` struct size constant
+    // curatedAddress: 20 bytes
+    // selectedTokenId: 12 bytes
+    // curator: 20 bytes
+    // sortOrder: 4 bytes
+    // chainId: 2 bytes    
+    // curationTargetType: 2 bytes
+    // hasTokenId: 1 byte
+    uint256 internal constant LISTING_SIZE = 61;    
+
     // Public constants for curation types.
     // Allows for adding new types later easily compared to a enum.
     uint16 public constant CURATION_TYPE_GENERIC = 0;

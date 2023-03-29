@@ -30,7 +30,7 @@ pragma solidity ^0.8.16;
 */
 
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IERC721PressCreatorV1} from "./core/interfaces/IERC721PressCreatorV1.sol";
+import {IERC721PressFactory} from "./core/interfaces/IERC721PressFactory.sol";
 import {IERC721PressLogic} from "./core/interfaces/IERC721PressLogic.sol";
 import {IERC721PressRenderer} from "./core/interfaces/IERC721PressRenderer.sol";
 import {IERC721Press} from "./core/interfaces/IERC721Press.sol";
@@ -40,51 +40,27 @@ import {Version} from "../../core/utils/Version.sol";
 import {ERC721Press} from "./ERC721Press.sol";
 
 /**
- * @title ERC721PressCreatorV1
+ * @title ERC721PressFactory
  * @notice A factory contract that deploys a Press, a UUPS proxy of `ERC721Press.sol`
  *
  * @author Max Bochman
  * @author Salief Lewis
  */
-contract ERC721PressCreatorV1 is IERC721PressCreatorV1, OwnableUpgradeable, UUPSUpgradeable, Version(1) {
+contract ERC721PressFactory is IERC721PressFactory, OwnableUpgradeable, UUPSUpgradeable, Version(1) {
+    
     /// @notice Implementation contract behind Press proxies
     address public immutable pressImpl;
-
-    /// @notice Logic contract for Curation strategy
-    IERC721PressLogic public immutable curatorLogicImpl;    
-
-    /// @notice Metadata renderer contract for Curation strategy
-    IERC721PressRenderer public immutable curatorRendererImpl;       
-
-    /// @notice Access control module that creates non-admin controlled open access environment
-    address public immutable openAccessImpl;        
-
-    /// @notice recommended IERC721Press.Config params for configuring curaiton contracts
-    ///     that are fully open to the public
-    IERC721Press.Configuration openCurationConfig = IERC721Press.Configuration({
-        fundsRecipient: payable(address(0)),
-        maxSupply: type(uint64).max,
-        royaltyBPS: 0,
-        primarySaleFeeRecipient: payable(address(0)),
-        primarySaleFeeBPS: 0
-    });    
-
+    
     /// @notice Sets the implementation address upon deployment
-    constructor(address _pressImpl, IERC721PressLogic _curLogImpl, IERC721PressRenderer _curRendImpl, address _openAccessImpl) {
+    constructor(address _pressImpl) {
         /// Reverts if the given implementation address is zero.
-        if (_pressImpl == address(0) || address(_curLogImpl) == address(0) || address(_curRendImpl) == address(0)) revert Address_Cannot_Be_Zero();
+        if (_pressImpl == address(0)) { 
+            revert Address_Cannot_Be_Zero();
+        }
 
         pressImpl = _pressImpl;
 
-        curatorLogicImpl = _curLogImpl;
-
-        curatorRendererImpl = _curRendImpl;
-
-        openAccessImpl = _openAccessImpl;
-
         emit PressInitialized(pressImpl);
-
-        emit CurationStrategyInitialized(curatorLogicImpl, curatorRendererImpl, openAccessImpl);
     }
 
     /// @notice Initializes the proxy behind `PressFactory.sol`
@@ -131,32 +107,6 @@ contract ERC721PressCreatorV1 is IERC721PressCreatorV1, OwnableUpgradeable, UUPS
             _soulbound: soulbound,
             _configuration: configuration            
         });
-
-        return address(newPress);
-    }
-
-    function createCuration(
-        string memory name,
-        string memory symbol
-    ) public returns (address) {
-        /// @notice recommended param used in conjunction with openCurationConfig 
-        bytes memory openCurationInit = abi.encode(false, openAccessImpl, ""); 
-
-        /// Configure ownership details in proxy constructor
-        ERC721PressProxy newPress = new ERC721PressProxy(pressImpl, "");
-
-        /// Initialize the new Press instance
-        ERC721Press(payable(address(newPress))).initialize({
-            _contractName: name,
-            _contractSymbol: symbol,
-            _initialOwner: 0x000000000000000000000000000000000000dEaD,
-            _logic: curatorLogicImpl,
-            _logicInit: openCurationInit,
-            _renderer: curatorRendererImpl,
-            _rendererInit: "",                   
-            _soulbound: true,
-            _configuration: openCurationConfig            
-        });        
 
         return address(newPress);
     }
