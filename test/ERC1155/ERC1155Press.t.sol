@@ -2,16 +2,15 @@
 pragma solidity ^0.8.16;
 
 import {console2} from "forge-std/console2.sol";
-
 import {ERC1155PressConfig} from "./utils/ERC1155PressConfig.sol";
-import {ERC1155BasicContractLogic} from "../../src/token/ERC1155/logic/ERC1155BasicContractLogic.sol";
-import {ERC1155InfiniteArtifactLogic} from "../../src/token/ERC1155/logic/ERC1155InfiniteArtifactLogic.sol";
-import {ERC1155EditionRenderer} from "../../src/token/ERC1155/metadata/ERC1155EditionRenderer.sol";
+import {ERC1155EditionContractLogic} from "../../src/token/ERC1155/editions/logic/ERC1155EditionContractLogic.sol";
+import {ERC1155EditionTokenLogic} from "../../src/token/ERC1155/editions/logic/ERC1155EditionTokenLogic.sol";
+import {ERC1155EditionRenderer} from "../../src/token/ERC1155/editions/metadata/ERC1155EditionRenderer.sol";
 import {ERC1155Press} from "../../src/token/ERC1155/ERC1155Press.sol";
-import {ERC1155PressCreatorV1} from "../../src/token/ERC1155/ERC1155PressCreatorV1.sol";
-import {IERC1155PressTokenLogic} from "../../src/token/ERC1155/interfaces/IERC1155PressTokenLogic.sol";
-import {IERC1155TokenRenderer} from "../../src/token/ERC1155/interfaces/IERC1155TokenRenderer.sol";
-import {IERC5633} from "../../src/utils/interfaces/IERC5633.sol";
+import {ERC1155PressFactory} from "../../src/token/ERC1155/ERC1155PressFactory.sol";
+import {IERC1155PressTokenLogic} from "../../src/token/ERC1155/core/interfaces/IERC1155PressTokenLogic.sol";
+import {IERC1155PressTokenRenderer} from "../../src/token/ERC1155/core/interfaces/IERC1155PressTokenRenderer.sol";
+import {IERC5633} from "../../src/token/ERC1155/core/interfaces/IERC5633.sol";
 import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 
 contract ERC1155PressTest is ERC1155PressConfig {
@@ -37,8 +36,8 @@ contract ERC1155PressTest is ERC1155PressConfig {
         });        
 
         // check to see if contract logic was initialized correctly
-        uint16 accessRole = ERC1155BasicContractLogic(address(erc1155Press.contractLogic())).accessInfo(address(erc1155Press),contractAdminInit);
-        (uint256 mintNewPrice, uint8 initialized) = ERC1155BasicContractLogic(address(erc1155Press.contractLogic())).contractInfo(address(erc1155Press));
+        uint16 accessRole = ERC1155EditionContractLogic(address(erc1155Press.contractLogic())).accessInfo(address(erc1155Press),contractAdminInit);
+        (uint256 mintNewPrice, uint8 initialized) = ERC1155EditionContractLogic(address(erc1155Press.contractLogic())).contractInfo(address(erc1155Press));
         require(accessRole == 2, "admin role was set wrong");
         require(mintNewPrice == 0.01 ether, "mintprice is wrong");
         require(initialized == 1, "initialized is wrong");              
@@ -128,15 +127,15 @@ contract ERC1155PressTest is ERC1155PressConfig {
         roles[0] = 2; // ADMIN role 
         roles[1] = 1; // MINTER role           
         // set roles
-        ERC1155BasicContractLogic(address(erc1155Press.contractLogic())).setAccessControl(
+        ERC1155EditionContractLogic(address(erc1155Press.contractLogic())).setAccessControl(
             address(erc1155Press),
             receivers,
             roles
         );
         // check to make sure addresses have correct roles
-        uint16 accessRole1 = ERC1155BasicContractLogic(address(erc1155Press.contractLogic())).accessInfo(address(erc1155Press),ADMIN);
-        uint16 accessRole2 = ERC1155BasicContractLogic(address(erc1155Press.contractLogic())).accessInfo(address(erc1155Press),MINTER);
-        uint16 accessRole3 = ERC1155BasicContractLogic(address(erc1155Press.contractLogic())).accessInfo(address(erc1155Press),RANDOM_WALLET);
+        uint16 accessRole1 = ERC1155EditionContractLogic(address(erc1155Press.contractLogic())).accessInfo(address(erc1155Press),ADMIN);
+        uint16 accessRole2 = ERC1155EditionContractLogic(address(erc1155Press.contractLogic())).accessInfo(address(erc1155Press),MINTER);
+        uint16 accessRole3 = ERC1155EditionContractLogic(address(erc1155Press.contractLogic())).accessInfo(address(erc1155Press),RANDOM_WALLET);
         require(accessRole1 == 2 && accessRole2 == 1 && accessRole3 == 0, "roles incorrect");
         vm.stopPrank();
     }
@@ -258,7 +257,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
         uint16[] memory roles = new uint16[](2);
         roles[0] = 2; // ADMIN role 
         roles[1] = 1; // MINTER role                   
-        ERC1155BasicContractLogic(address(erc1155Press.contractLogic())).setAccessControl(
+        ERC1155EditionContractLogic(address(erc1155Press.contractLogic())).setAccessControl(
             address(erc1155Press),
             receivers,
             roles
@@ -320,12 +319,12 @@ contract ERC1155PressTest is ERC1155PressConfig {
             uint256 mintExistingPrice, 
             uint256 mintCapPerAddress, 
             uint8 initialized
-        ) = ERC1155InfiniteArtifactLogic(address(erc1155Press.getTokenLogic(tokenToCheck))).tokenInfo(address(erc1155Press), tokenToCheck);
+        ) = ERC1155EditionTokenLogic(address(erc1155Press.getTokenLogic(tokenToCheck))).tokenInfo(address(erc1155Press), tokenToCheck);
         require(startTime == startTimePast, "token initialized incorectly");
         require(mintExistingPrice == mintExistingPriceInit, "token initialized incorectly");
         require(mintCapPerAddress == type(uint256).max, "token initialized incorectly");
         require(initialized == 1, "token initialized incorectly");
-        uint256 accessRole = ERC1155InfiniteArtifactLogic(address(erc1155Press.getTokenLogic(tokenToCheck))).accessInfo(address(erc1155Press), tokenToCheck, tokenAdminInit);
+        uint256 accessRole = ERC1155EditionTokenLogic(address(erc1155Press.getTokenLogic(tokenToCheck))).accessInfo(address(erc1155Press), tokenToCheck, tokenAdminInit);
         require(accessRole == 2, "token initialized incorrectly");
 
 
@@ -477,7 +476,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
     function test_updateConfig() public setUpERC1155PressBase setUpExistingMint(1) {        
         vm.startPrank(INITIAL_OWNER);
         uint256 tokenToCheck = 1;
-        ERC1155InfiniteArtifactLogic tokenLogic2 = new ERC1155InfiniteArtifactLogic();
+        ERC1155EditionTokenLogic tokenLogic2 = new ERC1155EditionTokenLogic();
         ERC1155EditionRenderer editionRenderer2 = new ERC1155EditionRenderer();
         erc1155Press.setConfig(
             tokenToCheck, 
@@ -679,12 +678,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
     function test_factory() public {
         vm.startPrank(INITIAL_OWNER);
 
-        erc1155Creator = new ERC1155PressCreatorV1(
-            erc1155PressImpl,
-            contractLogic,
-            tokenLogic,
-            editionRenderer
-        );        
+        erc1155Creator = new ERC1155PressFactory(erc1155PressImpl);        
 
         infiniteEditions = ERC1155Press(payable(erc1155Creator.createPress(
             "Infinte Editions", // name
@@ -732,17 +726,6 @@ contract ERC1155PressTest is ERC1155PressConfig {
         );
 
         require(infiniteEditions.balanceOf(address(0x1243), 1) == 1, "balanceOf incorrect");
-        require(keccak256(bytes(infiniteEditions.uri(1))) == keccak256(bytes(tokenURI)), "uri is wrong");
-        
-        // ERC1155Press anotherPress;
-        // string memory anotherTokenURI = "https://studio.api.manifoldxyz.dev/asset_uploader/1/asset/3423123447/metadata/full";
-        // anotherPress = ERC1155Press(erc1155Creator.createPressAndEdition(
-        //     "Could it be?", 
-        //     "CIB", 
-        //     anotherTokenURI
-        // ));
-
-        // require(anotherPress.balanceOf(address(0x1243), 1) == 1, "balanceOf incorrect");
-        // require(keccak256(bytes(infiniteEditions.uri(1))) == keccak256(bytes(anotherTokenURI)), "uri is wrong");
+        require(keccak256(bytes(infiniteEditions.uri(1))) == keccak256(bytes(tokenURI)), "uri is wrong");    
     }
 }

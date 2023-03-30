@@ -3,9 +3,8 @@ pragma solidity ^0.8.16;
 
 import {console2} from "forge-std/console2.sol";
 import {ERC1155PressGasConfig} from "./utils/ERC1155PressGasConfig.sol";
-import {ERC1155BasicContractLogic} from "../../src/token/ERC1155/logic/ERC1155BasicContractLogic.sol";
 import {ERC1155Press} from "../../src/token/ERC1155/ERC1155Press.sol";
-import {ERC1155PressProxy} from "../../src/token/ERC1155/proxy/ERC1155PressProxy.sol";
+import {ERC1155PressProxy} from "../../src/token/ERC1155/core/proxy/ERC1155PressProxy.sol";
 
 contract ERC1155Press_GasTests is ERC1155PressGasConfig {    
 

@@ -5,12 +5,12 @@ import {Test} from "forge-std/Test.sol";
 import {console2} from "forge-std/console2.sol";
 
 import {ERC1155Press} from "../../../src/token/ERC1155/ERC1155Press.sol";
-import {ERC1155PressProxy} from "../../../src/token/ERC1155/proxy/ERC1155PressProxy.sol";
+import {ERC1155PressProxy} from "../../../src/token/ERC1155/core/proxy/ERC1155PressProxy.sol";
 
-import {ERC1155BasicContractLogic} from "../../../src/token/ERC1155/logic/ERC1155BasicContractLogic.sol";
-import {ERC1155InfiniteArtifactLogic} from "../../../src/token/ERC1155/logic/ERC1155InfiniteArtifactLogic.sol";
+import {ERC1155EditionContractLogic} from "../../../src/token/ERC1155/editions/logic/ERC1155EditionContractLogic.sol";
+import {ERC1155EditionTokenLogic} from "../../../src/token/ERC1155/editions/logic/ERC1155EditionTokenLogic.sol";
 
-import {ERC1155EditionRenderer} from "../../../src/token/ERC1155/metadata/ERC1155EditionRenderer.sol";
+import {ERC1155EditionRenderer} from "../../../src/token/ERC1155/editions/metadata/ERC1155EditionRenderer.sol";
 
 
 contract ERC1155PressGasConfig is Test {
@@ -44,8 +44,8 @@ contract ERC1155PressGasConfig is Test {
     address public erc1155PressImpl;
 
     // Deploy basic contract and token level logic
-    ERC1155BasicContractLogic public contractLogic = new ERC1155BasicContractLogic();
-    ERC1155InfiniteArtifactLogic public tokenLogic = new ERC1155InfiniteArtifactLogic();
+    ERC1155EditionContractLogic public contractLogic = new ERC1155EditionContractLogic();
+    ERC1155EditionTokenLogic public tokenLogic = new ERC1155EditionTokenLogic();
 
     // Deploy basic renderer contract
     ERC1155EditionRenderer public editionRenderer = new ERC1155EditionRenderer();
