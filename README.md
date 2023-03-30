@@ -1,10 +1,18 @@
 # AssemblyPress ℗ - v0.0 (March 30, 2023)
 
 ## Public Request for Comment (RFC)
+AssemblyPress v0.0 is the culmination of 8 months of on & off work that began with a very simple [curation protocol](https://etherscan.io/address/0x6422Bf82Ab27F121a043d6DE88b55FA39e2ea292#code) that served (and still serves) as the backbone of [Present Material](https://www.presentmaterial.xyz/).
 
-### Current Questions/Issues/Areas to Improve (NOT EXHAUSTIVE)
+An [updated version](https://github.com/public-assembly/curation-protocol) was released months later alongside [Neosound](https://www.neosound.xyz/) that moved the protocol much closer to what was released today.
 
-General
+The full AssemblyPress (AP) architecture is now much more than a curation protocol. AP comprises two contract factories (ERC721 + ERC1155) designed to simplify the process in leveraging common token standards as onchain databases for any application. A more in-depth protocol walkthrough can be found [here](https://forum.public---assembly.com/t/draft-assemblypress-walkthrough/335).
+
+Below is a (non-exhaustive) list of areas in need of review, bugs, and missing functionality that we hope to address before AP's v1.0 release. Public Assembly is an organization [building public goods](https://twitter.com/valcoholics1/status/1641244533265399810?s=20), and we are seeking help from the public in this review process.
+
+We cannot guarantee that any bounties will be paid for help given during this review process, but we encourage anyone who pitches in to drop their ENS in any issue/pull-request they submit. Thank you for your help, we look forward to bringing this protocol to the public.
+
+
+### General
 - Review the soul bound implementations for ERC721 (erc-5192) + ERC1155 (erc-5633)
     - Particularly the 1155 one where we made a bunch of custom edits to the 1155 solmate base
 - Probably want to move the IAccessControlRegistry into this repo instead of importing from onchain to have better control of it
@@ -13,9 +21,10 @@ General
 - Should we pick a specific pragma of solidity rather than ^0.8.16 ??
 - clean up lib/imports/remappings
 
-ERC721
-- Add a settable/initializable “description” (base64 encoded onchain?) for the CurationMetadataRenderer so that we can do channel level descriptions
-- mintQuantity situation + maxSupply situation on erc721 is funky
+### ERC721
+- Add a settable/initializable “description” field to CurationStorageV1 + update CurationMetadataRenderer so we can provide channel level descriptions for curation contracts
+    - currently the description is generated programatically, doesn't allow for custom descriptions
+- mintQuantity situation + maxSupply situation on erc721Press is funky
     - Restricted it mintQuantity to uint16 at some point bc we thought we were getting ran out of gas errors because of the data that gets passed in at large quantities but we think that was wrong
 - Double check for redundant logic + events
     - ex: removal of unnecessary value != 0 checks
@@ -35,7 +44,7 @@ ERC721
         - will require an update to ICurationLogic as well since the Listing struct may change (or not even be necessary anymore)
         - will also require an updated CurationMetadataRenderer
 
-ERC1155
+### ERC1155
 - Check if withdraw implementation was done correctly
 - Because erc1155press is using OwnableUpgradeable, it means that the entire “canTransferOwnership” check is irrelevant
     - Solutions
