@@ -1,6 +1,11 @@
 # AssemblyPress ℗ - v0.0 (March 30, 2023)
 
 ## Public Request for Comment (RFC)
+AssemblyPress v0.0 is the culmination of 8 months of on & off work that began with a very simple [curation protocol](https://etherscan.io/address/0x6422Bf82Ab27F121a043d6DE88b55FA39e2ea292#code) that served (and still serves) as the backbone of [Present Material](https://www.presentmaterial.xyz/).
+
+An [updated version](https://github.com/public-assembly/curation-protocol) was released alongside [Neosound](https://www.neosound.xyz/) that moved the protocol much closer to what was released today.
+
+The full AssemblyPress (AP) architecture is now much more than a curation protocol. AP comprises two contract factories (ERC721 + ERC1155) designed to simplify the process in leveraging common token standards as onchain databases for any application. A more in-depth protocol walkthrough can be found [here](https://forum.public---assembly.com/t/draft-assemblypress-walkthrough/335).
 
 ### Current Questions/Issues/Areas to Improve (NOT EXHAUSTIVE)
 
