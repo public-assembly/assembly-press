@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IERC1155TokenRenderer} from "../interfaces/IERC1155TokenRenderer.sol";
-import {IERC1155PressTokenLogic} from "../interfaces/IERC1155PressTokenLogic.sol";
-import {IERC1155Press} from "../interfaces/IERC1155Press.sol";
+import {IERC1155PressTokenRenderer} from "../../core/interfaces/IERC1155PressTokenRenderer.sol";
+import {IERC1155PressTokenLogic} from "../../core/interfaces/IERC1155PressTokenLogic.sol";
+import {IERC1155Press} from "../../core/interfaces/IERC1155Press.sol";
 
 /**
- @notice ERC1155EditionRenderer
- @author Max Bochman
- @author Salief Lewis
+ * @notice ERC1155EditionRenderer
+ * @author Max Bochman
+ * @author Salief Lewis
  */
-contract ERC1155EditionRenderer is IERC1155TokenRenderer {
+contract ERC1155EditionRenderer is IERC1155PressTokenRenderer {
 
     // ||||||||||||||||||||||||||||||||
     // ||| ERRORS |||||||||||||||||||||
@@ -28,20 +28,20 @@ contract ERC1155EditionRenderer is IERC1155TokenRenderer {
     error NotInitialized_Or_NotPress();
 
     // ||||||||||||||||||||||||||||||||
-    // ||| STORAGE ||||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||  
-
-    // ERC1155Press => tokenId => uri string
-    mapping(address => mapping(uint256 => string)) public tokenUriInfo;
-
-    // ||||||||||||||||||||||||||||||||
     // ||| EVENTS |||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||  
 
     /// @dev MUST emit when the URI is updated for a tokenId as defined in EIP-1155
     /// @param _value string value of URI
     /// @param _id tokenId
-    event URI(string _value, uint256 indexed _id);     
+    event URI(string _value, uint256 indexed _id);         
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| STORAGE ||||||||||||||||||||
+    // ||||||||||||||||||||||||||||||||  
+
+    // ERC1155Press => tokenId => uri string
+    mapping(address => mapping(uint256 => string)) public tokenUriInfo;
 
     // ||||||||||||||||||||||||||||||||
     // ||| URI FUNCTIONS ||||||||||||||
@@ -73,6 +73,7 @@ contract ERC1155EditionRenderer is IERC1155TokenRenderer {
     /// @param newURI new string URI for token
     function setTokenURI(address targetPress, uint256 tokenId, string memory newURI) external {
 
+        // check if msg.sender has access to update metadata
         if (IERC1155Press(targetPress).getTokenLogic(tokenId).canEditMetadata(targetPress, tokenId, msg.sender) != true) {
             revert No_Edit_Access();
         } 

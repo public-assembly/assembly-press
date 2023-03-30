@@ -30,63 +30,34 @@ pragma solidity ^0.8.16;
 */
 
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IERC1155PressCreatorV1} from "./interfaces/IERC1155PressCreatorV1.sol";
-import {IERC1155PressContractLogic} from "./interfaces/IERC1155PressContractLogic.sol";
-import {ERC1155PressProxy} from "./proxy/ERC1155PressProxy.sol";
+import {IERC1155PressFactory} from "./core/interfaces/IERC1155PressFactory.sol";
+import {IERC1155PressContractLogic} from "./core/interfaces/IERC1155PressContractLogic.sol";
+import {ERC1155PressProxy} from "./core/proxy/ERC1155PressProxy.sol";
 import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
 import {Version} from "../../core/utils/Version.sol";
 import {ERC1155Press} from "./ERC1155Press.sol";
 
-import {ERC1155BasicContractLogic} from "./logic/ERC1155BasicContractLogic.sol";
-import {ERC1155InfiniteArtifactLogic} from "./logic/ERC1155InfiniteArtifactLogic.sol";
-import {ERC1155EditionRenderer} from "./metadata/ERC1155EditionRenderer.sol";
-
 /**
- * @title PressFactory
- * @notice A factory contract that deploys a Press, a UUPS proxy of `ERC1155Press.sol`
+ * @title ERC1155PressFactory
+ * @notice A factory contract that deploys an ERC1155PressProxy, a UUPS proxy of `ERC1155Press.sol`
  *
  * @author Max Bochman
  * @author Salief Lewis
  */
-contract ERC1155PressCreatorV1 is IERC1155PressCreatorV1, OwnableUpgradeable, UUPSUpgradeable, Version(1) {
+contract ERC1155PressFactory is IERC1155PressFactory, OwnableUpgradeable, UUPSUpgradeable, Version(1) {
     
     /// @notice Implementation contract behind Press proxies
-    address public immutable pressImpl;     
-
-    /// @notice Default contract logic implementation 
-    ERC1155BasicContractLogic public immutable defaultContractLogicImpl;   
-
-    /// @notice edition logic implementation
-    ERC1155InfiniteArtifactLogic public immutable editionLogicImpl; 
-
-    /// @notice edition renderer implementation
-    ERC1155EditionRenderer public immutable editionRendererImpl;               
+    address public immutable pressImpl;                
 
     /// @notice Initializes factory with addresses of implementation logic
-    /// @param _pressImpl ERC721Drop logic implementation contract to clone
-    /// @param _contractLogic Default contract level logic
-    /// @param _editionLogic Logic for editions
-    /// @param _editionRenderer Metadata renderer for editions    
-    constructor(
-        address _pressImpl, 
-        ERC1155BasicContractLogic _contractLogic,
-        ERC1155InfiniteArtifactLogic _editionLogic,
-        ERC1155EditionRenderer _editionRenderer
-    ) {
+    /// @param _pressImpl ERC721Drop logic implementation contract to clone  
+    constructor(address _pressImpl) {
         /// Reverts if the given implementation address is zero.
         if (_pressImpl == address(0)) revert Address_Cannot_Be_Zero();
 
         pressImpl = _pressImpl;
-        defaultContractLogicImpl = _contractLogic;
-        editionLogicImpl = _editionLogic;
-        editionRendererImpl = _editionRenderer;
 
-        emit PressInitialized(
-            pressImpl,
-            defaultContractLogicImpl,
-            editionLogicImpl,
-            editionRendererImpl
-        );
+        emit PressInitialized(pressImpl);
     }
 
     /// @notice Initializes the proxy behind `PressFactory.sol`
@@ -127,49 +98,6 @@ contract ERC1155PressCreatorV1 is IERC1155PressCreatorV1, OwnableUpgradeable, UU
         
         return newPressAddress;
     }
-
-    // function createPressAndEdition(
-    //     string memory contractName,
-    //     string memory contractSymbol,
-    //     string memory firstTokenURI
-    // ) public returns (address payable newPressAddress) {
-    //     // Cache msg.sender
-    //     address sender = msg.sender;
-
-    //     // Configure ownership details in proxy constructor
-    //     ERC1155PressProxy newPress = new ERC1155PressProxy(pressImpl, "");
-
-    //     // Declare a new variable to track contract creation
-    //     newPressAddress = payable(address(newPress));
-
-    //     // Initialize the new Press instance
-    //     ERC1155Press(newPressAddress).initialize({
-    //         _name: contractName,
-    //         _symbol: contractSymbol,
-    //         _initialOwner: sender,
-    //         _contractLogic: defaultContractLogicImpl,
-    //         _contractLogicInit: abi.encode(sender, 0)
-    //     });
-
-    //     address[] memory mintExistingRecipients = new address[](1);
-    //     mintExistingRecipients[0] = sender;
-
-    //     ERC1155Press(newPressAddress).mintNew(
-    //         mintExistingRecipients, 
-    //         1, 
-    //         editionLogicImpl, 
-    //         abi.encode(sender, (block.timestamp - 1), 0),
-    //         editionRendererImpl, 
-    //         abi.encode(firstTokenURI),
-    //         payable(sender), 
-    //         0, 
-    //         payable(address(0)), 
-    //         0, 
-    //         false
-    //     );        
-
-    //     return newPressAddress;
-    // }
 
     /// @dev Can only be called by the contract owner
     /// @param newImplementation proposed new upgrade implementation

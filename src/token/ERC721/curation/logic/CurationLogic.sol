@@ -237,7 +237,6 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     // ||||||||||||||||||||||||||||||||          
 
     /// @notice Default logic initializer for a given Press
-    /// @notice admin cannot be set to the zero address
     /// @dev updates mappings for msg.sender, so no need to add access control to this function
     /// @param logicInit data to init with
     function initializeWithData(bytes memory logicInit) external {
@@ -257,7 +256,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         accessControl.initializeWithData(sender, accessControlInit);   
 
         emit SetAccessControl(sender, accessControl);                   
-    }       
+    }         
 
     // ||||||||||||||||||||||||||||||||
     // ||| CURATION FUNCTIONS |||||||||
@@ -277,193 +276,8 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         // msg.sender must be the ERC721Press contract in this instance. 
         // even if someone wanted to put in a fake updateSender address by calling this through etherscan
         // they wouldnt be able to spoof the fact that msg.sender on this is the ERC721Press
-        // _addListings(msg.sender, updateSender, decodeListings(logicData));
-        _addListings(msg.sender, updateSender, listings);
-    }
-
-    // /**
-    // * @notice Decodes packed listings data into Listing structs
-    // * @dev Assumes that the input data is correctly packed, and will produce undefined behavior if it is not.
-    // * @param data Packed listing data
-    // * @return listings Array of decoded Listing structs
-    // */
-    // function decodeListings(bytes memory data) internal pure returns (ICurationLogic.Listing[] memory) {
-    //     // Calculate the number of listings by dividing the total length of data by the size of a single listing
-    //     uint256 numListings = data.length / LISTING_SIZE;
-
-    //     // Create a new memory array of listings with the calculated length
-    //     ICurationLogic.Listing[] memory listings = new ICurationLogic.Listing[](numListings);
-
-    //     // Define variables that will be used in the assembly block
-    //     uint256 srcPtr;
-    //     uint256 dstPtr;
-
-    //     // Assembly block for decoding the packed data
-    //     assembly {
-    //         // Get the memory address of the data input
-    //         srcPtr := add(data, 0x20)
-
-    //         // Get the memory address of the listings array
-    //         dstPtr := add(listings, 0x20)
-    //     }
-
-    //     // Iterate through the listings and decode each one
-    //     for (uint256 i = 0; i < numListings; i++) {
-    //         // Decode each field of the listing struct from the packed data
-
-    //         // 1. curatedAddress (20 bytes)
-    //         // Load data from the source pointer, shift right by 96 bits to align the address,
-    //         // and store the result in the curatedAddress variable.
-    //         address curatedAddress;
-    //         assembly {
-    //             curatedAddress := shr(96, mload(srcPtr))
-    //             srcPtr := add(srcPtr, 20)
-    //         }
-
-    //         // 2. selectedTokenId (12 bytes)
-    //         // Load data from the source pointer, shift right by 224 bits to align the uint96,
-    //         // and store the result in the selectedTokenId variable.
-    //         uint96 selectedTokenId;
-    //         assembly {
-    //             selectedTokenId := shr(224, mload(srcPtr))
-    //             srcPtr := add(srcPtr, 12)
-    //         }
-
-    //         // 3. curator (20 bytes)
-    //         // Load data from the source pointer, shift right by 96 bits to align the address,
-    //         // and store the result in the curator variable.
-    //         address curator;
-    //         assembly {
-    //             curator := shr(128, mload(srcPtr))
-    //             srcPtr := add(srcPtr, 20)
-    //         }
-
-    //         // 4. sortOrder (4 bytes)
-    //         // Load data from the source pointer, shift right by 224 bits to align the int32,
-    //         // and store the result in the sortOrder variable.
-    //         int32 sortOrder;
-    //         assembly {
-    //             sortOrder := shr(224, mload(srcPtr))
-    //             srcPtr := add(srcPtr, 4)
-    //         }
-
-    //         // 5. chainId (2 bytes)
-    //         // Load data from the source pointer, shift right by 240 bits to align the uint16,
-    //         // and store the result in the chainId variable.
-    //         uint16 chainId;
-    //         assembly {
-    //             chainId := shr(240, mload(srcPtr))
-    //             srcPtr := add(srcPtr, 2)
-    //         }
-
-    //         // 6. curationTargetType (2 bytes)
-    //         // Load data from the source pointer, shift right by 240 bits to align the uint16,
-    //         // and store the result in the curationTargetType variable.
-    //         uint16 curationTargetType;
-    //         assembly {
-    //             curationTargetType := shr(240, mload(srcPtr))
-    //             srcPtr := add(srcPtr, 2)
-    //         }     
-
-    //         // 7. hasTokenId (1 byte)
-    //         // Load data from the source pointer, extract the least significant byte,
-    //         // compare it with 1, and store the result in the hasTokenId variable.
-    //         bool hasTokenId;
-    //         assembly {
-    //             hasTokenId := eq(byte(0, mload(srcPtr)), byte(0, 1))
-    //             srcPtr := add(srcPtr, 1)
-    //         }
-
-    //         // Populate the listing struct with the decoded fields
-    //         // Assign the decoded values to the corresponding fields of the Listing struct
-    //         // and store it in the listings array at index i.
-    //         listings[i] = ICurationLogic.Listing({
-    //             curatedAddress: curatedAddress,
-    //             selectedTokenId: selectedTokenId,
-    //             curator: curator,
-    //             sortOrder: sortOrder,
-    //             chainId: chainId,
-    //             curationTargetType: curationTargetType,
-    //             hasTokenId: hasTokenId
-    //         });        
-    //     }
-
-    //     // Return the decoded listings array
-    //     return listings;
-    // }        
-
-    // /**
-    // * @notice Decodes packed listings data into Listing structs
-    // * @dev Assumes that the input data is correctly packed, and will produce undefined behavior if it is not.
-    // * @param data Packed listing data
-    // * @return listings Array of decoded Listing structs
-    // */
-    // function decodeListings(bytes memory data) internal pure returns (ICurationLogic.Listing[] memory) {
-    //     // Calculate the number of listings by dividing the total length of data by the size of a single listing
-    //     uint256 numListings = data.length / LISTING_SIZE;
-
-    //     // Create a new memory array of listings with the calculated length
-    //     ICurationLogic.Listing[] memory listings = new ICurationLogic.Listing[](numListings);
-
-    //     // Define the source pointer variable
-    //     uint256 srcPtr;
-
-    //     // Assembly block for initializing the source pointer
-    //     assembly {
-    //         // Get the memory address of the data input
-    //         srcPtr := add(data, 0x20)
-    //     }
-
-    //     // Iterate through the listings and decode each one
-    //     for (uint256 i = 0; i < numListings; i++) {
-    //         // Assembly block for decoding the packed data and populating the Listing struct
-    //         assembly {
-    //             // 1. curatedAddress (20 bytes)
-    //             let curatedAddress := shr(96, mload(srcPtr))
-    //             srcPtr := add(srcPtr, 20)
-
-    //             // 2. selectedTokenId (12 bytes)
-    //             let selectedTokenId := shr(224, mload(srcPtr))
-    //             srcPtr := add(srcPtr, 12)
-
-    //             // 3. curator (20 bytes)
-    //             let curator := shr(96, mload(srcPtr))
-    //             srcPtr := add(srcPtr, 20)
-
-    //             // 4. sortOrder (4 bytes)
-    //             let sortOrder := shr(224, mload(srcPtr))
-    //             srcPtr := add(srcPtr, 4)
-
-    //             // 5. chainId (2 bytes)
-    //             let chainId := shr(240, mload(srcPtr))
-    //             srcPtr := add(srcPtr, 2)
-
-    //             // 6. curationTargetType (2 bytes)
-    //             let curationTargetType := shr(240, mload(srcPtr))
-    //             srcPtr := add(srcPtr, 2)
-
-    //             // 7. hasTokenId (1 byte)
-    //             let hasTokenId := eq(byte(0, mload(srcPtr)), byte(0, 1))
-    //             srcPtr := add(srcPtr, 1)
-
-    //             // Get the memory address of the listings array at index i
-    //             let dstPtr := add(add(listings, mul(i, 64)), 0x20)
-
-    //             // Store the decoded fields in the Listing struct at the destination pointer
-    //             mstore(dstPtr, curatedAddress)
-    //             mstore(add(dstPtr, 20), selectedTokenId)
-    //             mstore(add(dstPtr, 32), curator)
-    //             mstore(add(dstPtr, 52), sortOrder)
-    //             mstore(add(dstPtr, 56), chainId)
-    //             mstore(add(dstPtr, 58), curationTargetType)
-    //             mstore(add(dstPtr, 60), hasTokenId)
-    //         }
-    //     }
-
-    //     // Return the decoded listings array
-    //     return listings;
-    // }
-    
+        _addListings(msg.sender, updateSender, listings); 
+    }    
 
     /// @dev Getter for acessing Listing information for a specific tokenId
     /// @param targetPress ERC721Press to target 

@@ -42,14 +42,12 @@ interface ICurationLogic {
 
     /// @notice Shared config struct tracking curation status
     struct Config {
-        /// @notice Address of the accessControl contract
-        IAccessControlRegistry accessControl;    
-        /// @notice If curation is paused by the owner
-        bool isPaused;        
         /// @notice timestamp that the curation is frozen at (if never, frozen = 0)
         uint256 frozenAt;                
         /// @notice price to curate per listing
-        uint256 priceToCurate;                        
+        uint256 priceToCurate;                      
+        /// @notice Address of the accessControl contract
+        IAccessControlRegistry accessControl;              
         /// Stores virtual mapping array length parameters
         /// @notice Array total size (total size)
         uint40 numAdded;
@@ -58,6 +56,8 @@ interface ICurationLogic {
         uint40 numRemoved;
         /// @notice initialized uint. 0 = not initialized, 1 = initialized
         uint8 initialized;        
+        /// @notice If curation is paused by the owner
+        bool isPaused;                
     }
     
     // ||||||||||||||||||||||||||||||||

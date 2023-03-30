@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IERC1155PressContractLogic} from "../interfaces/IERC1155PressContractLogic.sol";
-import {IERC1155Press} from "../interfaces/IERC1155Press.sol";
+import {IERC1155PressContractLogic} from "../../core/interfaces/IERC1155PressContractLogic.sol";
+import {IERC1155Press} from "../../core/interfaces/IERC1155Press.sol";
 
 /**
-* @title ERC1155BasicContractLogic
-* @notice Example contract level logic impl for AssemblyPress ERC1155 architecture
+* @title ERC1155EditionContractLogic
+* @notice Edition contract level logic impl for AssemblyPress ERC1155 architecture
 *
 * @author Max Bochman
 * @author Salief Lewis
 */
-contract ERC1155BasicContractLogic is IERC1155PressContractLogic {
+contract ERC1155EditionContractLogic is IERC1155PressContractLogic {
 
     // ||||||||||||||||||||||||||||||||
     // ||| TYPES ||||||||||||||||||||||

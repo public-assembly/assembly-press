@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IERC1155PressTokenLogic} from "../interfaces/IERC1155PressTokenLogic.sol";
-import {IERC1155Press} from "../interfaces/IERC1155Press.sol";
-import {ERC1155Press} from "../ERC1155Press.sol";
+import {IERC1155PressTokenLogic} from "../../core/interfaces/IERC1155PressTokenLogic.sol";
+import {IERC1155Press} from "../../core/interfaces/IERC1155Press.sol";
+import {ERC1155Press} from "../../ERC1155Press.sol";
 
 /**
-* @title ERC1155InfiniteArtifactLogic
-* @notice Infinte artifact token level logic impl for AssemblyPress ERC1155 architecture
+* @title ERC1155EditionTokenLogic
+* @notice Edition token level logic impl for AssemblyPress ERC1155 architecture
 *
 * @author Max Bochman
 * @author Salief Lewis
 */
-contract ERC1155InfiniteArtifactLogic is IERC1155PressTokenLogic {
+contract ERC1155EditionTokenLogic is IERC1155PressTokenLogic {
 
     // ||||||||||||||||||||||||||||||||
     // ||| TYPES ||||||||||||||||||||||

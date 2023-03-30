@@ -29,18 +29,18 @@ pragma solidity ^0.8.16;
 
 */
 
-import {ERC1155Skeleton} from "./ERC1155Skeleton.sol";
+import {ERC1155Skeleton} from "./core/ERC1155Skeleton.sol";
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {Initializable} from "openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
 import {Version} from "../../core/utils/Version.sol";
-import {IERC1155TokenRenderer} from "./interfaces/IERC1155TokenRenderer.sol";
-import {IERC1155PressContractLogic} from "./interfaces/IERC1155PressContractLogic.sol";
-import {IERC1155PressTokenLogic} from "./interfaces/IERC1155PressTokenLogic.sol";
-import {IERC1155Press} from "./interfaces/IERC1155Press.sol";
-import {IERC1155Skeleton} from "./interfaces/IERC1155Skeleton.sol";
-import {ERC1155PressPermissions} from "./ERC1155PressPermissions.sol";
+import {IERC1155PressTokenRenderer} from "./core/interfaces/IERC1155PressTokenRenderer.sol";
+import {IERC1155PressContractLogic} from "./core/interfaces/IERC1155PressContractLogic.sol";
+import {IERC1155PressTokenLogic} from "./core/interfaces/IERC1155PressTokenLogic.sol";
+import {IERC1155Press} from "./core/interfaces/IERC1155Press.sol";
+import {IERC1155Skeleton} from "./core/interfaces/IERC1155Skeleton.sol";
+import {ERC1155PressPermissions} from "./core/ERC1155PressPermissions.sol";
 
 /**
  * @title ERC1155Press
@@ -135,7 +135,7 @@ contract ERC1155Press is
         uint256 quantity,
         IERC1155PressTokenLogic logic, 
         bytes memory logicInit,
-        IERC1155TokenRenderer renderer, 
+        IERC1155PressTokenRenderer renderer, 
         bytes memory rendererInit,
         address payable fundsRecipient,
         uint16 royaltyBPS,
@@ -177,7 +177,7 @@ contract ERC1155Press is
 
         // Initialize token logic + renderer
         IERC1155PressTokenLogic(logic).initializeWithData(tokenId, logicInit);
-        IERC1155TokenRenderer(renderer).initializeWithData(tokenId, rendererInit);  
+        IERC1155PressTokenRenderer(renderer).initializeWithData(tokenId, rendererInit);  
 
         // For each recipient provided, mint them given quantity of tokenId being newly minted
         for (uint256 i = 0; i < recipients.length; ++i) {
@@ -330,7 +330,7 @@ contract ERC1155Press is
         uint16 newRoyaltyBPS,
         IERC1155PressTokenLogic newLogic,
         bytes memory newLogicInit,        
-        IERC1155TokenRenderer newRenderer,
+        IERC1155PressTokenRenderer newRenderer,
         bytes memory newRendererInit
     ) external nonReentrant {
         // Call logic contract to check is msg.sender can update config for given Press + token
@@ -452,7 +452,7 @@ contract ERC1155Press is
     }    
 
     /// @notice Getter for renderer contract stored in configInfo for a given tokenId
-    function getRenderer(uint256 tokenId) external view returns (IERC1155TokenRenderer) {
+    function getRenderer(uint256 tokenId) external view returns (IERC1155PressTokenRenderer) {
         return configInfo[tokenId].renderer;
     }    
 

@@ -30,11 +30,10 @@ pragma solidity ^0.8.16;
 */
 
 import {IERC1155PressContractLogic} from "./IERC1155PressContractLogic.sol";
-import {ERC1155BasicContractLogic} from "../logic/ERC1155BasicContractLogic.sol";
-import {ERC1155InfiniteArtifactLogic} from "../logic/ERC1155InfiniteArtifactLogic.sol";
-import {ERC1155EditionRenderer} from "../metadata/ERC1155EditionRenderer.sol";
+import {IERC1155PressTokenLogic} from "./IERC1155PressTokenLogic.sol";
+import {IERC1155PressTokenRenderer} from "./IERC1155PressTokenRenderer.sol";
 
-interface IERC1155PressCreatorV1 {
+interface IERC1155PressFactory {
     // ||||||||||||||||||||||||||||||||
     // ||| ERRORS |||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
@@ -47,12 +46,7 @@ interface IERC1155PressCreatorV1 {
     // ||||||||||||||||||||||||||||||||
 
     /// @notice Emitted when a Press instance is initialized
-    event PressInitialized(
-      address indexed pressImpl,
-      ERC1155BasicContractLogic defaultContractLogicImpl,
-      ERC1155InfiniteArtifactLogic editionLogic,
-      ERC1155EditionRenderer editionRenderer
-    );
+    event PressInitialized(address indexed pressImpl);
 
     /// @notice Emitted when the PressFactory is initialized
     event PressFactoryInitialized();

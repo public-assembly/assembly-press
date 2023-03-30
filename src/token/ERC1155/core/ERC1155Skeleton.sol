@@ -2,15 +2,15 @@
 pragma solidity ^0.8.16;
 
 import {ERC1155} from "solmate/tokens/ERC1155.sol";
-import {FundsReceiver} from "../../core/utils/FundsReceiver.sol";
+import {FundsReceiver} from "../../../core/utils/FundsReceiver.sol";
 import {ERC1155PressStorageV1} from "./storage/ERC1155PressStorageV1.sol";
-import {IERC5633} from "../../core/interfaces/IERC5633.sol";
+import {IERC5633} from "./interfaces/IERC5633.sol";
 import {IERC1155Skeleton} from "./interfaces/IERC1155Skeleton.sol";
 import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 
 /**
  * @title ERC1155Skeleton
- * @notice ERC1155 Skeleton that containing overrides on certain 1155 functions
+ * @notice ERC1155 Skeleton that containing overrides on certain solmate ERC1155 functions
  * @author Max Bochman
  * @author Salief Lewis
  */

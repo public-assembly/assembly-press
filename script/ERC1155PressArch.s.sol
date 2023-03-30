@@ -4,11 +4,11 @@ pragma solidity ^0.8.13;
 import "forge-std/Script.sol";
 
 import {ERC1155Press} from "../src/token/ERC1155/ERC1155Press.sol";
-import {ERC1155PressCreatorV1} from "../src/token/ERC1155/ERC1155PressCreatorV1.sol";
-import {IERC1155Press} from "../src/token/ERC1155/interfaces/IERC1155Press.sol";
-import {ERC1155BasicContractLogic} from "../src/token/ERC1155/logic/ERC1155BasicContractLogic.sol";
-import {ERC1155InfiniteArtifactLogic} from "../src/token/ERC1155/logic/ERC1155InfiniteArtifactLogic.sol";
-import {ERC1155EditionRenderer} from "../src/token/ERC1155/metadata/ERC1155EditionRenderer.sol";
+import {ERC1155PressFactory} from "../src/token/ERC1155/ERC1155PressFactory.sol";
+import {IERC1155Press} from "../src/token/ERC1155/core/interfaces/IERC1155Press.sol";
+import {ERC1155EditionContractLogic} from "../src/token/ERC1155/editions/logic/ERC1155EditionContractLogic.sol";
+import {ERC1155EditionTokenLogic} from "../src/token/ERC1155/editions/logic/ERC1155EditionTokenLogic.sol";
+import {ERC1155EditionRenderer} from "../src/token/ERC1155/editions/metadata/ERC1155EditionRenderer.sol";
 
 contract DeployCore is Script {
 
@@ -22,18 +22,13 @@ contract DeployCore is Script {
 
         IERC1155Press erc1155Press = new ERC1155Press();        
 
-        ERC1155BasicContractLogic contractLogic = new ERC1155BasicContractLogic();
+        ERC1155EditionContractLogic contractLogic = new ERC1155EditionContractLogic();
 
-        ERC1155InfiniteArtifactLogic tokenLogic = new ERC1155InfiniteArtifactLogic();
+        ERC1155EditionTokenLogic tokenLogic = new ERC1155EditionTokenLogic();
 
         ERC1155EditionRenderer tokenRenderer = new ERC1155EditionRenderer();
 
-        ERC1155PressCreatorV1 erc1155Creator = new ERC1155PressCreatorV1(
-            address(erc1155Press),
-            contractLogic,
-            tokenLogic,
-            tokenRenderer
-        );
+        ERC1155PressFactory erc1155Factory = new ERC1155PressFactory(address(erc1155Press));
 
         vm.stopBroadcast();
     }

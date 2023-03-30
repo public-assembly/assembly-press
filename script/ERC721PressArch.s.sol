@@ -6,7 +6,7 @@ import "forge-std/Script.sol";
 import {ERC721Press} from "../src/token/ERC721/ERC721Press.sol";
 import {CurationLogic} from "../src/token/ERC721/curation/logic/CurationLogic.sol";
 import {CurationMetadataRenderer} from "../src/token/ERC721/curation/metadata/CurationMetadataRenderer.sol";
-import {OpenAccess} from "../src/token/ERC721/curation/access/OpenAccess.sol";
+import {HybridAccess} from "../src/token/ERC721/curation/access/HybridAccess.sol";
 import {ERC721PressFactory} from "../src/token/ERC721/ERC721PressFactory.sol";
 
 import {IERC721PressFactory} from "../src/token/ERC721/core/interfaces/IERC721PressFactory.sol";
@@ -24,6 +24,12 @@ contract DeployCore is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
         vm.startBroadcast(deployerPrivateKey);        
+
+        IERC721PressRenderer curationRenderer = new CurationMetadataRenderer();
+
+        IERC721PressLogic curationLogic = new CurationLogic();
+
+        IAccessControlRegistry hybridAccess = new HybridAccess();
 
         IERC721Press erc721Press = new ERC721Press();
         

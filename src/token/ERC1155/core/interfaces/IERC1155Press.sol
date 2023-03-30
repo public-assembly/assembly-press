@@ -30,7 +30,7 @@ pragma solidity ^0.8.16;
 */
 
 import {IERC1155PressTokenLogic} from "./IERC1155PressTokenLogic.sol";
-import {IERC1155TokenRenderer} from "./IERC1155TokenRenderer.sol";
+import {IERC1155PressTokenRenderer} from "./IERC1155PressTokenRenderer.sol";
 import {IERC1155PressContractLogic} from "./IERC1155PressContractLogic.sol";
 import {IERC1155Skeleton} from "./IERC1155Skeleton.sol";
 
@@ -44,7 +44,7 @@ interface IERC1155Press is IERC1155Skeleton {
     struct Configuration {
         address payable fundsRecipient;
         IERC1155PressTokenLogic logic;
-        IERC1155TokenRenderer renderer;
+        IERC1155PressTokenRenderer renderer;
         address payable primarySaleFeeRecipient;
         bool soulbound;
         uint16 royaltyBPS;
@@ -169,7 +169,7 @@ interface IERC1155Press is IERC1155Skeleton {
         uint256 indexed tokenId,
         address indexed sender,        
         IERC1155PressTokenLogic logic,
-        IERC1155TokenRenderer renderer,
+        IERC1155PressTokenRenderer renderer,
         address fundsRecipient,
         uint16 royaltyBPS,
         bool soulbound
@@ -189,7 +189,7 @@ interface IERC1155Press is IERC1155Skeleton {
     function getTokenLogic(uint256 tokenId) external view returns (IERC1155PressTokenLogic); 
 
     /// @notice Getter for renderer contract stored in configInfo for a given tokenId
-    function getRenderer(uint256 tokenId) external view returns (IERC1155TokenRenderer); 
+    function getRenderer(uint256 tokenId) external view returns (IERC1155PressTokenRenderer); 
 
     /// @notice Getter for fundsRecipent address stored in configInfo for a given tokenId
     function getFundsRecipient(uint256 tokenId) external view returns (address payable); 
