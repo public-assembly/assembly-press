@@ -11,9 +11,8 @@ Below is a (non-exhaustive) list of areas in need of review, bugs, and missing f
 
 We cannot guarantee that any bounties will be paid for help given during this review process, but we encourage anyone who pitches in to drop their ENS in any issue/pull-request they submit. Thank you for your help, we look forward to bringing this protocol to the public.
 
-### Current Questions/Issues/Areas to Improve (NOT EXHAUSTIVE)
 
-General
+### General
 - Review the soul bound implementations for ERC721 (erc-5192) + ERC1155 (erc-5633)
     - Particularly the 1155 one where we made a bunch of custom edits to the 1155 solmate base
 - Probably want to move the IAccessControlRegistry into this repo instead of importing from onchain to have better control of it
@@ -22,7 +21,7 @@ General
 - Should we pick a specific pragma of solidity rather than ^0.8.16 ??
 - clean up lib/imports/remappings
 
-ERC721
+### ERC721
 - Add a settable/initializable “description” (base64 encoded onchain?) for the CurationMetadataRenderer so that we can do channel level descriptions
 - mintQuantity situation + maxSupply situation on erc721 is funky
     - Restricted it mintQuantity to uint16 at some point bc we thought we were getting ran out of gas errors because of the data that gets passed in at large quantities but we think that was wrong
@@ -44,7 +43,7 @@ ERC721
         - will require an update to ICurationLogic as well since the Listing struct may change (or not even be necessary anymore)
         - will also require an updated CurationMetadataRenderer
 
-ERC1155
+### ERC1155
 - Check if withdraw implementation was done correctly
 - Because erc1155press is using OwnableUpgradeable, it means that the entire “canTransferOwnership” check is irrelevant
     - Solutions
