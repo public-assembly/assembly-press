@@ -22,8 +22,9 @@ We cannot guarantee that any bounties will be paid for help given during this re
 - clean up lib/imports/remappings
 
 ### ERC721
-- Add a settable/initializable “description” (base64 encoded onchain?) for the CurationMetadataRenderer so that we can do channel level descriptions
-- mintQuantity situation + maxSupply situation on erc721 is funky
+- Add a settable/initializable “description” field to CurationStorageV1 + update CurationMetadataRenderer so we can provide channel level descriptions for curation contracts
+    - currently the description is generated programatically, doesn't allow for custom descriptions
+- mintQuantity situation + maxSupply situation on erc721Press is funky
     - Restricted it mintQuantity to uint16 at some point bc we thought we were getting ran out of gas errors because of the data that gets passed in at large quantities but we think that was wrong
 - Double check for redundant logic + events
     - ex: removal of unnecessary value != 0 checks
