@@ -11,6 +11,7 @@ General
 - Prob want to add in generic multi call stuff to allow for more complex contract set up ability
 - Should we take out a lot of the functions in the ERC721Press + ERC1155Press interfaces to make them more flexible?
 - Should we pick a specific pragma of solidity rather than ^0.8.16 ??
+- clean up lib/imports/remappings
 
 ERC721
 - Add a settable/initializable “description” (base64 encoded onchain?) for the CurationMetadataRenderer so that we can do channel level descriptions
