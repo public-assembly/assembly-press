@@ -1,4 +1,4 @@
-# AssemblyPress ℗ - v0.0 (March 30, 2023)
+# AssemblyPress ℗ - v0.0 (March 31, 2023)
 
 ## Public Request for Comment (RFC)
 
