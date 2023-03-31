@@ -23,44 +23,14 @@
       "isFixedGasLimit": false
     }
   ],
-  "receipts": [
-    {
-      "transactionHash": "0xbb94b8ef887de036aa15dac949307e4dba4bf769b48d0f85a33b164ce80ba513",
-      "transactionIndex": "0xc",
-      "blockHash": "0xb5fe012312b95ad3e5838f7514c5609a4d9ed57d01a7cb2ae5bf390424ede3d9",
-      "blockNumber": "0x8586f8",
-      "from": "0x153D2A196dc8f1F6b9Aa87241864B3e4d4FEc170",
-      "to": null,
-      "cumulativeGasUsed": "0x343468",
-      "gasUsed": "0x1f3ddb",
-      "contractAddress": "0x3444eD1a1eafB439F1fc7BB80a8A100960FB69F6",
-      "logs": [
-        {
-          "address": "0x3444eD1a1eafB439F1fc7BB80a8A100960FB69F6",
-          "topics": [
-            "0xc79fb9a7781c6ee837fea2c1b33a399690d6ccb2928b7ed4847cdb4d8a8190db",
-            "0x0000000000000000000000002354cf1a6a28e488d2c7d68cac2ab5a2301142e5"
-          ],
-          "data": "0x",
-          "blockHash": "0xb5fe012312b95ad3e5838f7514c5609a4d9ed57d01a7cb2ae5bf390424ede3d9",
-          "blockNumber": "0x8586f8",
-          "transactionHash": "0xbb94b8ef887de036aa15dac949307e4dba4bf769b48d0f85a33b164ce80ba513",
-          "transactionIndex": "0xc",
-          "logIndex": "0x26",
-          "removed": false
-        }
-      ],
-      "status": "0x1",
-      "logsBloom": "0x00000000000000000000000008000000000000000000000000000000000000000000000800000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000008000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000020000000000000000000000000000000000",
-      "type": "0x2",
-      "effectiveGasPrice": "0xeb4fe2f51"
-    }
-  ],
+  "receipts": [],
   "libraries": [],
-  "pending": [],
+  "pending": [
+    "0xbb94b8ef887de036aa15dac949307e4dba4bf769b48d0f85a33b164ce80ba513"
+  ],
   "path": "/Users/maximbochman/Desktop/CODE/assembly_press_v4_230328/broadcast/ERC721PressArch.s.sol/5/run-latest.json",
   "returns": {},
-  "timestamp": 1680286284,
+  "timestamp": 1680286217,
   "chain": 5,
   "multi": false,
   "commit": "62924f5"

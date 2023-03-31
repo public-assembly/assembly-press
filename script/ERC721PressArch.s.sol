@@ -25,13 +25,13 @@ contract DeployCore is Script {
 
         vm.startBroadcast(deployerPrivateKey);        
 
+        IERC721Press erc721Press = new ERC721Press();
+        
         IERC721PressRenderer curationRenderer = new CurationMetadataRenderer();
 
         IERC721PressLogic curationLogic = new CurationLogic();
 
-        IAccessControlRegistry hybridAccess = new HybridAccess();
-
-        IERC721Press erc721Press = new ERC721Press();
+        IAccessControlRegistry hybridAccess = new HybridAccess();        
         
         IERC721PressFactory erc721Factory = new ERC721PressFactory(address(erc721Press));
 
