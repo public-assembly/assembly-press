@@ -32,25 +32,24 @@ pragma solidity ^0.8.16;
 import {ERC721AUpgradeable} from "erc721a-upgradeable/ERC721AUpgradeable.sol";
 import {IERC721AUpgradeable} from "erc721a-upgradeable/IERC721AUpgradeable.sol";
 
+import {IERC721Press} from "./core/interfaces/IERC721Press.sol";
+import {IERC721PressLogic} from "./core/interfaces/IERC721PressLogic.sol";
+import {IERC721PressRenderer} from "./core/interfaces/IERC721PressRenderer.sol";
+import {ERC721PressStorageV1} from "./core/storage/ERC721PressStorageV1.sol";
+
+import {IERC5192} from "./core/interfaces/IERC5192.sol";
+import {IOwnableUpgradeable} from "../../core/interfaces/IOwnableUpgradeable.sol";
 import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-
-import {IERC721Press} from "./core/interfaces/IERC721Press.sol";
-import {IERC721PressLogic} from "./core/interfaces/IERC721PressLogic.sol";
-import {IOwnableUpgradeable} from "../../core/interfaces/IOwnableUpgradeable.sol";
-import {IERC721PressRenderer} from "./core/interfaces/IERC721PressRenderer.sol";
 
 import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
 import {Version} from "../../core/utils/Version.sol";
 import {FundsReceiver} from "../../core/utils/FundsReceiver.sol";
 
-import {ERC721PressStorageV1} from "./core/storage/ERC721PressStorageV1.sol";
-import {IERC5192} from "./core/interfaces/IERC5192.sol";
-
 /**
  * @title ERC721Press
- * @notice Extensible ERC721A implementation
+ * @notice Highly configurable ERC721A implementation
  * @dev Functionality is configurable using external renderer + logic contracts
  * @dev Uses EIP-5192 for optional non-transferrable token implementation
  * @author Max Bochman

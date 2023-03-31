@@ -32,10 +32,10 @@ pragma solidity ^0.8.16;
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IERC1155PressFactory} from "./core/interfaces/IERC1155PressFactory.sol";
 import {IERC1155PressContractLogic} from "./core/interfaces/IERC1155PressContractLogic.sol";
+import {ERC1155Press} from "./ERC1155Press.sol";
 import {ERC1155PressProxy} from "./core/proxy/ERC1155PressProxy.sol";
 import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
 import {Version} from "../../core/utils/Version.sol";
-import {ERC1155Press} from "./ERC1155Press.sol";
 
 /**
  * @title ERC1155PressFactory
