@@ -29,24 +29,26 @@ pragma solidity ^0.8.16;
 
 */
 
+import {IERC1155Skeleton} from "./core/interfaces/IERC1155Skeleton.sol";
+import {IERC1155Press} from "./core/interfaces/IERC1155Press.sol";
+import {IERC1155PressContractLogic} from "./core/interfaces/IERC1155PressContractLogic.sol";
+import {IERC1155PressTokenRenderer} from "./core/interfaces/IERC1155PressTokenRenderer.sol";
+import {IERC1155PressTokenLogic} from "./core/interfaces/IERC1155PressTokenLogic.sol";
+
 import {ERC1155Skeleton} from "./core/ERC1155Skeleton.sol";
+import {ERC1155PressPermissions} from "./core/ERC1155PressPermissions.sol";
+
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {Initializable} from "openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
 import {Version} from "../../core/utils/Version.sol";
-import {IERC1155PressTokenRenderer} from "./core/interfaces/IERC1155PressTokenRenderer.sol";
-import {IERC1155PressContractLogic} from "./core/interfaces/IERC1155PressContractLogic.sol";
-import {IERC1155PressTokenLogic} from "./core/interfaces/IERC1155PressTokenLogic.sol";
-import {IERC1155Press} from "./core/interfaces/IERC1155Press.sol";
-import {IERC1155Skeleton} from "./core/interfaces/IERC1155Skeleton.sol";
-import {ERC1155PressPermissions} from "./core/ERC1155PressPermissions.sol";
 
 /**
  * @title ERC1155Press
  * @notice Highly configurable ERC1155 implementation
  * @dev Functionality is configurable using external renderer + logic contracts at both contract and token level
- * @dev Uses EIP-5633 for configurable token level soulbound status
+ * @dev Uses EIP-5633 for optional non-transferrable token implementation
  * @author Max Bochman
  * @author Salief Lewis
  */

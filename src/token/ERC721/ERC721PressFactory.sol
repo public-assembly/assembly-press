@@ -34,14 +34,14 @@ import {IERC721PressFactory} from "./core/interfaces/IERC721PressFactory.sol";
 import {IERC721PressLogic} from "./core/interfaces/IERC721PressLogic.sol";
 import {IERC721PressRenderer} from "./core/interfaces/IERC721PressRenderer.sol";
 import {IERC721Press} from "./core/interfaces/IERC721Press.sol";
+import {ERC721Press} from "./ERC721Press.sol";
 import {ERC721PressProxy} from "./core/proxy/ERC721PressProxy.sol";
 import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
 import {Version} from "../../core/utils/Version.sol";
-import {ERC721Press} from "./ERC721Press.sol";
 
 /**
  * @title ERC721PressFactory
- * @notice A factory contract that deploys a Press, a UUPS proxy of `ERC721Press.sol`
+ * @notice A factory contract that deploys an ERC721PressProxy, a UUPS proxy of `ERC721Press.sol`
  *
  * @author Max Bochman
  * @author Salief Lewis
