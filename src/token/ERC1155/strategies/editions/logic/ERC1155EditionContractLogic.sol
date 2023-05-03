@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IERC1155PressContractLogic} from "../../core/interfaces/IERC1155PressContractLogic.sol";
-import {IERC1155Press} from "../../core/interfaces/IERC1155Press.sol";
+import {IERC1155PressContractLogic} from "../../../core/interfaces/IERC1155PressContractLogic.sol";
+import {IERC1155Press} from "../../../core/interfaces/IERC1155Press.sol";
 
 /**
 * @title ERC1155EditionContractLogic

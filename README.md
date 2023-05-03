@@ -18,7 +18,6 @@ We cannot guarantee that any bounties will be paid for help given during this re
 ### General
 - Review the soul bound implementations for ERC721 (erc-5192) + ERC1155 (erc-5633)
     - Particularly the 1155 one where we made a bunch of custom edits to the 1155 solmate base
-- Probably want to move the IAccessControlRegistry into this repo instead of importing from onchain to have better control of it
 - Prob want to add in generic multi call stuff to allow for more complex contract set up ability
 - Should we take out a lot of the functions in the ERC721Press + ERC1155Press interfaces to make them more flexible?
 - Should we pick a specific pragma of solidity rather than ^0.8.16 ??

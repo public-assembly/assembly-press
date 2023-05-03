@@ -29,12 +29,12 @@ pragma solidity ^0.8.16;
 
 */
 
-import {IERC721PressLogic} from "../../core/interfaces/IERC721PressLogic.sol";
-import {IERC721Press} from "../../core/interfaces/IERC721Press.sol";
-import {ERC721Press} from "../../ERC721Press.sol";
+import {IERC721PressLogic} from "../../../core/interfaces/IERC721PressLogic.sol";
+import {IERC721Press} from "../../../core/interfaces/IERC721Press.sol";
+import {ERC721Press} from "../../../ERC721Press.sol";
 import {CurationStorageV1} from "../storage/CurationStorageV1.sol";
 import {ICurationLogic} from "../interfaces/ICurationLogic.sol";
-import {IAccessControlRegistry} from "../../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
+import {IAccessControl} from "../../../core/interfaces/IAccessControl.sol";
 
 /**
 * @title CurationLogic
@@ -244,9 +244,9 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         // data format: initialPause, accessControl, accessControlInit
         (   
             bool initialPause,
-            IAccessControlRegistry accessControl,
+            IAccessControl accessControl,
             bytes memory accessControlInit
-        ) = abi.decode(logicInit, (bool, IAccessControlRegistry, bytes));
+        ) = abi.decode(logicInit, (bool, IAccessControl, bytes));
 
         // set configInfo[targetPress]
         configInfo[sender].initialized = 1;

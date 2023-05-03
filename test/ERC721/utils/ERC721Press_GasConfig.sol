@@ -10,10 +10,10 @@ import {IERC721Press} from "../../../src/token/ERC721/core/interfaces/IERC721Pre
 import {ERC721PressFactory} from "../../../src/token/ERC721/ERC721PressFactory.sol";
 import {ERC721PressFactoryProxy} from "../../../src/token/ERC721/core/proxy/ERC721PressFactoryProxy.sol";
 
-import {CurationLogic} from "../../../src/token/ERC721/curation/logic/CurationLogic.sol";
+import {CurationLogic} from "../../../src/token/ERC721/strategies/curation/logic/CurationLogic.sol";
 
-import {CurationMetadataRenderer} from "../../../src/token/ERC721/curation/metadata/CurationMetadataRenderer.sol";
-import {OpenAccess} from "../../../src/token/ERC721/curation/access/OpenAccess.sol";
+import {CurationMetadataRenderer} from "../../../src/token/ERC721/strategies/curation/metadata/CurationMetadataRenderer.sol";
+import {OpenAccess} from "../../../src/token/ERC721/strategies/curation/access/OpenAccess.sol";
 
 contract ERC721Press_GasConfig is Test {
     address public constant INITIAL_OWNER = address(0x01);
@@ -23,7 +23,7 @@ contract ERC721Press_GasConfig is Test {
     address public erc721PressImpl;
 
     /* CURATION STUFF HERE */
-    bool initialPauseState = true;
+    bool initialPauseState = false;
     // Deploy the CurationLogic contract
     CurationLogic public curationLogic = new CurationLogic();
     // Deploy the CurationMetadataRenderer contract

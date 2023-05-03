@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IAccessControlRegistry} from "../../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
+import {IAccessControl} from "../../../core/interfaces/IAccessControl.sol";
 
-contract OpenAccess is IAccessControlRegistry {
+contract OpenAccess is IAccessControl {
 
     //////////////////////////////////////////////////
     // STORAGE

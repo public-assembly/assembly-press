@@ -31,9 +31,9 @@ pragma solidity ^0.8.16;
 
 import {ICurationLogic} from "../interfaces/ICurationLogic.sol";
 import {ICurationInfo} from "../interfaces/ICurationInfo.sol";
-import {ERC721Press} from "../../ERC721Press.sol";
-import {IERC721Press} from "../../core/interfaces/IERC721Press.sol";
-import {IERC721PressRenderer} from "../../core/interfaces/IERC721PressRenderer.sol";
+import {ERC721Press} from "../../../ERC721Press.sol";
+import {IERC721Press} from "../../../core/interfaces/IERC721Press.sol";
+import {IERC721PressRenderer} from "../../../core/interfaces/IERC721PressRenderer.sol";
 import {CurationMetadataBuilder} from "./CurationMetadataBuilder.sol";
 import {MetadataBuilder} from "micro-onchain-metadata-utils/MetadataBuilder.sol";
 import {MetadataJSONKeys} from "micro-onchain-metadata-utils/MetadataJSONKeys.sol";

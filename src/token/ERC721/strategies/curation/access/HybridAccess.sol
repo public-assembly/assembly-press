@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IAccessControlRegistry} from "../../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
+import {IAccessControl} from "../../../core/interfaces/IAccessControl.sol";
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
-import {IERC721Press} from "../../core/interfaces/IERC721Press.sol";
+import {IERC721Press} from "../../../core/interfaces/IERC721Press.sol";
 
 /**
-* @title HybridAccessWithFee
+* @title HybridAccess
 * @notice Facilitates role based access control for admin/manager roles, and erc721 ownership based access for curator role
 * @author Max Bochman
 */
-contract HybridAccessWithFee is IAccessControlRegistry {
+contract HybridAccess is IAccessControl {
 
     //////////////////////////////////////////////////
     // TYPES
@@ -269,6 +269,6 @@ contract HybridAccessWithFee is IAccessControlRegistry {
         returns (uint256)
     {
         // always returns zero to hardcode no fee necessary
-        return 0.01 ether * mintQuantity;
+        return 0;
     }        
 }

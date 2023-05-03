@@ -10,11 +10,11 @@ import {ERC721PressProxy} from "../../../src/token/ERC721/core/proxy/ERC721Press
 import {ERC721PressFactory} from "../../../src/token/ERC721/ERC721PressFactory.sol";
 import {ERC721PressFactoryProxy} from "../../../src/token/ERC721/core/proxy/ERC721PressFactoryProxy.sol";
 
-import {CurationLogic} from "../../../src/token/ERC721/curation/logic/CurationLogic.sol";
-import {CurationMetadataRenderer} from "../../../src/token/ERC721/curation/metadata/CurationMetadataRenderer.sol";
-import {OpenAccess} from "../../../src/token/ERC721/curation/access/OpenAccess.sol";
-import {HybridAccess} from "../../../src/token/ERC721/curation/access/HybridAccess.sol";
-import {HybridAccessWithFee} from "../../../src/token/ERC721/curation/access/HybridAccessWithFee.sol";
+import {CurationLogic} from "../../../src/token/ERC721/strategies/curation/logic/CurationLogic.sol";
+import {CurationMetadataRenderer} from "../../../src/token/ERC721/strategies/curation/metadata/CurationMetadataRenderer.sol";
+import {OpenAccess} from "../../../src/token/ERC721/strategies/curation/access/OpenAccess.sol";
+import {HybridAccess} from "../../../src/token/ERC721/strategies/curation/access/HybridAccess.sol";
+import {HybridAccessWithFee} from "../../../src/token/ERC721/strategies/curation/access/HybridAccessWithFee.sol";
 
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
 import { MockERC721 } from "../mocks/MockERC721.sol";
