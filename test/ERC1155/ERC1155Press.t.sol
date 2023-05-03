@@ -3,9 +3,9 @@ pragma solidity ^0.8.16;
 
 import {console2} from "forge-std/console2.sol";
 import {ERC1155PressConfig} from "./utils/ERC1155PressConfig.sol";
-import {ERC1155EditionContractLogic} from "../../src/token/ERC1155/editions/logic/ERC1155EditionContractLogic.sol";
-import {ERC1155EditionTokenLogic} from "../../src/token/ERC1155/editions/logic/ERC1155EditionTokenLogic.sol";
-import {ERC1155EditionRenderer} from "../../src/token/ERC1155/editions/metadata/ERC1155EditionRenderer.sol";
+import {ERC1155EditionContractLogic} from "../../src/token/ERC1155/strategies/editions/logic/ERC1155EditionContractLogic.sol";
+import {ERC1155EditionTokenLogic} from "../../src/token/ERC1155/strategies/editions/logic/ERC1155EditionTokenLogic.sol";
+import {ERC1155EditionRenderer} from "../../src/token/ERC1155/strategies/editions/metadata/ERC1155EditionRenderer.sol";
 import {ERC1155Press} from "../../src/token/ERC1155/ERC1155Press.sol";
 import {ERC1155PressFactory} from "../../src/token/ERC1155/ERC1155PressFactory.sol";
 import {IERC1155PressTokenLogic} from "../../src/token/ERC1155/core/interfaces/IERC1155PressTokenLogic.sol";

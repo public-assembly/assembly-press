@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IAccessControlRegistry} from "../../../../../lib/onchain/remote-access-control/src/interfaces/IAccessControlRegistry.sol";
+import {IAccessControl} from "../../../core/interfaces/IAccessControl.sol";
 
 /**
  * CurationLogic interface
@@ -47,7 +47,7 @@ interface ICurationLogic {
         /// @notice price to curate per listing
         uint256 priceToCurate;                      
         /// @notice Address of the accessControl contract
-        IAccessControlRegistry accessControl;              
+        IAccessControl accessControl;              
         /// Stores virtual mapping array length parameters
         /// @notice Array total size (total size)
         uint40 numAdded;
@@ -121,7 +121,7 @@ interface ICurationLogic {
     event ListingRemoved(address indexed targetPress, address indexed curator, Listing listing);
 
     /// @notice A new accessControl is set
-    event SetAccessControl(address indexed targetPress, IAccessControlRegistry accessControl);
+    event SetAccessControl(address indexed targetPress, IAccessControl accessControl);
 
     /// @notice Curation Pause has been udpated.
     event CurationPauseUpdated(address indexed targetPress, address indexed pauser, bool isPaused);
