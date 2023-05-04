@@ -322,7 +322,8 @@ contract ERC721PressTest is ERC721PressConfig {
         // deploy factory proxy
         ERC721PressFactoryProxy erc721PressFactoryProxy = new ERC721PressFactoryProxy(
             address(erc721Factory),
-            INITIAL_OWNER
+            INITIAL_OWNER,
+            FUNDS_RECIPIENT
         );
 
         // set up configuration

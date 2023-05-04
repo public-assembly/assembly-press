@@ -39,6 +39,9 @@ import {ERC721PressProxy} from "./core/proxy/ERC721PressProxy.sol";
 import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
 import {Version} from "../../core/utils/Version.sol";
 
+import {DualOwnableUpgradeable} from "../../core/utils/ownable/DualOwnableUpgradeable.sol";
+import {IDualOwnableUpgradeable} from "../../core/utils/ownable/IDualOwnableUpgradeable.sol";
+
 /**
  * @title ERC721PressFactory
  * @notice A factory contract that deploys an ERC721PressProxy, a UUPS proxy of `ERC721Press.sol`
@@ -46,7 +49,7 @@ import {Version} from "../../core/utils/Version.sol";
  * @author Max Bochman
  * @author Salief Lewis
  */
-contract ERC721PressFactory is IERC721PressFactory, OwnableUpgradeable, UUPSUpgradeable, Version(1) {
+contract ERC721PressFactory is IERC721PressFactory, DualOwnableUpgradeable, UUPSUpgradeable, Version(1) {
     
     /// @notice Implementation contract behind Press proxies
     address public immutable pressImpl;
@@ -64,9 +67,11 @@ contract ERC721PressFactory is IERC721PressFactory, OwnableUpgradeable, UUPSUpgr
     }
 
     /// @notice Initializes the proxy behind `PressFactory.sol`
-    function initialize(address _initialOwner) external initializer {
+    function initialize(address _initialOwner, address _initialSecondaryOwner) external initializer {
         /// Sets the contract owner to the supplied address
         __Ownable_init(_initialOwner);
+        /// Sets the secondary contract owner to the supplied address
+        __Secondary_Ownable_init(_initialSecondaryOwner);        
 
         emit PressFactoryInitialized();
     }
@@ -111,7 +116,7 @@ contract ERC721PressFactory is IERC721PressFactory, OwnableUpgradeable, UUPSUpgr
         return address(newPress);
     }
 
-    /// @dev Can only be called by the contract owner
+    /// @dev Can be called by the either owner as deifned in DualOwnableUpgradeable
     /// @param newImplementation proposed new upgrade implementation
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override eitherOwner {}
 }
