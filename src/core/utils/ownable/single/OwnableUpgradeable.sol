@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import {IOwnableUpgradeable} from "../interfaces/IOwnableUpgradeable.sol";
+import {IOwnableUpgradeable} from "./IOwnableUpgradeable.sol";
 import {Initializable} from "openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /// @title Ownable

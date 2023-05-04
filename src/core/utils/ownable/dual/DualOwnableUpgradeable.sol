@@ -3,7 +3,7 @@ pragma solidity ^0.8.16;
 
 import {IDualOwnableUpgradeable} from "./IDualOwnableUpgradeable.sol";
 import {DualOwnableStorageV1} from "./DualOwnableStorageV1.sol";
-import {Initializable} from "../../../../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
+import {Initializable} from "../../../../../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 
 /// @title DualOwnableUpgradeable
 /// @author Max Bochman

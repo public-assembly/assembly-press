@@ -36,11 +36,8 @@ import {IERC721PressRenderer} from "./core/interfaces/IERC721PressRenderer.sol";
 import {IERC721Press} from "./core/interfaces/IERC721Press.sol";
 import {ERC721Press} from "./ERC721Press.sol";
 import {ERC721PressProxy} from "./core/proxy/ERC721PressProxy.sol";
-import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
+import {DualOwnableUpgradeable} from "../../core/utils/ownable/dual/DualOwnableUpgradeable.sol";
 import {Version} from "../../core/utils/Version.sol";
-
-import {DualOwnableUpgradeable} from "../../core/utils/ownable/DualOwnableUpgradeable.sol";
-import {IDualOwnableUpgradeable} from "../../core/utils/ownable/IDualOwnableUpgradeable.sol";
 
 /**
  * @title ERC721PressFactory

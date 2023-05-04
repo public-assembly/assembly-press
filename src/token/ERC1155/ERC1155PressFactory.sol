@@ -34,7 +34,7 @@ import {IERC1155PressFactory} from "./core/interfaces/IERC1155PressFactory.sol";
 import {IERC1155PressContractLogic} from "./core/interfaces/IERC1155PressContractLogic.sol";
 import {ERC1155Press} from "./ERC1155Press.sol";
 import {ERC1155PressProxy} from "./core/proxy/ERC1155PressProxy.sol";
-import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
+import {OwnableUpgradeable} from "../../core/utils/ownable/single/OwnableUpgradeable.sol";
 import {Version} from "../../core/utils/Version.sol";
 
 /**
