@@ -144,21 +144,6 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         return true;
     }                   
 
-    /// @notice checks upgrade access for a given upgrade caller
-    /// @param targetPress press contract to check access for
-    /// @param upgradeCaller address of upgradeCaller to check access for
-    function canUpgrade(
-        address targetPress, 
-        address upgradeCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-        // check if withdraw caller has admin role for given Press
-        if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, upgradeCaller) < ADMIN) { 
-            return false;
-        }  
-
-        return true;
-    }            
-
     /// @notice checks burun access for a given burn caller
     /// @param targetPress press contract to check access for
     /// @param tokenId tokenId to check access for

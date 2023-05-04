@@ -64,8 +64,6 @@ interface IERC721Press {
     error No_Withdraw_Access();    
     /// @notice msg.sender does not have burn access for given Press
     error No_Burn_Access();
-    /// @notice msg.sender does not have upgrade access for given Press
-    error No_Upgrade_Access();
     /// @notice msg.sender does not have transfer access for given Press
     error No_Transfer_Access();
 
