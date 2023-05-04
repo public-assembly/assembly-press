@@ -47,6 +47,8 @@ import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
 import {Version} from "../../core/utils/Version.sol";
 import {FundsReceiver} from "../../core/utils/FundsReceiver.sol";
 
+import {DualOwnableUpgradeable} from "onchain/DualOwnableUpgradeable.sol";
+
 /**
  * @title ERC721Press
  * @notice Highly configurable ERC721A implementation
@@ -61,7 +63,7 @@ contract ERC721Press is
     IERC2981Upgradeable,
     ReentrancyGuardUpgradeable,
     IERC721Press,
-    OwnableUpgradeable,
+    DualOwnableUpgradeable,
     Version(1),
     ERC721PressStorageV1,
     FundsReceiver,
@@ -587,18 +589,9 @@ contract ERC721Press is
     // ||| UPGRADES |||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    /// @dev Can only be called by an admin or the contract owner
+    /// @dev Can be called by either owner in DualOwnableUpgradeable
     /// @param newImplementation proposed new upgrade implementation
-    function _authorizeUpgrade(address newImplementation) internal override canUpgrade {}
-
-    modifier canUpgrade() {
-        // call logic contract to check is msg.sender can upgrade
-        if (IERC721PressLogic(_logicImpl).canUpgrade(address(this), msg.sender) != true && owner() != msg.sender) {
-            revert No_Upgrade_Access();
-        }
-
-        _;
-    }
+    function _authorizeUpgrade(address newImplementation) internal override eitherOwner {}
 
     // ||||||||||||||||||||||||||||||||
     // ||| MISC |||||||||||||||||||||||

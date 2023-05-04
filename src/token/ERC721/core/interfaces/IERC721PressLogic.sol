@@ -20,8 +20,6 @@ interface IERC721PressLogic {
     function canWithdraw(address targetPress, address withdrawCaller) external view returns (bool);    
     /// @notice checks if a certain address can call the burn function for a given Press
     function canBurn(address targetPress, uint256 tokenId, address burnCaller) external view returns (bool);    
-    /// @notice checks if a certain address can upgrade the underlying implementation for a given Press
-    function canUpgrade(address targetPress, address upgradeCaller) external view returns (bool);
     /// @notice checks if a certain address can transfer ownership of a given Press
     function canTransfer(address targetPress, address transferCaller) external view returns (bool);    
     
