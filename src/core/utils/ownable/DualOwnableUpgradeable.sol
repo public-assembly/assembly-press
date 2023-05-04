@@ -9,7 +9,7 @@ import {Initializable} from "../../../../lib/openzeppelin-contracts-upgradeable/
 /// @author Max Bochman
 /// @notice Modified from ZORA Ownable2StepUpgradeable
 /// - Uses custom errors declared in IOwnable
-/// - Adds `secondaryOwner` whose privilages can be revoked by `owner` + `eitherOwner` modifier
+/// - Adds `secondaryOwner` whose privilages can be revoked + `eitherOwner` modifier
 abstract contract DualOwnableUpgradeable is IDualOwnableUpgradeable, DualOwnableStorageV1, Initializable {
 
     ///                                                          ///
@@ -23,6 +23,14 @@ abstract contract DualOwnableUpgradeable is IDualOwnableUpgradeable, DualOwnable
         }
         _;
     }
+
+    /// @dev Ensures the caller is the pending owner
+    modifier onlyPendingOwner() {
+        if (msg.sender != _pendingOwner) {
+            revert ONLY_PENDING_OWNER();
+        }
+        _;
+    }    
 
     /// @dev Ensures the caller is either owner or _secondaryOwner
     modifier eitherOwner() {
@@ -41,7 +49,6 @@ abstract contract DualOwnableUpgradeable is IDualOwnableUpgradeable, DualOwnable
         _;
     }
     
-
     ///                                                          ///
     ///                           FUNCTIONS                      ///
     ///                                                          ///
@@ -67,6 +74,11 @@ abstract contract DualOwnableUpgradeable is IDualOwnableUpgradeable, DualOwnable
         return _owner;
     }
 
+    /// @notice The address of the pending owner
+    function pendingOwner() public view returns (address) {
+        return _pendingOwner;
+    }    
+
     /// @notice The address of the secondary owner
     function secondaryOwner() public view returns (address) {
         return _secondaryOwner;
@@ -85,6 +97,38 @@ abstract contract DualOwnableUpgradeable is IDualOwnableUpgradeable, DualOwnable
         emit OwnerUpdated(_owner, _newOwner);
 
         _owner = _newOwner;
+
+        if (_pendingOwner != address(0)) {
+            delete _pendingOwner;
+        }        
+    }    
+
+    /// @notice Initiates a two-step ownership transfer
+    /// @param _newOwner The new owner address
+    function safeTransferOwnership(address _newOwner) public notZeroAddress(_newOwner) onlyOwner {
+        _pendingOwner = _newOwner;
+
+        emit OwnerPending(_owner, _newOwner);
+    }
+
+    /// @notice Accepts an ownership transfer
+    function acceptOwnership() public onlyPendingOwner {
+        emit OwnerUpdated(_owner, msg.sender);
+
+        _transferOwnership(msg.sender);
+    }
+
+    /// @notice Cancels a pending ownership transfer
+    function cancelOwnershipTransfer() public onlyOwner {
+        emit OwnerCanceled(_owner, _pendingOwner);
+
+        delete _pendingOwner;
+    }        
+
+    /// @notice Resign ownership of contract
+    /// @dev only callably by the owner, dangerous call.
+    function resignOwnership() public onlyOwner {
+        _transferOwnership(address(0));
     }    
 
     /// @notice Forces a secondary ownership transfer from the last secondary owner
@@ -101,12 +145,6 @@ abstract contract DualOwnableUpgradeable is IDualOwnableUpgradeable, DualOwnable
 
         _secondaryOwner = _newSecondaryOwner;
     }        
-
-    /// @notice Resign ownership of contract
-    /// @dev only callably by the owner, dangerous call.
-    function resignOwnership() public onlyOwner {
-        _transferOwnership(address(0));
-    }
 
     /// @notice Resign secondary ownership of contract
     /// @dev callable by either owner, dangerous call.

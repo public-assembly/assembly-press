@@ -11,7 +11,6 @@ import {ERC721PressFactory} from "../../src/token/ERC721/ERC721PressFactory.sol"
 import {ERC721Press} from "../../src/token/ERC721/ERC721Press.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-
 contract ERC721PressFactoryTest is Test {
 
     ERC721PressFactory factory;
@@ -28,7 +27,30 @@ contract ERC721PressFactoryTest is Test {
         erc721PressFactory = address(new ERC721PressFactory(erc721PressImpl));
         erc721PressFactory_secondImpl = address(new ERC721PressFactory(erc721PressImpl));
         factory = ERC721PressFactory(address(new ERC721PressFactoryProxy(erc721PressFactory, owner, secondaryOwner)));
+        require(factory.owner() == owner, "owner not initialized correctly");
+        require(factory.secondaryOwner() == secondaryOwner, "secondary owner not initialized correctly");
     }
+
+    function test_safeTransferOwner() public {
+        vm.startPrank(nonOwner);
+        // should revert because nonOwner is not either owner initialized on factory proxy
+        vm.expectRevert(abi.encodeWithSignature("ONLY_OWNER()"));
+        factory.safeTransferOwnership(secondaryOwner);
+        vm.stopPrank();
+        vm.startPrank(owner);
+        factory.safeTransferOwnership(secondaryOwner);
+        require(factory.pendingOwner() == secondaryOwner, "pending owner not set correctly");
+        vm.stopPrank();
+        vm.startPrank(nonOwner);
+        // should revert because non pending owner is calling accept Ownership
+        vm.expectRevert(abi.encodeWithSignature("ONLY_PENDING_OWNER()"));
+        factory.acceptOwnership();
+        vm.stopPrank();
+        vm.startPrank(secondaryOwner);
+        factory.acceptOwnership();
+        require(factory.owner() == secondaryOwner, "ownership not transferred correctly");
+        require(factory.pendingOwner() == address(0), "pending owner not cancelled correctly");
+    }    
 
     function test_upgradeTo() public {
         vm.startPrank(nonOwner);
@@ -39,6 +61,7 @@ contract ERC721PressFactoryTest is Test {
         vm.startPrank(owner);
         // shouldnt revert because
         factory.upgradeTo(erc721PressFactory_secondImpl);
+
         // TODO: add test to confirm new implementation went through ??
     }
 
@@ -46,6 +69,7 @@ contract ERC721PressFactoryTest is Test {
         vm.startPrank(secondaryOwner);
         factory.upgradeTo(erc721PressFactory_secondImpl);
         // TODO: add test to confirm new implementation went through ??
+
         vm.stopPrank();
         vm.startPrank(owner);
         factory.resignSecondaryOwnership();
