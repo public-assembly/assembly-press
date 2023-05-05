@@ -230,27 +230,13 @@ contract ERC1155PressTest is ERC1155PressConfig {
         erc1155PressImpl2 = address(new ERC1155Press());                 
         erc1155PressImpl3 = address(new ERC1155Press());                 
         vm.startPrank(RANDOM_WALLET);
-        // expect revert bc wallet doesnt have upgrade permissions
+        // expect revert bc wallet isnt owner so cant upgrade
         vm.expectRevert();
         erc1155Press.upgradeTo(erc1155PressImpl2);
         vm.stopPrank();
         vm.startPrank(INITIAL_OWNER);       
+        // testing that upgrades can be processed by owner 
         erc1155Press.upgradeTo(erc1155PressImpl2);        
-        // testing that upgrades can be handled by admins -- not just contract owner        
-        address[] memory receivers = new address[](2);
-        receivers[0] = ADMIN; 
-        receivers[1] = MINTER; 
-        uint16[] memory roles = new uint16[](2);
-        roles[0] = 2; // ADMIN role 
-        roles[1] = 1; // MINTER role                   
-        ERC1155EditionContractLogic(address(erc1155Press.contractLogic())).setAccessControl(
-            address(erc1155Press),
-            receivers,
-            roles
-        );
-        vm.stopPrank();
-        vm.startPrank(ADMIN);
-        erc1155Press.upgradeTo(erc1155PressImpl3);
     }    
 
     /*
