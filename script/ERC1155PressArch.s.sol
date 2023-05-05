@@ -26,11 +26,11 @@ contract DeployCore is Script {
 
         IERC1155Press erc1155Press = new ERC1155Press();        
 
-        ERC1155EditionContractLogic contractLogic = new ERC1155EditionContractLogic();
+        // ERC1155EditionContractLogic contractLogic = new ERC1155EditionContractLogic();
 
-        ERC1155EditionTokenLogic tokenLogic = new ERC1155EditionTokenLogic();
+        // ERC1155EditionTokenLogic tokenLogic = new ERC1155EditionTokenLogic();
 
-        ERC1155EditionRenderer tokenRenderer = new ERC1155EditionRenderer();
+        // ERC1155EditionRenderer tokenRenderer = new ERC1155EditionRenderer();
 
         ERC1155PressFactory erc1155Factory = new ERC1155PressFactory(address(erc1155Press));
 

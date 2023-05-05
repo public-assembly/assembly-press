@@ -22,6 +22,8 @@ We cannot guarantee that any bounties will be paid for help given during this re
 - Should we take out a lot of the functions in the ERC721Press + ERC1155Press interfaces to make them more flexible?
 - Should we pick a specific pragma of solidity rather than ^0.8.16 ??
 - clean up lib/imports/remappings
+- Review DualOwnableUpgradeable implementation designed for dual DAO + trusted team admin rights over protocol upgrades
+- Both underlying facotry implementations can be intialized and taken ownership of post deploy + initialization of the factory proxies. The factory proxies themselves seem to be safe from checking on etherscan + test suite, but the underlying impls arent registering as initialized even though the initialize function is called during proxy deploy
 
 ### ERC721
 - Add a settable/initializable “description” field to CurationStorageV1 + update CurationMetadataRenderer so we can provide channel level descriptions for curation contracts
