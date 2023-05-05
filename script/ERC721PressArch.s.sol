@@ -8,7 +8,7 @@ import {CurationLogic} from "../src/token/ERC721/strategies/curation/logic/Curat
 import {CurationMetadataRenderer} from "../src/token/ERC721/strategies/curation/metadata/CurationMetadataRenderer.sol";
 import {HybridAccess} from "../src/token/ERC721/strategies/curation/access/HybridAccess.sol";
 import {ERC721PressFactory} from "../src/token/ERC721/ERC721PressFactory.sol";
-
+import {ERC721PressFactoryProxy} from "../src/token/ERC721/core/proxy/ERC721PressFactoryProxy.sol";
 import {IERC721PressFactory} from "../src/token/ERC721/core/interfaces/IERC721PressFactory.sol";
 import {IERC721PressLogic} from "../src/token/ERC721/core/interfaces/IERC721PressLogic.sol";
 import {IERC721PressRenderer} from "../src/token/ERC721/core/interfaces/IERC721PressRenderer.sol";
@@ -16,6 +16,9 @@ import {IERC721Press} from "../src/token/ERC721/core/interfaces/IERC721Press.sol
 import {IAccessControl} from "../src/token/ERC721/core/interfaces/IAccessControl.sol";
 
 contract DeployCore is Script {
+
+    address paTreasuryAddress = 0x8330E78222619FD26A9FBCbEbAeb21339838bD30;
+    address secondaryOwnerAddress = 0xE7746f79bF98e685e6a1ac80D74d2935431041d5;
 
     function setUp() public {}
 
@@ -35,6 +38,8 @@ contract DeployCore is Script {
         
         IERC721PressFactory erc721Factory = new ERC721PressFactory(address(erc721Press));
 
+        ERC721PressFactoryProxy factoryProxy = new ERC721PressFactoryProxy(address(erc721Factory), paTreasuryAddress, secondaryOwnerAddress);
+
         vm.stopBroadcast();
     }
 }
@@ -42,5 +47,6 @@ contract DeployCore is Script {
 // ======= DEPLOY SCRIPTS =====
 
 // source .env
+// forge script script/ERC721PressArch.s.sol:DeployCore --rpc-url $SEPOLIA_RPC_URL --broadcast --verify  -vvvv
 // forge script script/ERC721PressArch.s.sol:DeployCore --rpc-url $GOERLI_RPC_URL --broadcast --verify  -vvvv
 // forge script script/ERC721PressArch.s.sol:DeployCore --rpc-url $MAINNET_RPC_URL --broadcast --verify  -vvvv
