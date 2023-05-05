@@ -38,16 +38,14 @@ import {IERC721PressRenderer} from "./core/interfaces/IERC721PressRenderer.sol";
 import {ERC721PressStorageV1} from "./core/storage/ERC721PressStorageV1.sol";
 
 import {IERC5192} from "./core/interfaces/IERC5192.sol";
-import {IOwnableUpgradeable} from "../../core/interfaces/IOwnableUpgradeable.sol";
+import {IOwnableUpgradeable} from "../../core/utils/ownable/single/IOwnableUpgradeable.sol";
 import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
+import {OwnableUpgradeable} from "../../core/utils/ownable/single/OwnableUpgradeable.sol";
 import {Version} from "../../core/utils/Version.sol";
 import {FundsReceiver} from "../../core/utils/FundsReceiver.sol";
-
-import {DualOwnableUpgradeable} from "onchain/DualOwnableUpgradeable.sol";
 
 /**
  * @title ERC721Press
@@ -63,7 +61,7 @@ contract ERC721Press is
     IERC2981Upgradeable,
     ReentrancyGuardUpgradeable,
     IERC721Press,
-    DualOwnableUpgradeable,
+    OwnableUpgradeable,
     Version(1),
     ERC721PressStorageV1,
     FundsReceiver,
@@ -589,9 +587,9 @@ contract ERC721Press is
     // ||| UPGRADES |||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    /// @dev Can be called by either owner in DualOwnableUpgradeable
+    /// @dev Can only be called by an admin or the contract owner
     /// @param newImplementation proposed new upgrade implementation
-    function _authorizeUpgrade(address newImplementation) internal override eitherOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // ||||||||||||||||||||||||||||||||
     // ||| MISC |||||||||||||||||||||||

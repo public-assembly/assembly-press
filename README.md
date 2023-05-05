@@ -1,10 +1,10 @@
-# AssemblyPress ℗ - v0.0 (March 31, 2023)
+# AssemblyPress ℗ - v0.1 (May 4, 2023)
 
 ## Public Request for Comment (RFC)
 
 [LINK TO PROTOCOL WALKTHROUGH](https://forum.public---assembly.com/t/assemblypress-walkthrough/335)
 
-AssemblyPress v0.0 is the culmination of 8 months of on & off work that began with a very simple [curation protocol](https://etherscan.io/address/0x6422Bf82Ab27F121a043d6DE88b55FA39e2ea292#code) that serves as the backbone of [Present Material](https://www.presentmaterial.xyz/).
+AssemblyPress v0.1 is the culmination of 8 months of on & off work that began with a very simple [curation protocol](https://etherscan.io/address/0x6422Bf82Ab27F121a043d6DE88b55FA39e2ea292#code) that serves as the backbone of [Present Material](https://www.presentmaterial.xyz/).
 
 An [updated version](https://github.com/public-assembly/curation-protocol) was released months later alongside [Neosound](https://www.neosound.xyz/) that moved the protocol much closer to what was released today.
 
@@ -22,6 +22,9 @@ We cannot guarantee that any bounties will be paid for help given during this re
 - Should we take out a lot of the functions in the ERC721Press + ERC1155Press interfaces to make them more flexible?
 - Should we pick a specific pragma of solidity rather than ^0.8.16 ??
 - clean up lib/imports/remappings
+- Review DualOwnableUpgradeable implementation designed for dual DAO + trusted team admin rights over protocol upgrades
+- Both underlying facotry implementations can be intialized and taken ownership of post deploy + initialization of the factory proxies. The factory proxies themselves seem to be safe from checking on etherscan + test suite, but the underlying impls arent registering as initialized even though the initialize function is called during proxy deploy
+-- Already removed canUpgrade from being an external logic check on both 721/1155 press impls, should same be done for canTransfer as well? Seems safer + simpler to lean on onlyOwner for those two functions (upgrade + transfer)
 
 ### ERC721
 - Add a settable/initializable “description” field to CurationStorageV1 + update CurationMetadataRenderer so we can provide channel level descriptions for curation contracts
@@ -52,7 +55,6 @@ We cannot guarantee that any bounties will be paid for help given during this re
     - Solutions
 - Should we move away from using Ownable because of this? Set up custom owner() + setOwner() solution? Returning owner() is helpful for frontends
 - Remove canTransferOwnership check
-- Did I set up custom upgradeability correct?
 - Is it ok that the URI update event happens in the renderer rather than the underlying impl?
 - Seems like token + contract level logic might be  
 - Create a better tokenEditionLogic that allows for configurable access control on initialization?

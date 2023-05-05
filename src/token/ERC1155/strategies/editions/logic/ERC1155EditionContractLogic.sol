@@ -8,7 +8,7 @@ import {IERC1155Press} from "../../../core/interfaces/IERC1155Press.sol";
 * @title ERC1155EditionContractLogic
 * @notice Edition contract level logic impl for AssemblyPress ERC1155 architecture
 *
-* @author Max Bochman
+* @author Max Bochmanx
 * @author Salief Lewis
 */
 contract ERC1155EditionContractLogic is IERC1155PressContractLogic {
@@ -154,23 +154,7 @@ contract ERC1155EditionContractLogic is IERC1155PressContractLogic {
 
         return true;
     }      
-
-    /// @notice checks upgrade access for a given upgrade caller
-    /// @param targetPress press contract to check access for
-    /// @param upgradeCaller address of upgradeCaller to check access for
-    function canUpgrade(
-        address targetPress, 
-        address upgradeCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-
-        // check if upgradeCaller has upgrade access for given target Press
-        if (accessInfo[targetPress][upgradeCaller] != ADMIN) {
-            return false;
-        }
-
-        return true;
-    }        
-
+    
     // ||||||||||||||||||||||||||||||||
     // ||| STATUS CHECKS ||||||||||||||
     // ||||||||||||||||||||||||||||||||

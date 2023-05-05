@@ -41,7 +41,7 @@ import {ERC1155PressPermissions} from "./core/ERC1155PressPermissions.sol";
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {Initializable} from "openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
-import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
+import {OwnableUpgradeable} from "../../core/utils/ownable/single/OwnableUpgradeable.sol";
 import {Version} from "../../core/utils/Version.sol";
 
 /**
@@ -500,14 +500,7 @@ contract ERC1155Press is
 
     /// @dev Can only be called by an admin or the contract owner
     /// @param newImplementation proposed new upgrade implementation
-    function _authorizeUpgrade(address newImplementation) internal override canUpgrade {}
-
-    modifier canUpgrade() {
-        // call logic contract to check is msg.sender can upgrade
-        _canUpgrade(address(this), msg.sender);
-
-        _;
-    }            
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // ||||||||||||||||||||||||||||||||
     // ||| MISC |||||||||||||||||||||||

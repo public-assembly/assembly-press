@@ -57,7 +57,7 @@ interface IERC721PressFactory {
   // ||||||||||||||||||||||||||||||||
 
   /// @notice Initializes the proxy behind a PressFactory
-  function initialize(address _initialOwner) external;
+  function initialize(address _initialOwner, address _initialSecondaryOwner) external;
 
   /// @notice Creates a new, creator-owned proxy of `ERC721Press.sol`
   function createPress(

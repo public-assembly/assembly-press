@@ -96,20 +96,6 @@ contract ERC1155PressTest is ERC1155PressConfig {
             ) == true, "canSetOwner roles incorrect"
         );       
 
-        // canUpgrade                
-        require(
-            erc1155Press.contractLogic().canUpgrade(
-                address(erc1155Press),
-                RANDOM_WALLET
-            ) == false, "canUpgrade roles incorrect"
-        );          
-        require(
-            erc1155Press.contractLogic().canUpgrade(
-                address(erc1155Press),
-                INITIAL_OWNER
-            ) == true, "canUpgrade roles incorrect"
-        );   
-
         // check to see if supportsInterface work
         require(erc1155Press.supportsInterface(type(IERC2981Upgradeable).interfaceId) == true, "doesn't support");
         require(erc1155Press.supportsInterface(type(IERC5633).interfaceId) == true, "doesn't support");

@@ -12,8 +12,6 @@ interface IERC1155PressContractLogic {
     function canMintNew(address targetPress, address mintCaller, address[] memory recipients, uint256 quantity) external view returns (bool);    
     /// @notice checks if a certain address can set ownership of a given Press
     function canSetOwner(address targetPress, address transferCaller) external view returns (bool);    
-    /// @notice checks if a certain address can upgrade the underlying implementation for a given Press
-    function canUpgrade(address targetPress, address upgradeCaller) external view returns (bool);    
 
     // Informative view functions
     /// @notice checks if a given Press has been initialized    

@@ -36,7 +36,7 @@ import {IERC721PressRenderer} from "./core/interfaces/IERC721PressRenderer.sol";
 import {IERC721Press} from "./core/interfaces/IERC721Press.sol";
 import {ERC721Press} from "./ERC721Press.sol";
 import {ERC721PressProxy} from "./core/proxy/ERC721PressProxy.sol";
-import {OwnableUpgradeable} from "../../core/utils/OwnableUpgradeable.sol";
+import {DualOwnableUpgradeable} from "../../core/utils/ownable/dual/DualOwnableUpgradeable.sol";
 import {Version} from "../../core/utils/Version.sol";
 
 /**
@@ -46,7 +46,7 @@ import {Version} from "../../core/utils/Version.sol";
  * @author Max Bochman
  * @author Salief Lewis
  */
-contract ERC721PressFactory is IERC721PressFactory, OwnableUpgradeable, UUPSUpgradeable, Version(1) {
+contract ERC721PressFactory is IERC721PressFactory, DualOwnableUpgradeable, UUPSUpgradeable, Version(1) {
     
     /// @notice Implementation contract behind Press proxies
     address public immutable pressImpl;
@@ -63,10 +63,16 @@ contract ERC721PressFactory is IERC721PressFactory, OwnableUpgradeable, UUPSUpgr
         emit PressInitialized(pressImpl);
     }
 
-    /// @notice Initializes the proxy behind `PressFactory.sol`
-    function initialize(address _initialOwner) external initializer {
-        /// Sets the contract owner to the supplied address
+    /// @notice Initializes the proxy behind `ERC721PressFactory.sol`
+    /// @param _initialOwner The address to set as the initial owner
+    /// @param _initialSecondaryOwner The address to set as the initial secondary owner
+    function initialize(address _initialOwner, address _initialSecondaryOwner) external initializer {
+        // Sets the contract owner to the supplied address
         __Ownable_init(_initialOwner);
+        // Sets the secondary contract owner to the supplied address
+        __Secondary_Ownable_init(_initialSecondaryOwner);
+        /// Initialize UUPS upgradeable functionality
+        __UUPSUpgradeable_init();    
 
         emit PressFactoryInitialized();
     }
@@ -111,7 +117,7 @@ contract ERC721PressFactory is IERC721PressFactory, OwnableUpgradeable, UUPSUpgr
         return address(newPress);
     }
 
-    /// @dev Can only be called by the contract owner
+    /// @dev Can be called by the either owner as deifned in DualOwnableUpgradeable
     /// @param newImplementation proposed new upgrade implementation
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override eitherOwner {}
 }

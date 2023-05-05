@@ -63,10 +63,4 @@ contract ERC1155PressPermissions is ERC1155PressStorageV1 {
             revert IERC1155Press.No_Withdraw_Access();
         }    
     }    
-    // call logic contract to check is msg.sender can upgrade
-    function _canUpgrade(address targetPress, address sender) internal view {
-        if (!IERC1155PressContractLogic(contractLogic).canUpgrade(targetPress, sender)) {
-            revert IERC1155Press.No_Upgrade_Access();
-        }    
-    }
 }
