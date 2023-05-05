@@ -24,17 +24,17 @@ contract DeployCore is Script {
 
         vm.startBroadcast(deployerPrivateKey);        
 
-        IERC1155Press erc1155Press = new ERC1155Press();        
+        // IERC1155Press erc1155Press = new ERC1155Press();        
 
-        // ERC1155EditionContractLogic contractLogic = new ERC1155EditionContractLogic();
+        ERC1155EditionContractLogic contractLogic = new ERC1155EditionContractLogic();
 
         // ERC1155EditionTokenLogic tokenLogic = new ERC1155EditionTokenLogic();
 
         // ERC1155EditionRenderer tokenRenderer = new ERC1155EditionRenderer();
 
-        ERC1155PressFactory erc1155Factory = new ERC1155PressFactory(address(erc1155Press));
+        // ERC1155PressFactory erc1155Factory = new ERC1155PressFactory(address(erc1155Press));
 
-        ERC1155PressFactoryProxy factoryProxy = new ERC1155PressFactoryProxy(address(erc1155Factory), paTreasuryAddress, secondaryOwnerAddress);
+        // ERC1155PressFactoryProxy factoryProxy = new ERC1155PressFactoryProxy(address(erc1155Factory), paTreasuryAddress, secondaryOwnerAddress);
 
         vm.stopBroadcast();
     }
