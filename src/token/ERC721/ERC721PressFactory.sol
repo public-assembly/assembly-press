@@ -63,12 +63,16 @@ contract ERC721PressFactory is IERC721PressFactory, DualOwnableUpgradeable, UUPS
         emit PressInitialized(pressImpl);
     }
 
-    /// @notice Initializes the proxy behind `PressFactory.sol`
+    /// @notice Initializes the proxy behind `ERC721PressFactory.sol`
+    /// @param _initialOwner The address to set as the initial owner
+    /// @param _initialSecondaryOwner The address to set as the initial secondary owner
     function initialize(address _initialOwner, address _initialSecondaryOwner) external initializer {
-        /// Sets the contract owner to the supplied address
+        // Sets the contract owner to the supplied address
         __Ownable_init(_initialOwner);
-        /// Sets the secondary contract owner to the supplied address
-        __Secondary_Ownable_init(_initialSecondaryOwner);        
+        // Sets the secondary contract owner to the supplied address
+        __Secondary_Ownable_init(_initialSecondaryOwner);
+        /// Initialize UUPS upgradeable functionality
+        __UUPSUpgradeable_init();    
 
         emit PressFactoryInitialized();
     }

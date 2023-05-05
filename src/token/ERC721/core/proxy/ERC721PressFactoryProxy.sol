@@ -6,7 +6,7 @@ import {IERC721PressFactory} from "../interfaces/IERC721PressFactory.sol";
 
 /// @title ERC721PressFactoryProxy
 contract ERC721PressFactoryProxy is ERC1967Proxy {
-    /// @notice Setup new proxy for PressFactory
+    /// @notice Setup new proxy for ERC721PressFactory
     /// @param _logic underlying implementation contract
     /// @param _initialOwner initial owner of the underlying contract
     /// @param _initialSecondaryOwner initial secondary of the underlying contract

@@ -30,8 +30,6 @@ pragma solidity ^0.8.16;
 */
 
 import {IERC1155PressContractLogic} from "./IERC1155PressContractLogic.sol";
-import {IERC1155PressTokenLogic} from "./IERC1155PressTokenLogic.sol";
-import {IERC1155PressTokenRenderer} from "./IERC1155PressTokenRenderer.sol";
 
 interface IERC1155PressFactory {
     // ||||||||||||||||||||||||||||||||
@@ -56,7 +54,7 @@ interface IERC1155PressFactory {
     // ||||||||||||||||||||||||||||||||
 
     /// @notice Initializes the proxy behind a PressFactory
-    function initialize(address _initialOwner) external;
+    function initialize(address _initialOwner, address _initialSecondaryOwner) external;
 
     /// @notice Creates a new, creator-owned proxy of `ERC1155Press.sol`
     function createPress(

@@ -34,7 +34,7 @@ import {IERC1155PressFactory} from "./core/interfaces/IERC1155PressFactory.sol";
 import {IERC1155PressContractLogic} from "./core/interfaces/IERC1155PressContractLogic.sol";
 import {ERC1155Press} from "./ERC1155Press.sol";
 import {ERC1155PressProxy} from "./core/proxy/ERC1155PressProxy.sol";
-import {OwnableUpgradeable} from "../../core/utils/ownable/single/OwnableUpgradeable.sol";
+import {DualOwnableUpgradeable} from "../../core/utils/ownable/dual/DualOwnableUpgradeable.sol";
 import {Version} from "../../core/utils/Version.sol";
 
 /**
@@ -44,7 +44,7 @@ import {Version} from "../../core/utils/Version.sol";
  * @author Max Bochman
  * @author Salief Lewis
  */
-contract ERC1155PressFactory is IERC1155PressFactory, OwnableUpgradeable, UUPSUpgradeable, Version(1) {
+contract ERC1155PressFactory is IERC1155PressFactory, DualOwnableUpgradeable, UUPSUpgradeable, Version(1) {
     
     /// @notice Implementation contract behind Press proxies
     address public immutable pressImpl;                
@@ -60,10 +60,16 @@ contract ERC1155PressFactory is IERC1155PressFactory, OwnableUpgradeable, UUPSUp
         emit PressInitialized(pressImpl);
     }
 
-    /// @notice Initializes the proxy behind `PressFactory.sol`
-    function initialize(address _initialOwner) external initializer {
-        /// Sets the contract owner to the supplied address
+    /// @notice Initializes the proxy behind `ERC1155PressFactory.sol`
+    /// @param _initialOwner The address to set as the initial owner
+    /// @param _initialSecondaryOwner The address to set as the initial secondary owner
+    function initialize(address _initialOwner, address _initialSecondaryOwner) external initializer {
+        // Sets the contract owner to the supplied address
         __Ownable_init(_initialOwner);
+        // Sets the secondary contract owner to the supplied address
+        __Secondary_Ownable_init(_initialSecondaryOwner);
+        /// Initialize UUPS upgradeable functionality
+        __UUPSUpgradeable_init();
 
         emit PressFactoryInitialized();
     }
@@ -101,5 +107,5 @@ contract ERC1155PressFactory is IERC1155PressFactory, OwnableUpgradeable, UUPSUp
 
     /// @dev Can only be called by the contract owner
     /// @param newImplementation proposed new upgrade implementation
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override eitherOwner {}
 }
