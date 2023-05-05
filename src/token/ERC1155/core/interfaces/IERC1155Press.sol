@@ -40,7 +40,7 @@ interface IERC1155Press is IERC1155Skeleton {
     // ||| TYPES ||||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    // stores token level logic + renderer + funds + transferability related information
+    // stores token level logic + renderer + funds + token transferability related information
     struct Configuration {
         address payable fundsRecipient;
         IERC1155PressTokenLogic logic;
@@ -68,8 +68,6 @@ interface IERC1155Press is IERC1155Skeleton {
     error No_Withdrawable_Balance(uint256 tokenId);     
     /// @notice msg.sender does not have burn access for given Press + tokenId
     error No_Burn_Access();    
-    /// @notice msg.sender does not have owernship transfer access for given Press
-    error No_Transfer_Access();       
 
     // Constraint/invalid/failure errors
     /// @notice invalid input

@@ -82,20 +82,6 @@ contract ERC1155PressTest is ERC1155PressConfig {
             ) == true, "canMintNew roles incorrect"
         );     
 
-        // canSetOwner            
-        require(
-            erc1155Press.contractLogic().canSetOwner(
-                address(erc1155Press),
-                RANDOM_WALLET
-            ) == false, "canSetOwner roles incorrect"
-        );          
-        require(
-            erc1155Press.contractLogic().canSetOwner(
-                address(erc1155Press),
-                INITIAL_OWNER
-            ) == true, "canSetOwner roles incorrect"
-        );       
-
         // check to see if supportsInterface work
         require(erc1155Press.supportsInterface(type(IERC2981Upgradeable).interfaceId) == true, "doesn't support");
         require(erc1155Press.supportsInterface(type(IERC5633).interfaceId) == true, "doesn't support");
@@ -216,13 +202,17 @@ contract ERC1155PressTest is ERC1155PressConfig {
         vm.stopPrank();
     }
 
-    function test_setOwner() public setUpERC1155PressBase {        
+        function test_transfer() public setUpERC1155PressBase {
+        vm.startPrank(FUNDS_RECIPIENT);
+        // expect revert on transfer because msg.sender is not owner
+        vm.expectRevert(abi.encodeWithSignature("ONLY_OWNER()"));
+        erc1155Press.transferOwnership(ADMIN);
+        vm.stopPrank();
         vm.startPrank(INITIAL_OWNER);
-        erc1155Press.setOwner(ADMIN);
-        require(erc1155Press.owner() == ADMIN, "ownership transfer incorrect");
-        // INITIAL_OWNER can still update owner because still has admin role, and transferOwnership is gated in this logic impl by ADMIN role
-        erc1155Press.setOwner(MINTER);        
-    }
+        // transfer should go through since being called from contract owner
+        erc1155Press.transferOwnership(FUNDS_RECIPIENT);
+        require(erc1155Press.owner() == FUNDS_RECIPIENT, "ownership not transferred correctly");
+    }    
 
     function test_upgrade() public setUpERC1155PressBase {        
         address erc1155PressImpl2;
@@ -412,7 +402,6 @@ contract ERC1155PressTest is ERC1155PressConfig {
         (string memory uri) = ERC1155EditionRenderer(address(erc1155Press.getRenderer(tokenToCheck))).tokenUriInfo(address(erc1155Press), tokenToCheck);
         require(keccak256(bytes(uri)) == keccak256(bytes(exampleString1)), "uri not initd correctly");
     }
-
 
     function test_mintExisting() public setUpERC1155PressBase setUpExistingMint(1) {        
         vm.startPrank(INITIAL_OWNER);

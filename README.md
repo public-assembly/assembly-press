@@ -17,8 +17,6 @@ We cannot guarantee that any bounties will be paid for help given during this re
 
 ### General
 - Prob want to add in generic multi call stuff to allow for more complex contract set up ability
-- Should we take out a lot of the functions in the ERC721Press + ERC1155Press interfaces to make them more flexible?
--- Already removed canUpgrade from being an external logic check on both 721/1155 press impls, should same be done for canTransfer as well? Seems safer + simpler to lean on onlyOwner for those two functions (upgrade + transfer)
 -- Review for gas optimizations all over the place. Ex: removal of unnecessary value != 0 checks
 -- For ERC721Press/ERC1155Press, all edit/update functions should be accessible by owner/permitted actors via external logic, EXCEPT for upgrade/transfer which should just be onlyOwner
 

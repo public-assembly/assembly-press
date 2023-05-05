@@ -215,26 +215,9 @@ contract ERC721Press is
         } while (quantity > 0);
     }
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| CONTRACT OWNERSHIP |||||||||
-    // ||||||||||||||||||||||||||||||||
-
-    /// @dev Set new owner for access control + frontends
-    /// @param newOwner address of the new owner
-    function setOwner(address newOwner) public {
-        // Check if msg.sender can transfer ownership
-        if (msg.sender != owner() && IERC721PressLogic(_logicImpl).canTransfer(address(this), msg.sender) != true) {
-            revert No_Transfer_Access();
-        }
-
-        // Transfer contract ownership to new owner
-        _transferOwnership(newOwner);
-    }
-
     // // ||||||||||||||||||||||||||||||||
     // // ||| CONFIG ACCESS ||||||||||||||
     // // ||||||||||||||||||||||||||||||||
-
 
     /// @notice Function to set config.fundsRecipient
     /// @dev Cannot set `fundsRecipient` to the zero address

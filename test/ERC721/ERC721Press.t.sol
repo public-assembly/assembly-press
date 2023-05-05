@@ -374,133 +374,15 @@ contract ERC721PressTest is ERC721PressConfig {
         require(configurationCheck.primarySaleFeeBPS == configuration.primarySaleFeeBPS, "incorrect config");
     }
 
-    /* WIP tests in support of in progress updated curatin logic decoder written in assembly
-
-    // function testDecodeListings() public setUpPressCurationLogic {
-    //     vm.startPrank(INITIAL_OWNER);  
-    //     curationLogic.setCurationPaused(address(erc721Press), false);
-    //     vm.stopPrank();    
-    //     vm.startPrank(CURATOR_1);
-
-    //     ICurationLogic.Listing[] memory listings = new ICurationLogic.Listing[](2);
-
-    //     listings[0] = ICurationLogic.Listing({
-    //         curatedAddress: address(0x123),
-    //         selectedTokenId: 1,
-    //         curator: CURATOR_1,
-    //         sortOrder: -1,
-    //         chainId: 1,
-    //         curationTargetType: 2,
-    //         hasTokenId: true
-    //     });
-
-    //     listings[1] = ICurationLogic.Listing({
-    //         curatedAddress: address(0x456),
-    //         selectedTokenId: 2,
-    //         curator: CURATOR_1,
-    //         sortOrder: 1,
-    //         chainId: 3,
-    //         curationTargetType: 4,
-    //         hasTokenId: false
-    //     });
-
-    //     // Encoding the listings manually
-    //     bytes memory packedListings;
-    //     for (uint256 i = 0; i < listings.length; i++) {
-    //         packedListings = abi.encodePacked(
-    //             packedListings,
-    //             listings[i].curatedAddress,
-    //             uint96(listings[i].selectedTokenId) << 224, // Manually pad the selectedTokenId
-    //             listings[i].curator,
-    //             int256(listings[i].sortOrder) << 224, // Manually pad the sortOrder
-    //             uint256(listings[i].chainId) << 240, // Manually pad the chainId
-    //             uint256(listings[i].curationTargetType) << 240, // Manually pad the curationTargetType
-    //             uint8(listings[i].hasTokenId ? 1 : 0) << 248 // Manually pad the hasTokenId
-    //         );
-    //     }
-
-    //     erc721Press.mintWithData(2, packedListings);
-
-    //     // ICurationLogic.Listing[] memory decodedListings = listingEncoderDecoder.decodeListings(packedListings);
-
-    //     // Assert.equal(decodedListings.length, listings.length, "Number of decoded listings should match the original listings");
-
-    //     // for (uint256 i = 0; i < decodedListings.length; i++) {
-    //     //     assert.equal(decodedListings[i].curatedAddress, listings[i].curatedAddress, "Decoded curatedAddress should match the original curatedAddress");
-    //     //     assert.equal(decodedListings[i].selectedTokenId, listings[i].selectedTokenId, "Decoded selectedTokenId should match the original selectedTokenId");
-    //     //     assert.equal(decodedListings[i].curator, listings[i].curator, "Decoded curator should match the original curator");
-    //     //     assert.equal(decodedListings[i].sortOrder, listings[i].sortOrder, "Decoded sortOrder should match the original sortOrder");
-    //     //     assert.equal(decodedListings[i].chainId, listings[i].chainId, "Decoded chainId should match the original chainId");
-    //     //     assert.equal(decodedListings[i].curationTargetType, listings[i].curationTargetType, "Decoded curationTargetType should match the original curationTargetType");
-    //     //     assert.equal(decodedListings[i].hasTokenId, listings[i].hasTokenId, "Decoded hasTokenId should match the original hasTokenId");
-    //     // }
-    // }
-
-    // // mintWithData test doubles as a test for addListing call on CurationLogic 
-    // function test_mintWithData_OD() public setUpPressCurationLogic {      
-    //     vm.startPrank(INITIAL_OWNER);  
-    //     curationLogic.setCurationPaused(address(erc721Press), false);
-    //     vm.stopPrank();    
-    //     vm.startPrank(CURATOR_1);
-    //     ICurationLogic.Listing[] memory listings = new ICurationLogic.Listing[](2);        
-    //     listings[0].curatedAddress = address(0x111);
-    //     listings[0].selectedTokenId = 1;
-    //     listings[0].curator = CURATOR_1;
-    //     listings[0].curationTargetType = 4; // curationType = NFT Item
-    //     listings[0].sortOrder = 1;
-    //     listings[0].hasTokenId = true;
-    //     listings[0].chainId = 1;
-    //     listings[1].curatedAddress = address(0x333);
-    //     listings[1].selectedTokenId = 0;
-    //     listings[1].curator = CURATOR_1;
-    //     listings[1].curationTargetType = 1; // curationType = NFT Contract
-    //     listings[1].sortOrder = -1;
-    //     listings[1].hasTokenId = false;
-    //     listings[1].chainId = 1;        
-
-    //     bytes memory listing1Bytes = abi.encode(
-    //         listings[0].curatedAddress,
-    //         listings[0].selectedTokenId,
-    //         listings[0].curator,
-    //         listings[0].sortOrder,
-    //         listings[0].curationTargetType,
-    //         listings[0].chainId,
-    //         listings[0].hasTokenId
-    //     );
-
-    //     bytes memory listing2Bytes = abi.encode(
-    //         listings[1].curatedAddress,
-    //         listings[1].selectedTokenId,
-    //         listings[1].curator,
-    //         listings[1].sortOrder,
-    //         listings[1].curationTargetType,
-    //         listings[1].chainId,
-    //         listings[1].hasTokenId
-    //     );
-
-    //     bytes memory encodedListings = abi.encodePacked(listing1Bytes, listing2Bytes);        
-
-    //     erc721Press.mintWithData(2, encodedListings);
-
-    //     /* not sure how to test that contractURI + tokenURI are working correctly -- so check console logs for proof */
-    //     // console2.log(erc721Press.contractURI());
-    //     // console2.log(erc721Press.tokenURI(1));
-
-    //     require(ICurationLogic(address(erc721Press.getLogic())).getListing(address(erc721Press), 2).curator == CURATOR_1, "listing added incorrectly");
-    //     require(ICurationLogic(address(erc721Press.getLogic())).getListings(address(erc721Press)).length == 2, "listings added incorrectly");        
-    //     vm.stopPrank();
-    //     // switching personas to test getListingsForCurator function
-    //     vm.startPrank(CURATOR_2);
-    //     ICurationLogic.Listing[] memory listings_2 = new ICurationLogic.Listing[](1);            
-    //     listings_2[0].curatedAddress = address(0x444);
-    //     listings_2[0].selectedTokenId = 0;
-    //     listings_2[0].curator = CURATOR_2;
-    //     listings_2[0].curationTargetType = 1; // curationType = NFT Contract
-    //     listings_2[0].sortOrder = 3;
-    //     listings_2[0].hasTokenId = false;
-    //     listings_2[0].chainId = 4;          
-    //     bytes memory encodedListings_2 = abi.encode(listings_2);
-    //     erc721Press.mintWithData(1, encodedListings_2);
-    //     require(erc721Press.ownerOf(3) == CURATOR_2, "minted incorrectly");
-    // }
+    function test_transfer() public setUpPressCurationLogic {
+        vm.startPrank(FUNDS_RECIPIENT);
+        // expect revert on transfer because msg.sender is not owner
+        vm.expectRevert(abi.encodeWithSignature("ONLY_OWNER()"));
+        erc721Press.transferOwnership(ADMIN);
+        vm.stopPrank();
+        vm.startPrank(INITIAL_OWNER);
+        // transfer should go through since being called from contract owner
+        erc721Press.transferOwnership(FUNDS_RECIPIENT);
+        require(erc721Press.owner() == FUNDS_RECIPIENT, "ownership not transferred correctly");
+    }
 }

@@ -162,25 +162,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         }
 
         return true;
-    }          
-
-    /// @notice checks transfer access for a given transfer caller
-    /// @param targetPress press contract to check access for
-    /// @param transferCaller address of transferCaller to check access for
-    function canTransfer(
-        address targetPress, 
-        address transferCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-        // check if transfer caller has admin role for given Press
-        if (
-            configInfo[targetPress].accessControl.getAccessLevel(targetPress, transferCaller) < ADMIN
-            && msg.sender != IERC721Press(targetPress).owner() 
-        ) { 
-            return false;
-        }  
-
-        return true;
-    }      
+    }               
 
     // ||||||||||||||||||||||||||||||||
     // ||| STATUS CHECKS ||||||||||||||

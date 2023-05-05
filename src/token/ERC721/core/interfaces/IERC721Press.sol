@@ -64,8 +64,6 @@ interface IERC721Press {
     error No_Withdraw_Access();    
     /// @notice msg.sender does not have burn access for given Press
     error No_Burn_Access();
-    /// @notice msg.sender does not have transfer access for given Press
-    error No_Transfer_Access();
 
     // Constraint/failure errors
     /// @notice Exceeds maxSupply
@@ -190,10 +188,6 @@ interface IERC721Press {
         external
         payable
         returns (uint256);
-
-    /// @dev Set new owner for access control + frontends
-    /// @param newOwner address of the new owner
-    function setOwner(address newOwner) external;  
 
     /// @notice Function to set config.fundsRecipient
     /// @dev Cannot set `fundsRecipient` to the zero address

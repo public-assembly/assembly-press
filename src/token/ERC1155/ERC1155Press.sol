@@ -365,22 +365,6 @@ contract ERC1155Press is
     }
 
     // ||||||||||||||||||||||||||||||||
-    // ||| CONTRACT OWNERSHIP |||||||||
-    // ||||||||||||||||||||||||||||||||
-
-    /// @dev Set new owner for access control + frontends
-    /// @param newOwner address of the new owner
-    function setOwner(address newOwner) public {
-        // Check if msg.sender can transfer ownership
-        if (msg.sender != owner() && !contractLogic.canSetOwner(address(this), msg.sender)) {
-            revert No_Transfer_Access();
-        }
-
-        // Transfer contract ownership to new owner
-        _transferOwnership(newOwner);
-    }    
-
-    // ||||||||||||||||||||||||||||||||
     // ||| FUNDS WITHDRAWALS ||||||||||
     // ||||||||||||||||||||||||||||||||    
 
