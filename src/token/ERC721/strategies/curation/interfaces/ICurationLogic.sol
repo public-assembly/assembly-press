@@ -17,7 +17,6 @@ interface ICurationLogic {
      * Second slot (with 3 bytes padding)
      * curator (20) + sortOrder (4) + chainId (2) + curationTargetType (2) + hasTokenId (1) = 29 bytes
      */
-
     struct Listing {
         /// @notice Address that is curated
         address curatedAddress;
@@ -36,6 +35,16 @@ interface ICurationLogic {
     }
 
     /// @notice Shared config struct tracking curation status
+    /**
+     * Struct breakdown. Values in parentheses are bytes.
+     *
+     * First slot
+     * frozenAt (32)
+     * Second slot
+     * priceToCurate (32)
+     * Third slot
+     * accessControl (20) + numAdded (5) + numRemoved (5) + initialized (1) + isPaused (1) = 32 bytes
+     */
     struct Config {
         /// @notice timestamp that the curation is frozen at (if never, frozen = 0)
         uint256 frozenAt;
