@@ -16,8 +16,6 @@ interface IERC1155PressTokenLogic {
     function canMintExisting(address targetPress, address mintCaller, uint256 tokenId, address[] memory recipients, uint256 quantity) external view returns (bool);
     /// @notice checks if a certain address can call the withdraw function for a given tokenId for a given Press
     function canWithdraw(address targetPress, uint256 tokenId, address withdrawCaller) external view returns (bool);
-    /// @notice checks if a certain address can call the burn function for a given tokenId for a given Press
-    function canBurn(address targetPress, uint256 tokenId, uint256 quantity, address burnCaller) external view returns (bool);    
 
     // Informative view functions
     /// @notice checks if a given Press has been initialized    

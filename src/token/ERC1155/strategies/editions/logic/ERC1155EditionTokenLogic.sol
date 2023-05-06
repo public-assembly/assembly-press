@@ -210,27 +210,7 @@ contract ERC1155EditionTokenLogic is IERC1155PressTokenLogic {
     ) external view requireInitialized(targetPress, tokenId) returns (bool) {
         // anyone can call withdraw function at anytime
         return true;
-    }      
-
-    /// @notice checks burn access for given press -> tokenId -> msg caller
-    /// @param targetPress press contract to check access for
-    /// @param tokenId tokenId to check access for
-    /// @param quantity burn quantity to check access for
-    /// @param burnCaller address of burnCaller to check access for
-    function canBurn(
-        address targetPress, 
-        uint256 tokenId,
-        uint256 quantity,
-        address burnCaller
-    ) external view requireInitialized(targetPress, tokenId) returns (bool) {
-
-        // check if burnCaller caller is trying to burn more than they own
-        if (ERC1155Press(payable(targetPress)).balanceOf(burnCaller, tokenId) < quantity) {
-            return false;
-        }
-
-        return true;
-    }        
+    }   
 
     // ||||||||||||||||||||||||||||||||
     // ||| STATUS CHECKS ||||||||||||||
@@ -287,29 +267,32 @@ contract ERC1155EditionTokenLogic is IERC1155PressTokenLogic {
             revert Cannot_Set_Zero_Address();
         }
 
+        // Cache msg.sender
+        address sender = msg.sender;
+
         // set initial admin in accessInfo mapping
-        accessInfo[msg.sender][tokenId][adminInit] = ADMIN;
+        accessInfo[sender][tokenId][adminInit] = ADMIN;
 
         // update mutable values in tokenInfo mapping
-        tokenInfo[msg.sender][tokenId].startTime = startTimeInit;        
-        tokenInfo[msg.sender][tokenId].mintExistingPrice = mintExistingPriceInit;
+        tokenInfo[sender][tokenId].startTime = startTimeInit;        
+        tokenInfo[sender][tokenId].mintExistingPrice = mintExistingPriceInit;
         // if free mint, mintCapPerAddress automatically set to 1
         // if paid mint, mintCapPerAddress automically set to ~ unlimited
         if (mintExistingPriceInit == 0) {
-            tokenInfo[msg.sender][tokenId].mintCapPerAddress = 1;
+            tokenInfo[sender][tokenId].mintCapPerAddress = 1;
         } else {
-            tokenInfo[msg.sender][tokenId].mintCapPerAddress = type(uint256).max;
+            tokenInfo[sender][tokenId].mintCapPerAddress = type(uint256).max;
         }
         
         // update immutable values in mintInfo mapping
-        tokenInfo[msg.sender][tokenId].initialized = 1;
+        tokenInfo[sender][tokenId].initialized = 1;
 
         emit MintConfigUpdated({
-            targetPress: msg.sender,
+            targetPress: sender,
             tokenId: tokenId,
             startTime: startTimeInit,
             mintExistingPrice: mintExistingPriceInit,
-            mintCapPerAddress: tokenInfo[msg.sender][tokenId].mintCapPerAddress
+            mintCapPerAddress: tokenInfo[sender][tokenId].mintCapPerAddress
         });
     }       
 

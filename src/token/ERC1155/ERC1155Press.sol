@@ -98,6 +98,8 @@ contract ERC1155Press is
         __ReentrancyGuard_init();
         // Setup owner for Ownable 
         __Ownable_init(_initialOwner);
+        // Setup UUPS
+        __UUPSUpgradeable_init();   
 
         // Setup contract name + contract symbol. Cannot be updated after initialization
         name = _name;
@@ -184,7 +186,9 @@ contract ERC1155Press is
         // For each recipient provided, mint them given quantity of tokenId being newly minted
         for (uint256 i = 0; i < recipients.length; ++i) {
             // Check to see if any recipient is zero address
-            _checkForZeroAddress(recipients[i]);
+            if (recipients[i] == address(0)) {
+                revert Cannot_Set_Zero_Address();
+            }
             // Mint quantity of given tokenId to recipient
             _mint(recipients[i], tokenId, quantity, new bytes(0));
 
@@ -216,11 +220,12 @@ contract ERC1155Press is
         address[] memory recipients,
         uint256 quantity
     ) external payable nonReentrant {
+        // Check to see if tokenId being minted exists
+        _exists(tokenId);        
+        
         // Cache msg.sender + msg.value
         (uint256 msgValue, address sender) = (msg.value, msg.sender);
 
-        // Check to see if tokenId being minted exists
-        _exists(tokenId);
         // Call token level logic contract to check if user can mint
         _canMintExisting(address(this), sender, tokenId, recipients, quantity);
         // Call logic contract to check what msg.value needs to be sent for given Press + tokenIds + quantities + msg.sender
@@ -365,22 +370,6 @@ contract ERC1155Press is
     }
 
     // ||||||||||||||||||||||||||||||||
-    // ||| CONTRACT OWNERSHIP |||||||||
-    // ||||||||||||||||||||||||||||||||
-
-    /// @dev Set new owner for access control + frontends
-    /// @param newOwner address of the new owner
-    function setOwner(address newOwner) public {
-        // Check if msg.sender can transfer ownership
-        if (msg.sender != owner() && !contractLogic.canSetOwner(address(this), msg.sender)) {
-            revert No_Transfer_Access();
-        }
-
-        // Transfer contract ownership to new owner
-        _transferOwnership(newOwner);
-    }    
-
-    // ||||||||||||||||||||||||||||||||
     // ||| FUNDS WITHDRAWALS ||||||||||
     // ||||||||||||||||||||||||||||||||    
 
@@ -393,8 +382,6 @@ contract ERC1155Press is
 
         // Attempt to process withdraws for each tokenId provided
         for (uint256 i; i < tokenIds.length; ++i) {  
-            // check to see if tokenId exists
-            _exists(tokenIds[i]);
             // Check if withdraw is allowed for sender
             _canWithdraw(address(this), tokenIds[i], sender);
             // Check to see if tokenId has a balance
@@ -505,13 +492,6 @@ contract ERC1155Press is
     // ||||||||||||||||||||||||||||||||
     // ||| MISC |||||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||    
-    
-    // Check to see if address = address(0)
-    function _checkForZeroAddress(address addressToCheck) internal pure {
-        if (addressToCheck == address(0)) {
-            revert Cannot_Set_Zero_Address();
-        }
-    }    
 
     // Check to see if tokenId being minted exists
     function _exists(uint256 tokenId) internal view {

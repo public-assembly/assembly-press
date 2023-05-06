@@ -19,9 +19,7 @@ interface IERC721PressLogic {
     /// @notice checks if a certain address can call the withdraw function for a given Press
     function canWithdraw(address targetPress, address withdrawCaller) external view returns (bool);    
     /// @notice checks if a certain address can call the burn function for a given Press
-    function canBurn(address targetPress, uint256 tokenId, address burnCaller) external view returns (bool);    
-    /// @notice checks if a certain address can transfer ownership of a given Press
-    function canTransfer(address targetPress, address transferCaller) external view returns (bool);    
+    function canBurn(address targetPress, uint256 tokenId, address burnCaller) external view returns (bool);       
     
     // Informative view functions
     /// @notice calculates total mintPrice based on mintCaller, mintQuantity, and targetPress

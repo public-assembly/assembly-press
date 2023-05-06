@@ -9,9 +9,7 @@ interface IERC1155PressContractLogic {
 
     // Access control functions
     /// @notice checks if a certain address can access mintnew functionality for a given Press + recepients + quantity combination
-    function canMintNew(address targetPress, address mintCaller, address[] memory recipients, uint256 quantity) external view returns (bool);    
-    /// @notice checks if a certain address can set ownership of a given Press
-    function canSetOwner(address targetPress, address transferCaller) external view returns (bool);    
+    function canMintNew(address targetPress, address mintCaller, address[] memory recipients, uint256 quantity) external view returns (bool);
 
     // Informative view functions
     /// @notice checks if a given Press has been initialized    
