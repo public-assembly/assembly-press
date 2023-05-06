@@ -10,7 +10,9 @@ An [updated version](https://github.com/public-assembly/curation-protocol) was r
 
 The full AssemblyPress (AP) architecture is now much more than a curation protocol. AP comprises two contract factories (ERC721 + ERC1155) designed to simplify the process in leveraging common token standards as onchain databases for any application. A more in-depth protocol walkthrough can be found [here](https://forum.public---assembly.com/t/draft-assemblypress-walkthrough/335).
 
-Please see the https://github.com/public-assembly/AssemblyPress/issues for a (non-exhaustive) list of areas in need of review, bugs, and missing functionality that we hope to address before AP's v1.0 release. Public Assembly is an organization [building public goods](https://twitter.com/valcoholics1/status/1641244533265399810?s=20), and we are seeking help from the public in this review process. We cannot guarantee that any bounties will be paid for help given during this review process, but we encourage anyone who pitches in to drop their ENS in any issue/pull-request they submit. Thank you for your help, we look forward to bringing this protocol to the public.
+Please see the [issues section](https://github.com/public-assembly/AssemblyPress/issues) for a (non-exhaustive) list of areas in need of review, bugs, and missing functionality that we hope to address before AP's v1.0 release. 
+
+Public Assembly is an organization [building public goods](https://twitter.com/valcoholics1/status/1641244533265399810?s=20), and we are seeking help from the public in this review process. We cannot guarantee that any bounties will be paid for help given during this review process, but we encourage anyone who pitches in to drop their ENS in any issue/pull-request they submit. Thank you for your help, we look forward to bringing this protocol to the public.
 
 
 ### Local Development
