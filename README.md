@@ -15,11 +15,22 @@ Please see the [issues section](https://github.com/public-assembly/AssemblyPress
 Public Assembly is an organization [building public goods](https://twitter.com/valcoholics1/status/1641244533265399810?s=20), and we are seeking help from the public in this review process. We cannot guarantee that any bounties will be paid for help given during this review process, but we encourage anyone who pitches in to drop their ENS in any issue/pull-request they submit. Thank you for your help, we look forward to bringing this protocol to the public.
 
 
-### Local Development
+## Local Development
 
-1. `git clone https://github.com/public-assembly/AssemblyPress.git`
-2. cd into cloned folder
-3. install [Foundry](https://github.com/foundry-rs/foundry)
-4. `foundryup`
-5. `forge install`
-6. `forge test` to contents have been installed correctly (tests should pass)
+### Prerequisites
+Ensure [Foundry](https://github.com/foundry-rs/foundry) is installed. Run the command `foundryup` to make sure it is up to date.
+
+### Installation
+
+Clone the repo and navigate to the directory. Install the project's dependencies with the following command:
+```
+$ forge install
+```
+
+Configure the environment variables necesary to run the test suite. Both a `MAINNET_RPC_URL` and `GOERLI_RPC_URL` should be supplied.
+
+Next, run the test suite with the following command:
+```
+$ forge test
+```
+All tests should pass.
