@@ -113,15 +113,13 @@ interface IERC721Press {
     /// @notice Event emitted for each mint
     /// @param recipient address nfts were minted to
     /// @param quantity quantity of the minted nfts
-    /// @param mintData bytes data passed in with mint
-    /// @param totalMintPrice msg.value of mint txn
     /// @param firstMintedTokenId first minted token ID for historic txn detail reconstruction
+    /// @param totalMintPrice msg.value of mint txn
     event MintWithData(
         address indexed recipient,
         uint256 indexed quantity,
-        bytes indexed mintData,
-        uint256 totalMintPrice,
-        uint256 firstMintedTokenId
+        uint256 indexed firstMintedTokenId,
+        uint256 totalMintPrice
     );
 
     /// @notice Event emitted when the funds are withdrawn from the minting contract
@@ -184,7 +182,7 @@ interface IERC721Press {
     ) external;
 
     /// @notice allows user to mint token(s) from the Press contract
-    function mintWithData(uint16 mintQuantity, bytes memory mintData)
+    function mintWithData(uint64 mintQuantity, bytes memory mintData)
         external
         payable
         returns (uint256);

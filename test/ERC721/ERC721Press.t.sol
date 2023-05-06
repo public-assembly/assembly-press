@@ -191,12 +191,27 @@ contract ERC721PressTest is ERC721PressConfig {
         listings[1].chainId = 1;        
         bytes memory encodedListings = abi.encode(listings);
         erc721Press.mintWithData(2, encodedListings);
-        require(erc721Press.ownerOf(2) == CURATOR_1, "minted incorrectly");        
-        erc721Press.burn(2);
+        require(erc721Press.ownerOf(1) == CURATOR_1, "minted incorrectly");    
+        vm.stopPrank();
+        vm.startPrank(CURATOR_2);
+        // should revert because CURATOR_2 is not token owner or admin
+        vm.expectRevert(abi.encodeWithSignature("No_Burn_Access()"));  
+        erc721Press.burn(1);
+        vm.stopPrank();
+        vm.startPrank(CURATOR_1);
+        // should NOT revert because CURATOR_1 is token owner
+        erc721Press.burn(1);
         require(erc721Press.balanceOf(CURATOR_1) == 1, "burn not functioning correctly");     
         // should revert since token 2 has been burned
         vm.expectRevert();
-        erc721Press.ownerOf(2);
+        erc721Press.ownerOf(1);
+        vm.stopPrank();
+        vm.startPrank(INITIAL_OWNER);
+        // should NOT revert because INITIAL_OWNER has admin role, even though is not token owner
+        erc721Press.burn(2);
+        require(erc721Press.balanceOf(CURATOR_1) == 0, "burn not functioning correctly");
+        vm.expectRevert();
+        erc721Press.ownerOf(2);        
     }
 
     function test_soulbound() public setUpPressCurationLogic {

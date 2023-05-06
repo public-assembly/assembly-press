@@ -4,6 +4,7 @@ pragma solidity ^0.8.16;
 import {IERC1155PressTokenRenderer} from "./interfaces/IERC1155PressTokenRenderer.sol";
 import {IERC1155PressContractLogic} from "./interfaces/IERC1155PressContractLogic.sol";
 import {IERC1155PressTokenLogic} from "./interfaces/IERC1155PressTokenLogic.sol";
+import {ERC1155Press} from "../ERC1155Press.sol";
 import {ERC1155PressStorageV1} from "./storage/ERC1155PressStorageV1.sol";
 import {IERC1155Press} from "./interfaces/IERC1155Press.sol";
 
@@ -44,10 +45,13 @@ contract ERC1155PressPermissions is ERC1155PressStorageV1 {
     }
 
     // Call logic contract to check if burn is allowed for sender
-    function _canBurn(address targetPress, uint256 tokenId, uint256 amount, address sender) internal view {
-        if (!IERC1155PressTokenLogic(configInfo[tokenId].logic).canBurn(targetPress, tokenId, amount, sender)) {
-            revert IERC1155Press.No_Burn_Access();
-        }   
+    function _canBurn(address targetPress, uint256 tokenId, uint256 amount, address sender) internal view returns (bool) {
+        // check if sender caller is trying to burn more than they own
+        if (ERC1155Press(payable(targetPress)).balanceOf(sender, tokenId) < amount) {
+            return false;
+        }
+
+        return true;
     }
 
     // Call logic contract to check is msg.sender can update

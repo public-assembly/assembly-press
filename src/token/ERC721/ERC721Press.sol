@@ -111,6 +111,8 @@ contract ERC721Press is
         __ReentrancyGuard_init();
         // Setup owner for Ownable
         __Ownable_init(_initialOwner);
+        // Setup UUPS
+        __UUPSUpgradeable_init();        
 
         // Setup + initialize non-config variables
         _logicImpl = _logic;
@@ -151,7 +153,7 @@ contract ERC721Press is
     /// @dev mintQuantity is restricted to uint16 even though maxSupply = uint64
     /// @param mintQuantity number of NFTs to mint
     /// @param mintData metadata to associate with the minted token(s)
-    function mintWithData(uint16 mintQuantity, bytes memory mintData)
+    function mintWithData(uint64 mintQuantity, bytes memory mintData)
         external
         payable
         nonReentrant
@@ -182,12 +184,11 @@ contract ERC721Press is
         uint256 firstMintedTokenId = lastMintedTokenId() - mintQuantity + 1;
 
         // Update external logic file with data corresponding to this mint
-        IERC721PressLogic(_logicImpl).updateLogicWithData(msg.sender, mintData);
+        IERC721PressLogic(_logicImpl).updateLogicWithData(sender, mintData);
 
         emit IERC721Press.MintWithData({
             recipient: sender,
             quantity: mintQuantity,
-            mintData: mintData,
             totalMintPrice: msgValue,
             firstMintedTokenId: firstMintedTokenId
         });
@@ -340,9 +341,9 @@ contract ERC721Press is
     // ||| PAYOUTS + ROYALTIES ||||||||
     // ||||||||||||||||||||||||||||||||
 
-    /// @notice This withdraws ETH from the contract to the contract owner.
+    /// @notice This withdraws ETH from the contract to the contract owner
     function withdraw() external nonReentrant {
-        // cache msg.sender
+        // Cache msg.sender
         address sender = msg.sender;
 
         // Check if withdraw is allowed for sender
@@ -484,24 +485,33 @@ contract ERC721Press is
     /// @notice User burn function for tokenId
     /// @param tokenId token id to burn
     function burn(uint256 tokenId) public {
-        // Check if burn is allowed for sender
-        if (IERC721PressLogic(_logicImpl).canBurn(address(this), tokenId, msg.sender) != true) {
+        // Check if burn is allowed for msg.sender
+        // Revert if msg.sender is not owner of tokenId AND not granted permission from external logic
+        if (
+            ERC721Press(payable(address(this))).ownerOf(tokenId) != msg.sender
+            && IERC721PressLogic(_logicImpl).canBurn(address(this), tokenId, msg.sender) != true
+        ) {
             revert No_Burn_Access();
         }
 
-        _burn(tokenId, true);
+        // ERC721A _burn approvalCheck set to false to let custom logic take precedence
+        _burn(tokenId, false);
     }
 
     /// @notice User burn function for tokenIds
     /// @param tokenIds token ids to burn
     function burnBatch(uint256[] memory tokenIds) public {
-        // For each tokenId, check if burn is allowed for sender
+        // For each tokenId, check if burn is allowed for msg.sender
         for (uint256 i; i < tokenIds.length; ++i) {
-            if (IERC721PressLogic(_logicImpl).canBurn(address(this), tokenIds[i], msg.sender) != true) {
+            // Revert if msg.sender is not owner of tokenId AND not granted permission from external logic
+            if (
+                ERC721Press(payable(address(this))).ownerOf(tokenIds[i]) != msg.sender
+                && IERC721PressLogic(_logicImpl).canBurn(address(this), tokenIds[i], msg.sender) != true
+            ) {
                 revert No_Burn_Access();
-            }
+            }            
 
-            _burn(tokenIds[i], true);
+            _burn(tokenIds[i], false);
         }
     }    
 

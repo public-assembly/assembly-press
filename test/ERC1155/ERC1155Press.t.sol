@@ -370,33 +370,7 @@ contract ERC1155PressTest is ERC1155PressConfig {
                 tokenToCheck, 
                 tokenAdminInit
             ) == true, "canWithdraw incorrect"
-        );              
-
-        // canBurn     
-        require(
-            erc1155Press.getTokenLogic(1).canBurn(
-                address(erc1155Press), 
-                tokenToCheck, 
-                1,
-                RANDOM_WALLET
-            ) == false, "cant burn if not in wallet"
-        );            
-        require(
-            erc1155Press.getTokenLogic(1).canBurn(
-                address(erc1155Press), 
-                tokenToCheck, 
-                1001,
-                ADMIN
-            ) == false, "cant burn more than you have"
-        );           
-        require(
-            erc1155Press.getTokenLogic(1).canBurn(
-                address(erc1155Press), 
-                tokenToCheck, 
-                1000,
-                ADMIN
-            ) == true, "token initialized incorrectly"
-        );                            
+        );                                   
 
         // token level renderer checks
         (string memory uri) = ERC1155EditionRenderer(address(erc1155Press.getRenderer(tokenToCheck))).tokenUriInfo(address(erc1155Press), tokenToCheck);

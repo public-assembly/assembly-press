@@ -154,10 +154,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         address burnCaller
     ) external view requireInitialized(targetPress) returns (bool) {
         // check if burnCaller caller has burn access for given target Press
-        if (
-            burnCaller != ERC721Press(payable(targetPress)).ownerOf(tokenId)
-            && configInfo[targetPress].accessControl.getAccessLevel(targetPress, burnCaller) < ADMIN
-        ) {
+        if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, burnCaller) < ADMIN) {
             return false;
         }
 
@@ -240,9 +237,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         // logicData: listings
         (Listing[] memory listings) = abi.decode(logicData, (Listing[]));
         
-        // msg.sender must be the ERC721Press contract in this instance. 
-        // even if someone wanted to put in a fake updateSender address by calling this through etherscan
-        // they wouldnt be able to spoof the fact that msg.sender on this is the ERC721Press
+        // msg.sender must be the ERC721Press contract in this instance
         _addListings(msg.sender, updateSender, listings); 
     }    
 
