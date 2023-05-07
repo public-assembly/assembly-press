@@ -39,9 +39,9 @@ interface ICurationLogic {
      * Struct breakdown. Values in parentheses are bytes.
      *
      * First slot
-     * frozenAt (32)
+     * frozenAt (32) = 32 bytes
      * Second slot
-     * priceToCurate (32)
+     * priceToCurate (32) = 32 bytes
      * Third slot
      * accessControl (20) + numAdded (5) + numRemoved (5) + initialized (1) + isPaused (1) = 32 bytes
      */
