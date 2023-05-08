@@ -15,6 +15,10 @@ abstract contract CurationStorageV1 is ICurationLogic {
     /// @notice Press => config information
     mapping(address => Config) public configInfo;
 
+    // new mapping for testing
+    mapping(address => mapping(uint256 => bytes)) public encodedListingsMapping;
+    //
+
     // `Listing` struct size constant
     // curatedAddress: 20 bytes
     // selectedTokenId: 12 bytes
