@@ -303,6 +303,58 @@ contract New_CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorage
         );
     }        
 
+    // function storeEncodedListings(bytes memory _encodedListings) public {
+    //     uint numListings = _encodedListings.length / 105; // Assuming the encodedListing length is fixed at 105 bytes
+
+    //     for (uint i = 0; i < numListings; i++) {
+    //         bytes memory encodedListing = new bytes(105);
+    //         assembly {
+    //             let encodedListing_ptr := add(encodedListing, 0x20)
+    //             let source_ptr := add(_encodedListings, add(0x20, mul(i, 105)))
+    //             mstore(encodedListing_ptr, mload(source_ptr))
+    //             mstore(add(encodedListing_ptr, 0x20), mload(add(source_ptr, 0x20)))
+    //             mstore(add(encodedListing_ptr, 0x40), mload(add(source_ptr, 0x40)))
+    //         }
+    //         encodedListingsMapping[i] = encodedListing;
+    //     }
+    // }
+
+    // function getTheListing(address target, uint _index) public view returns (
+    //     address curatedAddress,
+    //     uint96 selectedTokenId,
+    //     address curator,
+    //     int32 sortOrder,
+    //     uint16 chainId,
+    //     uint16 curationTargetType,
+    //     bool hasTokenId
+    // ) {
+    //     bytes memory encodedListing = encodedListingsMapping[target][_index];
+
+    //     uint160 addr1;
+    //     uint160 addr2;
+    //     assembly {
+    //         addr1 := mload(add(encodedListing, 0x20)) // Load curatedAddress
+    //         selectedTokenId := mload(add(encodedListing, 0x40)) // Load selectedTokenId
+    //         addr2 := mload(add(encodedListing, 0x60)) // Load curator
+    //         sortOrder := mload(add(encodedListing, 0x80)) // Load sortOrder
+    //         chainId := mload(add(encodedListing, 0xA0)) // Load chainId
+    //         curationTargetType := mload(add(encodedListing, 0xA2)) // Load curationTargetType
+    //         hasTokenId := mload(add(encodedListing, 0xA4)) // Load hasTokenId
+    //     }
+    //     curatedAddress = address(addr1);
+    //     curator = address(addr2);
+        
+    //     return (
+    //         curatedAddress,
+    //         selectedTokenId,
+    //         curator,
+    //         sortOrder,
+    //         chainId,
+    //         curationTargetType,
+    //         hasTokenId
+    //     );
+    // }    
+
     /// @dev Getter for acessing Listing information for a specific tokenId
     /// @param targetPress ERC721Press to target 
     /// @param tokenId tokenId to retrieve Listing info for 
