@@ -272,7 +272,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         }
     }
 
-    /// @dev Getter for acessing Listing information for all active listings
+    /// @dev Getter for acessing Listing information for all active listings by a certain curator
     /// @param targetPress ERC721Press to target     
     function getListingsForCurator(address targetPress, address curator) external view override returns (Listing[] memory activeListings) {
         unchecked {
