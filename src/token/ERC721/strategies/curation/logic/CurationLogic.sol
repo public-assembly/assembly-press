@@ -187,9 +187,9 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     }       
 
     /// @notice checks total mint price for a given mintQuantity x mintCaller
-    /// @param targetPress press contract to check price for
-    /// @param mintQuantity mintQuantity to check for 
-    /// @param mintCaller address of mintCaller to check pricing for
+    /// @param targetPress press contract to check mint price of
+    /// @param mintQuantity mintQuantity used to calculate total mint price
+    /// @param mintCaller address of mintCaller to check pricing on behalf of
     function totalMintPrice(
         address targetPress, 
         uint64 mintQuantity, 
