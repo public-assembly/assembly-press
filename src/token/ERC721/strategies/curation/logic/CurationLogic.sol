@@ -144,7 +144,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         return true;
     }                   
 
-    /// @notice checks burun access for a given burn caller
+    /// @notice checks burn access for a given burn caller
     /// @param targetPress press contract to check access for
     /// @param tokenId tokenId to check access for
     /// @param burnCaller address of burnCaller to check access for
@@ -153,7 +153,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         uint256 tokenId,
         address burnCaller
     ) external view requireInitialized(targetPress) returns (bool) {
-        // check if burnCaller caller has burn access for given target Press
+        // check if burnCaller has burn access for given target Press
         if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, burnCaller) < ADMIN) {
             return false;
         }
