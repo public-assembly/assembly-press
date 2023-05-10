@@ -152,7 +152,6 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     /// @dev `tokenId` is unused, but present to adhere to the interface requirements of IERC721PressLogic
     function canBurn(
         address targetPress, 
-        // solhint-disable-next-line
         uint256 tokenId,
         address burnCaller
     ) external view requireInitialized(targetPress) returns (bool) {
