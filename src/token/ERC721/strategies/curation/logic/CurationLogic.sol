@@ -101,6 +101,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     /// @param targetPress press contract to check access for
     /// @param mintQuantity mintQuantity to check access for 
     /// @param mintCaller address of mintCaller to check access for
+    /// @dev `mintQuantity` is unused, but present to adhere to the interface requirements of IERC721PressLogic
     function canMint(
         address targetPress, 
         uint64 mintQuantity, 
@@ -185,10 +186,10 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         return configInfo[targetPress].isPaused;
     }       
 
-    /// @notice checks mint access for a given mintQuantity x mintCaller
-    /// @param targetPress press contract to check access for
-    /// @param mintQuantity mintQuantity to check access for 
-    /// @param mintCaller address of mintCaller to check access for
+    /// @notice checks total mint price for a given mintQuantity x mintCaller
+    /// @param targetPress press contract to check price for
+    /// @param mintQuantity mintQuantity to check for 
+    /// @param mintCaller address of mintCaller to check pricing for
     function totalMintPrice(
         address targetPress, 
         uint64 mintQuantity, 
