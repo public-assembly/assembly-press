@@ -146,9 +146,11 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
 
     /// @notice checks burun access for a given burn caller
     /// @param targetPress press contract to check access for
+    /// @param tokenId tokenId to check access for
     /// @param burnCaller address of burnCaller to check access for
     function canBurn(
-        address targetPress,
+        address targetPress, 
+        uint256 tokenId,
         address burnCaller
     ) external view requireInitialized(targetPress) returns (bool) {
         // check if burnCaller caller has burn access for given target Press
