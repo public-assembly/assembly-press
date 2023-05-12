@@ -101,6 +101,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     /// @param targetPress press contract to check access for
     /// @param mintQuantity mintQuantity to check access for 
     /// @param mintCaller address of mintCaller to check access for
+    /// @dev `mintQuantity` is unused, but present to adhere to the interface requirements of IERC721PressLogic
     function canMint(
         address targetPress, 
         uint64 mintQuantity, 
@@ -144,16 +145,17 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         return true;
     }                   
 
-    /// @notice checks burun access for a given burn caller
+    /// @notice checks burn access for a given burn caller
     /// @param targetPress press contract to check access for
     /// @param tokenId tokenId to check access for
     /// @param burnCaller address of burnCaller to check access for
+    /// @dev `tokenId` is unused, but present to adhere to the interface requirements of IERC721PressLogic
     function canBurn(
         address targetPress, 
         uint256 tokenId,
         address burnCaller
     ) external view requireInitialized(targetPress) returns (bool) {
-        // check if burnCaller caller has burn access for given target Press
+        // check if burnCaller has burn access for given target Press
         if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, burnCaller) < ADMIN) {
             return false;
         }
@@ -183,10 +185,10 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         return configInfo[targetPress].isPaused;
     }       
 
-    /// @notice checks mint access for a given mintQuantity x mintCaller
-    /// @param targetPress press contract to check access for
-    /// @param mintQuantity mintQuantity to check access for 
-    /// @param mintCaller address of mintCaller to check access for
+    /// @notice checks total mint price for a given mintQuantity x mintCaller
+    /// @param targetPress press contract to check mint price of
+    /// @param mintQuantity mintQuantity used to calculate total mint price
+    /// @param mintCaller address of mintCaller to check pricing on behalf of
     function totalMintPrice(
         address targetPress, 
         uint64 mintQuantity, 
@@ -269,7 +271,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         }
     }
 
-    /// @dev Getter for acessing Listing information for all active listings
+    /// @dev Getter for acessing Listing information for all active listings by a certain curator
     /// @param targetPress ERC721Press to target     
     function getListingsForCurator(address targetPress, address curator) external view override returns (Listing[] memory activeListings) {
         unchecked {
