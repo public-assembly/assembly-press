@@ -14,7 +14,7 @@ import {ERC1155EditionRenderer} from "../src/token/ERC1155/strategies/editions/m
 contract DeployCore is Script {
 
     address paTreasuryAddress = 0x8330E78222619FD26A9FBCbEbAeb21339838bD30;
-    address secondaryOwnerAddress = 0xE7746f79bF98e685e6a1ac80D74d2935431041d5;
+    address secondaryOwnerAddress = 0x153D2A196dc8f1F6b9Aa87241864B3e4d4FEc170;
 
     function setUp() public {}
 
@@ -24,17 +24,17 @@ contract DeployCore is Script {
 
         vm.startBroadcast(deployerPrivateKey);        
 
-        // IERC1155Press erc1155Press = new ERC1155Press();        
+        IERC1155Press erc1155Press = new ERC1155Press();        
 
         ERC1155EditionContractLogic contractLogic = new ERC1155EditionContractLogic();
 
-        // ERC1155EditionTokenLogic tokenLogic = new ERC1155EditionTokenLogic();
+        ERC1155EditionTokenLogic tokenLogic = new ERC1155EditionTokenLogic();
 
-        // ERC1155EditionRenderer tokenRenderer = new ERC1155EditionRenderer();
+        ERC1155EditionRenderer tokenRenderer = new ERC1155EditionRenderer();
 
-        // ERC1155PressFactory erc1155Factory = new ERC1155PressFactory(address(erc1155Press));
+        ERC1155PressFactory erc1155Factory = new ERC1155PressFactory(address(erc1155Press));
 
-        // ERC1155PressFactoryProxy factoryProxy = new ERC1155PressFactoryProxy(address(erc1155Factory), paTreasuryAddress, secondaryOwnerAddress);
+        ERC1155PressFactoryProxy factoryProxy = new ERC1155PressFactoryProxy(address(erc1155Factory), paTreasuryAddress, secondaryOwnerAddress);
 
         vm.stopBroadcast();
     }
