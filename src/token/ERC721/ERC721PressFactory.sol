@@ -60,7 +60,7 @@ contract ERC721PressFactory is IERC721PressFactory, DualOwnableUpgradeable, UUPS
 
         pressImpl = _pressImpl;
 
-        emit PressInitialized(pressImpl);
+        emit PressImplementationSet(pressImpl);
     }
 
     /// @notice Initializes the proxy behind `ERC721PressFactory.sol`
@@ -100,6 +100,16 @@ contract ERC721PressFactory is IERC721PressFactory, DualOwnableUpgradeable, UUPS
     ) public returns (address) {
         /// Configure ownership details in proxy constructor
         ERC721PressProxy newPress = new ERC721PressProxy(pressImpl, "");
+
+        /// Emit creation event from factory
+        emit Create721Press({
+            newPress: address(newPress),
+            creator: msg.sender,
+            initialOwner: initialOwner,
+            initialLogic: address(logic) ,
+            initialRenderer: address(renderer),
+            soulbound: soulbound
+        });
 
         /// Initialize the new Press instance
         ERC721Press(payable(address(newPress))).initialize({

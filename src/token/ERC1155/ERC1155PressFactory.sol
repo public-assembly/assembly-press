@@ -57,7 +57,7 @@ contract ERC1155PressFactory is IERC1155PressFactory, DualOwnableUpgradeable, UU
 
         pressImpl = _pressImpl;
 
-        emit PressInitialized(pressImpl);
+        emit PressImplementationSet(pressImpl);
     }
 
     /// @notice Initializes the proxy behind `ERC1155PressFactory.sol`
@@ -86,15 +86,20 @@ contract ERC1155PressFactory is IERC1155PressFactory, DualOwnableUpgradeable, UU
         address initialOwner,
         IERC1155PressContractLogic logic,
         bytes memory logicInit
-    ) public returns (address payable newPressAddress) {
+    ) public returns (address) {
         /// Configure ownership details in proxy constructor
         ERC1155PressProxy newPress = new ERC1155PressProxy(pressImpl, "");
 
-        /// Declare a new variable to track contract creation
-        newPressAddress = payable(address(newPress));
+        /// Emit creation event from factory        
+        emit Create1155Press({
+            newPress: address(newPress),
+            creator: msg.sender,
+            initialOwner: initialOwner,
+            contractLogic: address(logic) 
+        });
 
         /// Initialize the new Press instance
-        ERC1155Press(newPressAddress).initialize({
+        ERC1155Press(payable(address(newPress))).initialize({
             _name: name,
             _symbol: symbol,
             _initialOwner: initialOwner,
@@ -102,7 +107,7 @@ contract ERC1155PressFactory is IERC1155PressFactory, DualOwnableUpgradeable, UU
             _contractLogicInit: logicInit
         });
         
-        return newPressAddress;
+        return address(newPress);
     }
 
     /// @dev Can only be called by the contract owner

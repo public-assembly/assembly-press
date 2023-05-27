@@ -43,11 +43,19 @@ interface IERC1155PressFactory {
     // ||| EVENTS |||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    /// @notice Emitted when a Press instance is initialized
-    event PressInitialized(address indexed pressImpl);
+    /// @notice Emitted when the underlying Press impl is set in constructor
+    event PressImplementationSet(address indexed pressImpl);
 
     /// @notice Emitted when the PressFactory is initialized
     event PressFactoryInitialized();
+
+    /// @notice Emitted when a new Press is created
+    event Create1155Press(
+      address indexed newPress,
+      address indexed creator,
+      address indexed initialOwner,
+      address contractLogic
+    );      
 
     // ||||||||||||||||||||||||||||||||
     // ||| FUNCTIONS ||||||||||||||||||
@@ -63,5 +71,5 @@ interface IERC1155PressFactory {
       address _initialOwner,
       IERC1155PressContractLogic _logic,
       bytes memory _logicInit
-    ) external returns (address payable newPressAddress);
+    ) external returns (address);
 }
