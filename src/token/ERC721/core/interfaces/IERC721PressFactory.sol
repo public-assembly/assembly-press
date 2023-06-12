@@ -46,12 +46,22 @@ interface IERC721PressFactory {
   // ||| EVENTS |||||||||||||||||||||
   // ||||||||||||||||||||||||||||||||
 
-  /// @notice Emitted when a Press instance is initialized
-  event PressInitialized(address indexed pressImpl);
+  /// @notice Emitted when the underlying Press impl is set in constructor
+  event PressImplementationSet(address indexed pressImpl);
 
   /// @notice Emitted when the PressFactory is initialized
   event PressFactoryInitialized();
 
+  /// @notice Emitted when a new Press is created
+  event Create721Press(
+    address indexed newPress,
+    address creator,
+    address indexed initialOwner,
+    address indexed initialLogic,
+    address initialRenderer,
+    bool soulbound
+  );  
+  
   // ||||||||||||||||||||||||||||||||
   // ||| FUNCTIONS ||||||||||||||||||
   // ||||||||||||||||||||||||||||||||

@@ -18,7 +18,7 @@ import {IAccessControl} from "../src/token/ERC721/core/interfaces/IAccessControl
 contract DeployCore is Script {
 
     address paTreasuryAddress = 0x8330E78222619FD26A9FBCbEbAeb21339838bD30;
-    address secondaryOwnerAddress = 0xE7746f79bF98e685e6a1ac80D74d2935431041d5;
+    address secondaryOwnerAddress = 0x153D2A196dc8f1F6b9Aa87241864B3e4d4FEc170;
 
     function setUp() public {}
 
