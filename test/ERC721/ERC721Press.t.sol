@@ -130,17 +130,13 @@ contract ERC721PressTest is ERC721PressConfig {
         vm.stopPrank();    
         vm.startPrank(CURATOR_1);
         ICurationLogic.Listing[] memory listings = new ICurationLogic.Listing[](2);        
-        listings[0].curatedAddress = address(0x111);
-        listings[0].selectedTokenId = 1;
-        listings[0].curator = CURATOR_1;
-        listings[0].curationTargetType = 4; // curationType = NFT Item
+        listings[0].listingAddress = address(0x111);
+        listings[0].tokenId = 1;
         listings[0].sortOrder = 1;
         listings[0].hasTokenId = true;
         listings[0].chainId = 1;
-        listings[1].curatedAddress = address(0x333);
-        listings[1].selectedTokenId = 0;
-        listings[1].curator = CURATOR_1;
-        listings[1].curationTargetType = 1; // curationType = NFT Contract
+        listings[1].listingAddress = address(0x333);
+        listings[1].tokenId = 0;
         listings[1].sortOrder = -1;
         listings[1].hasTokenId = false;
         listings[1].chainId = 1;        
@@ -151,16 +147,15 @@ contract ERC721PressTest is ERC721PressConfig {
         // console2.log(erc721Press.contractURI());
         // console2.log(erc721Press.tokenURI(1));
 
-        require(ICurationLogic(address(erc721Press.getLogic())).getListing(address(erc721Press), 2).curator == CURATOR_1, "listing added incorrectly");
+        require(erc721Press.ownerOf(1) == CURATOR_1, "listing added incorrectly");
+        require(erc721Press.ownerOf(2) == CURATOR_1, "listing added incorrectly");
         require(ICurationLogic(address(erc721Press.getLogic())).getListings(address(erc721Press)).length == 2, "listings added incorrectly");        
         vm.stopPrank();
         // switching personas to test getListingsForCurator function
         vm.startPrank(CURATOR_2);
         ICurationLogic.Listing[] memory listings_2 = new ICurationLogic.Listing[](1);            
-        listings_2[0].curatedAddress = address(0x444);
-        listings_2[0].selectedTokenId = 0;
-        listings_2[0].curator = CURATOR_2;
-        listings_2[0].curationTargetType = 1; // curationType = NFT Contract
+        listings_2[0].listingAddress = address(0x444);
+        listings_2[0].tokenId = 0;
         listings_2[0].sortOrder = 3;
         listings_2[0].hasTokenId = false;
         listings_2[0].chainId = 4;          
@@ -175,17 +170,13 @@ contract ERC721PressTest is ERC721PressConfig {
         vm.stopPrank();        
         vm.startPrank(CURATOR_1);
         ICurationLogic.Listing[] memory listings = new ICurationLogic.Listing[](2);        
-        listings[0].curatedAddress = address(0x111);
-        listings[0].selectedTokenId = 1;
-        listings[0].curator = CURATOR_1;
-        listings[0].curationTargetType = 4; // curationType = NFT Item
+        listings[0].listingAddress = address(0x111);
+        listings[0].tokenId = 1;
         listings[0].sortOrder = 1;
         listings[0].hasTokenId = true;
         listings[0].chainId = 1;
-        listings[1].curatedAddress = address(0x333);
-        listings[1].selectedTokenId = 0;
-        listings[1].curator = CURATOR_1;
-        listings[1].curationTargetType = 1; // curationType = NFT Contract
+        listings[1].listingAddress = address(0x333);
+        listings[1].tokenId = 0;
         listings[1].sortOrder = -1;
         listings[1].hasTokenId = false;
         listings[1].chainId = 1;        
@@ -220,10 +211,8 @@ contract ERC721PressTest is ERC721PressConfig {
         vm.stopPrank();                
         vm.startPrank(CURATOR_1);
         ICurationLogic.Listing[] memory listings = new ICurationLogic.Listing[](1);        
-        listings[0].curatedAddress = address(0x111);
-        listings[0].selectedTokenId = 1;
-        listings[0].curator = CURATOR_1;
-        listings[0].curationTargetType = 4; // curationType = NFT Item
+        listings[0].listingAddress = address(0x111);
+        listings[0].tokenId = 1;
         listings[0].sortOrder = 1;
         listings[0].hasTokenId = true;
         listings[0].chainId = 1;
@@ -242,17 +231,13 @@ contract ERC721PressTest is ERC721PressConfig {
         vm.deal(CURATOR_1, 0.03 ether);
         vm.startPrank(CURATOR_1);
         ICurationLogic.Listing[] memory listings = new ICurationLogic.Listing[](2);        
-        listings[0].curatedAddress = address(0x111);
-        listings[0].selectedTokenId = 1;
-        listings[0].curator = CURATOR_1;
-        listings[0].curationTargetType = 4; // curationType = NFT Item
+        listings[0].listingAddress = address(0x111);
+        listings[0].tokenId = 1;
         listings[0].sortOrder = 1;
         listings[0].hasTokenId = true;
         listings[0].chainId = 1;
-        listings[1].curatedAddress = address(0x333);
-        listings[1].selectedTokenId = 0;
-        listings[1].curator = CURATOR_1;
-        listings[1].curationTargetType = 1; // curationType = NFT Contract
+        listings[1].listingAddress = address(0x333);
+        listings[1].tokenId = 0;
         listings[1].sortOrder = -1;
         listings[1].hasTokenId = false;
         listings[1].chainId = 1;        
@@ -289,17 +274,13 @@ contract ERC721PressTest is ERC721PressConfig {
         vm.deal(CURATOR_1, 0.03 ether);
         vm.startPrank(CURATOR_1);
         ICurationLogic.Listing[] memory listings = new ICurationLogic.Listing[](2);        
-        listings[0].curatedAddress = address(0x111);
-        listings[0].selectedTokenId = 1;
-        listings[0].curator = CURATOR_1;
-        listings[0].curationTargetType = 4; // curationType = NFT Item
+        listings[0].listingAddress = address(0x111);
+        listings[0].tokenId = 1;
         listings[0].sortOrder = 1;
         listings[0].hasTokenId = true;
         listings[0].chainId = 1;
-        listings[1].curatedAddress = address(0x333);
-        listings[1].selectedTokenId = 0;
-        listings[1].curator = CURATOR_1;
-        listings[1].curationTargetType = 1; // curationType = NFT Contract
+        listings[1].listingAddress = address(0x333);
+        listings[1].tokenId = 0;
         listings[1].sortOrder = -1;
         listings[1].hasTokenId = false;
         listings[1].chainId = 1;        

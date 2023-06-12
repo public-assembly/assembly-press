@@ -44,13 +44,6 @@ import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 contract CurationMetadataRenderer is IERC721PressRenderer {
     function initializeWithData(bytes memory initData) public {}
 
-    enum RenderingType {
-        CURATION,
-        NFT,
-        CONTRACT,
-        ADDRESS
-    }
-
     function makeHSL(
         uint16 h,
         uint16 s,
@@ -75,7 +68,6 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
     }
 
     function generateGridForAddress(
-        RenderingType types,
         address targetPress,
         address owner
     ) public view returns (string memory) {
@@ -83,22 +75,7 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
 
         uint256 squares = 0;
         uint256 freqDiv = 23;
-        uint256 hue = 0;
-
-        if (types == RenderingType.NFT) {
-            squares = 4;
-            freqDiv = 23;
-            hue = 168;
-            saturationOuter = _getTotalSupplySaturation(targetPress);
-        }
-
-        if (types == RenderingType.ADDRESS) {
-            hue = 317;
-        }
-
-        if (types == RenderingType.CURATION) {
-            hue = 120;
-        }
+        uint256 hue = 168;
 
         string memory svgInner = string.concat(
             CurationMetadataBuilder._makeSquare({ size: 720, x: 0, y: 0, color: makeHSL({ h: 317, s: saturationOuter, l: 30 }) }),
@@ -141,7 +118,7 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
         items[1].quote = true;
         items[2].key = MetadataJSONKeys.keyImage;
         items[2].quote = true;
-        items[2].value = generateGridForAddress(RenderingType.CURATION, msg.sender, press.owner());
+        items[2].value = generateGridForAddress(msg.sender, press.owner());
 
         return MetadataBuilder.generateEncodedJSON(items);
     }
@@ -151,49 +128,27 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
         ICurationLogic curator = ICurationLogic(address(IERC721Press(msg.sender).getLogic()));
 
         MetadataBuilder.JSONItem[] memory items = new MetadataBuilder.JSONItem[](4);
-        MetadataBuilder.JSONItem[] memory properties = new MetadataBuilder.JSONItem[](8);
+        MetadataBuilder.JSONItem[] memory properties = new MetadataBuilder.JSONItem[](7);
         ICurationLogic.Listing memory listing = curator.getListing(msg.sender, tokenId);
-    
-        RenderingType renderingType = RenderingType.ADDRESS;
-        properties[0].key = "type";
-        properties[0].value = "address";
-        properties[0].quote = true;                    
-
-        if (listing.curationTargetType == curator.CURATION_TYPE_NFT_ITEM()) {
-            renderingType = RenderingType.NFT;
-            properties[0].key = "type";
-            properties[0].value = "nftItem";
-        } else if (listing.curationTargetType == curator.CURATION_TYPE_NFT_CONTRACT()) {
-            renderingType = RenderingType.CONTRACT;
-            properties[0].key = "type";
-            properties[0].value = "nftContract";
-        } else if (listing.curationTargetType == curator.CURATION_TYPE_CURATION_CONTRACT()) {
-            renderingType = RenderingType.CURATION;
-            properties[0].key = "type";
-            properties[0].value = "curationContract";
-        }
 
         properties[1].key = "contract";
-        properties[1].value = Strings.toHexString(listing.curatedAddress);
+        properties[1].value = Strings.toHexString(listing.listingAddress);
         properties[1].quote = true;
         properties[2].key = "selectedTokenId";
-        properties[2].value = Strings.toString(listing.selectedTokenId);
+        properties[2].value = Strings.toString(listing.tokenId);
         properties[2].quote = true;        
         properties[3].key = "curator";
-        properties[3].value = Strings.toHexString(listing.curator);
-        properties[3].quote = true;            
-        properties[4].key = "curationTargetType";
-        properties[4].value = Strings.toString(listing.curationTargetType);
-        properties[4].quote = true;                  
-        properties[5].key = "sortOrder";
-        properties[5].value = sortOrderConverter(listing.sortOrder);
-        properties[5].quote = true; 
-        properties[6].key = "hasTokenId";
-        properties[6].value = hasTokenIdConverter(listing.hasTokenId);
-        properties[6].quote = true;        
-        properties[7].key = "chainId";
-        properties[7].value = Strings.toString(listing.chainId);
-        properties[7].quote = true;    
+        properties[3].value = Strings.toHexString(ERC721Press(payable(msg.sender)).ownerOf(tokenId));
+        properties[3].quote = true;                          
+        properties[4].key = "sortOrder";
+        properties[4].value = sortOrderConverter(listing.sortOrder);
+        properties[4].quote = true; 
+        properties[5].key = "hasTokenId";
+        properties[5].value = hasTokenIdConverter(listing.hasTokenId);
+        properties[5].quote = true;        
+        properties[6].key = "chainId";
+        properties[6].value = Strings.toString(listing.chainId);
+        properties[6].quote = true;    
 
         items[0].key = MetadataJSONKeys.keyName;
         items[0].value = string.concat("Curation Receipt #", Strings.toString(tokenId));
@@ -201,14 +156,14 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
         items[1].key = MetadataJSONKeys.keyDescription;
         items[1].value = string.concat(
             "This non-transferable NFT represents a listing curated by ",
-            Strings.toHexString(listing.curator),
+            Strings.toHexString(ERC721Press(payable(msg.sender)).ownerOf(tokenId)),
             "\\n\\nYou can remove this record of curation by burning the NFT. "
             "\\n\\nThis curation protocol is a project of Public Assembly."
             "\\n\\nTo learn more, visit: https://public---assembly.com/"
         );
         items[1].quote = true;
         items[2].key = MetadataJSONKeys.keyImage;
-        items[2].value = generateGridForAddress(renderingType, msg.sender, listing.curator);
+        items[2].value = generateGridForAddress(msg.sender, ERC721Press(payable(msg.sender)).ownerOf(tokenId));
         items[2].quote = true;
         items[3].key = MetadataJSONKeys.keyProperties;
         items[3].value = MetadataBuilder.generateJSON(properties);

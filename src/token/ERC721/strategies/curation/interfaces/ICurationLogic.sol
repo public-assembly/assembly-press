@@ -13,24 +13,20 @@ interface ICurationLogic {
      * Struct breakdown. Values in parentheses are bytes.
      *
      * First slot
-     * curatedAddress (20) + selectedTokenId (12) = 32 bytes
-     * Second slot (with 3 bytes padding)
-     * curator (20) + sortOrder (4) + chainId (2) + curationTargetType (2) + hasTokenId (1) = 29 bytes
+     * chainId (16) + tokenId (16) = 32 bytes   
+     * Second slot (with 6 bytes padding)
+     * listingAddress (20) + sortOrder (4) + hasTokenId (1) = 26 bytes
      */
     struct Listing {
-        /// @notice Address that is curated
-        address curatedAddress;
-        /// @notice Token ID that is selected (see `hasTokenId` to see if this applies)
-        uint96 selectedTokenId;
-        /// @notice Address that curated this entry
-        address curator;
+        /// @notice ChainID for curated address
+        uint128 chainId;
+        /// @notice Token ID being curated (see `hasTokenId` to see if this applies)
+        uint128 tokenId;        
+        /// @notice Address being curated
+        address listingAddress;
         /// @notice Optional sort order, can be negative. Utilized optionally like css z-index for sorting.
         int32 sortOrder;
-        /// @notice ChainID for curated contract
-        uint16 chainId;
-        /// @notice Curation type (see public getters on contract for list of types)
-        uint16 curationTargetType;
-        /// @notice If the token ID applies to the curation (can be whole contract or a specific tokenID)
+        /// @notice If the token ID value is relavant to the listing
         bool hasTokenId;
     }
 
@@ -68,24 +64,6 @@ interface ICurationLogic {
     // ||| FUNCTIONS ||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    /// @notice Convience getter for Generic/unknown types (default 0). Used for metadata as well.
-    function CURATION_TYPE_GENERIC() external view returns (uint16);
-
-    /// @notice Convience getter for NFT contract types. Used for metadata as well.
-    function CURATION_TYPE_NFT_CONTRACT() external view returns (uint16);
-
-    /// @notice Convience getter for generic contract types. Used for metadata as well.
-    function CURATION_TYPE_CONTRACT() external view returns (uint16);
-
-    /// @notice Convience getter for curation contract types. Used for metadata as well.
-    function CURATION_TYPE_CURATION_CONTRACT() external view returns (uint16);
-
-    /// @notice Convience getter for NFT item types. Used for metadata as well.
-    function CURATION_TYPE_NFT_ITEM() external view returns (uint16);
-
-    /// @notice Convience getter for wallet types. Used for metadata as well.
-    function CURATION_TYPE_WALLET() external view returns (uint16);
-
     /// @notice Getter for a single listing id
     function getListing(
         address targetPress,
@@ -95,13 +73,6 @@ interface ICurationLogic {
     /// @notice Getter for a all listings
     function getListings(
         address targetPress
-    ) external view returns (Listing[] memory activeListings);
-
-    /// @dev Getter for acessing Listing information for all active listings
-    /// @param targetPress ERC721Press to target
-    function getListingsForCurator(
-        address targetPress,
-        address curator
     ) external view returns (Listing[] memory activeListings);
 
     // ||||||||||||||||||||||||||||||||
@@ -184,11 +155,6 @@ interface ICurationLogic {
     error No_Freeze_Access();
     /// @notice msg.sender does not have sort order access for given Press
     error No_SortOrder_Access();
-    /// @notice Wrong curator for the listing when attempting to access the listing.
-    error WRONG_CURATOR_FOR_LISTING(
-        address setCurator,
-        address expectedCurator
-    );
     /// @notice Access not allowed by given user
     error ACCESS_NOT_ALLOWED();
 

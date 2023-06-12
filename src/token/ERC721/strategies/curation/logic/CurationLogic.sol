@@ -240,7 +240,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         (Listing[] memory listings) = abi.decode(logicData, (Listing[]));
         
         // msg.sender must be the ERC721Press contract in this instance
-        _addListings(msg.sender, updateSender, listings); 
+        _addListings(msg.sender, listings); 
     }    
 
     /// @dev Getter for acessing Listing information for a specific tokenId
@@ -269,32 +269,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
                 ++activeIndex;
             }
         }
-    }
-
-    /// @dev Getter for acessing Listing information for all active listings by a certain curator
-    /// @param targetPress ERC721Press to target     
-    function getListingsForCurator(address targetPress, address curator) external view override returns (Listing[] memory activeListings) {
-        unchecked {
-            activeListings = new Listing[](configInfo[targetPress].numAdded - configInfo[targetPress].numRemoved);
-
-            // first tokenId in ERC721Press impl is #1
-            uint256 activeIndex = 1;
-
-            for (uint256 i; i < configInfo[targetPress].numAdded; ++i) {
-                // skip this listing if curator has burned the token (sent to zero address)
-                if (ERC721Press(payable(targetPress)).ownerOf(activeIndex) == address(0)) {
-                    continue;
-                }
-                // skip listing if inputted curator address doesnt equal curator for listing
-                if (idToListing[targetPress][i].curator != curator) {       
-                    continue;
-                }
-
-                activeListings[activeIndex-1] = idToListing[targetPress][i];
-                ++activeIndex;
-            }
-        }
-    }    
+    } 
 
     /// @dev Allows contract owner to update the ERC721 Curation Pass being used to restrict access to curation functionality
     /// @param targetPress address of Press to target
@@ -324,15 +299,9 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
 
     /// @dev Allows owner or curator to curate Listings --> which mints a listingRecord token to the msg.sender
     /// @param listings array of Listing structs
-    function _addListings(address targetPress, address curator, Listing[] memory listings) internal {                          
+    function _addListings(address targetPress, Listing[] memory listings) internal {                          
 
         for (uint256 i = 0; i < listings.length; ++i) {
-            if (listings[i].curator != curator) {
-                revert WRONG_CURATOR_FOR_LISTING(listings[i].curator, curator);
-            }
-            if (listings[i].chainId == 0) {
-                listings[i].chainId = uint16(block.chainid);
-            }
             idToListing[targetPress][configInfo[targetPress].numAdded] = listings[i];                    
             ++configInfo[targetPress].numAdded;            
         }
