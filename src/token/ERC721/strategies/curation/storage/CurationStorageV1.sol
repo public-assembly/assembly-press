@@ -23,7 +23,7 @@ abstract contract CurationStorageV1 is ICurationLogic {
     uint16 public constant ADMIN = 3; 
 
     // Bytes length of encoded listing struct
-    uint16 public constant LISTING_SIZE = 57;
+    uint16 public constant LISTING_SIZE = 160;
 
     /// @notice Storage gap
     uint256[49] __gap;

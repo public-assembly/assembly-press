@@ -444,7 +444,6 @@ contract ERC721Press is
 
     function locked(uint256 tokenId) external virtual override(IERC5192, IERC721Press) view returns (bool) {
         // if soulbound == true, return true (IS SOULBOUND)
-        if (tokenId > 1000000) return false;
         if (_isSoulbound == true) {
             return true;
         } else {

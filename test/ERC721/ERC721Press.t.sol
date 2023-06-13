@@ -123,7 +123,8 @@ contract ERC721PressTest is ERC721PressConfig {
         require(curationLogic.isPaused(address(erc721Press)) == false, "not correct");
     }
 
-    // mintWithData test doubles as a test for addListing call on CurationLogic 
+    // mintWithData test doubles as a test for making sure data is being encoded/decoded correctly
+    //      data passing is being tested with curation logic in this test
     function test_mintWithData() public setUpPressCurationLogic {      
         vm.startPrank(INITIAL_OWNER);  
         curationLogic.setCurationPaused(address(erc721Press), false);
@@ -139,8 +140,7 @@ contract ERC721PressTest is ERC721PressConfig {
         listings[1].tokenId = 0;
         listings[1].sortOrder = -1;
         listings[1].hasTokenId = false;
-        listings[1].chainId = 1;        
-        // bytes memory encodedListings = abi.encode(listings);
+        listings[1].chainId = 5;        
         bytes memory encodedListings = encodeListingArray(listings);        
         erc721Press.mintWithData(2, encodedListings);
 
@@ -148,43 +148,66 @@ contract ERC721PressTest is ERC721PressConfig {
         // console2.log(erc721Press.contractURI());
         // console2.log(erc721Press.tokenURI(1));
 
-        require(erc721Press.ownerOf(1) == CURATOR_1, "listing added incorrectly");
-        require(erc721Press.ownerOf(2) == CURATOR_1, "listing added incorrectly");
+        require(erc721Press.ownerOf(1) == CURATOR_1, "mint recipient incorrect");
+        require(erc721Press.ownerOf(2) == CURATOR_1, "mint recipient incorrect");
+        require(ICurationLogic(address(erc721Press.getLogic())).getListings(address(erc721Press)).length == 2, "listings added incorrectly");  
 
-        // (
-        //     ICurationLogic.Listing[] memory x
-        //     // uint128 a,
-        //     // uint128 b,
-        //     // address c,
-        //     // int32 d,
-        //     // bool e
-        // ) = ICurationLogic(address(erc721Press.getLogic())).getListings(address(erc721Press));
+        (ICurationLogic.Listing[] memory arrayOfListings) = ICurationLogic(address(erc721Press.getLogic())).getListings(address(erc721Press));
 
-        (
-            ICurationLogic.Listing memory x
-            // uint128 a,
-            // uint128 b,
-            // address c,
-            // int32 d,
-            // bool e
-        ) = ICurationLogic(address(erc721Press.getLogic())).getListing(address(erc721Press), 1);        
+        {
+            (
+                address listingAddress_1,
+                uint128 tokenId_1,
+                int32 sortOrder_1,
+                bool hasTokenId_1,
+                uint128 chainId_1           
+            ) = (
+                arrayOfListings[0].listingAddress,
+                arrayOfListings[0].tokenId,
+                arrayOfListings[0].sortOrder,
+                arrayOfListings[0].hasTokenId,
+                arrayOfListings[0].chainId         
+            );
+            require(listingAddress_1 == address(0x111), "listingAddress not passed correctly");
+            require(tokenId_1 == 1, "tokenId not passed correctly");
+            require(sortOrder_1 == 1, "sortOrder not passed correctly");
+            require(hasTokenId_1 == true, "hasToken not passed correctly");
+            require(chainId_1 == 1, "chainId not passed correctly");
+        }
 
-        console2.log("what is adddress", x.listingAddress);
-        // console2.log("what is a", a);
-        // require(ICurationLogic(address(erc721Press.getLogic())).getListings(address(erc721Press)).length == 2, "listings added incorrectly");        
-        // vm.stopPrank();
-        // // switching personas to test getListingsForCurator function
-        // vm.startPrank(CURATOR_2);
-        // ICurationLogic.Listing[] memory listings_2 = new ICurationLogic.Listing[](1);            
-        // listings_2[0].listingAddress = address(0x444);
-        // listings_2[0].tokenId = 0;
-        // listings_2[0].sortOrder = 3;
-        // listings_2[0].hasTokenId = false;
-        // listings_2[0].chainId = 4;          
-        // // bytes memory encodedListings_2 = abi.encode(listings_2);
-        // bytes memory encodedListings_2 = encodeListingArray(listings_2);
-        // erc721Press.mintWithData(1, encodedListings_2);
-        // require(erc721Press.ownerOf(3) == CURATOR_2, "minted incorrectly");
+        {
+            (
+                address listingAddress_2,
+                uint128 tokenId_2,
+                int32 sortOrder_2,
+                bool hasTokenId_2,
+                uint128 chainId_2            
+            ) = (
+                arrayOfListings[1].listingAddress,
+                arrayOfListings[1].tokenId,
+                arrayOfListings[1].sortOrder,
+                arrayOfListings[1].hasTokenId,
+                arrayOfListings[1].chainId            
+            );
+            require(listingAddress_2 == address(0x333), "listingAddress not passed correctly");
+            require(tokenId_2 == 0, "tokenId not passed correctly");
+            require(sortOrder_2 == -1, "sortOrder not passed correctly");
+            require(hasTokenId_2 == false, "hasToken not passed correctly");
+            require(chainId_2 == 5, "chainId not passed correctly");            
+        }        
+ 
+        vm.stopPrank();
+        vm.startPrank(CURATOR_2);
+
+        ICurationLogic.Listing[] memory listings_2 = new ICurationLogic.Listing[](1);            
+        listings_2[0].listingAddress = address(0x444);
+        listings_2[0].tokenId = 0;
+        listings_2[0].sortOrder = 3;
+        listings_2[0].hasTokenId = false;
+        listings_2[0].chainId = 4;          
+        bytes memory encodedListings_2 = encodeListingArray(listings_2);
+        erc721Press.mintWithData(1, encodedListings_2);
+        require(erc721Press.ownerOf(3) == CURATOR_2, "mint recipient incorrect");
     }
 
     function test_burn() public setUpPressCurationLogic {
@@ -203,7 +226,7 @@ contract ERC721PressTest is ERC721PressConfig {
         listings[1].sortOrder = -1;
         listings[1].hasTokenId = false;
         listings[1].chainId = 1;        
-        bytes memory encodedListings = abi.encode(listings);
+        bytes memory encodedListings = encodeListingArray(listings);    
         erc721Press.mintWithData(2, encodedListings);
         require(erc721Press.ownerOf(1) == CURATOR_1, "minted incorrectly");    
         vm.stopPrank();
@@ -239,7 +262,7 @@ contract ERC721PressTest is ERC721PressConfig {
         listings[0].sortOrder = 1;
         listings[0].hasTokenId = true;
         listings[0].chainId = 1;
-        bytes memory encodedListings = abi.encode(listings);
+        bytes memory encodedListings = encodeListingArray(listings);    
         erc721Press.mintWithData(1, encodedListings);
         require(erc721Press.ownerOf(1) == CURATOR_1, "minted incorrectly");        
         vm.expectRevert();
@@ -264,8 +287,7 @@ contract ERC721PressTest is ERC721PressConfig {
         listings[1].sortOrder = -1;
         listings[1].hasTokenId = false;
         listings[1].chainId = 1;        
-        // bytes memory encodedListings = abi.encode(listings);
-        bytes memory encodedListings = encodeListingArray(listings);
+        bytes memory encodedListings = encodeListingArray(listings);    
         require(CURATOR_1.balance == 0.03 ether, "incorrect balance");
         erc721Press.mintWithData{
             value: erc721Press.getLogic().totalMintPrice(
@@ -308,7 +330,7 @@ contract ERC721PressTest is ERC721PressConfig {
         listings[1].sortOrder = -1;
         listings[1].hasTokenId = false;
         listings[1].chainId = 1;        
-        bytes memory encodedListings = abi.encode(listings);
+        bytes memory encodedListings = encodeListingArray(listings);    
         erc721Press.mintWithData{
             value: erc721Press.getLogic().totalMintPrice(
                 address(erc721Press),
@@ -407,18 +429,18 @@ contract ERC721PressTest is ERC721PressConfig {
     }
 
 
-    // HELPERS 
+    // HELPERS FOR DATA ENCODING 
+    event encodedListingBytes (bytes theBytes, uint256 lengthBytes);
+
     function encodeListing(ICurationLogic.Listing memory _listing) public pure returns (bytes memory) {
-        return abi.encodePacked(
-            _listing.listingAddress,
-            _listing.tokenId,
-            _listing.sortOrder,
+        return abi.encode(
             _listing.chainId,
+            _listing.tokenId,
+            _listing.listingAddress,
+            _listing.sortOrder,
             _listing.hasTokenId
         );
-    }        
-
-    event encodedListingBytes (bytes theBytes, uint256 lengthBytes);
+    }            
 
     function encodeListingArray(ICurationLogic.Listing[] memory _listings) public returns (bytes memory) {
         bytes memory encodedListings;
@@ -427,5 +449,5 @@ contract ERC721PressTest is ERC721PressConfig {
             emit encodedListingBytes(encodeListing(_listings[i]), encodeListing(_listings[i]).length);
         }
         return encodedListings;
-    }        
+    }    
 }
