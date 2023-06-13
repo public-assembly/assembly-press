@@ -183,7 +183,4 @@ interface ICurationLogic {
     error INVALID_INPUT_LENGTH();
     /// @notice Curation limit can only be increased, not decreased.
     error CANNOT_UPDATE_CURATION_LIMIT_DOWN();
-
-    /// new
-    error INVALID_INPUT_DATA();
 }

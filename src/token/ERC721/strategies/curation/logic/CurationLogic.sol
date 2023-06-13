@@ -235,7 +235,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         if (configInfo[msg.sender].accessControl.getAccessLevel(msg.sender, updateSender) < CURATOR) {
             revert ACCESS_NOT_ALLOWED();
         }              
-
+        
         if (logicData.length % LISTING_SIZE != 0) {
             revert INVALID_INPUT_DATA();
         }
