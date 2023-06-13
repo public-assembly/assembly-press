@@ -10,7 +10,8 @@ abstract contract CurationStorageV1 is ICurationLogic {
 
     /// @notice address => Listing id => Listing struct mapping, listing IDs are 0 => upwards
     /// @dev Can contain blank entries (not garbage compacted!)
-    mapping(address => mapping(uint256 => Listing)) public idToListing;
+    // mapping(address => mapping(uint256 => Listing)) public idToListing;
+    mapping(address => mapping(uint256 => bytes)) public idToListing;
 
     /// @notice Press => config information
     mapping(address => Config) public configInfo;
@@ -20,6 +21,9 @@ abstract contract CurationStorageV1 is ICurationLogic {
     uint16 public constant CURATOR = 1;
     uint16 public constant MANAGER = 2;
     uint16 public constant ADMIN = 3; 
+
+    // Bytes length of encoded listing struct
+    uint16 public constant LISTING_SIZE = 57;
 
     /// @notice Storage gap
     uint256[49] __gap;

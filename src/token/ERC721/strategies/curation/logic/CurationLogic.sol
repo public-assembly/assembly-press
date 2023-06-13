@@ -36,6 +36,9 @@ import {CurationStorageV1} from "../storage/CurationStorageV1.sol";
 import {ICurationLogic} from "../interfaces/ICurationLogic.sol";
 import {IAccessControl} from "../../../core/interfaces/IAccessControl.sol";
 
+
+import {console2} from "forge-std/console2.sol";
+
 /**
 * @title CurationLogic
 * @notice CurationLogic for AssemblyPress architecture
@@ -228,26 +231,94 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     // ||| CURATION FUNCTIONS |||||||||
     // ||||||||||||||||||||||||||||||||    
 
+    // // function called by mintWithData function in ERC721Press mint call that
+    // // updates Press specific listings mapping in CurationStorageV1
+    // function updateLogicWithData(address updateSender, bytes memory logicData) external {
+    //     // Access control to prevent non curators/manager/admins from accessing
+    //     if (configInfo[msg.sender].accessControl.getAccessLevel(msg.sender, updateSender) < CURATOR) {
+    //         revert ACCESS_NOT_ALLOWED();
+    //     }              
+
+    //     // logicData: listings
+    //     (Listing[] memory listings) = abi.decode(logicData, (Listing[]));
+        
+    //     // msg.sender must be the ERC721Press contract in this instance
+    //     _addListings(msg.sender, listings); 
+    // }    
+
     // function called by mintWithData function in ERC721Press mint call that
     // updates Press specific listings mapping in CurationStorageV1
-    function updateLogicWithData(address updateSender, bytes memory logicData) external {
+    function updateLogicWithData(address updateSender, bytes calldata logicData) external {
         // Access control to prevent non curators/manager/admins from accessing
         if (configInfo[msg.sender].accessControl.getAccessLevel(msg.sender, updateSender) < CURATOR) {
             revert ACCESS_NOT_ALLOWED();
         }              
 
-        // logicData: listings
-        (Listing[] memory listings) = abi.decode(logicData, (Listing[]));
-        
-        // msg.sender must be the ERC721Press contract in this instance
-        _addListings(msg.sender, listings); 
-    }    
+        if (logicData.length % LISTING_SIZE != 0) {
+            revert INVALID_INPUT_DATA();
+        }
+
+        // calculate number of listings
+        uint256 numListings = logicData.length / LISTING_SIZE;
+
+        for (uint256 i; i < numListings; ++i) {
+            uint256 sliceStart = i * LISTING_SIZE;
+            _addListing(msg.sender, bytes(logicData[sliceStart: sliceStart + LISTING_SIZE]));
+
+        }
+    }        
+
+    /// @dev Allows owner or curator to curate Listings --> which mints a listingRecord token to the msg.sender
+    /// @param listing Listing struct encoded bytes
+    function _addListing(address targetPress, bytes memory listing) internal {                          
+
+            console2.log("targetPress", targetPress);
+            console2.log("length of bytes in _addListing", listing.length);
+            idToListing[targetPress][configInfo[targetPress].numAdded] = listing;                    
+            console2.log("length of bytes stored", idToListing[targetPress][configInfo[targetPress].numAdded].length);
+            // Listing memory checking = _bytesToListing(idToListing[targetPress][configInfo[targetPress].numAdded]);
+            ++configInfo[targetPress].numAdded;            
+    }       
+
+    function _bytesToListing(bytes memory data) internal view returns (Listing memory) {
+        (uint128 chainId, uint128 tokenId, address listingAddress, int32 sortOrder, bool hasTokenId)
+        = abi.decode(data, (uint128, uint128, address, int32, bool));
+
+        Listing memory listing = Listing({
+            chainId: chainId,
+            tokenId: tokenId,
+            listingAddress: listingAddress,
+            sortOrder: sortOrder,
+            hasTokenId: hasTokenId
+        });
+
+        return listing;
+    }
+
+    // function decodeListing(bytes memory data) public pure returns (Listing memory) {
+    //     (uint128 chainId, uint128 tokenId, address listingAddress, int32 sortOrder, bool hasTokenId)
+    //     = abi.decode(data, (uint128, uint128, address, int32, bool));
+
+    //     Listing memory listing = Listing(chainId, tokenId, listingAddress, sortOrder, hasTokenId);
+
+    //     return listing;
+    // }    
+
+    function _listingToBytes(Listing memory inputListing) internal pure returns (bytes memory) {
+        return abi.encode(
+            inputListing.tokenId,
+            inputListing.hasTokenId,
+            inputListing.chainId,
+            inputListing.listingAddress,
+            inputListing.sortOrder
+        );   
+    }
 
     /// @dev Getter for acessing Listing information for a specific tokenId
     /// @param targetPress ERC721Press to target 
     /// @param tokenId tokenId to retrieve Listing info for 
     function getListing(address targetPress, uint256 tokenId) external view override returns (Listing memory) {
-        return idToListing[targetPress][tokenId-1];
+        return _bytesToListing(idToListing[targetPress][tokenId-1]);
     }
 
     /// @dev Getter for acessing Listing information for all active listings
@@ -264,8 +335,9 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
                 if (ERC721Press(payable(targetPress)).exists(activeIndex) != true) {
                     continue;
                 }
-
-                activeListings[activeIndex-1] = idToListing[targetPress][i];
+                console2.log("error here");
+                activeListings[activeIndex-1] = _bytesToListing(idToListing[targetPress][i]);
+                console2.log("or error here");
                 ++activeIndex;
             }
         }
@@ -297,16 +369,6 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         emit CurationPauseUpdated(msg.sender, targetPress, _setPaused);
     }
 
-    /// @dev Allows owner or curator to curate Listings --> which mints a listingRecord token to the msg.sender
-    /// @param listings array of Listing structs
-    function _addListings(address targetPress, Listing[] memory listings) internal {                          
-
-        for (uint256 i = 0; i < listings.length; ++i) {
-            idToListing[targetPress][configInfo[targetPress].numAdded] = listings[i];                    
-            ++configInfo[targetPress].numAdded;            
-        }
-    }
-
     /// @dev Allows owner or curator to curate Listings --> which mints listingRecords to the msg.sender
     /// @param targetPress address of target ERC721Press    
     /// @param tokenIds listingRecords to update SortOrders for    
@@ -334,7 +396,15 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
 
     // prevents non-owners from updating the SortOrder on a listingRecord they did not curate themselves 
     function _setSortOrder(address targetPress, uint256 listingId, int32 sortOrder) internal {
-        idToListing[targetPress][listingId].sortOrder = sortOrder;
+        
+        // convert listing bytes to listing struct and cache
+        Listing memory tempListing = _bytesToListing(idToListing[targetPress][listingId]);
+
+        // update sort order value of listing
+        tempListing.sortOrder = sortOrder;
+
+        // re encode listing struct to bytes and store
+        idToListing[targetPress][listingId] = _listingToBytes(tempListing);
     }
 
     /// @dev Allows contract owner to freeze all add/sort functionality starting from a given Unix timestamp

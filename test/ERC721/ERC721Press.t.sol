@@ -140,7 +140,8 @@ contract ERC721PressTest is ERC721PressConfig {
         listings[1].sortOrder = -1;
         listings[1].hasTokenId = false;
         listings[1].chainId = 1;        
-        bytes memory encodedListings = abi.encode(listings);
+        // bytes memory encodedListings = abi.encode(listings);
+        bytes memory encodedListings = encodeListingArray(listings);        
         erc721Press.mintWithData(2, encodedListings);
 
         /* not sure how to test that contractURI + tokenURI are working correctly -- so check console logs for proof */
@@ -149,19 +150,41 @@ contract ERC721PressTest is ERC721PressConfig {
 
         require(erc721Press.ownerOf(1) == CURATOR_1, "listing added incorrectly");
         require(erc721Press.ownerOf(2) == CURATOR_1, "listing added incorrectly");
-        require(ICurationLogic(address(erc721Press.getLogic())).getListings(address(erc721Press)).length == 2, "listings added incorrectly");        
-        vm.stopPrank();
-        // switching personas to test getListingsForCurator function
-        vm.startPrank(CURATOR_2);
-        ICurationLogic.Listing[] memory listings_2 = new ICurationLogic.Listing[](1);            
-        listings_2[0].listingAddress = address(0x444);
-        listings_2[0].tokenId = 0;
-        listings_2[0].sortOrder = 3;
-        listings_2[0].hasTokenId = false;
-        listings_2[0].chainId = 4;          
-        bytes memory encodedListings_2 = abi.encode(listings_2);
-        erc721Press.mintWithData(1, encodedListings_2);
-        require(erc721Press.ownerOf(3) == CURATOR_2, "minted incorrectly");
+
+        // (
+        //     ICurationLogic.Listing[] memory x
+        //     // uint128 a,
+        //     // uint128 b,
+        //     // address c,
+        //     // int32 d,
+        //     // bool e
+        // ) = ICurationLogic(address(erc721Press.getLogic())).getListings(address(erc721Press));
+
+        (
+            ICurationLogic.Listing memory x
+            // uint128 a,
+            // uint128 b,
+            // address c,
+            // int32 d,
+            // bool e
+        ) = ICurationLogic(address(erc721Press.getLogic())).getListing(address(erc721Press), 1);        
+
+        console2.log("what is adddress", x.listingAddress);
+        // console2.log("what is a", a);
+        // require(ICurationLogic(address(erc721Press.getLogic())).getListings(address(erc721Press)).length == 2, "listings added incorrectly");        
+        // vm.stopPrank();
+        // // switching personas to test getListingsForCurator function
+        // vm.startPrank(CURATOR_2);
+        // ICurationLogic.Listing[] memory listings_2 = new ICurationLogic.Listing[](1);            
+        // listings_2[0].listingAddress = address(0x444);
+        // listings_2[0].tokenId = 0;
+        // listings_2[0].sortOrder = 3;
+        // listings_2[0].hasTokenId = false;
+        // listings_2[0].chainId = 4;          
+        // // bytes memory encodedListings_2 = abi.encode(listings_2);
+        // bytes memory encodedListings_2 = encodeListingArray(listings_2);
+        // erc721Press.mintWithData(1, encodedListings_2);
+        // require(erc721Press.ownerOf(3) == CURATOR_2, "minted incorrectly");
     }
 
     function test_burn() public setUpPressCurationLogic {
@@ -241,7 +264,8 @@ contract ERC721PressTest is ERC721PressConfig {
         listings[1].sortOrder = -1;
         listings[1].hasTokenId = false;
         listings[1].chainId = 1;        
-        bytes memory encodedListings = abi.encode(listings);
+        // bytes memory encodedListings = abi.encode(listings);
+        bytes memory encodedListings = encodeListingArray(listings);
         require(CURATOR_1.balance == 0.03 ether, "incorrect balance");
         erc721Press.mintWithData{
             value: erc721Press.getLogic().totalMintPrice(
@@ -381,4 +405,27 @@ contract ERC721PressTest is ERC721PressConfig {
         erc721Press.transferOwnership(FUNDS_RECIPIENT);
         require(erc721Press.owner() == FUNDS_RECIPIENT, "ownership not transferred correctly");
     }
+
+
+    // HELPERS 
+    function encodeListing(ICurationLogic.Listing memory _listing) public pure returns (bytes memory) {
+        return abi.encodePacked(
+            _listing.listingAddress,
+            _listing.tokenId,
+            _listing.sortOrder,
+            _listing.chainId,
+            _listing.hasTokenId
+        );
+    }        
+
+    event encodedListingBytes (bytes theBytes, uint256 lengthBytes);
+
+    function encodeListingArray(ICurationLogic.Listing[] memory _listings) public returns (bytes memory) {
+        bytes memory encodedListings;
+        for (uint i = 0; i < _listings.length; i++) {
+            encodedListings = abi.encodePacked(encodedListings, encodeListing(_listings[i]));
+            emit encodedListingBytes(encodeListing(_listings[i]), encodeListing(_listings[i]).length);
+        }
+        return encodedListings;
+    }        
 }

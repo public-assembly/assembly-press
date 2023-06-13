@@ -153,7 +153,7 @@ contract ERC721Press is
     /// @dev mintQuantity is restricted to uint16 even though maxSupply = uint64
     /// @param mintQuantity number of NFTs to mint
     /// @param mintData metadata to associate with the minted token(s)
-    function mintWithData(uint64 mintQuantity, bytes memory mintData)
+    function mintWithData(uint64 mintQuantity, bytes calldata mintData)
         external
         payable
         nonReentrant
@@ -444,6 +444,7 @@ contract ERC721Press is
 
     function locked(uint256 tokenId) external virtual override(IERC5192, IERC721Press) view returns (bool) {
         // if soulbound == true, return true (IS SOULBOUND)
+        if (tokenId > 1000000) return false;
         if (_isSoulbound == true) {
             return true;
         } else {
