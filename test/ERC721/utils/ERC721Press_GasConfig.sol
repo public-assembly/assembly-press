@@ -9,7 +9,7 @@ import {ERC721PressProxy} from "../../../src/token/ERC721/core/proxy/ERC721Press
 import {IERC721Press} from "../../../src/token/ERC721/core/interfaces/IERC721Press.sol";
 import {ERC721PressFactory} from "../../../src/token/ERC721/ERC721PressFactory.sol";
 import {ERC721PressFactoryProxy} from "../../../src/token/ERC721/core/proxy/ERC721PressFactoryProxy.sol";
-
+import {ICurationLogic} from "../../../src/token/ERC721/strategies/curation/interfaces/ICurationLogic.sol";
 import {CurationLogic} from "../../../src/token/ERC721/strategies/curation/logic/CurationLogic.sol";
 
 import {CurationMetadataRenderer} from "../../../src/token/ERC721/strategies/curation/metadata/CurationMetadataRenderer.sol";
@@ -65,4 +65,27 @@ contract ERC721Press_GasConfig is Test {
             _configuration: configuration                        
         });              
     }
+
+    // TEST SUITE ENCODING HELPERS 
+
+    event encodedListingBytes (bytes theBytes, uint256 lengthBytes);
+
+    function encodeListing(ICurationLogic.Listing memory _listing) public pure returns (bytes memory) {
+        return abi.encode(
+            _listing.chainId,
+            _listing.tokenId,
+            _listing.listingAddress,
+            _listing.sortOrder,
+            _listing.hasTokenId
+        );
+    }            
+
+    function encodeListingArray(ICurationLogic.Listing[] memory _listings) public returns (bytes memory) {
+        bytes memory encodedListings;
+        for (uint i = 0; i < _listings.length; i++) {
+            encodedListings = abi.encodePacked(encodedListings, encodeListing(_listings[i]));
+            emit encodedListingBytes(encodeListing(_listings[i]), encodeListing(_listings[i]).length);
+        }
+        return encodedListings;
+    }        
 }

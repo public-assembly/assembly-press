@@ -8,9 +8,8 @@ import { ICurationLogic } from "../interfaces/ICurationLogic.sol";
  */
 abstract contract CurationStorageV1 is ICurationLogic {
 
-    /// @notice address => Listing id => Listing struct mapping, listing IDs are 0 => upwards
+    /// @notice address => Listing id => bytes (encoded listing struct) mapping, listing IDs are 0 => upwards
     /// @dev Can contain blank entries (not garbage compacted!)
-    // mapping(address => mapping(uint256 => Listing)) public idToListing;
     mapping(address => mapping(uint256 => bytes)) public idToListing;
 
     /// @notice Press => config information

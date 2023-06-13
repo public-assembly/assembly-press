@@ -134,7 +134,7 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
         properties[1].key = "contract";
         properties[1].value = Strings.toHexString(listing.listingAddress);
         properties[1].quote = true;
-        properties[2].key = "selectedTokenId";
+        properties[2].key = "tokenId";
         properties[2].value = Strings.toString(listing.tokenId);
         properties[2].quote = true;        
         properties[3].key = "curator";
