@@ -163,6 +163,8 @@ interface ICurationLogic {
     error Press_Not_Initialized();
     /// @notice Cannot set address to the zero address
     error Cannot_Set_Zero_Address();
+    /// @notice Data received by logic contract is not correct length
+    error Invalid_Input_Data_Length();    
     /// @notice Cannot check results for given mint params
     error Invalid_Mint_Config();
     /// @notice Protects maxSupply from breaking when swapping in new logic
@@ -179,8 +181,6 @@ interface ICurationLogic {
     error CURATION_FROZEN();
     /// @notice attempt to get owner of an unowned / burned token
     error TOKEN_HAS_NO_OWNER();
-    /// @notice Array input lengths don't match for sort orders
-    error INVALID_INPUT_LENGTH();
     /// @notice Curation limit can only be increased, not decreased.
     error CANNOT_UPDATE_CURATION_LIMIT_DOWN();
 }

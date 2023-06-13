@@ -35,6 +35,7 @@ import {ERC721Press} from "../../../ERC721Press.sol";
 import {CurationStorageV1} from "../storage/CurationStorageV1.sol";
 import {ICurationLogic} from "../interfaces/ICurationLogic.sol";
 import {IAccessControl} from "../../../core/interfaces/IAccessControl.sol";
+import "sstore2/SSTORE2.sol";
 
 /**
 * @title CurationLogic
@@ -237,7 +238,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         }              
         
         if (logicData.length % LISTING_SIZE != 0) {
-            revert INVALID_INPUT_DATA();
+            revert Invalid_Input_Data_Length();
         }
 
         // calculate number of listings
@@ -252,7 +253,8 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     /// @dev Allows owner or curator to curate Listings --> which mints a listingRecord token to the msg.sender
     /// @param listing Listing struct encoded bytes
     function _addListing(address targetPress, bytes calldata listing) internal {                          
-        idToListing[targetPress][configInfo[targetPress].numAdded] = listing;    
+        // idToListing[targetPress][configInfo[targetPress].numAdded] = listing;    
+        idToListing[targetPress][configInfo[targetPress].numAdded] = SSTORE2.write(listing);    
         ++configInfo[targetPress].numAdded;            
     }       
 
@@ -291,7 +293,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     /// @param targetPress ERC721Press to target 
     /// @param tokenId tokenId to retrieve Listing info for 
     function getListing(address targetPress, uint256 tokenId) external view override returns (Listing memory) {
-        return _bytesToListing(idToListing[targetPress][tokenId-1]);
+        return _bytesToListing(SSTORE2.read(idToListing[targetPress][tokenId-1]));
     }
 
     /// @dev Getter for acessing Listing information for all active listings
@@ -308,7 +310,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
                 if (ERC721Press(payable(targetPress)).exists(activeIndex) != true) {
                     continue;
                 }
-                activeListings[activeIndex-1] = _bytesToListing(idToListing[targetPress][i]);
+                activeListings[activeIndex-1] = _bytesToListing(SSTORE2.read(idToListing[targetPress][i]));
                 ++activeIndex;
             }
         }
@@ -352,7 +354,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         
         // prevents users from submitting invalid inputs
         if (tokenIds.length != sortOrders.length) {
-            revert INVALID_INPUT_LENGTH();
+            revert Invalid_Input_Length();
         }
 
         for (uint256 i = 0; i < tokenIds.length; i++) {
@@ -369,13 +371,13 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     function _setSortOrder(address targetPress, uint256 listingId, int32 sortOrder) internal {
         
         // convert listing bytes to listing struct and cache
-        Listing memory tempListing = _bytesToListing(idToListing[targetPress][listingId]);
+        Listing memory tempListing = _bytesToListing(SSTORE2.read(idToListing[targetPress][listingId]));
 
         // update sort order value of listing
         tempListing.sortOrder = sortOrder;
 
         // re encode listing struct to bytes and store
-        idToListing[targetPress][listingId] = _listingToBytes(tempListing);
+        idToListing[targetPress][listingId] = SSTORE2.write(_listingToBytes(tempListing));
     }
 
     /// @dev Allows contract owner to freeze all add/sort functionality starting from a given Unix timestamp
