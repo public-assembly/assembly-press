@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IAccessControl} from "../../../core/interfaces/IAccessControl.sol";
+import {IAccessControl} from "../../core/interfaces/IAccessControl.sol";
 
 contract OpenAccess is IAccessControl {
 

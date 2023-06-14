@@ -13,7 +13,7 @@ import {ICurationLogic} from "../../../src/token/ERC721/strategies/curation/inte
 import {CurationLogic} from "../../../src/token/ERC721/strategies/curation/logic/CurationLogic.sol";
 
 import {CurationMetadataRenderer} from "../../../src/token/ERC721/strategies/curation/metadata/CurationMetadataRenderer.sol";
-import {OpenAccess} from "../../../src/token/ERC721/strategies/curation/access/OpenAccess.sol";
+import {OpenAccess} from "../../../src/token/ERC721/strategies/access/OpenAccess.sol";
 
 contract ERC721Press_GasConfig is Test {
     address public constant INITIAL_OWNER = address(0x01);
@@ -78,14 +78,13 @@ contract ERC721Press_GasConfig is Test {
             _listing.sortOrder,
             _listing.hasTokenId
         );
-    }            
+    }    
 
     function encodeListingArray(ICurationLogic.Listing[] memory _listings) public returns (bytes memory) {
-        bytes memory encodedListings;
+        bytes[] memory encodedListings = new bytes[](_listings.length);
         for (uint i = 0; i < _listings.length; i++) {
-            encodedListings = abi.encodePacked(encodedListings, encodeListing(_listings[i]));
-            emit encodedListingBytes(encodeListing(_listings[i]), encodeListing(_listings[i]).length);
+            encodedListings[i] = encodeListing(_listings[i]);
         }
-        return encodedListings;
-    }        
+        return abi.encode(encodedListings);
+    }                  
 }

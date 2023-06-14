@@ -6,7 +6,7 @@ import "forge-std/Script.sol";
 import {ERC721Press} from "../src/token/ERC721/ERC721Press.sol";
 import {CurationLogic} from "../src/token/ERC721/strategies/curation/logic/CurationLogic.sol";
 import {CurationMetadataRenderer} from "../src/token/ERC721/strategies/curation/metadata/CurationMetadataRenderer.sol";
-import {HybridAccess} from "../src/token/ERC721/strategies/curation/access/HybridAccess.sol";
+import {HybridAccess} from "../src/token/ERC721/strategies/access/HybridAccess.sol";
 import {ERC721PressFactory} from "../src/token/ERC721/ERC721PressFactory.sol";
 import {ERC721PressFactoryProxy} from "../src/token/ERC721/core/proxy/ERC721PressFactoryProxy.sol";
 import {IERC721PressFactory} from "../src/token/ERC721/core/interfaces/IERC721PressFactory.sol";

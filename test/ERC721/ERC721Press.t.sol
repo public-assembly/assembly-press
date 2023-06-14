@@ -10,8 +10,8 @@ import {ERC721PressFactoryProxy} from "../../src/token/ERC721/core/proxy/ERC721P
 import {ERC721PressFactory} from "../../src/token/ERC721/ERC721PressFactory.sol";
 import {ERC721Press} from "../../src/token/ERC721/ERC721Press.sol";
 
-import {HybridAccess} from "../../src/token/ERC721/strategies//curation/access/HybridAccess.sol";
-import {OpenAccess} from "../../src/token/ERC721/strategies//curation/access/OpenAccess.sol";
+import {HybridAccess} from "../../src/token/ERC721/strategies/access/HybridAccess.sol";
+import {OpenAccess} from "../../src/token/ERC721/strategies/access/OpenAccess.sol";
 import {ICurationLogic} from "../../src/token/ERC721/strategies//curation/interfaces/ICurationLogic.sol";
 import {CurationLogic} from "../../src/token/ERC721/strategies//curation/logic/CurationLogic.sol";
 import {IERC5192} from "../../src/token/ERC721/core/interfaces/IERC5192.sol";

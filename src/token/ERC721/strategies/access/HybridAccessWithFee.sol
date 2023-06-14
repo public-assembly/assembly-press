@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import {IAccessControl} from "../../../core/interfaces/IAccessControl.sol";
+import {IAccessControl} from "../../core/interfaces/IAccessControl.sol";
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
-import {IERC721Press} from "../../../core/interfaces/IERC721Press.sol";
+import {IERC721Press} from "../../core/interfaces/IERC721Press.sol";
 
 /**
 * @title HybridAccessWithFee
