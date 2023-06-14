@@ -184,7 +184,7 @@ contract ERC721Press is
         uint256 firstMintedTokenId = lastMintedTokenId() - mintQuantity + 1;
 
         // Update external logic file with data corresponding to this mint
-        IERC721PressLogic(_logicImpl).updateLogicWithData(sender, mintData);
+        IERC721PressLogic(_logicImpl).updateLogicWithData(mintData);
 
         emit IERC721Press.MintWithData({
             recipient: sender,

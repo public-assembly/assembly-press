@@ -200,7 +200,7 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     }       
 
     // ||||||||||||||||||||||||||||||||
-    // ||| LOGIC SETUP FUNCTIONS ||||||
+    // ||| LOGIC INIT |||||||||||||||||
     // ||||||||||||||||||||||||||||||||          
 
     /// @notice Default logic initializer for a given Press
@@ -226,68 +226,43 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
     }         
 
     // ||||||||||||||||||||||||||||||||
-    // ||| CURATION FUNCTIONS |||||||||
+    // ||| LOGIC STORAGE ||||||||||||||
     // ||||||||||||||||||||||||||||||||     
 
-    // function called by mintWithData function in ERC721Press mint call that
-    // updates Press specific listings mapping in CurationStorageV1
-    function updateLogicWithData(address updateSender, bytes calldata logicData) external {
-        // Access control to prevent non curators/manager/admins from accessing
-        if (configInfo[msg.sender].accessControl.getAccessLevel(msg.sender, updateSender) < CURATOR) {
-            revert ACCESS_NOT_ALLOWED();
-        }              
-        
+    /// @dev Function called by mintWithData function in ERC721Press mint call that
+    //      updates Press specific listings mapping in CurationStorageV1
+    /// @param logicData data getting passed in along mint
+    function updateLogicWithData(bytes calldata logicData) external {
+
+        // check that input data is of expected length
+        //      prevents unnamed reverts in array slicing operations
+        //      LISTING_SIZE is constant found in CurationStorageV1
         if (logicData.length % LISTING_SIZE != 0) {
             revert Invalid_Input_Data_Length();
         }
 
+        _addListings(msg.sender, logicData);
+    }         
+
+    /// @dev Stores sliced bytes section (containing listing info)
+    /// @param targetPress ERC721Press to target
+    /// @param listings Listing structs encoded bytes
+    function _addListings(address targetPress, bytes calldata listings) internal {     
+
         // calculate number of listings
-        uint256 numListings = logicData.length / LISTING_SIZE;
+        uint256 numListings = listings.length / LISTING_SIZE;
 
+        // slice the bytes section relevant for each listing and pass it to _addListing function
         for (uint256 i; i < numListings; ++i) {
+            // find starting index for array slice
             uint256 sliceStart = i * LISTING_SIZE;
-            _addListing(msg.sender, logicData[sliceStart: sliceStart + LISTING_SIZE]);
-        }
-    }        
-
-    /// @dev Allows owner or curator to curate Listings --> which mints a listingRecord token to the msg.sender
-    /// @param listing Listing struct encoded bytes
-    function _addListing(address targetPress, bytes calldata listing) internal {                          
-        // idToListing[targetPress][configInfo[targetPress].numAdded] = listing;    
-        idToListing[targetPress][configInfo[targetPress].numAdded] = SSTORE2.write(listing);    
-        ++configInfo[targetPress].numAdded;            
-    }       
-
-    function _bytesToListing(bytes memory data) internal view returns (Listing memory) {
-
-        (
-            uint128 chainId, 
-            uint128 tokenId, 
-            address listingAddress, 
-            int32 sortOrder, 
-            bool hasTokenId
-        ) = abi.decode(data, (uint128, uint128, address, int32, bool));
-
-        Listing memory listing = Listing({
-            chainId: chainId,
-            tokenId: tokenId,
-            listingAddress: listingAddress,
-            sortOrder: sortOrder,
-            hasTokenId: hasTokenId
-        });
-
-        return listing;
-    }
-
-    function _listingToBytes(Listing memory inputListing) internal pure returns (bytes memory) {
-        return abi.encode(
-            inputListing.chainId,
-            inputListing.tokenId,
-            inputListing.listingAddress,
-            inputListing.hasTokenId,
-            inputListing.sortOrder
-        );   
-    }
+            // use sstore2 to store specific segment of bytes encoded listings information
+            idToListing[targetPress][configInfo[targetPress].numAdded] = SSTORE2.write(
+                listings[sliceStart: sliceStart + LISTING_SIZE]
+            );    
+            ++configInfo[targetPress].numAdded;              
+        }                 
+    }           
 
     /// @dev Getter for acessing Listing information for a specific tokenId
     /// @param targetPress ERC721Press to target 
@@ -315,6 +290,10 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
             }
         }
     } 
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| LOGIC ADMIN ||||||||||||||||
+    // ||||||||||||||||||||||||||||||||      
 
     /// @dev Allows contract owner to update the ERC721 Curation Pass being used to restrict access to curation functionality
     /// @param targetPress address of Press to target
@@ -400,4 +379,42 @@ contract CurationLogic is IERC721PressLogic, ICurationLogic, CurationStorageV1 {
         configInfo[targetPress].frozenAt = timestamp;
         emit ScheduledFreeze(targetPress, timestamp);
     }  
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| HELPERS ||||||||||||||||||||
+    // ||||||||||||||||||||||||||||||||  
+
+    /// @dev Decodes stored bytes values and assembles it into Listing sturct
+    /// @param data data to process
+    function _bytesToListing(bytes memory data) internal view returns (Listing memory) {
+        // data format: chainId, tokenId, listingAddress, sortOrder, hasTokenId
+        (
+            uint128 chainId, 
+            uint128 tokenId, 
+            address listingAddress, 
+            int32 sortOrder, 
+            bool hasTokenId
+        ) = abi.decode(data, (uint128, uint128, address, int32, bool));
+
+        return 
+            Listing({
+                chainId: chainId,
+                tokenId: tokenId,
+                listingAddress: listingAddress,
+                sortOrder: sortOrder,
+                hasTokenId: hasTokenId
+            });
+    }
+
+    /// @dev Encode Listing struct into bytes
+    /// @param listing lisging to process
+    function _listingToBytes(Listing memory listing) internal pure returns (bytes memory) {
+        return abi.encode(
+            listing.chainId,
+            listing.tokenId,
+            listing.listingAddress,
+            listing.hasTokenId,
+            listing.sortOrder
+        );   
+    }    
 }

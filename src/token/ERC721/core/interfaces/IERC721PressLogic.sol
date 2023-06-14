@@ -7,7 +7,7 @@ interface IERC721PressLogic {
     /// @notice initializes logic file with arbitrary data
     function initializeWithData(bytes memory initData) external;    
     /// @notice updates logic file with arbitary data
-    function updateLogicWithData(address targetPress, bytes memory logicData) external;
+    function updateLogicWithData(bytes memory logicData) external;
 
     // Access control functions
     /// @notice checks if a certain address can update the Config struct on a given Press 
