@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import { IERC721PressDatabaseV1 } from "../interfaces/IERC721PressDatabaseV1.sol";
+import { IERC721PressDatabase } from "../../interfaces/IERC721PressDatabase.sol";
 
 /**
  @notice Curation storage variables contract.
  */
-abstract contract DatabaseStorageV1 is IDatabaseStorage {
+abstract contract DatabaseStorageV1 is IERC721PressDatabase {
 
     /// @notice Press => id => address (pointer to bytes encoded listing struct) mapping, listing IDs are 0 => upwards
     /// @dev Can contain blank/burned entries (not garbage compacted!)

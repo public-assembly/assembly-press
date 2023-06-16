@@ -12,10 +12,10 @@ import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
 import {IERC721Press} from "../interfaces/IERC721Press.sol";
 import {ERC721Press} from "../ERC721Press.sol";
 
-import {ILogic} from "../core/logic/ILogic.sol";
+import {ILogic} from "../logic/ILogic.sol";
 
-import {ERC721DatabaseStorageV1} from "../storage/ERC721DatabaseStorageV1.sol";
-import {IDatabaseEngine} from "../interfaces/IDatabaseEngine.sol";
+import {ERC721PressDatabaseStorageV1} from "./storage/ERC721PressDatabaseStorageV1.sol";
+import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
 
 import "sstore2/SSTORE2.sol";
 
@@ -26,7 +26,7 @@ import "sstore2/SSTORE2.sol";
 * @author Max Bochman
 * @author Salief Lewis
 */
-contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721DatabaseStorageV1 { 
+contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1 { 
 
     // ||||||||||||||||||||||||||||||||
     // ||| MODIFERS |||||||||||||||||||
@@ -35,7 +35,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
     /// @notice Checks if target Press has been initialized
     modifier requireInitialized(address targetPress) {
 
-        if (configInfo[targetPress].initialized == 0) {
+        if (settingsInfo[targetPress].initialized == 0) {
             revert Press_Not_Initialized();
         }
 
@@ -46,13 +46,13 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
     ///     and that msg.sender is not the admin
     modifier onlyActive(address targetPress) {
         if (
-            configInfo[targetPress].isPaused && 
-            configInfo[targetPress].accessControl.getAccessLevel(targetPress, msg.sender) < ADMIN
+            settingsInfo[targetPress].isPaused && 
+            settingsInfo[targetPress].accessControl.getAccessLevel(targetPress, msg.sender) < ADMIN
         ) {
             revert DATABASE_PAUSED();
         }
 
-        if (configInfo[targetPress].frozenAt != 0 && configInfo[targetPress].frozenAt < block.timestamp) {
+        if (settingsInfo[targetPress].frozenAt != 0 && settingsInfo[targetPress].frozenAt < block.timestamp) {
             revert DATABASE_FROZEN();
         }
 
@@ -72,7 +72,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
     ) external view requireInitialized(targetPress) returns (bool) {
         // check if update caller has admin role for given Press
         if (
-            configInfo[targetPress].accessControl.getAccessLevel(targetPress, updateCaller) < ADMIN
+            settingsInfo[targetPress].accessControl.getAccessLevel(targetPress, updateCaller) < ADMIN
         ) { 
             return false;
         }
@@ -91,7 +91,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
         address mintCaller
     ) external view requireInitialized(targetPress) onlyActive(targetPress)  returns (bool) {
         // check if mint caller has minter role for given Press
-        if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, mintCaller) < USER) { 
+        if (settingsInfo[targetPress].accessControl.getAccessLevel(targetPress, mintCaller) < USER) { 
             return false;
         }        
 
@@ -106,7 +106,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
         address editCaller
     ) external view requireInitialized(targetPress) returns (bool) {
         // check if edit caller has edit role for given Press
-        if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, editCaller) < MANAGER) { 
+        if (settingsInfo[targetPress].accessControl.getAccessLevel(targetPress, editCaller) < MANAGER) { 
             return false;
         }        
 
@@ -121,7 +121,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
         address withdrawCaller
     ) external view requireInitialized(targetPress) returns (bool) {
         // check if withdraw caller has anyone role for given Press
-        if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, withdrawCaller) < ANYONE) { 
+        if (settingsInfo[targetPress].accessControl.getAccessLevel(targetPress, withdrawCaller) < ANYONE) { 
             return false;
         }  
 
@@ -139,7 +139,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
         address burnCaller
     ) external view requireInitialized(targetPress) returns (bool) {
         // check if burnCaller has burn access for given target Press
-        if (configInfo[targetPress].accessControl.getAccessLevel(targetPress, burnCaller) < ADMIN) {
+        if (settingsInfo[targetPress].accessControl.getAccessLevel(targetPress, burnCaller) < ADMIN) {
             return false;
         }
 
@@ -150,22 +150,22 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
     // ||| STATUS CHECKS ||||||||||||||
     // ||||||||||||||||||||||||||||||||      
 
-    /// @notice checks value of initialized variable in configInfo mapping for target Press
+    /// @notice checks value of initialized variable in settingsInfo mapping for target Press
     /// @param targetPress press contract to check initialization status
     function isInitialized(address targetPress) external view returns (bool) {
         // return false if targetPress has not been initialized
-        if (configInfo[targetPress].initialized == 0) {
+        if (settingsInfo[targetPress].initialized == 0) {
             return false;
         }
 
         return true;
     }       
 
-    /// @notice checks value of isPaused variable in configInfo mapping for target Press
+    /// @notice checks value of isPaused variable in settingsInfo mapping for target Press
     /// @param targetPress press contract to check pause status
     function isPaused(address targetPress) external view returns (bool) {
         // return bool state of isPaused variable
-        return configInfo[targetPress].isPaused;
+        return settingsInfo[targetPress].isPaused;
     }       
 
     /// @notice checks total mint price for a given mintQuantity x mintCaller
@@ -178,7 +178,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
         address mintCaller
     ) external view requireInitialized(targetPress) returns (uint256) {
         // There is no fee (besides gas) to store a listing
-        return configInfo[targetPress].accessControl.getMintPrice(targetPress, mintCaller, mintQuantity);
+        return settingsInfo[targetPress].accessControl.getMintPrice(targetPress, mintCaller, mintQuantity);
     }       
 
     // ||||||||||||||||||||||||||||||||
@@ -197,10 +197,10 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
             bytes memory accessControlInit
         ) = abi.decode(logicInit, (bool, IAccessControl, bytes));
 
-        // set configInfo[targetPress]
-        configInfo[sender].initialized = 1;
-        configInfo[sender].isPaused = initialPause;
-        configInfo[sender].accessControl = accessControl;
+        // set settingsInfo[targetPress]
+        settingsInfo[sender].initialized = 1;
+        settingsInfo[sender].isPaused = initialPause;
+        settingsInfo[sender].accessControl = accessControl;
         // initialize access control
         accessControl.initializeWithData(sender, accessControlInit);   
 
@@ -229,10 +229,10 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
 
         for (uint256 i = 0; i < listings.length; ++i) {
             // use sstore2 to store bytes segments in bytes array
-            idToListing[targetPress][configInfo[targetPress].numAdded] = SSTORE2.write(
+            idToListing[targetPress][settingsInfo[targetPress].numAdded] = SSTORE2.write(
                 listings[i]
             );    
-            ++configInfo[targetPress].numAdded;                        
+            ++settingsInfo[targetPress].numAdded;                        
         }           
     }              
 
@@ -266,10 +266,10 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
     //         // find starting index for array slice
     //         uint256 sliceStart = i * LISTING_SIZE;
     //         // use sstore2 to store specific segment of bytes encoded listings 
-    //         idToListing[targetPress][configInfo[targetPress].numAdded] = SSTORE2.write(
+    //         idToListing[targetPress][settingsInfo[targetPress].numAdded] = SSTORE2.write(
     //             listings[sliceStart: sliceStart + LISTING_SIZE]
     //         );    
-    //         ++configInfo[targetPress].numAdded;              
+    //         ++settingsInfo[targetPress].numAdded;              
     //     }                 
     // }           
 
@@ -284,12 +284,12 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
     /// @param targetPress ERC721Press to target     
     function getListings(address targetPress) external view override returns (Listing[] memory activeListings) {
         unchecked {
-            activeListings = new Listing[](configInfo[targetPress].numAdded - configInfo[targetPress].numRemoved);
+            activeListings = new Listing[](settingsInfo[targetPress].numAdded - settingsInfo[targetPress].numRemoved);
 
             // first tokenId minted in ERC721Press impl is #1
             uint256 activeIndex = 1;
 
-            for (uint256 i; i < configInfo[targetPress].numAdded; ++i) {
+            for (uint256 i; i < settingsInfo[targetPress].numAdded; ++i) {
                 // skip this listing if user has burned the token (sent to zero address)
                 if (ERC721Press(payable(targetPress)).exists(activeIndex) != true) {
                     continue;
@@ -310,13 +310,13 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
     function setDatabasePaused(address targetPress, bool setPaused) external {
         // Checks role of msg.sender for access
         if (
-            configInfo[targetPress].accessControl.getAccessLevel(targetPress, msg.sender) < ADMIN
+            settingsInfo[targetPress].accessControl.getAccessLevel(targetPress, msg.sender) < ADMIN
             && msg.sender != IERC721Press(targetPress).owner() 
         ) { 
             revert No_Pause_Access();
         }
         // Prevents owner from updating the database active state to the current active state
-        if (configInfo[targetPress].isPaused == setPaused) {
+        if (settingsInfo[targetPress].isPaused == setPaused) {
             revert CANNOT_SET_SAME_PAUSED_STATE();
         }
 
@@ -325,7 +325,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
 
     // internal handler for setDatabasePaused function
     function _setDatabasePaused(address targetPress, bool _setPaused) internal {
-        configInfo[targetPress].isPaused = _setPaused;
+        settingsInfo[targetPress].isPaused = _setPaused;
 
         emit DatabasePauseUpdated(msg.sender, targetPress, _setPaused);
     }
@@ -374,18 +374,18 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721Datab
     function freezeAt(address targetPress, uint256 timestamp) external {
 
         if (
-            configInfo[targetPress].accessControl.getAccessLevel(targetPress, msg.sender) < ADMIN
+            settingsInfo[targetPress].accessControl.getAccessLevel(targetPress, msg.sender) < ADMIN
             && msg.sender != IERC721Press(targetPress).owner() 
         ) { 
             revert No_Freeze_Access();
         }
 
         // Prevents owner from adjusting freezeAt time if contract alrady frozen
-        if (configInfo[targetPress].frozenAt != 0 && configInfo[targetPress].frozenAt < block.timestamp) {
+        if (settingsInfo[targetPress].frozenAt != 0 && settingsInfo[targetPress].frozenAt < block.timestamp) {
             revert DATABASE_FROZEN();
         }
         // update frozen at value
-        configInfo[targetPress].frozenAt = timestamp;
+        settingsInfo[targetPress].frozenAt = timestamp;
         emit ScheduledFreeze(targetPress, timestamp);
     }  
 
