@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import {IERC721PressEngine} from "../interfaces/IERC721PressEngine.sol";
+import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
 
 /*
 PA PA PA PA
@@ -28,12 +28,12 @@ interface IERC721Press {
     // 
     event ERC721PressInitialized();
 
-    /// @notice Event emitted when engine address is updated
+    /// @notice Event emitted when database is updated
     /// @param sender address that sent update txn
-    /// @param engine new engine address
-    event EngineUpdated(
+    /// @param engine database address targeted
+    event DatabaseUpdated(
         address indexed sender,
-        IERC721PressEngine engine
+        IERC721PressDatabase engine
     );             
 
     /// @notice Event emitted when settings are updated

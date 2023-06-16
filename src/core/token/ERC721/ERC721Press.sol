@@ -161,8 +161,8 @@ contract ERC721Press is
     /// @notice externally accessible logic setup function
     /// @param database the database contract
     /// @param databaseInit the data to initialize database contract with
-    function setdatabase(IERC721PressDatabase database, bytes calldata databaseInit) external {
-        _setdatabase(database, databaseInit);
+    function setDatabase(IERC721PressDatabase database, bytes calldata databaseInit) external {
+        _setDatabase(database, databaseInit);
     }    
 
     /// @notice updates the global settings for the ERC721Press contract
@@ -186,7 +186,7 @@ contract ERC721Press is
     /// @notice sets up the database contract used by ERC721Press contract
     /// @param database the database contract
     /// @param databaseInit the data to initialize database contract with
-    function _setdatabase(IERC721PressDatabase database, bytes calldata databaseInit) internal {
+    function _setDatabase(IERC721PressDatabase database, bytes calldata databaseInit) internal {
         _database = database;
         _database.initializeWithData(databaseInit);
         emit databaseUpdated(msg.sender, database);    

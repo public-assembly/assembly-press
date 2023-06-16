@@ -14,7 +14,7 @@ import {ERC721Press} from "../ERC721Press.sol";
 
 import {ILogic} from "../core/logic/ILogic.sol";
 
-import {DatabaseStorageV1} from "../storage/DatabaseStorageV1.sol";
+import {ERC721DatabaseStorageV1} from "../storage/ERC721DatabaseStorageV1.sol";
 import {IDatabaseEngine} from "../interfaces/IDatabaseEngine.sol";
 
 import "sstore2/SSTORE2.sol";
@@ -26,7 +26,7 @@ import "sstore2/SSTORE2.sol";
 * @author Max Bochman
 * @author Salief Lewis
 */
-contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, DatabaseStorageV1 { 
+contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, ERC721DatabaseStorageV1 { 
 
     // ||||||||||||||||||||||||||||||||
     // ||| MODIFERS |||||||||||||||||||
@@ -212,7 +212,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, DatabaseSto
     // ||||||||||||||||||||||||||||||||     
 
     /// @dev Function called by mintWithData function in ERC721Press mint call that
-    //      updates Press specific listings mapping in DatabaseStorageV1
+    //      updates Press specific listings mapping in ERC721DatabaseStorageV1
     /// @param data data getting passed in along mint
     function storeData(bytes calldata data) external {
 
@@ -238,13 +238,13 @@ contract ERC721PressDatabase is IERC721PressDatabase, IDatabseLogic, DatabaseSto
 
     // previous version
     // /// @dev Function called by mintWithData function in ERC721Press mint call that
-    // //      updates Press specific listings mapping in DatabaseStorageV1
+    // //      updates Press specific listings mapping in ERC721DatabaseStorageV1
     // /// @param data data getting passed in along mint
     // function storeData(bytes calldata data) external {
 
     //     // check that input data is of expected length
     //     //      prevents unnamed reverts in array slicing operations
-    //     //      LISTING_SIZE is constant found in DatabaseStorageV1
+    //     //      LISTING_SIZE is constant found in ERC721DatabaseStorageV1
     //     if (data.length % LISTING_SIZE != 0) {
     //         revert Invalid_Input_Data_Length();
     //     }

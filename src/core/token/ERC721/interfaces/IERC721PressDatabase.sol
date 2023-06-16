@@ -10,8 +10,8 @@ interface IERC721PressDatabase {
     function storeData(bytes calldata data) external;
 
     // Access control functions
-    /// @notice checks if a certain address can update the Config struct on a given Press 
-    function canUpdateConfig(address targetPress, address updateCaller) external view returns (bool);
+    /// @notice checks if a certain address can update the Settings struct on a given Press 
+    function canUpdateSettings(address targetPress, address updateCaller) external view returns (bool);
     /// @notice checks if a certain address can access mint functionality for a given Press + quantity combination
     function canMint(address targetPress, uint64 mintQuantity, address mintCaller) external view returns (bool);
     /// @notice checks if a certain address can edit metadata post metadata initialization for a given Press
