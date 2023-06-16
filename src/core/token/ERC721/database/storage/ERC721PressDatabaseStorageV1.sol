@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 import { IERC721PressDatabase } from "../../interfaces/IERC721PressDatabase.sol";
 
 /**
- @notice Curation storage variables contract.
+ @notice Database storage variables contract.
  */
 abstract contract DatabaseStorageV1 is IERC721PressDatabase {
 
