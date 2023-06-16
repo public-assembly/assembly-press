@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.16;
+pragma solidity 0.8.17;
 
 /**
  * @notice This allows this contract to receive native currency funds from other contracts
  * Uses event logging for UI reasons.
- * @author Zora Labs
  */
 contract FundsReceiver {
     event FundsReceived(address indexed source, uint256 amount);
