@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import {ILogic} from "../logic/ILogic.sol";
-
 interface IERC721PressDatabase {  
 
     // ||||||||||||||||||||||||||||||||
@@ -28,31 +26,25 @@ interface IERC721PressDatabase {
      * Struct breakdown. Values in parentheses are bytes.
      *
      * First slot
-     * priceToStore (32) = 32 bytes
+     * logic (20) + frozenAt (10) + initialized (1) + isPaused (1) = 32 bytes
      * Second slot
-     * accessControl (20) + numAdded (5) + numRemoved (5) + initialized (1) + isPaused (1) = 32 bytes
+     * storedCounter (32) = 32 bytes
      * Third slot
-     * renderer (20) + frozenAt (12) = 32 bytes   
+     * renderer (20) = 20 bytes   
      */
     struct Settings {
-        /// @notice price to store new data
-        uint256 priceToStore;        
         /// @notice Address of the logic contract
-        address logic;
-        /// Stores virtual mapping array length parameters
-        /// @notice Array total size (total size)
-        uint40 numAdded;
-        /// @notice Array active size = numAdded - numRemoved
-        /// @dev Blank entries are retained within array
-        uint40 numRemoved;
+        address logic;            
+        /// @notice timestamp that the Press database is frozen at (if never, frozen = 0)
+        uint80 frozenAt;                             
         /// @notice initialized uint. 0 = not initialized, 1 = initialized
         uint8 initialized;
         /// @notice If database is paused by the owner
         bool isPaused;
+        /// @notice Keeps track of how many data slots have been filled
+        uint256 storedCounter;        
         /// @notice Address of the renderer contract
         address renderer;  
-        /// @notice timestamp that the database is frozen at (if never, frozen = 0)
-        uint96 frozenAt;                      
     }    
 
     // ||||||||||||||||||||||||||||||||
@@ -117,17 +109,24 @@ interface IERC721PressDatabase {
         bytes listing
     );
 
+    /// @notice Emitted when a new press is initialized in database
+    event SetupNewPress(
+        address indexed indexed targetPress,
+        address indexed logic,
+        address indexed renderer
+    );
+
     /// @notice Emitted when a listing is removed
     event ListingRemoved(
         address indexed targetPress,
         address indexed user,
         bytes listing
-    );
+    );    
 
     /// @notice A new logic contract is set
     event SetLogic(
         address indexed targetPress,
-        ILogic logic
+        address logic
     );
 
     /// @notice Database Pause has been udpated.

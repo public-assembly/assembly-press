@@ -23,11 +23,19 @@ import {Version} from "../../utils/Version.sol";
 import {FundsReceiver} from "../../utils/FundsReceiver.sol";
 import {TransferUtils} from "../../utils/funds/TransferUtils.sol";
 
+// *
+// *
+// *
+//
 // TO DO
 // 1. Do New Database Logic Impl
 //      this includes doing access, renderer, and sort impl
 // 2. Add sort then burn functionality to Press
 // Finish Press impl
+//
+// *
+// *
+// *
 
 /**
  * @title ERC721Press
@@ -52,7 +60,7 @@ contract ERC721Press is
     // ||||||||||||||||||||||||||||||||
 
     constructor (IERC721PressDatabase database) {
-        _databaase = databaseImpl;
+        _database = database;
     }    
 
     // ||||||||||||||||||||||||||||||||
@@ -85,7 +93,7 @@ contract ERC721Press is
         __UUPSUpgradeable_init();                      
 
         // Setup database
-        _setDatabase(_databaase, databaseInit);
+        _setDatabase(_database, databaseInit);
 
         // Check to see if royaltyBPS set to acceptable levels
         if (settings.royaltyBPS > MAX_ROYALTY_BPS) {
@@ -136,27 +144,40 @@ contract ERC721Press is
         _mintNFTs(sender, quantity);
 
         // Cache tokenId of first minted token so tokenId mint range can be reconstituted in mint event
-        uint256 firstMintedTokenId = lastMintedTokenId() - mintQuantity + 1;
+        uint256 firstMintedTokenId = lastMintedTokenId() - quantity + 1;
 
         // Update external logic file with data corresponding to this mint
         _database.storeData(data);
 
         emit IERC721Press.MintWithData({
             recipient: sender,
-            quantity: mintQuantity,
+            quantity: quantity,
             totalMintPrice: msgValue,
             firstMintedTokenId: firstMintedTokenId
         });
 
         // emit locked events if contract tokens have been configured as non-transferable
         if (_settings.transferable == false) {
-            for (uint256 i; i < mintQuantity; ++i) {
+            for (uint256 i; i < quantity; ++i) {
                 emit Locked(firstMintedTokenId + i);
             }   
         }
 
         return firstMintedTokenId;
     }
+
+    /// @notice Function to mint NFTs
+    /// @dev (Important: Does not enforce max supply limit, enforce that limit earlier)
+    /// @dev This batches in size of 8 as recommended by Chiru Labs
+    /// @param to address to mint NFTs to
+    /// @param quantity number of NFTs to mint
+    function _mintNFTs(address to, uint256 quantity) internal {
+        do {
+            uint256 toMint = quantity > _MAX_MINT_BATCH_SIZE ? _MAX_MINT_BATCH_SIZE : quantity;
+            _mint({to: to, quantity: toMint});
+            quantity -= toMint;
+        } while (quantity > 0);
+    }    
 
     /// @notice externally accessible logic setup function
     /// @param database the database contract
@@ -172,7 +193,7 @@ contract ERC721Press is
     function setSettings(address payable fundsRecipient, uint16 royaltyBPS) external {
         // Check to see if royaltyBPS set to acceptable levels
         if (royaltyBPS > MAX_ROYALTY_BPS) {
-            revert Royalty_PercentageTooHigh(MAX_ROYALTY_BPS);
+            revert Royalty_Percentage_Too_High(MAX_ROYALTY_BPS);
         }
 
         _settings.fundsRecipient = fundsRecipient;
@@ -189,7 +210,7 @@ contract ERC721Press is
     function _setDatabase(IERC721PressDatabase database, bytes calldata databaseInit) internal {
         _database = database;
         _database.initializeWithData(databaseInit);
-        emit databaseUpdated(msg.sender, database);    
+        emit DatabaseUpdated(msg.sender, database);    
     }    
 
     // ||||||||||||||||||||||||||||||||
@@ -207,6 +228,11 @@ contract ERC721Press is
     function getDatabase() public view returns (address) {
         return _database;
     }
+
+    // @notice Getter that returns true if token has been minted and not burned
+    function exists(uint256 tokenId) external view returns (bool) {
+        return _exists(tokenId);   
+    }    
     
     /* INTERNAL */    
 

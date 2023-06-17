@@ -13,6 +13,7 @@ import {IERC721Press} from "../interfaces/IERC721Press.sol";
 import {ERC721Press} from "../ERC721Press.sol";
 
 import {ILogic} from "../logic/ILogic.sol";
+import {IERC721PressRenderer} from "../interfaces/IERC721PressRenderer.sol";
 
 import {ERC721PressDatabaseStorageV1} from "./storage/ERC721PressDatabaseStorageV1.sol";
 import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
@@ -71,103 +72,68 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
     /// @param databaseInit data to init with
     function initializeWithData(bytes memory databaseInit) external {
         address sender = msg.sender;
-        // data format: initialPause, accessControl, accessControlInit
+        // data format: logic, logicInit, renderer, rendererInit, initialPause
         (   
+            address logic,
+            bytes memory logicInit,
+            address renderer,
+            bytes memory rendererInit,
+            uint80 priceToStore,
             bool initialPause,
-            IAccessControl accessControl,
-            bytes memory accessControlInit
-            // ILogic logic
-            // bytes memory databaseInit
-        ) = abi.decode(databaseInit, (bool, IAccessControl, bytes));
+        ) = abi.decode(databaseInit, (ILogic, bool, IAccessControl, bytes));
 
         // set settingsInfo[targetPress]
         settingsInfo[sender].initialized = 1;
+        settingsInfo[sender].logic = logic;        
         settingsInfo[sender].isPaused = initialPause;
-        settingsInfo[sender].accessControl = accessControl;
-        // initialize access control
-        accessControl.initializeWithData(sender, accessControlInit);   
+        settingsInfo[sender].renderer = renderer;
+        
+        // initialize logic + renderer contracts
+        ILogic(logic).initializeWithData(sender, logicInit);   
+        IERC721PressRenderer(renderer).initializeWithData(sender, rendererInit);   
 
-        emit SetAccessControl(sender, accessControl);                   
+        emit SetupNewPress(sender, logic, renderer);                   
     }         
 
     // ||||||||||||||||||||||||||||||||
-    // ||| LOGIC STORAGE ||||||||||||||
+    // ||| DATABASE STORAGE |||||||||||
     // ||||||||||||||||||||||||||||||||     
 
     /// @dev Function called by mintWithData function in ERC721Press mint call that
-    //      updates Press specific listings mapping in ERC721DatabaseStorageV1
+    //      updates Press specific tokenData mapping in ERC721DatabaseStorageV1
     /// @param data data getting passed in along mint
     function storeData(bytes calldata data) external {
+        // data format: chunks
+        (bytes[] memory chunks) = abi.decode(data, (bytes[]));
 
-        // data: listings
-        (bytes[] memory listings) = abi.decode(data, (bytes[]));
-
-        _addListings(msg.sender, listings);
+        _storeData(msg.sender, chunks);
     }          
 
-    /// @dev Stores sliced bytes section (containing listing info)
+    /// @dev Stores indicies of a given bytes array
     /// @param targetPress ERC721Press to target
-    /// @param listings Listing structs encoded bytes
-    function _addListings(address targetPress, bytes[] memory listings) internal {     
-
-        for (uint256 i = 0; i < listings.length; ++i) {
+    /// @param chunks arbitrary encoded bytes data
+    function _storeData(address targetPress, bytes[] memory chunks) internal {     
+        for (uint256 i = 0; i < chunks.length; ++i) {
             // use sstore2 to store bytes segments in bytes array
-            idToListing[targetPress][settingsInfo[targetPress].numAdded] = SSTORE2.write(
-                listings[i]
+            idToData[targetPress][settingsInfo[targetPress].storedCounter] = SSTORE2.write(
+                chunks[i]
             );    
-            ++settingsInfo[targetPress].numAdded;                        
+            ++settingsInfo[targetPress].storedCounter;                        
         }           
     }              
 
-    // previous version
-    // /// @dev Function called by mintWithData function in ERC721Press mint call that
-    // //      updates Press specific listings mapping in ERC721DatabaseStorageV1
-    // /// @param data data getting passed in along mint
-    // function storeData(bytes calldata data) external {
-
-    //     // check that input data is of expected length
-    //     //      prevents unnamed reverts in array slicing operations
-    //     //      LISTING_SIZE is constant found in ERC721DatabaseStorageV1
-    //     if (data.length % LISTING_SIZE != 0) {
-    //         revert Invalid_Input_Data_Length();
-    //     }
-
-    //     _addListings(msg.sender, data);
-    // }         
-
-    // previous version
-    // /// @dev Stores sliced bytes section (containing listing info)
-    // /// @param targetPress ERC721Press to target
-    // /// @param listings Listing structs encoded bytes
-    // function _addListings(address targetPress, bytes calldata listings) internal {     
-
-    //     // calculate number of listings
-    //     uint256 numListings = listings.length / LISTING_SIZE;
-
-    //     // slice the bytes section relevant for each listing and pass it to _addListing function
-    //     for (uint256 i; i < numListings; ++i) {
-    //         // find starting index for array slice
-    //         uint256 sliceStart = i * LISTING_SIZE;
-    //         // use sstore2 to store specific segment of bytes encoded listings 
-    //         idToListing[targetPress][settingsInfo[targetPress].numAdded] = SSTORE2.write(
-    //             listings[sliceStart: sliceStart + LISTING_SIZE]
-    //         );    
-    //         ++settingsInfo[targetPress].numAdded;              
-    //     }                 
-    // }           
-
-    /// @dev Getter for acessing Listing information for a specific tokenId
+    /// @dev Getter for acessing data for a specific ID for a given Press
     /// @param targetPress ERC721Press to target 
-    /// @param tokenId tokenId to retrieve Listing info for 
-    function getListing(address targetPress, uint256 tokenId) external view override returns (Listing memory) {
-        return _bytesToListing(SSTORE2.read(idToListing[targetPress][tokenId-1]));
+    /// @param tokenId tokenId to retrieve data for 
+    function getData(address targetPress, uint256 tokenId) external view override returns (bytes memory) {
+        return SSTORE2.read(idToListing[targetPress][tokenId-1]);
     }
 
-    /// @dev Getter for acessing Listing information for all active listings
+    /// @dev Getter for acessing data for all active IDs for a given Press
     /// @param targetPress ERC721Press to target     
-    function getListings(address targetPress) external view override returns (Listing[] memory activeListings) {
+    function getAllData(address targetPress) external view override returns (Listing[] memory activeListings) {
         unchecked {
-            activeListings = new Listing[](settingsInfo[targetPress].numAdded - settingsInfo[targetPress].numRemoved);
+            activeData = new bytes[](ERC721Press(payable(targetPress)).totalSupply());
 
             // first tokenId minted in ERC721Press impl is #1
             uint256 activeIndex = 1;
@@ -177,7 +143,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
                 if (ERC721Press(payable(targetPress)).exists(activeIndex) != true) {
                     continue;
                 }
-                activeListings[activeIndex-1] = _bytesToListing(SSTORE2.read(idToListing[targetPress][i]));
+                activeData[activeIndex-1] = SSTORE2.read(idToListing[targetPress][i]);
                 ++activeIndex;
             }
         }

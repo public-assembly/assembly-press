@@ -255,7 +255,7 @@ contract RolesWith721Gate_NoFee is ILogic {
 
     /// @notice returns access level of a user address calling function
     /// @dev called via the external contract initializing access control
-    function getAccessLevel(address accessMappingTarget, address accessMappingTarget)
+    function getAccessLevel(address accessMappingTarget, address addressToGetAccessFor)
         external
         view
         returns (uint256)
@@ -266,7 +266,7 @@ contract RolesWith721Gate_NoFee is ILogic {
 
     /// @notice returns mintPrice for a given Press + account + mintQuantity
     /// @dev called via the logic contract that has been set for a given Press
-    function getMintPrice(address accessMappingTarget, address accessMappingTarget, uint256 mintQuantity)
+    function getMintPrice(address accessMappingTarget, address addressToGetAccessFor, uint256 mintQuantity)
         external
         view
         returns (uint256)
@@ -276,7 +276,7 @@ contract RolesWith721Gate_NoFee is ILogic {
 
     /// @notice returns access level of a user address calling function
     /// @dev called via the external contract initializing access control
-    function _getAccessLevel(address accessMappingTarget, address accessMappingTarget)
+    function _getAccessLevel(address accessMappingTarget, address addressToGetAccessFor)
         internal
         view
         returns (uint256)
@@ -289,7 +289,7 @@ contract RolesWith721Gate_NoFee is ILogic {
         // return 0 if all of the above is false
         if (role != NO_ROLE) {
             return role;
-        } else if (IERC721(tokenGateInfo[accessMappingTarget]).balanceOf(accessMappingTarget) != 0) {
+        } else if (IERC721(tokenGateInfo[accessMappingTarget]).balanceOf(addressToGetAccessFor) != 0) {
             return USER;
         } else {
             return 0;
@@ -298,7 +298,7 @@ contract RolesWith721Gate_NoFee is ILogic {
 
     /// @notice returns mintPrice for a given Press + account + mintQuantity
     /// @dev called via the logic contract that has been set for a given Press
-    function _getMintPrice(address accessMappingTarget, address accessMappingTarget, uint256 mintQuantity)
+    function _getMintPrice(address accessMappingTarget, address addressToGetAccessFor, uint256 mintQuantity)
         internal
         view
         returns (uint256)

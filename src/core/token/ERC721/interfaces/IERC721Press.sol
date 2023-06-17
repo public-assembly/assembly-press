@@ -63,6 +63,8 @@ interface IERC721Press {
 
 
     // Constraint & failure errors
+    /// @notice msg.value incorrect for mint call
+    error Incorrect_Msg_Value();    
     /// @notice Royalty percentage too high
     error Royalty_Percentage_Too_High(uint16 bps);    
 

@@ -6,7 +6,7 @@ import { IERC721PressDatabase } from "../../interfaces/IERC721PressDatabase.sol"
 /**
  @notice Database storage variables contract.
  */
-abstract contract DatabaseStorageV1 is IERC721PressDatabase {
+abstract contract ERC721PressDatabaseStorageV1 is IERC721PressDatabase {
 
     /// @notice Press => ID => {pointer, sortOrder} 
     ///     pointer: sstore2 address of arbitrary bytes data, 
