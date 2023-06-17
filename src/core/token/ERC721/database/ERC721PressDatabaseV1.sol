@@ -45,157 +45,40 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
     /// @notice Modifier that ensures database functionality is active and not frozen
     ///     and that msg.sender is not the admin
     modifier onlyActive(address targetPress) {
-        if (
-            settingsInfo[targetPress].isPaused && 
-            settingsInfo[targetPress].accessControl.getAccessLevel(targetPress, msg.sender) < ADMIN
-        ) {
-            revert DATABASE_PAUSED();
-        }
-
+        
+        // Check if Press database is frozen
         if (settingsInfo[targetPress].frozenAt != 0 && settingsInfo[targetPress].frozenAt < block.timestamp) {
             revert DATABASE_FROZEN();
         }
 
-        _;
-    }    
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| ACCESS CONTROL CHECKS ||||||
-    // ||||||||||||||||||||||||||||||||   
-
-    /// @notice checks update access for a given update caller
-    /// @param targetPress press contract to check access for
-    /// @param updateCaller address of updateCaller to check access for
-    function canUpdateConfig(
-        address targetPress, 
-        address updateCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-        // check if update caller has admin role for given Press
+        // Check if Press database is paused
         if (
-            settingsInfo[targetPress].accessControl.getAccessLevel(targetPress, updateCaller) < ADMIN
-        ) { 
-            return false;
-        }
-
-        return true;
-    }                  
-
-    /// @notice checks mint access for a given mintQuantity + mintCaller
-    /// @param targetPress press contract to check access for
-    /// @param mintQuantity mintQuantity to check access for 
-    /// @param mintCaller address of mintCaller to check access for
-    /// @dev `mintQuantity` is unused, but present to adhere to the interface requirements of IERC721PressDatabase
-    function canMint(
-        address targetPress, 
-        uint64 mintQuantity, 
-        address mintCaller
-    ) external view requireInitialized(targetPress) onlyActive(targetPress)  returns (bool) {
-        // check if mint caller has minter role for given Press
-        if (settingsInfo[targetPress].accessControl.getAccessLevel(targetPress, mintCaller) < USER) { 
-            return false;
+            settingsInfo[targetPress].isPaused && 
+            settingsInfo[targetPress].logic.getPauseAccess(targetPress, msg.sender) == false
+        ) {
+            revert DATABASE_PAUSED();
         }        
 
-        return true;
-    }              
-
-    /// @notice checks metadata edit access for a given edit caller
-    /// @param targetPress press contract to check access for
-    /// @param editCaller address of editCaller to check access for
-    function canEditMetadata(
-        address targetPress, 
-        address editCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-        // check if edit caller has edit role for given Press
-        if (settingsInfo[targetPress].accessControl.getAccessLevel(targetPress, editCaller) < MANAGER) { 
-            return false;
-        }        
-
-        return true;
-    }           
-
-    /// @notice checks funds withdrawl access for a given withdrawal caller
-    /// @param targetPress press contract to check access for
-    /// @param withdrawCaller address of withdrawCaller to check access for
-    function canWithdraw(
-        address targetPress, 
-        address withdrawCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-        // check if withdraw caller has anyone role for given Press
-        if (settingsInfo[targetPress].accessControl.getAccessLevel(targetPress, withdrawCaller) < ANYONE) { 
-            return false;
-        }  
-
-        return true;
-    }                   
-
-    /// @notice checks burn access for a given burn caller
-    /// @param targetPress press contract to check access for
-    /// @param tokenId tokenId to check access for
-    /// @param burnCaller address of burnCaller to check access for
-    /// @dev `tokenId` is unused, but present to adhere to the interface requirements of IERC721PressDatabase
-    function canBurn(
-        address targetPress, 
-        uint256 tokenId,
-        address burnCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-        // check if burnCaller has burn access for given target Press
-        if (settingsInfo[targetPress].accessControl.getAccessLevel(targetPress, burnCaller) < ADMIN) {
-            return false;
-        }
-
-        return true;
-    }               
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| STATUS CHECKS ||||||||||||||
-    // ||||||||||||||||||||||||||||||||      
-
-    /// @notice checks value of initialized variable in settingsInfo mapping for target Press
-    /// @param targetPress press contract to check initialization status
-    function isInitialized(address targetPress) external view returns (bool) {
-        // return false if targetPress has not been initialized
-        if (settingsInfo[targetPress].initialized == 0) {
-            return false;
-        }
-
-        return true;
-    }       
-
-    /// @notice checks value of isPaused variable in settingsInfo mapping for target Press
-    /// @param targetPress press contract to check pause status
-    function isPaused(address targetPress) external view returns (bool) {
-        // return bool state of isPaused variable
-        return settingsInfo[targetPress].isPaused;
-    }       
-
-    /// @notice checks total mint price for a given mintQuantity x mintCaller
-    /// @param targetPress press contract to check mint price of
-    /// @param mintQuantity mintQuantity used to calculate total mint price
-    /// @param mintCaller address of mintCaller to check pricing on behalf of
-    function totalMintPrice(
-        address targetPress, 
-        uint64 mintQuantity, 
-        address mintCaller
-    ) external view requireInitialized(targetPress) returns (uint256) {
-        // There is no fee (besides gas) to store a listing
-        return settingsInfo[targetPress].accessControl.getMintPrice(targetPress, mintCaller, mintQuantity);
+        _;
     }       
 
     // ||||||||||||||||||||||||||||||||
-    // ||| LOGIC INIT |||||||||||||||||
+    // ||| DATABASE INIT ||||||||||||||
     // ||||||||||||||||||||||||||||||||          
 
     /// @notice Default logic initializer for a given Press
     /// @dev updates mappings for msg.sender, so no need to add access control to this function
-    /// @param logicInit data to init with
-    function initializeWithData(bytes memory logicInit) external {
+    /// @param databaseInit data to init with
+    function initializeWithData(bytes memory databaseInit) external {
         address sender = msg.sender;
         // data format: initialPause, accessControl, accessControlInit
         (   
             bool initialPause,
             IAccessControl accessControl,
             bytes memory accessControlInit
-        ) = abi.decode(logicInit, (bool, IAccessControl, bytes));
+            // ILogic logic
+            // bytes memory databaseInit
+        ) = abi.decode(databaseInit, (bool, IAccessControl, bytes));
 
         // set settingsInfo[targetPress]
         settingsInfo[sender].initialized = 1;
@@ -301,8 +184,14 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
     } 
 
     // ||||||||||||||||||||||||||||||||
-    // ||| LOGIC ADMIN ||||||||||||||||
-    // ||||||||||||||||||||||||||||||||      
+    // ||| DATABASE ADMIN |||||||||||||
+    // ||||||||||||||||||||||||||||||||     
+
+    /// TODO: write update logic file + update renderer file impls
+    ///     using getSettings access checks
+    ///
+    ///
+    ///
 
     /// @dev Allows contract owner to update the ERC721 Database Pass being used to restrict access to database functionality
     /// @param targetPress address of Press to target
@@ -390,6 +279,125 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
     }  
 
     // ||||||||||||||||||||||||||||||||
+    // ||| ACCESS + PRICE CHECKS ||||||
+    // ||||||||||||||||||||||||||||||||   
+
+    /// @notice checks total mint price for a given mintQuantity x mintCaller
+    /// @param targetPress press contract to check mint price of
+    /// @param mintQuantity mintQuantity used to calculate total mint price
+    /// @param mintCaller address of mintCaller to check pricing on behalf of
+    function totalMintPrice(
+        address targetPress, 
+        address mintCaller,
+        uint256 mintQuantity
+    ) external view requireInitialized(targetPress) returns (uint256) {
+        // There is no fee (besides gas) to store a listing
+        return settingsInfo[targetPress].ILogic(logic).getMintPrice(targetPress, mintCaller, mintQuantity);
+    }   
+
+    /// @notice checks mint access for a given mintQuantity + mintCaller
+    /// @param targetPress press contract to check access for
+    /// @param mintCaller address of mintCaller to check access for    
+    /// @param mintQuantity mintQuantity to check access for 
+    /// @dev `mintQuantity` is unused, but present to adhere to the interface requirements of IERC721PressDatabase
+    function canMint(
+        address targetPress, 
+        uint64 mintQuantity, 
+        address mintCaller
+    ) external view requireInitialized(targetPress) onlyActive(targetPress)  returns (bool) {
+        //        
+        return settingsInfo[targetPress].ILogic(logic).getMintAccess(targetPress, mintCaller, mintQuantity);    
+    }         
+
+    /// @notice checks burn access for a given burn caller
+    /// @param targetPress press contract to check access for
+    /// @param burnCaller address of burnCaller to check access for    
+    /// @param tokenId tokenId to check access for
+    /// @dev `tokenId` is unused, but present to adhere to the interface requirements of IERC721PressDatabase
+    function canBurn(
+        address targetPress, 
+        address burnCaller,
+        uint256 tokenId        
+    ) external view requireInitialized(targetPress) returns (bool) {
+        //
+        return settingsInfo[targetPress].ILogic(logic).getBurnAccess(targetPress, burnCaller, tokenId);            
+    }     
+
+    /// @notice checks sort access for a given sort caller
+    /// @param targetPress press contract to check access for
+    /// @param sortCaller address of sortCaller to check access for    
+    function canSort(
+        address targetPress, 
+        address sortCaller
+    ) external view requireInitialized(targetPress) returns (bool) {
+        //
+        return settingsInfo[targetPress].ILogic(logic).getSortAccess(targetPress, sortCaller);            
+    }    
+
+    /// TODO: write can updateSettings (logic + renderer) checks
+    ///     will be consumed by other local function in 
+    ///     database admin section
+    ///
+    ///
+
+    /// @notice checks metadata edit access for a given edit caller
+    /// @param targetPress press contract to check access for
+    /// @param metadataCaller address of metadataCaller to check access for
+    /// @param tokenId tokenId to check access for        
+    function canEditMetadata(
+        address targetPress, 
+        address metadataCaller,
+        uint256 tokenId
+    ) external view requireInitialized(targetPress) returns (bool) {
+        //
+        return settingsInfo[targetPress].ILogic(logic).getMetadataAccess(targetPress, metadataCaller, tokenId);
+    }    
+
+    /// @notice checks payments access for a given caller
+    /// @param targetPress press contract to check access for
+    /// @param paymentsCaller address of paymentsCaller to check access for   
+    function canEditPayments(
+        address targetPress, 
+        address paymentsCaller
+    ) external view requireInitialized(targetPress) returns (bool) {
+        //
+        return settingsInfo[targetPress].ILogic(logic).getPaymentsAccess(targetPress, metadataCaller, tokenId);
+    }    
+                
+    // ||||||||||||||||||||||||||||||||
+    // ||| STATUS CHECKS ||||||||||||||
+    // ||||||||||||||||||||||||||||||||      
+
+    /// @notice checks value of initialized variable in settingsInfo mapping for target Press
+    /// @param targetPress press contract to check initialization status
+    function isInitialized(address targetPress) external view returns (bool) {
+        // return false if targetPress has not been initialized
+        if (settingsInfo[targetPress].initialized == 0) {
+            return false;
+        }
+
+        return true;
+    }       
+
+    /// @notice checks value of isPaused variable in settingsInfo mapping for target Press
+    /// @param targetPress press contract to check pause status
+    function isPaused(address targetPress) external view returns (bool) {
+        // return bool state of isPaused variable
+        return settingsInfo[targetPress].isPaused;
+    }       
+
+    /// @notice Check if database for given Press is frozen
+    /// @param targetPress press contract to check frozen status
+    function isFrozen(address targetPress) external view returns (bool) {
+        // Check if Press database is frozen
+        if (settingsInfo[targetPress].frozenAt != 0 && settingsInfo[targetPress].frozenAt < block.timestamp) {
+            return true;
+        } else {
+            return false;
+        }        
+    }            
+
+    // ||||||||||||||||||||||||||||||||
     // ||| HELPERS ||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||  
 
@@ -425,5 +433,5 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
             listing.hasTokenId,
             listing.sortOrder
         );   
-    }    
+    }        
 }

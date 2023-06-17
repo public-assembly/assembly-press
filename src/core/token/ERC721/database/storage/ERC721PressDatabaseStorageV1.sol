@@ -8,9 +8,12 @@ import { IERC721PressDatabase } from "../../interfaces/IERC721PressDatabase.sol"
  */
 abstract contract DatabaseStorageV1 is IERC721PressDatabase {
 
-    /// @notice Press => id => address (pointer to bytes encoded listing struct) mapping, listing IDs are 0 => upwards
+    /// @notice Press => ID => {pointer, sortOrder} 
+    ///     pointer: sstore2 address of arbitrary bytes data, 
+    ///     sortOrder: optional z-index style sorting mechanism for IDs    
+    ///     IDs are 0 => upwards
     /// @dev Can contain blank/burned entries (not garbage compacted!)
-    mapping(address => mapping(uint256 => address)) public idToData;
+    mapping(address => mapping(uint256 => TokenData)) public idToData;
 
     /// @notice Press => Settings information
     mapping(address => Settings) public settingsInfo;

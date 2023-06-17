@@ -203,6 +203,10 @@ contract ERC721Press is
     function lastMintedTokenId() public view returns (uint256) {
         return _nextTokenId() - 1;
     }        
+
+    function getDatabase() public view returns (address) {
+        return _database;
+    }
     
     /* INTERNAL */    
 

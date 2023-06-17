@@ -9,9 +9,32 @@ interface IERC721PressDatabase {
     // ||| TYPES ||||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
+    /// @notice Shared struct used to store data for a given token
+    /**
+     * Struct breakdown. Values in parentheses are bytes.
+     *
+     * First slot
+     * pointer (20) + sortOrder (12) = 32 bytes
+    */
+    struct TokenData {
+        /// @notice Sstore2 data pointer        
+        address pointer;
+        /// @notice Optional z-index style sorting mechanism for ids. Can be negative
+        uint96 sortOrder;
+    }
+
+    /// @notice Shared struct tracking Press settings in database
+    /**
+     * Struct breakdown. Values in parentheses are bytes.
+     *
+     * First slot
+     * priceToStore (32) = 32 bytes
+     * Second slot
+     * accessControl (20) + numAdded (5) + numRemoved (5) + initialized (1) + isPaused (1) = 32 bytes
+     * Third slot
+     * renderer (20) + frozenAt (12) = 32 bytes   
+     */
     struct Settings {
-        /// @notice timestamp that the database is frozen at (if never, frozen = 0)
-        uint256 frozenAt;
         /// @notice price to store new data
         uint256 priceToStore;        
         /// @notice Address of the logic contract
@@ -27,7 +50,9 @@ interface IERC721PressDatabase {
         /// @notice If database is paused by the owner
         bool isPaused;
         /// @notice Address of the renderer contract
-        address renderer;                
+        address renderer;  
+        /// @notice timestamp that the database is frozen at (if never, frozen = 0)
+        uint96 frozenAt;                      
     }    
 
     // ||||||||||||||||||||||||||||||||
