@@ -17,12 +17,6 @@ abstract contract ERC721PressDatabaseStorageV1 is IERC721PressDatabase {
 
     /// @notice Press => Settings information
     mapping(address => Settings) public settingsInfo;
-  
-    // Public constants for access roles
-    uint16 public constant ANYONE = 0;
-    uint16 public constant USER = 1;
-    uint16 public constant MANAGER = 2;
-    uint16 public constant ADMIN = 3; 
 
     /// @notice Storage gap
     uint256[49] __gap;
