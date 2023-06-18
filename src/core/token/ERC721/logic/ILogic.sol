@@ -18,10 +18,8 @@ interface ILogic {
     function getSortAccess(address targetPress, address sortCaller) external view returns (bool);     
     /// @notice checks if a certain address can update the logic or renderer contract for a given Press
     function getSettingsAccess(address targetPress, address settingsCaller) external view returns (bool);      
-    /// @notice checks if a certain address get edit metadata post metadata initialization for a given token for a given Press
-    function getMetadataAccess(address targetPress, address metadataCaller, uint256 tokenId) external view returns (bool);        
-    /// @notice checks if a certain address get access specific functionality when database is paused
-    function getPauseAccess(address targetPress, address txnCaller) external view returns (bool);
+    /// @notice checks if a certain address get edit data post data storage for a given token for a given Press
+    function getDataAccess(address targetPress, address metadataCaller, uint256 tokenId) external view returns (bool);        
     /// @notice checks if a certain address get edit payment settings for a given Press
     function getPaymentsAccess(address targetPress, address txnCaller) external view returns (bool);       
 

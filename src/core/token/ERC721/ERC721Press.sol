@@ -135,7 +135,7 @@ contract ERC721Press is
             revert Incorrect_Msg_Value();
         }
 
-        // Route msgValue to fundsRecipient if msgValue is doesnt equal 0
+        // Route msgValue to fundsRecipient if msgValue doesnt equal 0
         if (msgValue != 0) {
             TransferUtils.safeSendETH(_settings.fundsRecipient, msgValue, TransferUtils._FUNDS_SEND_NORMAL_GAS_LIMIT);
         }
@@ -152,7 +152,6 @@ contract ERC721Press is
         emit IERC721Press.MintWithData({
             recipient: sender,
             quantity: quantity,
-            totalMintPrice: msgValue,
             firstMintedTokenId: firstMintedTokenId
         });
 
@@ -179,38 +178,51 @@ contract ERC721Press is
         } while (quantity > 0);
     }    
 
-    /// @notice externally accessible logic setup function
-    /// @param database the database contract
-    /// @param databaseInit the data to initialize database contract with
-    function setDatabase(IERC721PressDatabase database, bytes calldata databaseInit) external {
-        _setDatabase(database, databaseInit);
-    }    
+    /// @dev Facilitates z-index style sorting of tokenIds. SortOrders can be positive or negative
+    /// @dev Sort orders stored in database contract in mapping for address(this) Press
+    /// @param ids tokenIds to store sortOrders for    
+    /// @param sortOrders sorting values to store
+    function sortTokens(
+        uint256[] calldata tokenIds, 
+        int96[] calldata sortOrders
+    ) external {
+
+        // Cache msg.sender
+        (address sender) = msg.sender;
+
+        // Checks if sender has access to sort functionality
+        if (_database.canSort(address(this), sender) == false) {
+            revert No_Sort_Access();
+        }
+
+        // Prevents users from submitting invalid inputs
+        if (tokenIds.length != sortOrders.length) {
+            revert Invalid_Input_Length();
+        }
+
+        // Calls `sortData` function on database contract
+        _database.sortData(sender, tokenIds, sortOrders);                
+    }
 
     /// @notice updates the global settings for the ERC721Press contract
     /// @dev transferability stored in settings cannot be updated post contract initialization
     /// @param fundsRecipient global funds recipient
     /// @param royaltyBPS ERC2981 compatible royalty basis points
     function setSettings(address payable fundsRecipient, uint16 royaltyBPS) external {
+        // Checks if sender has access to edit Press settings
+        if (_database.canEditPayments(address(this), msg.sender) == false) {  
+            revert No_Settings_Access();
+        }              
         // Check to see if royaltyBPS set to acceptable levels
         if (royaltyBPS > MAX_ROYALTY_BPS) {
             revert Royalty_Percentage_Too_High(MAX_ROYALTY_BPS);
         }
 
+        // Update Press settings
         _settings.fundsRecipient = fundsRecipient;
         _settings.royaltyBPS = royaltyBPS;
 
         emit SettingsUpdated(msg.sender, _settings);  
-    }    
-
-    /* INTERNAL */    
-
-    /// @notice sets up the database contract used by ERC721Press contract
-    /// @param database the database contract
-    /// @param databaseInit the data to initialize database contract with
-    function _setDatabase(IERC721PressDatabase database, bytes calldata databaseInit) internal {
-        _database = database;
-        _database.initializeWithData(databaseInit);
-        emit DatabaseUpdated(msg.sender, database);    
     }    
 
     // ||||||||||||||||||||||||||||||||

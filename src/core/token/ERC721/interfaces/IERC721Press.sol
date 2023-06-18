@@ -25,16 +25,18 @@ interface IERC721Press {
         bool transferable;
     }
 
-    // 
-    event ERC721PressInitialized();
+    // not sure if to include
+    event ERC721PressInitialized();        
 
-    /// @notice Event emitted when database is updated
-    /// @param sender address that sent update txn
-    /// @param engine database address targeted
-    event DatabaseUpdated(
+    /// @notice Event emitted when minting token
+    /// @param sender address that called mintWithData
+    /// @param quantity numder of tokens to mint
+    /// @param firstMintedTokenId first tokenId minted in txn
+    event MintWithData(
         address indexed sender,
-        IERC721PressDatabase engine
-    );             
+        uint256 quantity,
+        uint256 firstMintedTokenId
+    );
 
     /// @notice Event emitted when settings are updated
     /// @param sender address that sent update txn
@@ -46,7 +48,7 @@ interface IERC721Press {
 
 
     // ||||||||||||||||||||||||||||||||
-    // ||| ERROS ||||||||||||||||||||||
+    // ||| ERRORS |||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
     // Access errors
@@ -57,10 +59,7 @@ interface IERC721Press {
     /// @notice msg.sender does not have sort access for given Press
     error No_Sort_Access();            
     /// @notice msg.sender does not have settings access for given Press
-    error No_Settings_Access();
-    /// @notice msg.sender does not have withdraw access for given Press
-    error No_Withdraw_Access();    
-
+    error No_Settings_Access(); 
 
     // Constraint & failure errors
     /// @notice msg.value incorrect for mint call
@@ -68,4 +67,15 @@ interface IERC721Press {
     /// @notice Royalty percentage too high
     error Royalty_Percentage_Too_High(uint16 bps);    
 
+    // ||||||||||||||||||||||||||||||||
+    // ||| FUNCTIONS ||||||||||||||||||
+    // ||||||||||||||||||||||||||||||||
+    /// @notice Getter for Press name
+    function name() external view returns (string memory);
+    /// @notice Getter for Press owner
+    function owner() external view returns (address);    
+    /// @notice allows user to mint token(s) from the Press contract
+    function mintWithData(uint256 quantity, bytes calldata data) external payable returns (uint256);        
+    /// @notice Facilitates z-index style sorting of tokenIds. SortOrders can be positive or negative
+    function sortTokens(uint256[] calldata tokenIds, int96[] calldata sortOrders) external;       
 }

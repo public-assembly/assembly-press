@@ -10,8 +10,8 @@ import {ERC721Press} from "../ERC721Press.sol";
 /**
 * @title RolesWith721Gate_ImmutableMetadata_NoFees
 * @notice Facilitates role based access control for admin/manager roles, and erc721 ownership based access for user role
-* @notice Also handles mint pricing + supply logic. Price = free, supply = unlimited (capped by uint256 max value)
-* @notice Also handles metadata mutability. Token metadata cannot be adjusted after set
+* @notice Facilitates mint pricing + supply logic. Price = free, supply = unlimited (capped by uint256 max value)
+* @notice Facilitates metadata mutability logic. Token metadata cannot be adjusted after set
 * @author Max Bochman
 */
 contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
@@ -78,6 +78,10 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
     error CanOnlyAssignAdminOrManager();    
     /// @notice Initialization coming from unauthorized contract
     error UnauthorizedInitializer();
+    /// @notice Database write access if frozen forever
+    error DatabaseFrozen();
+    /// @notice Database write access is temporarily paused for certain roles
+    error DatabasePaused();
 
     //////////////////////////////////////////////////
     // EVENTS
@@ -165,7 +169,6 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
         return roleInfo[targetPress][account] != NO_ROLE ? true : false;
     }        
     
-
     /// @notice Only allowed for contract admin
     /// @param targetPress target Press 
     /// @dev only allows approved admin of target Press (from msg.sender)
@@ -186,7 +189,18 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
         }
 
         _;
-    }       
+    }        
+
+    /// @notice Modifier that ensures database functionality not frozen
+    modifier NotFrozen(address targetPress) {
+           
+        // Check if Press database is frozen
+        if (settingsInfo[targetPress].frozenAt != 0 && settingsInfo[targetPress].frozenAt < block.timestamp) {
+            revert DatabaseFrozen();
+        }
+
+        _;     
+    }  
 
     //////////////////////////////////////////////////
     // INITIALIZER
@@ -383,13 +397,21 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
         returns (uint256)
     {    
         return _getMintPrice(accessMappingTarget, accountToGetAccessFor, mintQuantity);
-    }
+    }   
 
     function getMintAccess(address accessMappingTarget, address mintCaller, uint256 mintQuantity)
         external
         view
+        NotFrozen(accessMappingTarget)
         returns (bool)
     {   
+        // Check if Press database is paused and mintCaller doesn't have role override
+        if (settingsInfo[targetPress].isPaused) {
+            if (roleInfo[targetPress][mintCaller] == NO_ROLE) {
+                revert DatabasePaused();
+            }
+        }
+
         if (_getAccessLevel(accessMappingTarget, mintCaller) != 0) {
             return true;
         } else {
@@ -397,9 +419,23 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
         }
     }    
 
+    function getBurnAccess(address accessMappingTarget, address burnCaller, uint256 tokenId)
+        external
+        view
+        NotFrozen(accessMappingTarget)
+        returns (bool)
+    {   
+        if (_getAccessLevel(accessMappingTarget, burnCaller) < MANAGER) {
+            return true;
+        } else {
+            return false;
+        }
+    }        
+
     function getSortAccess(address accessMappingTarget, address sortCaller)
         external
         view
+        NotFrozen(accessMappingTarget)
         returns (bool)
     {   
         if (_getAccessLevel(accessMappingTarget, sortCaller) < MANAGER) {
@@ -409,21 +445,10 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
         }
     }    
 
-    function getBurnAccess(address accessMappingTarget, address burnCaller, uint256 tokenId)
-        external
-        view
-        returns (bool)
-    {   
-        if (_getAccessLevel(accessMappingTarget, burnCaller) < MANAGER) {
-            return true;
-        } else {
-            return false;
-        }
-    }    
-
     function getSettingsAccess(address accessMappingTarget, address settingsCaller)
         external
         view
+        NotFrozen(accessMappingTarget)
         returns (bool)
     {   
         if (_getAccessLevel(accessMappingTarget, settingsCaller) == ADMIN) {
@@ -436,6 +461,7 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
     function getPaymentsAccess(address accessMappingTarget, address paymentsCaller)
         external
         view
+        NotFrozen(accessMappingTarget)
         returns (bool)
     {
         if (_getAccessLevel(accessMappingTarget, paymentsCaller) == ADMIN) {
@@ -445,12 +471,12 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
         }
     }     
 
-    function getMetadataAccess(address accessMappingTarget, address metadataCaller, uint256 tokenId)
+    function getDataAccess(address accessMappingTarget, address metadataCaller, uint256 tokenId)
         external
         view
         returns (bool)
     {
-        // All token metadata is immutable once stored. Can only be deleted by burning token
+        // All token metadata is immutable once stored
         return false;
     }
 
@@ -466,7 +492,7 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
         returns (uint256)
     {
         // cache role for given target address
-        uint8 role = roleInfo[accessMappingTarget][accessMappingTarget];
+        uint8 role = roleInfo[accessMappingTarget][accountToGetAccessFor];
 
         // first check if address has admin/manager role, return that role if it does
         // if no admin/manager role, check if address has a balance of > 0 of the tokenGate contract, return 1 if it does
