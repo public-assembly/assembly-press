@@ -78,9 +78,8 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
             bytes memory logicInit,
             address renderer,
             bytes memory rendererInit,
-            uint80 priceToStore,
             bool initialPause,
-        ) = abi.decode(databaseInit, (ILogic, bool, IAccessControl, bytes));
+        ) = abi.decode(databaseInit, (address, bytes, address, bytes, bool));
 
         // set settingsInfo[targetPress]
         settingsInfo[sender].initialized = 1;
@@ -89,10 +88,8 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
         settingsInfo[sender].renderer = renderer;
         
         // initialize logic + renderer contracts
-        ILogic(logic).initializeWithData(sender, logicInit);   
-        IERC721PressRenderer(renderer).initializeWithData(sender, rendererInit);   
-
-        emit SetupNewPress(sender, logic, renderer);                   
+        _setLogic(logic, logicInit);
+        _setRenderer(renderer, rendererInit);                 
     }         
 
     // ||||||||||||||||||||||||||||||||
@@ -103,22 +100,24 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
     //      updates Press specific tokenData mapping in ERC721DatabaseStorageV1
     /// @param data data getting passed in along mint
     function storeData(bytes calldata data) external {
-        // data format: chunks
-        (bytes[] memory chunks) = abi.decode(data, (bytes[]));
+        // data format: tokens
+        (bytes[] memory tokens) = abi.decode(data, (bytes[]));
 
-        _storeData(msg.sender, chunks);
+        _storeData(msg.sender, tokens);
     }          
 
     /// @dev Stores indicies of a given bytes array
     /// @param targetPress ERC721Press to target
-    /// @param chunks arbitrary encoded bytes data
-    function _storeData(address targetPress, bytes[] memory chunks) internal {     
-        for (uint256 i = 0; i < chunks.length; ++i) {
+    /// @param tokens arbitrary encoded bytes data
+    function _storeData(address targetPress, bytes[] memory tokens) internal {     
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            // update press storedCounter before storing data
+            ++settingsInfo[targetPress].storedCounter;                                  
             // use sstore2 to store bytes segments in bytes array
             idToData[targetPress][settingsInfo[targetPress].storedCounter] = SSTORE2.write(
-                chunks[i]
+                tokens[i]
             );    
-            ++settingsInfo[targetPress].storedCounter;                        
+              
         }           
     }              
 
@@ -126,12 +125,12 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
     /// @param targetPress ERC721Press to target 
     /// @param tokenId tokenId to retrieve data for 
     function getData(address targetPress, uint256 tokenId) external view override returns (bytes memory) {
-        return SSTORE2.read(idToListing[targetPress][tokenId-1]);
+        return SSTORE2.read(idToListing[targetPress][tokenId]);
     }
 
     /// @dev Getter for acessing data for all active IDs for a given Press
     /// @param targetPress ERC721Press to target     
-    function getAllData(address targetPress) external view override returns (Listing[] memory activeListings) {
+    function getAllData(address targetPress) external view override returns (bytes memory) {
         unchecked {
             activeData = new bytes[](ERC721Press(payable(targetPress)).totalSupply());
 
@@ -143,7 +142,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
                 if (ERC721Press(payable(targetPress)).exists(activeIndex) != true) {
                     continue;
                 }
-                activeData[activeIndex-1] = SSTORE2.read(idToListing[targetPress][i]);
+                activeData[activeIndex] = SSTORE2.read(idToListing[targetPress][i]);
                 ++activeIndex;
             }
         }
@@ -152,6 +151,45 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
     // ||||||||||||||||||||||||||||||||
     // ||| DATABASE ADMIN |||||||||||||
     // ||||||||||||||||||||||||||||||||     
+
+    // external handler for setLogic function
+    function setLogic(address targetPress, address logic, bytes memory logicInit) external {
+        // Check if msg.sender has access to update lgoic for Press
+        if (!ILogic(logic).getSettingsAccess(targetPress, msg.sender)) {
+            revert No_Settings_Access();
+        }
+        // Update + initialize new logic contract
+        _setLogic(targetPress, logic, logicInit);
+    }  
+
+    // external handler for setRenderer function
+    function setRenderer(address targetPress, address renderer, bytes memory rendererInit) external {
+        // Check if msg.sender has access to update renderer for Press
+        if (!IERC721PressRenderer(renderer).getSettingsAccess(targetPress, msg.sender)) {
+            revert No_Settings_Access();
+        }
+        // Update + initialize new logic contract
+        _setRenderer(targetPress, renderer, rendererInit);
+    }  
+
+
+    /// @notice internal handler for setLogic function
+    /// @dev no access checks, enforce elsewhere
+    function _setLogic(address targetPress, address logic, bytes memory logicInit) internal {
+        settingsInfo[targetPress].logic = logic;
+        ILogic(logic).initializeWithData(logicInit);
+
+        emit LogicUpdated(targetPress, logic);
+    }    
+
+    /// @notice internal handler for setRenderer function
+    /// @dev no access checks, enforce elsewhere
+    function _setRenderer(address targetPress, address renderer, bytes memory rendererInit) internal {
+        settingsInfo[targetPress].renderer = renderer;
+        IERC721PressRenderer(renderer).initializeWithData(rendererInit);
+
+        emit RendererUpdated(targetPress, renderer);
+    }    
 
     /// TODO: write update logic file + update renderer file impls
     ///     using getSettings access checks

@@ -33,18 +33,18 @@ interface IERC721PressDatabase {
      * renderer (20) = 20 bytes   
      */
     struct Settings {
+        /// @notice Keeps track of how many data slots have been filled
+        uint256 storedCounter;                
         /// @notice Address of the logic contract
-        address logic;            
-        /// @notice timestamp that the Press database is frozen at (if never, frozen = 0)
-        uint80 frozenAt;                             
+        address logic;                        
         /// @notice initialized uint. 0 = not initialized, 1 = initialized
         uint8 initialized;
-        /// @notice If database is paused by the owner
-        bool isPaused;
-        /// @notice Keeps track of how many data slots have been filled
-        uint256 storedCounter;        
         /// @notice Address of the renderer contract
         address renderer;  
+        /// @notice timestamp that the Press database is frozen at (if never, frozen = 0)
+        uint80 frozenAt;                      
+        /// @notice If database is paused by the owner
+        bool isPaused;        
     }    
 
     // ||||||||||||||||||||||||||||||||
@@ -89,6 +89,18 @@ interface IERC721PressDatabase {
     // ||| EVENTS |||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
+    /// @notice Logic has been updated
+    event LogicUpdated(
+        address indexed targetPress,
+        address indexed logic
+    );    
+
+    /// @notice Renderer has been updated
+    event RendererUpdated(
+        address indexed targetPress,
+        address indexed renderer
+    );    
+
     /// @notice Event emitted when mint Settings updated
     /// @param press Press that initialized logic file
     /// @param mintPrice universal mint price for contract
@@ -107,13 +119,6 @@ interface IERC721PressDatabase {
         address indexed targetPress,
         address indexed user,
         bytes listing
-    );
-
-    /// @notice Emitted when a new press is initialized in database
-    event SetupNewPress(
-        address indexed indexed targetPress,
-        address indexed logic,
-        address indexed renderer
     );
 
     /// @notice Emitted when a listing is removed
@@ -152,6 +157,8 @@ interface IERC721PressDatabase {
     // ||||||||||||||||||||||||||||||||
 
     // Access errors
+    /// @notice msg.sender does not have access to adjust Settings for given Press
+    error No_Settings_Access();    
     /// @notice Address does not have admin role
     error Not_Admin();
     /// @notice msg.sender does not have pause access for given Press
