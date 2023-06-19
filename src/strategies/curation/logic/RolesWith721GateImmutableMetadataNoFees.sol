@@ -8,13 +8,13 @@ import {IERC721Press} from "../../../core/token/ERC721/interfaces/IERC721Press.s
 import {ERC721Press} from "../../../core/token/ERC721/ERC721Press.sol";
 
 /**
-* @title RolesWith721Gate_ImmutableMetadata_NoFees
+* @title RolesWith721GateImmutableMetadataNoFees
 * @notice Facilitates role based access control for admin/manager roles, and erc721 ownership based access for user role
 * @notice Facilitates mint pricing + supply logic. Price = free, supply = unlimited (capped by uint256 max value)
 * @notice Facilitates metadata mutability logic. Token metadata cannot be adjusted after set
 * @author Max Bochman
 */
-contract RolesWith721Gate_ImmutableMetadata_NoFees is IERC721PressRenderer {
+contract RolesWith721GateImmutableMetadataNoFees is IERC721PressRenderer {
 
     //////////////////////////////////////////////////
     // TYPES
