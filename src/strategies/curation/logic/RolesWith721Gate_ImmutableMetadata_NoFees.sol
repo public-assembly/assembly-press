@@ -3,9 +3,9 @@ pragma solidity 0.8.17;
 
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
 
-import {ILogic} from "./ILogic.sol";
-import {IERC721Press} from "../interfaces/IERC721Press.sol";
-import {ERC721Press} from "../ERC721Press.sol";
+import {IERC721PressRenderer} from "../../../core/token/ERC721/interfaces/IERC721PressRenderer.sol";
+import {IERC721Press} from "../../../core/token/ERC721/interfaces/IERC721Press.sol";
+import {ERC721Press} from "../../../core/token/ERC721/ERC721Press.sol";
 
 /**
 * @title RolesWith721Gate_ImmutableMetadata_NoFees
@@ -14,7 +14,7 @@ import {ERC721Press} from "../ERC721Press.sol";
 * @notice Facilitates metadata mutability logic. Token metadata cannot be adjusted after set
 * @author Max Bochman
 */
-contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
+contract RolesWith721Gate_ImmutableMetadata_NoFees is IERC721PressRenderer {
 
     //////////////////////////////////////////////////
     // TYPES
@@ -78,7 +78,7 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
     error CanOnlyAssignAdminOrManager();    
     /// @notice Initialization coming from unauthorized contract
     error UnauthorizedInitializer();
-    /// @notice Database write access if frozen forever
+    /// @notice Database write access is blocked forever
     error DatabaseFrozen();
     /// @notice Database write access is temporarily paused for certain roles
     error DatabasePaused();
@@ -111,7 +111,7 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
     /// @param targetPress ERC721Press being targeted
     /// @param sender msg.sender
     /// @param frozen unix timestamp in seconds
-    event FrozenAtdUpdated(
+    event FrozenAtUpdated(
         address targetPress,
         address sender,
         uint80 frozenAt
@@ -133,12 +133,10 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
     /// @param targetPress ERC721Press being targeted
     /// @param sender msg.sender
     /// @param account account being revoked
-    /// @param role account role be updated to NO_ROLE
     event RoleRevoked(
         address targetPress,
         address sender,
-        address account,
-        uint8 role 
+        address account
     );         
 
     //////////////////////////////////////////////////
@@ -235,9 +233,9 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
     // ROLE ASSIGNMENT
     //////////////////////////////////////////////////    
 
-    /////////////
+    /////////////////////////
     // EXTERNAL
-    /////////////    
+    /////////////////////////    
 
     /// @notice Assign new roles for given accounts for given press
     /// @param targetPress target Press index
@@ -264,15 +262,14 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
             emit RoleRevoked({
                 targetPress: targetPress,
                 sender: msg.sender,
-                account: accounts[i],
-                role: NO_ROLE
+                account: accounts[i]
             });
         }    
     }  
 
-    /////////////
+    /////////////////////////
     // INTERNAL
-    /////////////      
+    /////////////////////////      
 
     /// @notice internal assign new roles for given press
     /// @param targetPress target Press index
@@ -300,9 +297,9 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
     // SETTINGS
     //////////////////////////////////////////////////      
 
-    /////////////
+    /////////////////////////
     // EXTERNAL
-    /////////////
+    /////////////////////////
 
     /// @notice Set the address of the erc721Gate in use for a given targetPress
     /// @dev msg.sender must have ADMIN role
@@ -331,9 +328,9 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
         _setFrozenAt(targetPress, frozenAt);
     }          
 
-    /////////////
+    /////////////////////////
     // INTERNAL
-    /////////////
+    /////////////////////////
 
     /// @notice Internal handler for updates to the address of the tokenGate in use for a given targetPress
     /// @dev No access checks, enforce elsewhere
@@ -370,7 +367,7 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
     function _setIsFrozen(address targetPress, uint80 frozenAt) internal {
         settingsInfo[targetPress].frozenAt = frozenAt;
 
-        emit frozenAt({
+        emit FrozenAtUpdated({
             targetPress: targetPress,
             sender: msg.sender,
             frozenAt: frozenAt
@@ -471,7 +468,19 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
         }
     }     
 
-    function getDataAccess(address accessMappingTarget, address metadataCaller, uint256 tokenId)
+    function getContractDataAccess(address accessMappingTarget, address metadataCaller)
+        external
+        view
+        returns (bool)
+    {
+        if (_getAccessLevel(accessMappingTarget, metadataCaller) < MANAGER) {
+            return false;
+        } else {
+            return true;
+        }
+    }    
+
+    function getTokenDataAccess(address accessMappingTarget, address metadataCaller, uint256 tokenId)
         external
         view
         returns (bool)
@@ -480,9 +489,9 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
         return false;
     }
 
-    /////////////
+    /////////////////////////
     // INTERNAL
-    /////////////
+    /////////////////////////
 
     /// @notice returns access level of a user address calling function
     /// @dev called via the external contract initializing access control
@@ -491,16 +500,13 @@ contract RolesWith721Gate_ImmutableMetadata_NoFees is ILogic {
         view
         returns (uint256)
     {
-        // cache role for given target address
-        uint8 role = roleInfo[accessMappingTarget][accountToGetAccessFor];
-
         // first check if address has admin/manager role, return that role if it does
-        // if no admin/manager role, check if address has a balance of > 0 of the tokenGate contract, return 1 if it does
+        // if no admin/manager role, check if address has a balance of > 0 of the erc721Gate contract, return 1 if it does
         // return 0 if all of the above is false
-        if (role != NO_ROLE) {
+        if (roleInfo[accessMappingTarget][accountToGetAccessFor] != NO_ROLE) {
             return role;
         } else if (IERC721(tokenGateInfo[accessMappingTarget]).balanceOf(accountToGetAccessFor) != 0) {
-            return USER;
+            return 1;
         } else {
             return 0;
         }

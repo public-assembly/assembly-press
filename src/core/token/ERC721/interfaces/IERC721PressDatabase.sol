@@ -18,8 +18,22 @@ interface IERC721PressDatabase {
         /// @notice Sstore2 data pointer        
         address pointer;
         /// @notice Optional z-index style sorting mechanism for ids. Can be negative
-        uint96 sortOrder;
+        int96 sortOrder;
     }
+
+    /// @notice Shared struct used to store data for a given token
+    /**
+     * Struct breakdown. Values in parentheses are bytes.
+     *
+     * First slot
+     * pointer (20) + sortOrder (12) = 32 bytes
+    */
+    struct TokenDataRetrieved {
+        /// @notice Bytes data stored atsstore2 data pointer        
+        bytes storedData;
+        /// @notice Optional z-index style sorting mechanism for ids. Can be negative
+        int96 sortOrder;
+    }    
 
     /// @notice Shared struct tracking Press settings in database
     /**
@@ -56,6 +70,10 @@ interface IERC721PressDatabase {
     function sortData(address targetPress, uint256[] calldata tokenIds, int96[] calldata sortOrders) external;    
 
     // Read Functions
+    /// @notice returns contractURI for a given Press    
+    function contractURI() external view returns (string memory);    
+    /// @notice returns tokenURI for a given Press + tokenId
+    function tokenURI(uint256 tokenId ) external view returns (string memory);                
     /// @notice Getter for data of a specific id of a given Press
     function readData(address targetPress, uint256 id) external view returns (bytes memory);
     /// @notice calculates total mintPrice based on targetPress, mintCaller, and mintQuantity
@@ -68,10 +86,12 @@ interface IERC721PressDatabase {
     function canSort(address targetPress, address sortCaller) external view returns (bool);    
     /// @notice checks if a certain address can update the settings {logic, renderer} for a given Press 
     function canEditSettings(address targetPress, address settingsCaller) external view returns (bool);           
+    /// @notice checks if a certain address can edit contract data post data storage for a given Press
+    function canEditContractData(address targetPress, address metadataCaller) external view returns (bool);        
     /// @notice checks if a certain address can edit token data post data storage for a given Press
-    function canEditData(address targetPress, address metadataCaller) external view returns (bool);    
+    function canEditTokenData(address targetPress, address metadataCaller, uint256 tokenId) external view returns (bool);    
     /// @notice checks if a certain address can edit payments related information for a givenPress
-    function canEditPayments(address targetPress, address withdrawCaller) external view returns (bool);        
+    function canEditPayments(address targetPress, address withdrawCaller) external view returns (bool);  
     
     // ||||||||||||||||||||||||||||||||
     // ||| EVENTS |||||||||||||||||||||

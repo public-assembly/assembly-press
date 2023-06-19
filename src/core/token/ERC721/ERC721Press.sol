@@ -231,6 +231,24 @@ contract ERC721Press is
 
     /* EXTERNAL */    
 
+    /// @notice Contract uri getter
+    /// @dev Call proxies to database
+    function contractURI() external view returns (string memory) {
+        return IERC721PressDatabase(_database).contractURI();
+    }    
+
+    /// @notice Token uri getter
+    /// @dev Call proxies to database
+    /// @param tokenId id of token to get the uri for
+    function tokenURI(uint256 tokenId) public view override(ERC721AUpgradeable, IERC721Press) returns (string memory) {
+        /// Reverts if the supplied token does not exist
+        if (!_exists(tokenId)) {
+            revert IERC721AUpgradeable.URIQueryForNonexistentToken();
+        }
+
+        return IERC721PressDatabase(_database).tokenURI(tokenId);
+    }
+
     /// @notice Getter for last minted token id (gets next token id and subtracts 1)
     /// @dev Also works as a "totalMinted" lookup
     function lastMintedTokenId() public view returns (uint256) {
