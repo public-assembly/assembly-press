@@ -66,6 +66,8 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
     // ERRORS
     //////////////////////////////////////////////////    
 
+    /// @notice Initialization coming from unauthorized contract
+    error UnauthorizedInitializer();
     /// @notice msg.sender does not have access to adjust contractUriImage for given Press
     error No_Contract_Data_Access();        
 
@@ -92,15 +94,15 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
     /// @dev Called during the initialization process for a given Press
     function initializeWithData(address targetPress, bytes memory data) external {
         // Ensure that only the expected database contract is calling this function
-        if (msg.sender != address(ERC721Press(targetPress).getDatabase())) {
+        if (msg.sender != address(ERC721Press(payable(targetPress)).getDatabase())) {
             revert UnauthorizedInitializer();
         }        
         
-        (string memory contractUriImage) = abi.decode(string, (data));
+        (string memory contractUriImage) = abi.decode(data, (string));
 
         contractUriImageInfo[targetPress] = contractUriImage;
 
-        emit contractUriImageUpdated(targetPress, msg.sender, contractUriImage);        
+        emit ContractUriImageUpdated(targetPress, msg.sender, contractUriImage);        
     }
 
     //////////////////////////////////////////////////
@@ -111,7 +113,7 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
     function setContractUriImage(address targetPress, string memory contractUriImage) external {
         
         // Check msg.sender contractUriImage access for given target Press
-        if (IERC721PressDatabase(address(ERC721Press(targetPress).getDatabase())).canEditContractData(targetPress, msg.sender) == false) {
+        if (IERC721PressDatabase(address(ERC721Press(payable(targetPress)).getDatabase())).canEditContractData(targetPress, msg.sender) == false) {
             revert No_Contract_Data_Access();
         }
 
@@ -127,7 +129,7 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
     /// @notice return contractURI for a given Press
     /// @dev This is what Press database contract calls to get contractURI
     function getContractURI(address targetPress) external view returns (string memory) {
-        ERC721Press press = ERC721Press(payable(targetPressr));
+        ERC721Press press = ERC721Press(payable(targetPress));
         MetadataBuilder.JSONItem[] memory items = new MetadataBuilder.JSONItem[](3);
 
         items[0].key = MetadataJSONKeys.keyName;
@@ -154,7 +156,7 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
 
     /// @notice return tokenURI for a given Press + tokenId
     /// @dev This is what Press database contract calls to get tokenURI
-    function getTokenUri(address targetPress, uint256 tokenId) external view returns (string memory) {
+    function getTokenURI(address targetPress, uint256 tokenId) external view returns (string memory) {
 
         MetadataBuilder.JSONItem[] memory items = new MetadataBuilder.JSONItem[](4);
         MetadataBuilder.JSONItem[] memory properties = new MetadataBuilder.JSONItem[](7);
@@ -214,7 +216,7 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
 
     /// @dev Decodes stored bytes values into the values that were originally encoded for curation strategy
     /// @param data data to process
-    function _decodeBytes(bytes memory data) internal view returns (Listing memory) {
+    function _decodeBytes(bytes memory data) internal pure returns (Listing memory) {
         // data format: chainId, tokenId, listingAddress, hasTokenId
         (
             uint256 chainId, 
@@ -235,14 +237,15 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
     }    
 
     /// @dev Builds + returns Listing struct stored bytes values into the values that were originally encoded for curation strategy
-    /// @param data data to process
-    function _buildListing(address targetPress, uint256 tokenId) internal pure returns (Listing memory) {
+    /// @param targetPress Press to build Listing from
+    /// @param tokenId tokenId to retrieve data for
+    function _buildListing(address targetPress, uint256 tokenId) internal view returns (Listing memory) {
     
         // get database contract for given Press (tokenURI call is coming from ERC721Press)
-        IERC721PressDatabase database = IERC721PressDatabase(address(IERC721Press(targetPress).getDatabase()));
+        IERC721PressDatabase database = IERC721PressDatabase(ERC721Press(payable(targetPress)).getDatabase());
 
         // returns { bytes found at sstore2 pointer, int96 sortOrder}
-        TokenDataRetrieved memory tokenData = database.readData(targetPress, tokenId);       
+        IERC721PressDatabase.TokenDataRetrieved memory tokenData = database.readData(targetPress, tokenId);       
 
         // decode data bytes data into partial Listing struct
         Listing memory partialListing = _decodeBytes(tokenData.storedData);
@@ -254,7 +257,7 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
             listingAddress: partialListing.listingAddress,
             hasTokenId: partialListing.hasTokenId,
             curator: ERC721Press(payable(targetPress)).ownerOf(tokenId),
-            sortOrder: data.sortOrder
+            sortOrder: tokenData.sortOrder
         });
     }
 
@@ -263,13 +266,13 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
     /////////////////////////
 
     // helper function for sortOrder metadata returns
-    function _sortOrderConverter(int32 sortOrder) internal pure returns (string memory) {
+    function _sortOrderConverter(int96 sortOrder) internal pure returns (string memory) {
         if (sortOrder >= 0) {
-            return Strings.toString(uint256(uint32(sortOrder)));
+            return Strings.toString(uint256(uint96(sortOrder)));
         } else {
             return string.concat(
                 "-",
-                Strings.toString(uint256(uint32(-sortOrder)))
+                Strings.toString(uint256(uint96(-sortOrder)))
             );
         }
     }
@@ -280,6 +283,57 @@ contract CurationMetadataRenderer is IERC721PressRenderer {
             return "true";
         }
         return "false";
+    }    
+
+    /////////////////////////
+    // TOKEN URI SVG HELPERS
+    /////////////////////////    
+
+    function _getTotalSupplySaturation(address targetPress) public view returns (uint16) {
+        try ERC721Press(payable(targetPress)).totalSupply() returns (uint256 supply) {
+            if (supply > 10000) {
+                return 100;
+            }
+            if (supply > 1000) {
+                return 75;
+            }
+            if (supply > 100) {
+                return 50;
+            }
+        } catch {}
+        return 10;
+    }
+
+    function generateGridForAddress(
+        address targetPress,
+        address owner
+    ) public pure returns (string memory) {
+        uint16 saturationOuter = 25;
+
+        uint256 squares = 0;
+        uint256 freqDiv = 23;
+        // uint256 hue = 168; // hardcoded at 168 but default value is 0
+
+        string memory svgInner = string.concat(
+            CurationMetadataBuilder._makeSquare({ size: 720, x: 0, y: 0, color: CurationMetadataBuilder._makeHSL({ h: 317, s: saturationOuter, l: 30 }) }),
+            CurationMetadataBuilder._makeSquare({ size: 600, x: 30, y: 98, color: CurationMetadataBuilder._makeHSL({ h: 317, s: saturationOuter, l: 50 }) }),
+            CurationMetadataBuilder._makeSquare({ size: 480, x: 60, y: 180, color: CurationMetadataBuilder._makeHSL({ h: 317, s: saturationOuter, l: 70 }) }),
+            CurationMetadataBuilder._makeSquare({ size: 60, x: 90, y: 270, color: CurationMetadataBuilder._makeHSL({ h: 317, s: saturationOuter, l: 70 }) })
+        );
+
+        uint256 addr = uint160(uint160(owner));
+        for (uint256 i = 0; i < squares * squares; i++) {
+            addr /= freqDiv;
+            if (addr % 3 == 0) {
+                uint256 size = 720 / squares;
+                svgInner = string.concat(
+                    svgInner,
+                    CurationMetadataBuilder._makeSquare({ size: size, x: (i % squares) * size, y: (i / squares) * size, color: "rgba(0, 0, 0, 0.4)" })
+                );
+            }
+        }
+
+        return MetadataBuilder.generateEncodedSVG(svgInner, "0 0 720 720", "720", "720");
     }    
 }
         

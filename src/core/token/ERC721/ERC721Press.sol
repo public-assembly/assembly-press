@@ -14,6 +14,7 @@ import {IERC721AUpgradeable} from "erc721a-upgradeable/IERC721AUpgradeable.sol";
 import {IERC721Press} from "./interfaces/IERC721Press.sol";
 import {ERC721PressStorageV1} from "./storage/ERC721PressStorageV1.sol";
 import {IERC721PressDatabase} from "./interfaces/IERC721PressDatabase.sol";
+import {IERC5192} from "./interfaces/IERC5192.sol";
 
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -51,9 +52,10 @@ contract ERC721Press is
     ReentrancyGuardUpgradeable,
     IERC721Press,
     OwnableUpgradeable,
-    Version,
+    Version(1),
     ERC721PressStorageV1,
-    FundsReceiver
+    FundsReceiver,
+    IERC5192
 {
     // ||||||||||||||||||||||||||||||||
     // ||| CONSTRUCTOR ||||||||||||||||
@@ -91,9 +93,8 @@ contract ERC721Press is
         __Ownable_init(initialOwner);
         // Initialize UUPS
         __UUPSUpgradeable_init();                      
-
-        // Setup database
-        _setDatabase(_database, databaseInit);
+        // Initialize Database
+        _database.initializeWithData(databaseInit);
 
         // Check to see if royaltyBPS set to acceptable levels
         if (settings.royaltyBPS > MAX_ROYALTY_BPS) {
@@ -126,12 +127,12 @@ contract ERC721Press is
         (uint256 msgValue, address sender) = (msg.value, msg.sender);
 
         // Call logic contract to check user mint access
-        if (_database.canMint(address(this), quantity, sender) != true) {
+        if (_database.canMint(address(this), sender, quantity) != true) {
             revert No_Mint_Access();
         }
 
-        // Call logic contract to check totalMintPrice for given quantity * sender
-        if (msgValue != _database.totalMintPrice(address(this), quantity, sender)) {
+        // Call logic contract to check totalMintPrice for given sender * quantity
+        if (msgValue != _database.totalMintPrice(address(this), sender, quantity)) {
             revert Incorrect_Msg_Value();
         }
 
@@ -150,7 +151,7 @@ contract ERC721Press is
         _database.storeData(data);
 
         emit IERC721Press.MintWithData({
-            recipient: sender,
+            sender: sender,
             quantity: quantity,
             firstMintedTokenId: firstMintedTokenId
         });
@@ -180,7 +181,7 @@ contract ERC721Press is
 
     /// @dev Facilitates z-index style sorting of tokenIds. SortOrders can be positive or negative
     /// @dev Sort orders stored in database contract in mapping for address(this) Press
-    /// @param ids tokenIds to store sortOrders for    
+    /// @param tokenIds tokenIds to store sortOrders for    
     /// @param sortOrders sorting values to store
     function sortTokens(
         uint256[] calldata tokenIds, 
@@ -202,7 +203,7 @@ contract ERC721Press is
 
         // Calls `sortData` function on database contract
         _database.sortData(sender, tokenIds, sortOrders);                
-    }
+    }    
 
     /// @notice updates the global settings for the ERC721Press contract
     /// @dev transferability stored in settings cannot be updated post contract initialization
@@ -231,6 +232,11 @@ contract ERC721Press is
 
     /* EXTERNAL */    
 
+    /// @notice Simple override for owner interface
+    function owner() public view override(OwnableUpgradeable, IERC721Press) returns (address) {
+        return super.owner();
+    }    
+
     /// @notice Contract uri getter
     /// @dev Call proxies to database
     function contractURI() external view returns (string memory) {
@@ -249,13 +255,22 @@ contract ERC721Press is
         return IERC721PressDatabase(_database).tokenURI(tokenId);
     }
 
+    function locked(uint256 tokenId) external virtual override(IERC5192) view returns (bool) {
+        // if transferable = true, return false (IS TRANSFERABLE)
+        if (_settings.transferable == true) {
+            return false;
+        } else {
+            return false;
+        }
+    }         
+
     /// @notice Getter for last minted token id (gets next token id and subtracts 1)
     /// @dev Also works as a "totalMinted" lookup
     function lastMintedTokenId() public view returns (uint256) {
         return _nextTokenId() - 1;
     }        
 
-    function getDatabase() public view returns (address) {
+    function getDatabase() public view returns (IERC721PressDatabase) {
         return _database;
     }
 
@@ -265,6 +280,10 @@ contract ERC721Press is
     }    
     
     /* INTERNAL */    
+
+    /// @dev Can only be called by the contract owner
+    /// @param newImplementation proposed new upgrade implementation
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}    
 
     /// @notice Start token ID for minting (1-100 vs 0-99)
     function _startTokenId() internal pure override returns (uint256) {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-interface ILogic {
+interface IERC721PressLogic {
     
     // Basic info
     function name() external view returns (string memory);    
@@ -19,7 +19,7 @@ interface ILogic {
     /// @notice checks if a certain address can update the logic or renderer contract for a given Press
     function getSettingsAccess(address targetPress, address settingsCaller) external view returns (bool);      
     /// @notice checks if a certain address get edit contract data post data storage for a given Press
-    function getContractDataAccess(address targetPress, address metadataCaller, uint256 tokenId) external view returns (bool);            
+    function getContractDataAccess(address targetPress, address metadataCaller) external view returns (bool);            
     /// @notice checks if a certain address get edit token data post data storage for a given token for a given Press
     function getTokenDataAccess(address targetPress, address metadataCaller, uint256 tokenId) external view returns (bool);        
     /// @notice checks if a certain address get edit payment settings for a given Press
@@ -27,5 +27,5 @@ interface ILogic {
 
     // Other Getters
     /// @notice calculates totalMintPrice for a given Press, mintCaller, and mintQuantity
-    function getMintPrice(address targetPress, address mintCaller, uint64 mintQuantity) external view returns (uint256);        
+    function getMintPrice(address targetPress, address mintCaller, uint256 mintQuantity) external view returns (uint256);        
 }

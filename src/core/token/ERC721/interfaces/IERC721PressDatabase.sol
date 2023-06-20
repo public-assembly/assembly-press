@@ -75,7 +75,7 @@ interface IERC721PressDatabase {
     /// @notice returns tokenURI for a given Press + tokenId
     function tokenURI(uint256 tokenId ) external view returns (string memory);                
     /// @notice Getter for data of a specific id of a given Press
-    function readData(address targetPress, uint256 id) external view returns (bytes memory);
+    function readData(address targetPress, uint256 id) external view returns (TokenDataRetrieved memory);
     /// @notice calculates total mintPrice based on targetPress, mintCaller, and mintQuantity
     function totalMintPrice(address targetPress, address mintCaller, uint256 mintQuantity) external view returns (uint256);    
     /// @notice checks if a certain address can access mint functionality for a given Press + quantity combination
@@ -113,7 +113,7 @@ interface IERC721PressDatabase {
     event DataSorted(
         address indexed targetPress,
         uint256[] ids,
-        uint96[] sortOrder,
+        int96[] sortOrder,
         address sortedBy
     );    
 

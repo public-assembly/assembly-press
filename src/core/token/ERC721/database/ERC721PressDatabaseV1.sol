@@ -57,7 +57,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
             address logic,
             bytes memory logicInit,
             address renderer,
-            bytes memory rendererInit,
+            bytes memory rendererInit
         ) = abi.decode(databaseInit, (address, bytes, address, bytes));
 
         // set settingsInfo[targetPress]
@@ -66,8 +66,8 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
         settingsInfo[sender].renderer = renderer;
         
         // initialize logic + renderer contracts
-        _setLogic(logic, logicInit);
-        _setRenderer(renderer, rendererInit);                 
+        _setLogic(sender, logic, logicInit);
+        _setRenderer(sender, renderer, rendererInit);                 
     }       
 
     // ||||||||||||||||||||||||||||||||
@@ -97,7 +97,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
     /// @dev no access checks, enforce elsewhere
     function _setLogic(address targetPress, address logic, bytes memory logicInit) internal {
         settingsInfo[targetPress].logic = logic;
-        IERC721PressLogic(logic).initializeWithData(logicInit);
+        IERC721PressLogic(logic).initializeWithData(targetPress, logicInit);
 
         emit LogicUpdated(targetPress, logic);
     }    
@@ -106,7 +106,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
     /// @dev no access checks, enforce elsewhere
     function _setRenderer(address targetPress, address renderer, bytes memory rendererInit) internal {
         settingsInfo[targetPress].renderer = renderer;
-        IERC721PressRenderer(renderer).initializeWithData(rendererInit);
+        IERC721PressRenderer(renderer).initializeWithData(targetPress, rendererInit);
 
         emit RendererUpdated(targetPress, renderer);
     }          
@@ -146,13 +146,12 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
     function readData(address targetPress, uint256 tokenId) 
         external 
         view 
-        override 
         requireInitialized(targetPress) 
         returns (TokenDataRetrieved memory) {
         return 
             TokenDataRetrieved({
-                storedData: SSTORE2.read(idToListing[targetPress][tokenId].pointer),
-                sortOrder: idToListing[targetPress][tokenId].sortOrder
+                storedData: SSTORE2.read(idToData[targetPress][tokenId].pointer),
+                sortOrder: idToData[targetPress][tokenId].sortOrder
             });
     }
 
@@ -161,23 +160,22 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
     function readAllData(address targetPress) 
         external 
         view 
-        override 
         requireInitialized(targetPress)
-        returns (TokenDataRetrieved[] memory) {
+        returns (TokenDataRetrieved[] memory activeData) {
         unchecked {
             activeData = new TokenDataRetrieved[](ERC721Press(payable(targetPress)).totalSupply());
 
             // first tokenId minted in ERC721Press impl is #1
             uint256 activeIndex = 1;
 
-            for (uint256 i; i < settingsInfo[targetPress].numAdded; ++i) {
+            for (uint256 i; i < settingsInfo[targetPress].storedCounter; ++i) {
                 // skip this listing if user has burned the token (sent to zero address)
                 if (ERC721Press(payable(targetPress)).exists(activeIndex) == false) {
                     continue;
                 }
                 activeData[activeIndex] = TokenDataRetrieved({
-                        storedData: SSTORE2.read(idToListing[targetPress][i].pointer),
-                        sortOrder: idToListing[targetPress][i].sortOrder
+                        storedData: SSTORE2.read(idToData[targetPress][i].pointer),
+                        sortOrder: idToData[targetPress][i].sortOrder
                 });              
                 ++activeIndex;
             }
@@ -193,7 +191,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
     /// @dev Will only sort ids for a given Press if called directly by the Press
     /// @dev Access checks enforced in Press
     /// @param sortCaller address of sortCaller    
-    /// @param ids data IDs to store sortOrders for    
+    /// @param tokenIds data IDs to store sortOrders for    
     /// @param sortOrders sorting values to store
     function sortData(
         address sortCaller, 
@@ -256,7 +254,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
         address mintCaller,
         uint256 mintQuantity
     ) external view requireInitialized(targetPress) returns (uint256) {
-        return settingsInfo[targetPress].IERC721PressLogic(logic).getMintPrice(targetPress, mintCaller, mintQuantity);
+        return IERC721PressLogic(settingsInfo[targetPress].logic).getMintPrice(targetPress, mintCaller, mintQuantity);
     }         
 
     /// @notice checks value of initialized variable in settingsInfo mapping for target Press
@@ -284,7 +282,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
         uint256 mintQuantity
     ) external view requireInitialized(targetPress) returns (bool) {
         //        
-        return settingsInfo[targetPress].IERC721PressLogic(logic).getMintAccess(targetPress, mintCaller, mintQuantity);    
+        return IERC721PressLogic(settingsInfo[targetPress].logic).getMintAccess(targetPress, mintCaller, mintQuantity);    
     }         
 
     /// @notice checks burn access for a given burn caller
@@ -298,7 +296,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
         uint256 tokenId        
     ) external view requireInitialized(targetPress) returns (bool) {
         //
-        return settingsInfo[targetPress].IERC721PressLogic(logic).getBurnAccess(targetPress, burnCaller, tokenId);            
+        return IERC721PressLogic(settingsInfo[targetPress].logic).getBurnAccess(targetPress, burnCaller, tokenId);            
     }     
 
     /// @notice checks sort access for a given sort caller
@@ -309,7 +307,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
         address sortCaller
     ) external view requireInitialized(targetPress) returns (bool) {
         //
-        return settingsInfo[targetPress].IERC721PressLogic(logic).getSortAccess(targetPress, sortCaller);            
+        return IERC721PressLogic(settingsInfo[targetPress].logic).getSortAccess(targetPress, sortCaller);            
     }     
 
     /// @notice checks settings access for a given settings caller
@@ -320,7 +318,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
         address settingsCaller
     ) external view requireInitialized(targetPress) returns (bool) {
         //
-        return settingsInfo[targetPress].IERC721PressLogic(logic).getSettingsAccess(targetPress, settingsCaller);            
+        return IERC721PressLogic(settingsInfo[targetPress].logic).getSettingsAccess(targetPress, settingsCaller);            
     }       
 
     /// @notice checks dataCaller edit access for a given edit caller
@@ -331,7 +329,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
         address dataCaller
     ) external view requireInitialized(targetPress) returns (bool) {
         //
-        return settingsInfo[targetPress].IERC721PressLogic(logic).getContractDataAccess(targetPress, dataCaller);
+        return IERC721PressLogic(settingsInfo[targetPress].logic).getContractDataAccess(targetPress, dataCaller);
     }        
 
     /// @notice checks dataCaller edit access for a given edit caller
@@ -344,7 +342,7 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
         uint256 tokenId
     ) external view requireInitialized(targetPress) returns (bool) {
         //
-        return settingsInfo[targetPress].IERC721PressLogic(logic).getTokenDataAccess(targetPress, dataCaller, tokenId);
+        return IERC721PressLogic(settingsInfo[targetPress].logic).getTokenDataAccess(targetPress, dataCaller, tokenId);
     }    
 
     /// @notice checks payments access for a given caller
@@ -355,18 +353,18 @@ contract ERC721PressDatabase is IERC721PressDatabase, ERC721PressDatabaseStorage
         address paymentsCaller
     ) external view requireInitialized(targetPress) returns (bool) {
         //
-        return settingsInfo[targetPress].IERC721PressLogic(logic).getPaymentsAccess(targetPress, paymentsCaller);
+        return IERC721PressLogic(settingsInfo[targetPress].logic).getPaymentsAccess(targetPress, paymentsCaller);
     }         
 
     // ||||||||||||||||||||||||||||||||
     // ||| METADATA RENDERING |||||||||
     // ||||||||||||||||||||||||||||||||  
 
-    function contractURI() external returns (string memory) {
-        IERC721PressRenderer(settingsInfo[msg.sender].renderer).getContractURI(msg.sender);
+    function contractURI() external view returns (string memory) {
+        return IERC721PressRenderer(settingsInfo[msg.sender].renderer).getContractURI(msg.sender);
     }          
 
-    function tokenURI(uint256 tokenId) external returns (string memory) {
-        IERC721PressRenderer(settingsInfo[msg.sender].renderer).getTokenURI(msg.sender, tokenId);
+    function tokenURI(uint256 tokenId) external view returns (string memory) {
+        return IERC721PressRenderer(settingsInfo[msg.sender].renderer).getTokenURI(msg.sender, tokenId);
     }              
 }

@@ -66,14 +66,21 @@ interface IERC721Press {
     error Incorrect_Msg_Value();    
     /// @notice Royalty percentage too high
     error Royalty_Percentage_Too_High(uint16 bps);    
+    /// @notice Array input lengths don't match
+    error Invalid_Input_Length();    
 
     // ||||||||||||||||||||||||||||||||
     // ||| FUNCTIONS ||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
-    /// @notice Getter for Press name
-    function name() external view returns (string memory);
     /// @notice Getter for Press owner
     function owner() external view returns (address);    
+    /// @notice Contract uri getter
+    /// @dev Call proxies to renderer
+    function contractURI() external view returns (string memory);
+    /// @notice Token uri getter
+    /// @dev Call proxies to renderer
+    /// @param tokenId id of token to get the uri for
+    function tokenURI(uint256 tokenId) external view returns (string memory);        
     /// @notice allows user to mint token(s) from the Press contract
     function mintWithData(uint256 quantity, bytes calldata data) external payable returns (uint256);        
     /// @notice Facilitates z-index style sorting of tokenIds. SortOrders can be positive or negative

@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
 
-import {IERC721PressRenderer} from "../../../core/token/ERC721/interfaces/IERC721PressRenderer.sol";
+import {IERC721PressLogic} from "../../../core/token/ERC721/interfaces/IERC721PressLogic.sol";
 import {IERC721Press} from "../../../core/token/ERC721/interfaces/IERC721Press.sol";
 import {ERC721Press} from "../../../core/token/ERC721/ERC721Press.sol";
 
@@ -14,7 +14,7 @@ import {ERC721Press} from "../../../core/token/ERC721/ERC721Press.sol";
 * @notice Facilitates metadata mutability logic. Token metadata cannot be adjusted after set
 * @author Max Bochman
 */
-contract RolesWith721GateImmutableMetadataNoFees is IERC721PressRenderer {
+contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
 
     //////////////////////////////////////////////////
     // TYPES
@@ -52,7 +52,7 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressRenderer {
     // STORAGE
     //////////////////////////////////////////////////
 
-    string immutable public name = "RolesWith721Gate_NoFee";
+    string constant public name = "RolesWith721Gate_NoFee";
 
     // Role constants
     uint8 constant public ADMIN = 3;
@@ -110,7 +110,7 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressRenderer {
     /// @notice Event emitted when frozenAt status updated
     /// @param targetPress ERC721Press being targeted
     /// @param sender msg.sender
-    /// @param frozen unix timestamp in seconds
+    /// @param frozenAt unix timestamp in seconds
     event FrozenAtUpdated(
         address targetPress,
         address sender,
@@ -210,13 +210,13 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressRenderer {
     function initializeWithData(address targetPress, bytes memory data) external {
 
         // Ensure that only the expected database contract is calling this function
-        if (msg.sender != address(ERC721Press(targetPress).getDatabase())) {
+        if (msg.sender != address(ERC721Press(payable(targetPress)).getDatabase())) {
             revert UnauthorizedInitializer();
         }
 
         // data format: erc721Gate, isPaused, initialRoles
         (
-            address er721Gate, 
+            address erc721Gate, 
             bool isPaused,            
             RoleDetails[] memory initialRoles
         ) = abi.decode(data, (address, bool, RoleDetails[]));
@@ -225,8 +225,8 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressRenderer {
         _assignRoles(targetPress, initialRoles);
 
         // configure settings for Press
-        _setTokenGate(er721Gate);
-        _setIsPaused(isPaused);
+        _setErc721Gate(targetPress, erc721Gate);
+        _setIsPaused(targetPress, isPaused);
     }
 
     //////////////////////////////////////////////////
@@ -332,17 +332,17 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressRenderer {
     // INTERNAL
     /////////////////////////
 
-    /// @notice Internal handler for updates to the address of the tokenGate in use for a given targetPress
+    /// @notice Internal handler for updates to the address of the erc721Gate in use for a given targetPress
     /// @dev No access checks, enforce elsewhere
     /// @param targetPress target Press index
-    /// @param tokenGate address for the tokenGate
+    /// @param erc721Gate address for the erc721Gate
     function _setErc721Gate(address targetPress, address erc721Gate) internal {
         settingsInfo[targetPress].erc721Gate = erc721Gate;
 
         emit Erc721GateUpdated({
             targetPress: targetPress,
             sender: msg.sender,
-            newErc721Gate: erc721Gate
+            erc721Gate: erc721Gate
         });
     }        
 
@@ -363,8 +363,8 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressRenderer {
     /// @notice Internal handler for updates to frozenAt status for a given targetPress
     /// @dev No access checks, enforce elsewhere
     /// @param targetPress target Press index
-    /// @param isFrozen timestamp in unix seconds value
-    function _setIsFrozen(address targetPress, uint80 frozenAt) internal {
+    /// @param frozenAt timestamp in unix seconds value
+    function _setFrozenAt(address targetPress, uint80 frozenAt) internal {
         settingsInfo[targetPress].frozenAt = frozenAt;
 
         emit FrozenAtUpdated({
@@ -379,27 +379,27 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressRenderer {
     //////////////////////////////////////////////////
 
     /// @notice returns access level of a given account for a given Press
-    function getAccessLevel(address accessMappingTarget, address accountToGetAccessFor)
+    function getAccessLevel(address targetPress, address accountToGetAccessFor)
         external
         view
         returns (uint256)
     {   
-        return _getAccessLevel(accessMappingTarget, accountToGetAccessFor);
+        return _getAccessLevel(targetPress, accountToGetAccessFor);
     }
 
     /// @notice returns mintPrice for a given Press + account + mintQuantity
-    function getMintPrice(address accessMappingTarget, address accountToGetAccessFor, uint256 mintQuantity)
+    function getMintPrice(address targetPress, address accountToGetAccessFor, uint256 mintQuantity)
         external
-        view
+        pure
         returns (uint256)
     {    
-        return _getMintPrice(accessMappingTarget, accountToGetAccessFor, mintQuantity);
+        return _getMintPrice(targetPress, accountToGetAccessFor, mintQuantity);
     }   
 
-    function getMintAccess(address accessMappingTarget, address mintCaller, uint256 mintQuantity)
+    function getMintAccess(address targetPress, address mintCaller, uint256 mintQuantity)
         external
         view
-        NotFrozen(accessMappingTarget)
+        NotFrozen(targetPress)
         returns (bool)
     {   
         // Check if Press database is paused and mintCaller doesn't have role override
@@ -409,80 +409,80 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressRenderer {
             }
         }
 
-        if (_getAccessLevel(accessMappingTarget, mintCaller) != 0) {
+        if (_getAccessLevel(targetPress, mintCaller) != 0) {
             return true;
         } else {
             return false;
         }
     }    
 
-    function getBurnAccess(address accessMappingTarget, address burnCaller, uint256 tokenId)
+    function getBurnAccess(address targetPress, address burnCaller, uint256 tokenId)
         external
         view
-        NotFrozen(accessMappingTarget)
+        NotFrozen(targetPress)
         returns (bool)
     {   
-        if (_getAccessLevel(accessMappingTarget, burnCaller) < MANAGER) {
+        if (_getAccessLevel(targetPress, burnCaller) < MANAGER) {
             return true;
         } else {
             return false;
         }
     }        
 
-    function getSortAccess(address accessMappingTarget, address sortCaller)
+    function getSortAccess(address targetPress, address sortCaller)
         external
         view
-        NotFrozen(accessMappingTarget)
+        NotFrozen(targetPress)
         returns (bool)
     {   
-        if (_getAccessLevel(accessMappingTarget, sortCaller) < MANAGER) {
+        if (_getAccessLevel(targetPress, sortCaller) < MANAGER) {
             return false;
         } else {
             return true;
         }
     }    
 
-    function getSettingsAccess(address accessMappingTarget, address settingsCaller)
+    function getSettingsAccess(address targetPress, address settingsCaller)
         external
         view
-        NotFrozen(accessMappingTarget)
+        NotFrozen(targetPress)
         returns (bool)
     {   
-        if (_getAccessLevel(accessMappingTarget, settingsCaller) == ADMIN) {
+        if (_getAccessLevel(targetPress, settingsCaller) == ADMIN) {
             return true;
         } else {
             return false;
         }
     }    
 
-    function getPaymentsAccess(address accessMappingTarget, address paymentsCaller)
+    function getPaymentsAccess(address targetPress, address paymentsCaller)
         external
         view
-        NotFrozen(accessMappingTarget)
+        NotFrozen(targetPress)
         returns (bool)
     {
-        if (_getAccessLevel(accessMappingTarget, paymentsCaller) == ADMIN) {
+        if (_getAccessLevel(targetPress, paymentsCaller) == ADMIN) {
             return true;
         } else {
             return false;
         }
-    }     
+    }         
 
-    function getContractDataAccess(address accessMappingTarget, address metadataCaller)
+    function getContractDataAccess(address targetPress, address metadataCaller)
         external
         view
         returns (bool)
     {
-        if (_getAccessLevel(accessMappingTarget, metadataCaller) < MANAGER) {
+        if (_getAccessLevel(targetPress, metadataCaller) < MANAGER) {
             return false;
         } else {
             return true;
         }
     }    
 
-    function getTokenDataAccess(address accessMappingTarget, address metadataCaller, uint256 tokenId)
+    function getTokenDataAccess(address targetPress, address metadataCaller, uint256 tokenId)
         external
-        view
+        pure
         returns (bool)
     {
         // All token metadata is immutable once stored
@@ -495,7 +495,7 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressRenderer {
 
     /// @notice returns access level of a user address calling function
     /// @dev called via the external contract initializing access control
-    function _getAccessLevel(address accessMappingTarget, address accountToGetAccessFor)
+    function _getAccessLevel(address targetPress, address accountToGetAccessFor)
         internal
         view
         returns (uint256)
@@ -503,9 +503,9 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressRenderer {
         // first check if address has admin/manager role, return that role if it does
         // if no admin/manager role, check if address has a balance of > 0 of the erc721Gate contract, return 1 if it does
         // return 0 if all of the above is false
-        if (roleInfo[accessMappingTarget][accountToGetAccessFor] != NO_ROLE) {
-            return role;
-        } else if (IERC721(tokenGateInfo[accessMappingTarget]).balanceOf(accountToGetAccessFor) != 0) {
+        if (roleInfo[targetPress][accountToGetAccessFor] != NO_ROLE) {
+            return roleInfo[targetPress][accountToGetAccessFor];
+        } else if (IERC721(settingsInfo[targetPress].erc721Gate).balanceOf(accountToGetAccessFor) != 0) {
             return 1;
         } else {
             return 0;
@@ -514,9 +514,9 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressRenderer {
 
     /// @notice returns mintPrice for a given Press + account + mintQuantity
     /// @dev called via the database contract that has been set for a given Press
-    function _getMintPrice(address accessMappingTarget, address accountToGetAccessFor, uint256 mintQuantity)
+    function _getMintPrice(address targetPress, address accountToGetAccessFor, uint256 mintQuantity)
         internal
-        view
+        pure
         returns (uint256)
     {
         // always returns 0. no ability to change mint price with this logic contract
