@@ -142,7 +142,9 @@ contract ERC721PressTest is ERC721PressConfig {
     *
     1. finish Role tests. granting, revoking, confirming access on each press function. frozenAt
     2. testing metadata update functions (contract + token level)
-
+    3. finish other press things like upgrades/transfers
+    4. do all the factory stuff
+    *
     */
 
 
