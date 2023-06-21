@@ -46,6 +46,11 @@ interface IERC721Press {
         Settings settings
     );            
 
+    /// @notice Event emitted when databaseImpl set for Press in constructor
+    /// @param databaseImpl address of databaseImpl
+    event DatabaseImplSet(
+        address indexed databaseImpl
+    );
 
     // ||||||||||||||||||||||||||||||||
     // ||| ERRORS |||||||||||||||||||||
@@ -72,6 +77,16 @@ interface IERC721Press {
     // ||||||||||||||||||||||||||||||||
     // ||| FUNCTIONS ||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
+
+    /// @notice initializes a Press contract instance
+    function initialize(
+        string memory name,
+        string memory symbol,
+        address initialOwner,        
+        IERC721PressDatabase database,
+        bytes calldata databaseInit,
+        Settings memory settings
+    ) external;    
     /// @notice Getter for Press owner
     function owner() external view returns (address);    
     /// @notice Contract uri getter
@@ -85,4 +100,13 @@ interface IERC721Press {
     function mintWithData(uint256 quantity, bytes calldata data) external payable returns (uint256);        
     /// @notice Facilitates z-index style sorting of tokenIds. SortOrders can be positive or negative
     function sortTokens(uint256[] calldata tokenIds, int96[] calldata sortOrders) external;       
+
+
+    /// @dev Get royalty information for token
+    /// @param _salePrice sale price for the token
+    function royaltyInfo(uint256, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount);   
+    /// @notice ERC165 supports interface
+    /// @param interfaceId interface id to check if supported
+    function supportsInterface(bytes4 interfaceId) external view returns (bool);
+
 }

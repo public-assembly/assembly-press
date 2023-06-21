@@ -208,7 +208,6 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
     /// @dev Can only be called by the database contract for a given Press
     /// @dev Called during the initialization process for a given Press
     function initializeWithData(address targetPress, bytes memory data) external {
-
         // Ensure that only the expected database contract is calling this function
         if (msg.sender != address(ERC721Press(payable(targetPress)).getDatabase())) {
             revert UnauthorizedInitializer();

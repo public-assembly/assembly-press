@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
-
+import {console2} from "forge-std/console2.sol";
 /*
 PA PA PA PA
 PA PA PA PA
@@ -16,10 +16,12 @@ import {ERC721PressStorageV1} from "./storage/ERC721PressStorageV1.sol";
 import {IERC721PressDatabase} from "./interfaces/IERC721PressDatabase.sol";
 import {IERC5192} from "./interfaces/IERC5192.sol";
 
+import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {OwnableUpgradeable} from "../../utils/ownable/OwnableUpgradeable.sol";
+import {IOwnableUpgradeable} from "../../utils/ownable/IOwnableUpgradeable.sol";
 import {Version} from "../../utils/Version.sol";
 import {FundsReceiver} from "../../utils/FundsReceiver.sol";
 import {TransferUtils} from "../../utils/funds/TransferUtils.sol";
@@ -49,6 +51,7 @@ import {TransferUtils} from "../../utils/funds/TransferUtils.sol";
 contract ERC721Press is
     ERC721AUpgradeable,
     UUPSUpgradeable,
+    IERC2981Upgradeable,
     ReentrancyGuardUpgradeable,
     IERC721Press,
     OwnableUpgradeable,
@@ -57,32 +60,27 @@ contract ERC721Press is
     FundsReceiver,
     IERC5192
 {
-    // ||||||||||||||||||||||||||||||||
-    // ||| CONSTRUCTOR ||||||||||||||||
-    // ||||||||||||||||||||||||||||||||
-
-    constructor (IERC721PressDatabase database) {
-        _database = database;
-    }    
 
     // ||||||||||||||||||||||||||||||||
     // ||| INITIALIZER ||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
     /// @notice Initializes a new, creator-owned proxy of ERC721Press.sol
-    /// @dev Token transferrability set in settings cannot be adjusted after initialization
+    /// @dev Database Impl + Token transferrability cannot be adjusted after initialization
     /// @dev `initializerERC721A` for ERC721AUpgradeable
     ///      `initializer` for OwnableUpgradeable
     /// @param name Contract name
     /// @param symbol Contract symbol
     /// @param initialOwner User that owns the contract upon deployment
+    /// @param database Database implementation address
     /// @param databaseInit Data to initialize database contract with
     /// @param settings see IERC721Press for details    
     function initialize(
         string memory name,
         string memory symbol,
         address initialOwner,
-        bytes calldata databaseInit,
+        IERC721PressDatabase database,
+        bytes memory databaseInit,
         Settings memory settings
     ) external nonReentrant initializerERC721A initializer {
         // Initialize ERC721A
@@ -92,9 +90,12 @@ contract ERC721Press is
         // Initialize owner for Ownable
         __Ownable_init(initialOwner);
         // Initialize UUPS
-        __UUPSUpgradeable_init();                      
-        // Initialize Database
+        __UUPSUpgradeable_init();                     
+
+        // Set + Initialize Database
+        _database = database;
         _database.initializeWithData(databaseInit);
+        emit DatabaseImplSet(address(database));        
 
         // Check to see if royaltyBPS set to acceptable levels
         if (settings.royaltyBPS > MAX_ROYALTY_BPS) {
@@ -274,9 +275,44 @@ contract ERC721Press is
         return _database;
     }
 
+    function getSettings() public view returns (IERC721Press.Settings memory) {
+        return IERC721Press.Settings({
+            fundsRecipient: _settings.fundsRecipient,
+            royaltyBPS: _settings.royaltyBPS,
+            transferable: _settings.transferable
+        });
+    }    
+
     // @notice Getter that returns true if token has been minted and not burned
     function exists(uint256 tokenId) external view returns (bool) {
         return _exists(tokenId);   
+    }    
+
+    /// @dev Get royalty information for token
+    /// @param _salePrice sale price for the token
+    function royaltyInfo(uint256, uint256 _salePrice)
+        external
+        view
+        override(IERC2981Upgradeable, IERC721Press)
+        returns (address receiver, uint256 royaltyAmount)
+    {
+        if (_settings.fundsRecipient == address(0)) {
+            return (_settings.fundsRecipient, 0);
+        }
+        return (_settings.fundsRecipient, (_salePrice * _settings.royaltyBPS) / 10_000);
+    }
+
+    /// @notice ERC165 supports interface
+    /// @param interfaceId interface id to check if supported
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(IERC165Upgradeable, ERC721AUpgradeable, IERC721Press)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId) || type(IOwnableUpgradeable).interfaceId == interfaceId
+            || type(IERC2981Upgradeable).interfaceId == interfaceId || type(IERC721Press).interfaceId == interfaceId
+            || interfaceId == type(IERC5192).interfaceId;                    
     }    
     
     /* INTERNAL */    

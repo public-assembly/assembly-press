@@ -1,33 +1,30 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-/*
-PA PA PA PA
-PA PA PA PA
-PA PA PA PA
-PA PA PA PA
-*/
+import {IERC721PressDatabase} from "../../../../src/core/token/ERC721/interfaces/IERC721PressDatabase.sol";
 
-import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
-import {IERC721Press} from "../interfaces/IERC721Press.sol";
-import {ERC721Press} from "../ERC721Press.sol";
+import {IERC721Press} from "../../../../src/core/token/ERC721/interfaces/IERC721Press.sol";
+import {ERC721Press} from "../../../../src/core/token/ERC721/ERC721Press.sol";
 
-import {IERC721PressLogic} from "../interfaces/IERC721PressLogic.sol";
-import {IERC721PressRenderer} from "../interfaces/IERC721PressRenderer.sol";
+import {IERC721PressLogic} from "../../../../src/core/token/ERC721/interfaces/IERC721PressLogic.sol";
+import {IERC721PressRenderer} from "../../../../src/core/token/ERC721/interfaces/IERC721PressRenderer.sol";
 
-import {ERC721PressDatabaseStorageV1} from "./storage/ERC721PressDatabaseStorageV1.sol";
-import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
+import {ERC721PressDatabaseStorageV1} from "../../../../src/core/token/ERC721/database/storage/ERC721PressDatabaseStorageV1.sol";
+import {IERC721PressDatabase} from "../../../../src/core/token/ERC721/interfaces/IERC721PressDatabase.sol";
 
 import "sstore2/SSTORE2.sol";
 
-/**
-* @title ERC721PressDatabaseV1
-* @notice ERC721PressDatabaseV1 for AssemblyPress architecture
-*
-* @author Max Bochman
-* @author Salief Lewis
-*/
-contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStorageV1 { 
+contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1 {
+
+    function initializeWithData(bytes memory data) external {
+        require(data.length > 0, "not zero length ");
+    }
+
+
+
+
+
+
 
     // ||||||||||||||||||||||||||||||||
     // ||| MODIFERS |||||||||||||||||||
@@ -41,35 +38,9 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
         }
 
         _;
-    }            
+    }           
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| DATABASE INIT ||||||||||||||
-    // ||||||||||||||||||||||||||||||||          
 
-    /// @notice Default logic initializer for a given Press
-    /// @dev updates settings for msg.sender, so no need to add access control to this function
-    /// @param databaseInit data to init with
-    function initializeWithData(bytes memory databaseInit) external {
-        address sender = msg.sender;
-
-        // data format: logic, logicInit, renderer, rendererInit
-        (   
-            address logic,
-            bytes memory logicInit,
-            address renderer,
-            bytes memory rendererInit
-        ) = abi.decode(databaseInit, (address, bytes, address, bytes));
-
-        // set settingsInfo[targetPress]
-        settingsInfo[sender].initialized = 1;
-        settingsInfo[sender].logic = logic;        
-        settingsInfo[sender].renderer = renderer;
-        
-        // initialize logic + renderer contracts
-        _setLogic(sender, logic, logicInit);
-        _setRenderer(sender, renderer, rendererInit);                 
-    }       
 
     // ||||||||||||||||||||||||||||||||
     // ||| DATABASE ADMIN |||||||||||||
@@ -131,12 +102,13 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     /// @param tokens arbitrary encoded bytes data
     function _storeData(address targetPress, bytes[] memory tokens) internal {     
         for (uint256 i = 0; i < tokens.length; ++i) {
+            // increment press storedCounter before storing data
+            ++settingsInfo[targetPress].storedCounter;                                  
             // use sstore2 to store bytes segments in bytes array
             idToData[targetPress][settingsInfo[targetPress].storedCounter].pointer = SSTORE2.write(
                 tokens[i]
-            );                                
-            // increment press storedCounter after storing data
-            ++settingsInfo[targetPress].storedCounter;                                
+            );    
+              
         }           
     }              
 
@@ -150,8 +122,8 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
         returns (TokenDataRetrieved memory) {
         return 
             TokenDataRetrieved({
-                storedData: SSTORE2.read(idToData[targetPress][tokenId-1].pointer),
-                sortOrder: idToData[targetPress][tokenId-1].sortOrder
+                storedData: SSTORE2.read(idToData[targetPress][tokenId].pointer),
+                sortOrder: idToData[targetPress][tokenId].sortOrder
             });
     }
 
@@ -173,7 +145,7 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
                 if (ERC721Press(payable(targetPress)).exists(activeIndex) == false) {
                     continue;
                 }
-                activeData[activeIndex-1] = TokenDataRetrieved({
+                activeData[activeIndex] = TokenDataRetrieved({
                         storedData: SSTORE2.read(idToData[targetPress][i].pointer),
                         sortOrder: idToData[targetPress][i].sortOrder
                 });              
