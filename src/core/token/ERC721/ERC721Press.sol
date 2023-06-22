@@ -127,12 +127,12 @@ contract ERC721Press is
         // Cache msg.sender + msg.value
         (uint256 msgValue, address sender) = (msg.value, msg.sender);
 
-        // Call logic contract to check user mint access
+        // Call database contract to check user mint access
         if (_database.canMint(address(this), sender, quantity) != true) {
             revert No_Mint_Access();
         }
 
-        // Call logic contract to check totalMintPrice for given sender * quantity
+        // Call database contract to check totalMintPrice for given sender * quantity
         if (msgValue != _database.totalMintPrice(address(this), sender, quantity)) {
             revert Incorrect_Msg_Value();
         }
@@ -148,7 +148,7 @@ contract ERC721Press is
         // Cache tokenId of first minted token so tokenId mint range can be reconstituted in mint event
         uint256 firstMintedTokenId = lastMintedTokenId() - quantity + 1;
 
-        // Update external logic file with data corresponding to this mint
+        // Update external date file with data corresponding to this mint
         _database.storeData(data);
 
         emit IERC721Press.MintWithData({
@@ -167,6 +167,21 @@ contract ERC721Press is
         return firstMintedTokenId;
     }
 
+    /// @notice User burn function for tokenId
+    /// @param tokenId token id to burn
+    function burn(uint256 tokenId) public {
+        // Check database contract to + tokenId owner for access
+        if (
+            ERC721Press(payable(address(this))).ownerOf(tokenId) != msg.sender
+            && _database.canBurn(address(this), msg.sender, 1) != true
+        ) {
+            revert No_Burn_Access();
+        }        
+
+        // ERC721A _burn approvalCheck set to false to let custom logic take precedence
+        _burn(tokenId, false);
+    }    
+
     /// @notice Function to mint NFTs
     /// @dev (Important: Does not enforce max supply limit, enforce that limit earlier)
     /// @dev This batches in size of 8 as recommended by Chiru Labs
@@ -184,7 +199,7 @@ contract ERC721Press is
     /// @dev Sort orders stored in database contract in mapping for address(this) Press
     /// @param tokenIds tokenIds to store sortOrders for    
     /// @param sortOrders sorting values to store
-    function sortTokens(
+    function sort(
         uint256[] calldata tokenIds, 
         int96[] calldata sortOrders
     ) external {

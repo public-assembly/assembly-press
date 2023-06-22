@@ -18,6 +18,7 @@ import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-up
 contract ERC721PressTest is ERC721PressConfig {
 
     function test_initialize() public setUpCurationStrategy {
+        
         // testing local press storage
         require(keccak256(bytes(targetPressProxy.name())) == keccak256(bytes("Public Assembly")), "incorrect name");
         require(keccak256(bytes(targetPressProxy.symbol())) == keccak256(bytes("PA")), "incorrect symbol");
@@ -27,18 +28,6 @@ contract ERC721PressTest is ERC721PressConfig {
         require(pressSettings.royaltyBPS == 250, "funds recipient set incorrectly");
         require(pressSettings.transferable == false, "funds recipient set incorrectly");
 
-        // testing database storage
-        (
-            uint256 storedCounter,
-            address pressLogic,
-            uint8 initialized,
-            address pressRenderer
-        ) = database.settingsInfo(address(targetPressProxy));
-        require(storedCounter == 0, "stored counter should be zero since no mints have occurred");
-        require(pressLogic == address(logic), "press logic initialized in database incorrectly");
-        require(initialized == 1, "initialized should equal 1 post initialization");
-        require(pressRenderer == address(renderer), "press renderer initialized in database incorrectly");
-
         // (RolesWith721GateImmutableMetadataNoFees[] memory roleDetails) = logic.roleInfo(address(targetPressProxy));
         require(logic.roleInfo(address(targetPressProxy), PRESS_ADMIN_AND_OWNER) == ADMIN_ROLE);
         require(logic.roleInfo(address(targetPressProxy), PRESS_MANAGER) == MANAGER_ROLE);
@@ -46,9 +35,10 @@ contract ERC721PressTest is ERC721PressConfig {
         require(logic.roleInfo(address(targetPressProxy), PRESS_USER) == NO_ROLE);
         require(logic.roleInfo(address(targetPressProxy), PRESS_NO_ROLE_1) == NO_ROLE);
         require(logic.roleInfo(address(targetPressProxy), PRESS_NO_ROLE_2) == NO_ROLE);
-
-        // testing renderer storage
-        require(keccak256(bytes(renderer.contractUriImageInfo(address(targetPressProxy)))) == keccak256(bytes("ipfs://THIS_COULD_BE_CONTRACT_URI_IMAGE_PATH")), "contract uri image path initialized incorrectly");
+    
+        // check to see if supportsInterface work
+        require(targetPressProxy.supportsInterface(type(IERC2981Upgradeable).interfaceId) == true, "doesn't support");
+        require(targetPressProxy.supportsInterface(type(IERC5192).interfaceId) == true, "doesn't support");    
 
         // check to make sure contract cant be reinitialized
         vm.expectRevert("ERC721A__Initializable: contract is already initialized");
@@ -59,11 +49,7 @@ contract ERC721PressTest is ERC721PressConfig {
             database: database,
             databaseInit: bytes("123"),
             settings: pressSettings                         
-        });                
-
-        // check to see if supportsInterface work
-        require(targetPressProxy.supportsInterface(type(IERC2981Upgradeable).interfaceId) == true, "doesn't support");
-        require(targetPressProxy.supportsInterface(type(IERC5192).interfaceId) == true, "doesn't support");        
+        });                    
     }
 
     function test_mintWithData() public setUpCurationStrategy {

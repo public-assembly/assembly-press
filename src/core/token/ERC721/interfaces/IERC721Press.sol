@@ -99,7 +99,7 @@ interface IERC721Press {
     /// @notice allows user to mint token(s) from the Press contract
     function mintWithData(uint256 quantity, bytes calldata data) external payable returns (uint256);        
     /// @notice Facilitates z-index style sorting of tokenIds. SortOrders can be positive or negative
-    function sortTokens(uint256[] calldata tokenIds, int96[] calldata sortOrders) external;       
+    function sort(uint256[] calldata tokenIds, int96[] calldata sortOrders) external;       
 
 
     /// @dev Get royalty information for token

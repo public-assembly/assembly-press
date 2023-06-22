@@ -236,9 +236,9 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     
     /// @notice Internal handler for sort functionality
     /// @dev No access checks, enforce elsewhere
-    function _sortData(address targetPress, uint256 id, int96 sortOrder) internal {
+    function _sortData(address targetPress, uint256 tokenId, int96 sortOrder) internal {
         //
-        idToData[targetPress][id].sortOrder = sortOrder;
+        idToData[targetPress][tokenId].sortOrder = sortOrder;
     }    
 
     // ||||||||||||||||||||||||||||||||

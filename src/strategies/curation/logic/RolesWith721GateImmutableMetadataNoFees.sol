@@ -422,9 +422,9 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
         returns (bool)
     {   
         if (_getAccessLevel(targetPress, burnCaller) < MANAGER) {
-            return true;
-        } else {
             return false;
+        } else {
+            return true;
         }
     }        
 
