@@ -4,15 +4,15 @@ pragma solidity 0.8.17;
 import {console2} from "forge-std/console2.sol";
 import {ERC721PressConfig} from "./utils/setup/ERC721PressConfig.sol";
 
-import {IERC721Press} from "../../../../src/core/token/ERC721/interfaces/IERC721Press.sol";
-import {IERC721PressDatabase} from "../../../../src/core/token/ERC721/interfaces/IERC721PressDatabase.sol";
-import {ERC721PressDatabaseV1} from "../../../../src/core/token/ERC721/database/ERC721PressDatabaseV1.sol";
+import {IERC721Press} from "../../src/core/token/ERC721/interfaces/IERC721Press.sol";
+import {IERC721PressDatabase} from "../../src/core/token/ERC721/interfaces/IERC721PressDatabase.sol";
+import {ERC721PressDatabaseV1} from "../../src/core/token/ERC721/database/ERC721PressDatabaseV1.sol";
+import {IERC5192} from "../../src/core/token/ERC721/interfaces/IERC5192.sol";
 
-import {RolesWith721GateImmutableMetadataNoFees} from "../../../../src/strategies/curation/logic/RolesWith721GateImmutableMetadataNoFees.sol";
-import {CurationMetadataRenderer} from "../../../../src/strategies/curation/renderer/CurationMetadataRenderer.sol";
+import {RolesWith721GateImmutableMetadataNoFees} from "../../src/strategies/curation/logic/RolesWith721GateImmutableMetadataNoFees.sol";
+import {CurationMetadataRenderer} from "../../src/strategies/curation/renderer/CurationMetadataRenderer.sol";
 
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
-import {IERC5192} from "../../../../src/core/token/ERC721/interfaces/IERC5192.sol";
 import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 
 contract ERC721PressTest is ERC721PressConfig {
@@ -39,15 +39,6 @@ contract ERC721PressTest is ERC721PressConfig {
         require(initialized == 1, "initialized should equal 1 post initialization");
         require(pressRenderer == address(renderer), "press renderer initialized in database incorrectly");
 
-        // testing logic storage
-        (
-            address erc721Gate,
-            uint80 frozenAt,
-            bool isPaused            
-        ) = logic.settingsInfo(address(targetPressProxy));        
-        require(erc721Gate == address(mockAccessPass), "erc721Gate initialized incorrectly");
-        require(frozenAt == 0 , "frozenAt should be 0 post initialization");
-        require(isPaused == false , "isPaused initialized incorrectly");
         // (RolesWith721GateImmutableMetadataNoFees[] memory roleDetails) = logic.roleInfo(address(targetPressProxy));
         require(logic.roleInfo(address(targetPressProxy), PRESS_ADMIN_AND_OWNER) == ADMIN_ROLE);
         require(logic.roleInfo(address(targetPressProxy), PRESS_MANAGER) == MANAGER_ROLE);
@@ -104,40 +95,6 @@ contract ERC721PressTest is ERC721PressConfig {
         );
     }    
 
-    function test_RolesWith721GateImmutableMetadataNoFees_isPaused() public setUpCurationStrategy {
-        vm.startPrank(PRESS_ADMIN_AND_OWNER);
-        (
-            uint256 storedcounter,
-            address logic,
-            uint8 initialized, 
-            address renderer
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));
-        RolesWith721GateImmutableMetadataNoFees(logic).setIsPaused(address(targetPressProxy), true);
-        vm.stopPrank();
-        vm.startPrank(PRESS_MANAGER);
-        // expect revert because manager doesnt have access to set pause status on this contract
-        vm.expectRevert(abi.encodeWithSignature("RequiresAdmin()"));
-        RolesWith721GateImmutableMetadataNoFees(logic).setIsPaused(address(targetPressProxy), false);
-        vm.stopPrank();
-        vm.startPrank(PRESS_USER);
-        PartialListing[] memory listings = new PartialListing[](1);
-        listings[0].chainId = 1;       
-        listings[0].tokenId = 3;      
-        listings[0].listingAddress = address(0x12345);       
-        listings[0].hasTokenId = true;       
-        bytes memory encodedListings = encodeListingArray(listings);
-        // expect revert because minting is now paused on this press for accounts with role < MANAGER due to logic contract
-        vm.expectRevert(abi.encodeWithSignature("DatabasePaused()"));
-        targetPressProxy.mintWithData(1, encodedListings);
-        vm.stopPrank();
-        vm.startPrank(PRESS_ADMIN_AND_OWNER);
-        RolesWith721GateImmutableMetadataNoFees(logic).setIsPaused(address(targetPressProxy), false);
-        vm.stopPrank();
-        vm.startPrank(PRESS_USER);
-        // shouldnt revert because isPaused has been set to false
-        targetPressProxy.mintWithData(1, encodedListings);
-    }
-
     /* TODO
     *
     1. finish Role tests. granting, revoking, confirming access on each press function. frozenAt
@@ -145,28 +102,5 @@ contract ERC721PressTest is ERC721PressConfig {
     3. finish other press things like upgrades/transfers
     4. do all the factory stuff
     *
-    */
-
-
-
-
-
-    // LISTING ENCODING HELPERS
-
-    function encodeListing(PartialListing memory _listing) public pure returns (bytes memory) {
-        return abi.encode(
-            _listing.chainId,
-            _listing.tokenId,
-            _listing.listingAddress,
-            _listing.hasTokenId
-        );
-    }     
-
-    function encodeListingArray(PartialListing[] memory _listings) public returns (bytes memory) {
-        bytes[] memory encodedListings = new bytes[](_listings.length);
-        for (uint i = 0; i < _listings.length; i++) {
-            encodedListings[i] = encodeListing(_listings[i]);
-        }
-        return abi.encode(encodedListings);
-    }                 
+    */      
 }

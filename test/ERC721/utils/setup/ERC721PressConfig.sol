@@ -31,6 +31,7 @@ contract ERC721PressConfig is Test {
     address payable public constant PRESS_FUNDS_RECIPIENT = payable(address(0x999));
     uint8 public constant ADMIN_ROLE = 3;
     uint8 public constant MANAGER_ROLE = 2;
+    uint8 public constant USER = 1;
     uint8 public constant NO_ROLE = 0;        
     MockERC721 public mockAccessPass = new MockERC721();
     // DATABASE + LOGIC + RENDERER SETUP
@@ -102,4 +103,23 @@ contract ERC721PressConfig is Test {
 
         _;
     }
+
+    // LISTING ENCODING HELPERS
+
+    function encodeListing(PartialListing memory _listing) public pure returns (bytes memory) {
+        return abi.encode(
+            _listing.chainId,
+            _listing.tokenId,
+            _listing.listingAddress,
+            _listing.hasTokenId
+        );
+    }     
+
+    function encodeListingArray(PartialListing[] memory _listings) public returns (bytes memory) {
+        bytes[] memory encodedListings = new bytes[](_listings.length);
+        for (uint i = 0; i < _listings.length; i++) {
+            encodedListings[i] = encodeListing(_listings[i]);
+        }
+        return abi.encode(encodedListings);
+    }        
 }
