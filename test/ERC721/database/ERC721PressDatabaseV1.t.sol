@@ -13,6 +13,7 @@ import {RolesWith721GateImmutableMetadataNoFees} from "../../../src/strategies/c
 import {CurationMetadataRenderer} from "../../../src/strategies/curation/renderer/CurationMetadataRenderer.sol";
 
 import {MockERC721} from "../utils/mocks/MockERC721.sol";
+import {MockRenderer} from "../utils/mocks/MockRenderer.sol";
 
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
 import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
@@ -192,5 +193,36 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
         // should revert because PRESS_USER doesnt have sort access
         vm.expectRevert(abi.encodeWithSignature("No_Sort_Access()"));
         targetPressProxy.sort(tokenIds, sortOrders);
+    }
+
+    function test_setRenderer() public setUpCurationStrategy {
+        
+        require(address(targetPressProxy.getDatabase()) == address(database), "database address incorrect");
+        
+        // check database storage on initialization
+        (
+            uint256 storedCounter,
+            address pressLogic,
+            uint8 initialized,
+            address pressRenderer
+        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));      
+
+        vm.startPrank(PRESS_ADMIN_AND_OWNER);
+
+        MockRenderer mockRenderer = new MockRenderer();
+        bytes memory mockRendererInit = "0x12345";
+
+        database.setRenderer(address(targetPressProxy), address(mockRenderer), mockRendererInit);
+
+        // check database storage on initialization
+        (
+            uint256 storedCounter_2,
+            address pressLogic_2,
+            uint8 initialized_2,
+            address pressRenderer_2
+        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));         
+
+        require(pressRenderer_2 == address(mockRenderer), "press renderer updated in database incorrectly");
+        require(mockRenderer.pressInitializedInfo(address(targetPressProxy)) == true, "mock renderer not initialized properly");
     }
 }
