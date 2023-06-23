@@ -186,7 +186,7 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     // ||| SORT FUNCTIONALITY |||||||||
     // ||||||||||||||||||||||||||||||||       
 
-    /// version of function called by calling Press directly
+    /// VERSION of function called by calling Press directly
     /// @dev Facilitates z-index style sorting of data IDs. SortOrders can be positive or negative
     /// @dev Will only sort ids for a given Press if called directly by the Press
     /// @dev Access checks enforced in Press
@@ -207,7 +207,7 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
         emit DataSorted(targetPress, tokenIds, sortOrders, sortCaller);
     }    
 
-    // /// version of function called by writing directly to database
+    // /// VERSION of function called by writing directly to database
     // /// @dev Facilitates z-index style sorting of data IDs. SortOrders can be positive or negative
     // /// @param targetPress address of target ERC721Press    
     // /// @param ids data IDs to store sortOrders for    
@@ -238,7 +238,7 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     /// @dev No access checks, enforce elsewhere
     function _sortData(address targetPress, uint256 tokenId, int96 sortOrder) internal {
         //
-        idToData[targetPress][tokenId].sortOrder = sortOrder;
+        idToData[targetPress][tokenId-1].sortOrder = sortOrder;
     }    
 
     // ||||||||||||||||||||||||||||||||
