@@ -19,6 +19,23 @@ import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-up
 
 contract ERC721PressDatabaseV1Test is ERC721PressConfig {
 
+    // TODO : missing tests
+    //      totalMintPrice()
+    //      isInitialized()
+    //      contractURI()
+    //      tokenURI()
+    //      setLogic() probably need a mock logic
+    //      setRenderer() probably need a mock logic
+
+    // TODO : the following tests are off because the tokenIds being sorted should be #1, #2 not #0, #1.
+    //      believe the issue with how the database is reconstructing sort data for readAllData call, 
+    //      rather than an issue on the write side
+    //      **********
+    //      **********
+    //      **********        
+
+    // TODO : maybe a bit of testing around the fact that a contract could store data in this contract outside of NFTs
+
     function test_initialize() public setUpCurationStrategy {
         
         require(address(targetPressProxy.getDatabase()) == address(database), "database address incorrect");
@@ -141,14 +158,7 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
         bytes memory encodedListings = encodeListingArray(listings);
         targetPressProxy.mintWithData(2, encodedListings);
 
-        // call sort
-        // TODO : the following tests are off because the tokenIds being sorted should be #1, #2 not #0, #1.
-        //      believe the issue with how the database is reconstructing sort data for readAllData call, 
-        //      rather than an issue on the write side
-        //      **********
-        //      **********
-        //      **********
-        //      **********        
+        // call sort         
 
         uint256[] memory tokenIds = new uint256[](2);
         tokenIds[0] = 0;
