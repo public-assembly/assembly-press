@@ -33,6 +33,28 @@ contract CurationMetadataRendererTest is ERC721PressConfig {
         require(keccak256(bytes(contractUriImagePath)) == keccak256(bytes("ipfs://THIS_COULD_BE_CONTRACT_URI_IMAGE_PATH")), "contractURIImagePath not initialized correctly");     
     }
 
+    function test_initializeGuard() public setUpCurationStrategy {
+        (
+            uint256 storedcounter,
+            address pressLogic,
+            uint8 initialized, 
+            address pressRenderer
+        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));      
+
+        vm.startPrank(PRESS_ADMIN_AND_OWNER);
+        // set up mock data for init test
+        bytes memory mockInitData = abi.encode("test string");        
+        // should revert to enforce check that initializeWithData can only called by the database contract for a given Press
+        vm.expectRevert(abi.encodeWithSignature("UnauthorizedInitializer()"));
+        // revert if trying to call initialize function from not the database
+        CurationMetadataRenderer(pressRenderer).initializeWithData(address(targetPressProxy), mockInitData);    
+        vm.stopPrank();
+
+        vm.startPrank(address(targetPressProxy.getDatabase()));
+        // shouldnt revert because Database is calling initialize function
+        CurationMetadataRenderer(pressRenderer).initializeWithData(address(targetPressProxy), mockInitData);         
+    }    
+
     function test_setContractUriImage() public setUpCurationStrategy {        
         (
             uint256 storedcounter,
@@ -84,7 +106,7 @@ contract CurationMetadataRendererTest is ERC721PressConfig {
         ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));    
 
         vm.startPrank(PRESS_ADMIN_AND_OWNER);
-        // build data for tokens
+        // build data for tokens + mint
         PartialListing[] memory listings = new PartialListing[](2);
         listings[0].chainId = 1;       
         listings[0].tokenId = 3;      

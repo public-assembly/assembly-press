@@ -41,9 +41,33 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
         // PRESS_USER should have NO_ROLE because its access level is determined by balance of access pass, not targeted role assignment
         require(RolesWith721GateImmutableMetadataNoFees(pressLogic).roleInfo(address(targetPressProxy), PRESS_USER) == NO_ROLE);
         require(RolesWith721GateImmutableMetadataNoFees(pressLogic).roleInfo(address(targetPressProxy), PRESS_NO_ROLE_1) == NO_ROLE);
-        require(RolesWith721GateImmutableMetadataNoFees(pressLogic).roleInfo(address(targetPressProxy), PRESS_NO_ROLE_2) == NO_ROLE);
-            
+        require(RolesWith721GateImmutableMetadataNoFees(pressLogic).roleInfo(address(targetPressProxy), PRESS_NO_ROLE_2) == NO_ROLE);            
     }
+
+    function test_initializeGuard() public setUpCurationStrategy {
+        (
+            uint256 storedcounter,
+            address pressLogic,
+            uint8 initialized, 
+            address pressRenderer
+        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));      
+
+        vm.startPrank(PRESS_ADMIN_AND_OWNER);
+        // set up mock data + access roles for init test        
+        RolesWith721GateImmutableMetadataNoFees.RoleDetails[] memory mockRoles = 
+            new RolesWith721GateImmutableMetadataNoFees.RoleDetails[](0);
+        bytes memory mockInitData = abi.encode(address(0x123), false, mockRoles);        
+
+        // should revert to enforce check that initializeWithData can only called by the database contract for a given Press
+        vm.expectRevert(abi.encodeWithSignature("UnauthorizedInitializer()"));
+        // revert if trying to call initialize function from not the database
+        RolesWith721GateImmutableMetadataNoFees(pressLogic).initializeWithData(address(targetPressProxy), mockInitData);    
+        vm.stopPrank();
+
+        vm.startPrank(address(targetPressProxy.getDatabase()));
+        // shouldnt revert because Database is calling initialize function
+        RolesWith721GateImmutableMetadataNoFees(pressLogic).initializeWithData(address(targetPressProxy), mockInitData);         
+    }        
 
     function test_getMintPrice() public setUpCurationStrategy {
         (

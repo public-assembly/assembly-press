@@ -360,11 +360,11 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     // ||| METADATA RENDERING |||||||||
     // ||||||||||||||||||||||||||||||||  
 
-    function contractURI() external view returns (string memory) {
+    function contractURI() requireInitialized(msg.sender) external view returns (string memory) {
         return IERC721PressRenderer(settingsInfo[msg.sender].renderer).getContractURI(msg.sender);
     }          
 
-    function tokenURI(uint256 tokenId) external view returns (string memory) {
+    function tokenURI(uint256 tokenId) requireInitialized(msg.sender) external view returns (string memory) {
         return IERC721PressRenderer(settingsInfo[msg.sender].renderer).getTokenURI(msg.sender, tokenId);
     }              
 }
