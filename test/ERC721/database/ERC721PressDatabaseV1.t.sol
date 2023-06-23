@@ -19,14 +19,7 @@ import {MockLogic} from "../utils/mocks/MockLogic.sol";
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
 import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 
-contract ERC721PressDatabaseV1Test is ERC721PressConfig {
-
-    // TODO : the following tests are off because the tokenIds being sorted should be #1, #2 not #0, #1.
-    //      believe the issue with how the database is reconstructing sort data for readAllData call, 
-    //      rather than an issue on the write side
-    //      **********
-    //      **********
-    //      **********        
+contract ERC721PressDatabaseV1Test is ERC721PressConfig {  
 
     function test_initialize() public setUpCurationStrategy {
         
