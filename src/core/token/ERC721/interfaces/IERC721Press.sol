@@ -25,7 +25,7 @@ interface IERC721Press {
         bool transferable;
     }
 
-    // not sure if to include
+    // TODO: Not sure if to include
     event ERC721PressInitialized();        
 
     /// @notice Event emitted when minting token
@@ -73,6 +73,10 @@ interface IERC721Press {
     error Royalty_Percentage_Too_High(uint16 bps);    
     /// @notice Array input lengths don't match
     error Invalid_Input_Length();    
+    /// @notice error when attempting to transfer non-transferrable token
+    error Non_Transferrable_Token();    
+    /// @notice error when failing to send eth
+    error Funds_Send_Failure();    
 
     // ||||||||||||||||||||||||||||||||
     // ||| FUNCTIONS ||||||||||||||||||
@@ -100,13 +104,10 @@ interface IERC721Press {
     function mintWithData(uint256 quantity, bytes calldata data) external payable returns (uint256);        
     /// @notice Facilitates z-index style sorting of tokenIds. SortOrders can be positive or negative
     function sort(uint256[] calldata tokenIds, int96[] calldata sortOrders) external;       
-
-
     /// @dev Get royalty information for token
     /// @param _salePrice sale price for the token
     function royaltyInfo(uint256, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount);   
     /// @notice ERC165 supports interface
     /// @param interfaceId interface id to check if supported
     function supportsInterface(bytes4 interfaceId) external view returns (bool);
-
 }

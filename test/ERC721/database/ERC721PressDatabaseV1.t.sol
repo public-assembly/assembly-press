@@ -36,7 +36,20 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
         require(storedCounter == 0, "stored counter should be zero since no mints have occurred");
         require(pressLogic == address(logic), "press logic initialized in database incorrectly");
         require(initialized == 1, "initialized should equal 1 post initialization");
-        require(pressRenderer == address(renderer), "press renderer initialized in database incorrectly");
+        require(pressRenderer == address(renderer), "press renderer initialized in database incorrectly");          
+    }    
+
+    function test_store() public setUpCurationStrategy{
+        
+        require(address(targetPressProxy.getDatabase()) == address(database), "database address incorrect");
+        
+        // check database storage on initialization
+        (
+            uint256 storedCounter,
+            address pressLogic,
+            uint8 initialized,
+            address pressRenderer
+        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy)); 
 
         // check database storage on mint calls
         vm.startPrank(PRESS_ADMIN_AND_OWNER);       
@@ -121,7 +134,7 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
         require(database.canEditSettings(address(targetPressProxy), PRESS_NO_ROLE_1) == false, "non-user settings caller should have different access");
         require(database.canEditContractData(address(targetPressProxy), PRESS_NO_ROLE_1) == false, "non-user contract data caller should have different access");
         require(database.canEditTokenData(address(targetPressProxy), PRESS_NO_ROLE_1, 1) == false, "non-user token data caller should have different access");
-        require(database.canEditPayments(address(targetPressProxy), PRESS_NO_ROLE_1) == false, "non-user payments caller should have different access");                
+        require(database.canEditPayments(address(targetPressProxy), PRESS_NO_ROLE_1) == false, "non-user payments caller should have different access");              
     }    
 
     function test_sort() public setUpCurationStrategy {

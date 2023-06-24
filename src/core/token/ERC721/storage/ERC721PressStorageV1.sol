@@ -18,6 +18,7 @@ contract ERC721PressStorageV1 {
     // ||||||||||||||||||||||||||||||||    
 
     /// @notice Storage for database impl
+    /// @dev Set during initialization and cannot be updated
     IERC721PressDatabase internal _database;
 
     /// @notice Settings for Press contract

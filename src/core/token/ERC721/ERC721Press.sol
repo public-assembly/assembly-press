@@ -43,7 +43,7 @@ import {TransferUtils} from "../../utils/funds/TransferUtils.sol";
 /**
  * @title ERC721Press
  * @notice Configurable ERC721A implementation
- * @dev Functionality is configurable using external logic contract
+ * @dev Functionality is configurable using database contract + init
  * @dev Uses EIP-5192 for optional non-transferrable token implementation
  * @author Max Bochman
  * @author Salief Lewis
@@ -109,15 +109,17 @@ contract ERC721Press is
     }
 
     // ||||||||||||||||||||||||||||||||
-    // ||| WRITE FUNCTIONS ||||||||||||
+    // ||| MINT + BURN + SORT |||||||||
     // ||||||||||||||||||||||||||||||||
 
-    /* EXTERNAL */
+    // ////////////////
+    // /// MINT
+    // ////////////////
 
     /// @notice Allows user to mint token(s) from the Press contract
     /// @dev Allows user to pass in data to be passed into logic contract
     /// @param quantity number of NFTs to mint
-    /// @param data data to pass in alongside mint caall
+    /// @param data data to pass in alongside mint call
     function mintWithData(uint256 quantity, bytes calldata data)
         external
         payable
@@ -127,45 +129,77 @@ contract ERC721Press is
         // Cache msg.sender + msg.value
         (uint256 msgValue, address sender) = (msg.value, msg.sender);
 
+        // Process access + msg value checks + eth transfer (if applicable)
+        _mintChecks(msgValue, sender, quantity);
+
+        // `mintWithData` returns the the firstMintedTokenId of the transaction
+        return _mintWithData(sender, quantity, data);
+    }
+
+    function _mintChecks(uint256 msgValue, address sender, uint256 quantity) internal {
         // Call database contract to check user mint access
         if (_database.canMint(address(this), sender, quantity) != true) {
             revert No_Mint_Access();
         }
-
         // Call database contract to check totalMintPrice for given sender * quantity
         if (msgValue != _database.totalMintPrice(address(this), sender, quantity)) {
             revert Incorrect_Msg_Value();
-        }
+        }        
+        // Transfer eth for transaction
+        (bool success) = TransferUtils.safeSendETH(
+            _settings.fundsRecipient, 
+            msgValue, 
+            TransferUtils._FUNDS_SEND_NORMAL_GAS_LIMIT
+        );
+        // Revert if funds transfer not successful
+        if (!success) {
+            revert Funds_Send_Failure();
+        }        
+    }
 
-        // Route msgValue to fundsRecipient if msgValue doesnt equal 0
-        if (msgValue != 0) {
-            TransferUtils.safeSendETH(_settings.fundsRecipient, msgValue, TransferUtils._FUNDS_SEND_NORMAL_GAS_LIMIT);
-        }
-
+    /// @notice Internal helper that processes mint, data storage, and event emission for mintWithData call
+    /// @dev No access checks are present in this function. Enforce elsewhere
+    /// @param sender address of msg.sender 
+    /// @param quantity number of NFTs to mint
+    /// @param data data to pass in alongside mint call
+    function _mintWithData(address sender, uint256 quantity, bytes calldata data) internal returns (uint256) {
         // Batch mint NFTs to sender address
         _mintNFTs(sender, quantity);
-
         // Cache tokenId of first minted token so tokenId mint range can be reconstituted in mint event
         uint256 firstMintedTokenId = lastMintedTokenId() - quantity + 1;
-
-        // Update external date file with data corresponding to this mint
-        _database.storeData(data);
-
+        // Update external database with data corresponding to this mint
+        _database.storeData(data);    
+        // Emit sender + quantity + firstMintedTokenId
         emit IERC721Press.MintWithData({
             sender: sender,
             quantity: quantity,
             firstMintedTokenId: firstMintedTokenId
-        });
-
-        // emit locked events if contract tokens have been configured as non-transferable
+        });            
+        // Emit locked events if contract tokens have been configured as non-transferable
         if (_settings.transferable == false) {
             for (uint256 i; i < quantity; ++i) {
                 emit Locked(firstMintedTokenId + i);
             }   
-        }
-
+        }        
         return firstMintedTokenId;
     }
+
+    /// @notice Function to mint NFTs
+    /// @dev (Important: Does not enforce max supply limit, enforce that limit earlier)
+    /// @dev This batches in size of 8 as recommended by Chiru Labs
+    /// @param to address to mint NFTs to
+    /// @param quantity number of NFTs to mint
+    function _mintNFTs(address to, uint256 quantity) internal {
+        do {
+            uint256 toMint = quantity > _MAX_MINT_BATCH_SIZE ? _MAX_MINT_BATCH_SIZE : quantity;
+            _mint({to: to, quantity: toMint});
+            quantity -= toMint;
+        } while (quantity > 0);
+    }        
+
+    // //////////////////
+    // /// BURN
+    // //////////////////   
 
     /// @notice User burn function for tokenId
     /// @param tokenId token id to burn
@@ -182,18 +216,27 @@ contract ERC721Press is
         _burn(tokenId, false);
     }    
 
-    /// @notice Function to mint NFTs
-    /// @dev (Important: Does not enforce max supply limit, enforce that limit earlier)
-    /// @dev This batches in size of 8 as recommended by Chiru Labs
-    /// @param to address to mint NFTs to
-    /// @param quantity number of NFTs to mint
-    function _mintNFTs(address to, uint256 quantity) internal {
-        do {
-            uint256 toMint = quantity > _MAX_MINT_BATCH_SIZE ? _MAX_MINT_BATCH_SIZE : quantity;
-            _mint({to: to, quantity: toMint});
-            quantity -= toMint;
-        } while (quantity > 0);
-    }    
+    /// @notice User burn batch function for tokenIds
+    /// @param tokenIds token ids to burn
+    function burnBatch(uint256[] memory tokenIds) public {
+        // Cache result of canBurn check which is applied at the contract level
+        bool senderCanBurn = _database.canBurn(address(this), msg.sender, 1);
+        // For each tokenId, check if burn is allowed for msg.sender
+        for (uint256 i; i < tokenIds.length; ++i) {            
+            if (
+                ERC721Press(payable(address(this))).ownerOf(tokenIds[i]) != msg.sender
+                && senderCanBurn != true
+            ) {
+                revert No_Burn_Access();
+            }            
+
+            _burn(tokenIds[i], false);
+        }
+    }        
+
+    // //////////////////
+    // /// SORT
+    // //////////////////    
 
     /// @dev Facilitates z-index style sorting of tokenIds. SortOrders can be positive or negative
     /// @dev Sort orders stored in database contract in mapping for address(this) Press
@@ -202,7 +245,7 @@ contract ERC721Press is
     function sort(
         uint256[] calldata tokenIds, 
         int96[] calldata sortOrders
-    ) external {
+    ) public {
 
         // Cache msg.sender
         (address sender) = msg.sender;
@@ -220,6 +263,41 @@ contract ERC721Press is
         // Calls `sortData` function on database contract
         _database.sortData(sender, tokenIds, sortOrders);                
     }    
+
+    // //////////////////
+    // /// MINTBURNSORT
+    // //////////////////    
+
+    function mintBurnSort(
+        uint256 mintQuantity,
+        bytes calldata mintData,
+        uint256[] calldata burnIds,
+        uint256[] calldata sortIds,
+        int96[] calldata sortOrders
+    ) external payable nonReentrant {
+        // Cache msg.sender + msg.value
+        (uint256 msgValue, address sender) = (msg.value, msg.sender);
+
+        // Process mint if non-zero inputs
+        if (mintQuantity != 0) {
+            // Process access + msg value checks + eth transfer (if applicable)
+            _mintChecks(msgValue, sender, mintQuantity);
+            // `mintWithData` processes mint + data storage
+            _mintWithData(sender, mintQuantity, mintData);
+        }
+        // Process burn if non-zero inputs
+        if (burnIds.length != 0) {
+            burnBatch(burnIds);            
+        }
+        // Process sort if non-zero inputs        
+        if (sortIds.length != 0) {
+            sort(sortIds, sortOrders); 
+        }        
+    }    
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| SETTINGS |||||||||||||||||||
+    // ||||||||||||||||||||||||||||||||    
 
     /// @notice updates the global settings for the ERC721Press contract
     /// @dev transferability stored in settings cannot be updated post contract initialization
@@ -296,12 +374,7 @@ contract ERC721Press is
             royaltyBPS: _settings.royaltyBPS,
             transferable: _settings.transferable
         });
-    }    
-
-    // @notice Getter that returns true if token has been minted and not burned
-    function exists(uint256 tokenId) external view returns (bool) {
-        return _exists(tokenId);   
-    }    
+    }     
 
     /// @dev Get royalty information for token
     /// @param _salePrice sale price for the token
@@ -329,6 +402,17 @@ contract ERC721Press is
             || type(IERC2981Upgradeable).interfaceId == interfaceId || type(IERC721Press).interfaceId == interfaceId
             || interfaceId == type(IERC5192).interfaceId;                    
     }    
+
+
+    // @notice Getter that returns true if token has been minted and not burned
+    function exists(uint256 tokenId) external view returns (bool) {
+        return _exists(tokenId);   
+    }   
+
+    /// @notice Getter that returns number of tokens minted for a given address
+    function numberMintedByAddress(address ownerAddress) external view returns (uint256) {
+        return _numberMinted(ownerAddress);
+    }        
     
     /* INTERNAL */    
 
@@ -340,4 +424,45 @@ contract ERC721Press is
     function _startTokenId() internal pure override returns (uint256) {
         return 1;
     }
+
+    /*
+        The following overrdes enable an optional soulbound
+        implementation that conforms to EIP-5192
+    */
+
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public payable override {
+        super.safeTransferFrom(from, to, tokenId, data);
+        if (_settings.transferable == true) {
+            revert Non_Transferrable_Token();
+        }
+    }
+
+    function safeTransferFrom(address from, address to, uint256 tokenId) public payable override {
+        super.safeTransferFrom(from, to, tokenId);
+        if (_settings.transferable == true) {
+            revert Non_Transferrable_Token();
+        }
+    }    
+
+    function transferFrom(address from, address to, uint256 tokenId) public payable override {
+        super.transferFrom(from, to, tokenId);
+        if (_settings.transferable == true) {
+            revert Non_Transferrable_Token();
+        }
+    }        
+
+    function approve(address approved, uint256 tokenId) public payable override {
+        super.approve(approved, tokenId);
+        if (_settings.transferable == true) {
+            revert Non_Transferrable_Token();
+        }        
+    }
+
+    function setApprovalForAll(address operator, bool approved) public override {
+        super.setApprovalForAll(operator, approved);
+        if (_settings.transferable == true) {
+            revert Non_Transferrable_Token();
+        }        
+    }            
+
 }
