@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
-import {console2} from "forge-std/console2.sol";
+
 /*
 PA PA PA PA
 PA PA PA PA
