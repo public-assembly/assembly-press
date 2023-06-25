@@ -377,8 +377,9 @@ contract ERC721Press is
     }     
 
     /// @dev Get royalty information for token
-    /// @param _salePrice sale price for the token
-    function royaltyInfo(uint256, uint256 _salePrice)
+    /// @param _tokenId the NFT asset queried for royalty information
+    /// @param _salePrice the sale price of the NFT asset specified by _tokenId
+    function royaltyInfo(uint256 _tokenId, uint256 _salePrice)
         external
         view
         override(IERC2981Upgradeable, IERC721Press)
@@ -432,35 +433,35 @@ contract ERC721Press is
 
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public payable override {
         super.safeTransferFrom(from, to, tokenId, data);
-        if (_settings.transferable == true) {
+        if (_settings.transferable == false) {
             revert Non_Transferrable_Token();
         }
     }
 
     function safeTransferFrom(address from, address to, uint256 tokenId) public payable override {
         super.safeTransferFrom(from, to, tokenId);
-        if (_settings.transferable == true) {
+        if (_settings.transferable == false) {
             revert Non_Transferrable_Token();
         }
     }    
 
     function transferFrom(address from, address to, uint256 tokenId) public payable override {
         super.transferFrom(from, to, tokenId);
-        if (_settings.transferable == true) {
+        if (_settings.transferable == false) {
             revert Non_Transferrable_Token();
         }
     }        
 
     function approve(address approved, uint256 tokenId) public payable override {
         super.approve(approved, tokenId);
-        if (_settings.transferable == true) {
+        if (_settings.transferable == false) {
             revert Non_Transferrable_Token();
         }        
     }
 
     function setApprovalForAll(address operator, bool approved) public override {
         super.setApprovalForAll(operator, approved);
-        if (_settings.transferable == true) {
+        if (_settings.transferable == false) {
             revert Non_Transferrable_Token();
         }        
     }            

@@ -104,6 +104,51 @@ contract ERC721PressConfig is Test {
         _;
     }
 
+    modifier setUpCurationStrategy_TransferableTokens() {
+
+        // SETUP LOGIC INIT
+        RolesWith721GateImmutableMetadataNoFees.RoleDetails[] memory initialRoles = 
+            new RolesWith721GateImmutableMetadataNoFees.RoleDetails[](2);
+        initialRoles[0].account = PRESS_ADMIN_AND_OWNER;
+        initialRoles[0].role = ADMIN_ROLE;
+        initialRoles[1].account = PRESS_MANAGER;
+        initialRoles[1].role = MANAGER_ROLE;      
+        mockAccessPass.mint(PRESS_USER);   
+        bool initialIsPaused = false;     
+        bytes memory logicInit = abi.encode(address(mockAccessPass), initialIsPaused, initialRoles);
+
+        // SETUP RENDERER INIT
+        string memory contractUriImagePath = "ipfs://THIS_COULD_BE_CONTRACT_URI_IMAGE_PATH";
+        bytes memory rendererInit = abi.encode(contractUriImagePath);
+
+        // SETUP DATABASE INIT
+        bytes memory databaseInit = abi.encode(
+            address(logic),
+            logicInit,
+            address(renderer),
+            rendererInit
+        );
+
+        // PRESS SETTINGS
+        IERC721Press.Settings memory pressSettings = IERC721Press.Settings({
+            fundsRecipient: PRESS_FUNDS_RECIPIENT,
+            royaltyBPS: 250, // 2.5%
+            transferable: true
+        });
+
+         // INITIALIZE PROXY
+        targetPressProxy.initialize({
+            name: "Public Assembly",
+            symbol: "PA",
+            initialOwner: PRESS_ADMIN_AND_OWNER,
+            database: database,
+            databaseInit: databaseInit,
+            settings: pressSettings                    
+        });        
+
+        _;
+    }    
+
     // LISTING ENCODING HELPERS
 
     function encodeListing(PartialListing memory _listing) public pure returns (bytes memory) {

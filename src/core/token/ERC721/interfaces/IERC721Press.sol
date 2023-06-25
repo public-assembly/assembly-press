@@ -105,8 +105,9 @@ interface IERC721Press {
     /// @notice Facilitates z-index style sorting of tokenIds. SortOrders can be positive or negative
     function sort(uint256[] calldata tokenIds, int96[] calldata sortOrders) external;       
     /// @dev Get royalty information for token
-    /// @param _salePrice sale price for the token
-    function royaltyInfo(uint256, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount);   
+    /// @param _tokenId the NFT asset queried for royalty information
+    /// @param _salePrice the sale price of the NFT asset specified by _tokenId
+    function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount);   
     /// @notice ERC165 supports interface
     /// @param interfaceId interface id to check if supported
     function supportsInterface(bytes4 interfaceId) external view returns (bool);

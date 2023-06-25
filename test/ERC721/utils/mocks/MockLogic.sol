@@ -21,4 +21,23 @@ contract MockLogic {
 
         pressInitializedInfo[targetPress] = true;
     }
+
+    /// @notice returns mintPrice for a given Press + account + mintQuantity
+    function getMintPrice(address, address, uint256)
+        external
+        pure
+        returns (uint256)
+    {    
+        return 10000000000000000; // 0.01 eth in wei
+    }   
+
+    /// @notice returns true/false access for a given Press + account + quantity
+    function getMintAccess(address targetPress, address mintCaller, uint256 mintQuantity)
+        external
+        view
+        returns (bool)
+    {   
+
+        return true;
+    }        
 }
