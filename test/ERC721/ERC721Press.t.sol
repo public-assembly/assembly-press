@@ -381,10 +381,22 @@ contract ERC721PressTest is ERC721PressConfig {
         require(targetPressProxy.ownerOf(1) == PRESS_USER, "incorrect tokenOwner");
     }             
 
-    /* TODO
-    * 4. add tests for upgrades + transfers
-    * 5. do factory impl + tests
-    * 6. deploys ???
-    * 7. first pass diagrams
-    */      
+    function test_transferPressOwnership() public setUpCurationStrategy {
+        vm.startPrank(PRESS_USER);
+        // expect revert on transfer because msg.sender is not owner
+        vm.expectRevert(abi.encodeWithSignature("ONLY_OWNER()"));
+        targetPressProxy.transferOwnership(PRESS_USER);
+        vm.stopPrank();
+        vm.startPrank(PRESS_ADMIN_AND_OWNER);
+        // transfer should go through since being called from contract owner
+        targetPressProxy.transferOwnership(PRESS_USER);
+        require(targetPressProxy.owner() == PRESS_USER, "ownership not transferred correctly");
+    }    
+
+    // TODO: add in a test upgrading Press Proxy to a new implementation
+    // *
+    // *
+    // *
+    // *
+    // *
 }
