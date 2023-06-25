@@ -39,7 +39,7 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
         require(pressRenderer == address(renderer), "press renderer initialized in database incorrectly");          
     }    
 
-    function test_store() public setUpCurationStrategy{
+    function test_storeAndRead() public setUpCurationStrategy{
         
         require(address(targetPressProxy.getDatabase()) == address(database), "database address incorrect");
         
@@ -135,9 +135,13 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
         require(database.canEditContractData(address(targetPressProxy), PRESS_NO_ROLE_1) == false, "non-user contract data caller should have different access");
         require(database.canEditTokenData(address(targetPressProxy), PRESS_NO_ROLE_1, 1) == false, "non-user token data caller should have different access");
         require(database.canEditPayments(address(targetPressProxy), PRESS_NO_ROLE_1) == false, "non-user payments caller should have different access");              
+
+        // readAllData return should be an array of length 5 since 10 tokens have been minted by this point and 5 tokens have been burned
+        (IERC721PressDatabase.TokenDataRetrieved[] memory tokenDataPostBurn) = database.readAllData(address(targetPressProxy));
+        require(tokenDataPostBurn.length == 5, "read data not skipping burned tokens");
     }    
 
-    function test_sort() public setUpCurationStrategy {
+    function test_sortAndRead() public setUpCurationStrategy {
         
         require(address(targetPressProxy.getDatabase()) == address(database), "database address incorrect");   
 
@@ -155,7 +159,7 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
         bytes memory encodedListings = encodeListingArray(listings);
         targetPressProxy.mintWithData(2, encodedListings);
 
-        // call sort         
+        // setup + call sort         
 
         uint256[] memory tokenIds = new uint256[](2);
         tokenIds[0] = 1;
@@ -167,7 +171,7 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
 
         targetPressProxy.sort(tokenIds, sortOrders);
 
-        // check that sortOrders being stored in database `idToData` mapping correctly
+        // checks that sortOrders being stored in database `idToData` mapping correctly
         (
             address pointerAddress,
             int96 sortValue
@@ -179,16 +183,10 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
         ) = database.idToData(address(targetPressProxy), 1);
         require(sortOrders[1] == sortValue_2, "sort order incorrect");   
 
-        // // array of structs that look like {bytes storedData, int96 sortOrder}     
-        // (IERC721PressDatabase.TokenDataRetrieved[] memory tokenData) = database.readAllData(address(targetPressProxy));
-        // require(tokenData[0].sortOrder == 1, "incorrect sortOrder");
-        // require(tokenData[1].sortOrder == -1, "incorrect sortOrder");
-
-        // vm.stopPrank();
-        // vm.startPrank(PRESS_USER);
-        // // should revert because PRESS_USER doesnt have sort access
-        // vm.expectRevert(abi.encodeWithSignature("No_Sort_Access()"));
-        // targetPressProxy.sort(tokenIds, sortOrders);
+        // checks that sortOrders generated correctly in readAllData call as well
+        (IERC721PressDatabase.TokenDataRetrieved[] memory tokenData) = database.readAllData(address(targetPressProxy));
+        require(tokenData[0].sortOrder == sortOrders[0], "sort order should be 1 here");
+        require(tokenData[1].sortOrder == sortOrders[1], "sort order should be -1 here");
     }
 
     function test_setRenderer() public setUpCurationStrategy {

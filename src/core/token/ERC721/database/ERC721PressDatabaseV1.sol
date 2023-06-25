@@ -148,11 +148,20 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
         view 
         requireInitialized(targetPress) 
         returns (TokenDataRetrieved memory) {
-        return 
-            TokenDataRetrieved({
+
+        // Return blank struct if token has been burnt
+        if (ERC721Press(payable(targetPress)).exists(tokenId) == false) {
+            bytes memory bytesZeroValue = new bytes(0);
+            return TokenDataRetrieved({
+                storedData: bytesZeroValue,
+                sortOrder: 0
+            });            
+        } else {
+            return TokenDataRetrieved({
                 storedData: SSTORE2.read(idToData[targetPress][tokenId-1].pointer),
                 sortOrder: idToData[targetPress][tokenId-1].sortOrder
             });
+        }
     }
 
     /// @dev Getter for acessing data for all active IDs for a given Press
@@ -165,15 +174,15 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
         unchecked {
             activeData = new TokenDataRetrieved[](ERC721Press(payable(targetPress)).totalSupply());
 
-            // first tokenId minted in ERC721Press impl is #1
-            uint256 activeIndex = 1;
+            // first data slot tokenData mapping is 0
+            uint256 activeIndex;
 
             for (uint256 i; i < settingsInfo[targetPress].storedCounter; ++i) {
                 // skip this listing if user has burned the token (sent to zero address)
-                if (ERC721Press(payable(targetPress)).exists(activeIndex) == false) {
+                if (ERC721Press(payable(targetPress)).exists(i+1) == false) {
                     continue;
                 }
-                activeData[activeIndex-1] = TokenDataRetrieved({
+                activeData[activeIndex] = TokenDataRetrieved({
                         storedData: SSTORE2.read(idToData[targetPress][i].pointer),
                         sortOrder: idToData[targetPress][i].sortOrder
                 });              
