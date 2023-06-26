@@ -212,6 +212,13 @@ contract ERC721Press is
             revert No_Burn_Access();
         }        
 
+        // create array to bass into removeData call
+        uint256[] memory tokensToRemove = new uint256[](1);
+        tokensToRemove[0] = tokenId;
+
+        // call database to emit removeData event
+        _database.removeData(tokensToRemove);
+
         // ERC721A _burn approvalCheck set to false to let custom logic take precedence
         _burn(tokenId, false);
     }    
@@ -232,6 +239,9 @@ contract ERC721Press is
 
             _burn(tokenIds[i], false);
         }
+
+        // call database to emit removeData event
+        _database.removeData(tokenIds);
     }        
 
     // //////////////////
@@ -264,6 +274,27 @@ contract ERC721Press is
         _database.sortData(sender, tokenIds, sortOrders);                
     }    
 
+    function update(uint256[] memory tokenIds, bytes[] calldata newData) public {
+
+        // Cache msg.sender
+        (address sender) = msg.sender;    
+
+        // Prevents users from submitting invalid inputs
+        if (tokenIds.length != newData.length) {
+            revert Invalid_Input_Length();
+        }        
+
+        for (uint256 i; i < tokenIds.length; ++i) {
+            // Checks if sender has access to update functionality
+            if (_database.canEditTokenData(address(this), msg.sender, tokenIds[i]) == false) {
+                revert No_Update_Access();
+            }
+        }
+
+        // Call `updateData` function on database contract
+        _database.updateData(tokenIds, newData);         
+    }
+
     // //////////////////
     // /// MINTBURNSORT
     // //////////////////    
@@ -294,6 +325,35 @@ contract ERC721Press is
             sort(sortIds, sortOrders); 
         }        
     }    
+
+    // function mintSortUpdateBurn(
+    //     MintParams memory mintParams,
+    //     SortParams memory sortParams,
+    //     UpdateParams memory updateParams,
+    //     BurnParams memory burnParams
+    // ) external payable nonReentrant {
+    //     // Cache msg.sender
+    //     address sender = msg.sender;
+    //     // Process mint if non-zero inputs
+    //     if (mintParams.quatntiy != 0) {
+    //         // Process access + msg value checks + eth transfer (if applicable)
+    //         _mintChecks(msg.value, sender, mintParams.quantity);
+    //         // `mintWithData` processes mint + data storage
+    //         _mintWithData(sender, mintParams.quantity, mintParams.data);
+    //     }
+    //     // Process sort if non-zero inputs        
+    //     if (sortParams.sortIds.length != 0) {
+    //         sort(sortParams.sortIds, sortParams.sortOrders); 
+    //     }     
+    //     // Process update if non-zero inputs        
+    //     if (updateParams.updateIds.length != 0) {
+    //         update(updateParams.updateIds, updateParams.updateData); 
+    //     }     
+    //     // Process burn if non-zero inputs
+    //     if (burnParams.burnIds.length != 0) {
+    //         burnBatch(burnParams.burnIds);            
+    //     }
+    // }        
 
     // ||||||||||||||||||||||||||||||||
     // ||| SETTINGS |||||||||||||||||||

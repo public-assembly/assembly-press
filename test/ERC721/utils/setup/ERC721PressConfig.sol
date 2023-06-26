@@ -17,6 +17,9 @@ import {MockDatabase} from "../mocks/MockDatabase.sol";
 
 contract ERC721PressConfig is Test {
 
+    // ADDRESSES FOR DATABASE OWNERSHIP
+    address public primaryOwner;
+    address public secondaryOwner;
     // ADDRESSES FOR PRESS + PRESS PROXY
     ERC721Press public erc721PressImpl;
     ERC721Press public targetPressProxy;
@@ -35,7 +38,7 @@ contract ERC721PressConfig is Test {
     uint8 public constant NO_ROLE = 0;        
     MockERC721 public mockAccessPass = new MockERC721();
     // DATABASE + LOGIC + RENDERER SETUP
-    ERC721PressDatabaseV1 internal database = new ERC721PressDatabaseV1();
+    ERC721PressDatabaseV1 internal database = new ERC721PressDatabaseV1(primaryOwner, secondaryOwner);
     MockDatabase public mockDatabase = new MockDatabase();
     RolesWith721GateImmutableMetadataNoFees public logic = new RolesWith721GateImmutableMetadataNoFees();
     CurationMetadataRenderer public renderer = new CurationMetadataRenderer();

@@ -11,6 +11,7 @@ PA PA PA PA
 import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
 import {IERC721Press} from "../interfaces/IERC721Press.sol";
 import {ERC721Press} from "../ERC721Press.sol";
+import {DualOwnable} from "../../../utils/ownable/dual/DualOwnable.sol";
 
 import {IERC721PressLogic} from "../interfaces/IERC721PressLogic.sol";
 import {IERC721PressRenderer} from "../interfaces/IERC721PressRenderer.sol";
@@ -27,7 +28,7 @@ import "sstore2/SSTORE2.sol";
 * @author Max Bochman
 * @author Salief Lewis
 */
-contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStorageV1 { 
+contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStorageV1, DualOwnable { 
 
     // ||||||||||||||||||||||||||||||||
     // ||| MODIFERS |||||||||||||||||||
@@ -36,7 +37,7 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     /// @notice Checks if target Press has been initialized
     modifier requireInitialized(address targetPress) {
 
-        if (settingsInfo[targetPress].initialized == 0) {
+        if (settingsInfo[targetPress].initialized != 1) {
             revert Press_Not_Initialized();
         }
 
@@ -44,13 +45,47 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     }            
 
     // ||||||||||||||||||||||||||||||||
-    // ||| DATABASE INIT ||||||||||||||
+    // ||| CONSTRUCTOR ||||||||||||||||
+    // ||||||||||||||||||||||||||||||||       
+
+    /// @dev Sets primary + secondary contract ownership
+    /// @param _initialOwner The initial owner address
+    /// @param _initialSecondaryOwner The initial secondary owner address
+    constructor (address _initialOwner, address _initialSecondaryOwner) {
+        _owner = _initialOwner;
+        _initialSecondaryOwner;
+        emit OwnerUpdated(address(0), _initialOwner);
+        emit SecondaryOwnerUpdated(address(0), _initialSecondaryOwner);
+    }    
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| DATABASE ADMIN |||||||||||||
+    // ||||||||||||||||||||||||||||||||     
+
+    function setOfficialFactory(address factory) eitherOwner external {
+        _officialFactories[factory] = true;
+        emit NewFactoryAdded(msg.sender, factory);
+    }
+
+    function initializePress(address targetPress) external {
+        if (_officalFactories[msg.sender] != true) {
+            revert No_Initialize_Access();
+        }
+        settingsInfo[targetPress].initialized = 1;
+
+        // emit PressInitialized(address msg.sender, address targetPerss) ??
+    }
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| DATABASE PRESS INIT ||||||||
     // ||||||||||||||||||||||||||||||||          
 
     /// @notice Default logic initializer for a given Press
     /// @dev updates settings for msg.sender, so no need to add access control to this function
     /// @param databaseInit data to init with
-    function initializeWithData(bytes memory databaseInit) external {
+    function initializeWithData(bytes memory databaseInit) requireInitialized(targetPress) external {
+
+        // Cache msg.sender
         address sender = msg.sender;
 
         // data format: logic, logicInit, renderer, rendererInit
@@ -62,7 +97,6 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
         ) = abi.decode(databaseInit, (address, bytes, address, bytes));
 
         // set settingsInfo[targetPress]
-        settingsInfo[sender].initialized = 1;
         settingsInfo[sender].logic = logic;        
         settingsInfo[sender].renderer = renderer;
         
@@ -72,7 +106,7 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     }       
 
     // ||||||||||||||||||||||||||||||||
-    // ||| DATABASE ADMIN |||||||||||||
+    // ||| DATABASE PRESS ADMIN |||||||
     // ||||||||||||||||||||||||||||||||     
 
     // external handler for setLogic function
@@ -116,10 +150,14 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     // ||| DATA STORAGE |||||||||||||||
     // ||||||||||||||||||||||||||||||||     
 
+    /////////////////////////
+    // WRITE
+    /////////////////////////    
+
     /// @dev Function called by mintWithData function in ERC721Press mint call that
     //      updates specific tokenData for msg.sender, so no need to add access control to this function
     /// @param data data getting passed in along mint
-    function storeData(bytes calldata data) external {
+    function storeData(bytes calldata data) external requireInitialized(msg.sender) {
         // data format: tokens
         (bytes[] memory tokens) = abi.decode(data, (bytes[]));
 
@@ -131,14 +169,80 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     /// @param tokens arbitrary encoded bytes data
     function _storeData(address targetPress, bytes[] memory tokens) internal {     
         for (uint256 i = 0; i < tokens.length; ++i) {
+            // cache storedCounter
+            uint256 storedCounter = settingsInfo[targetPress].storedCounter;
             // use sstore2 to store bytes segments in bytes array
-            idToData[targetPress][settingsInfo[targetPress].storedCounter].pointer = SSTORE2.write(
+            idToData[targetPress][storedCounter].pointer = SSTORE2.write(
                 tokens[i]
-            );                                
+            );       
+            // emit event
+            emit DataStored(
+                targetPress, 
+                // storedCounter + 1 = tokenId associated with data
+                storedCounter + 1,  
+                idToData[targetPress][storedCounter].pointer
+            );                                       
             // increment press storedCounter after storing data
-            ++settingsInfo[targetPress].storedCounter;                                
+            ++settingsInfo[targetPress].storedCounter;    
         }           
     }              
+
+    /// @dev Facilitates z-index style sorting of data IDs. SortOrders can be positive or negative
+    /// @dev Will only sort ids for a given Press if called directly by the Press
+    /// @dev Access checks enforced in Press
+    /// @param sortCaller address of sortCaller    
+    /// @param tokenIds data IDs to store sortOrders for    
+    /// @param sortOrders sorting values to store
+    function sortData(
+        address sortCaller, 
+        uint256[] calldata tokenIds, 
+        int96[] calldata sortOrders
+    ) external requireInitialized(msg.sender) {
+        // Cache address of msg.sender -- which will be the targetPress if called correclty
+        (address targetPress) = msg.sender;
+
+        for (uint256 i = 0; i < tokenIds.length; i++) {       
+            _sortData(targetPress, tokenIds[i], sortOrders[i]);
+        }
+        emit DataSorted(targetPress, tokenIds, sortOrders, sortCaller);
+    }    
+    
+    /// @notice Internal handler for sort functionality
+    /// @dev No access checks, enforce elsewhere
+    function _sortData(address targetPress, uint256 tokenId, int96 sortOrder) internal {
+        //
+        idToData[targetPress][tokenId-1].sortOrder = sortOrder;
+    }        
+
+    /// @dev Updates sstore2 data ointers for already existing tokens
+    /// @param tokenIds arbitrary encoded bytes data
+    /// @param newData data passed in alongside update call
+    function updateData(uint256[] memory tokenIds, bytes[] calldata newData) external requireInitialized(msg.sender) {
+        // Cache msg.sender
+        (address sender) = msg.sender;
+
+        for (uint256 i = 0; i < tokenIds.length; ++i) {
+            // use sstore2 to store bytes segments in bytes array
+            address newPointer = idToData[sender][tokenIds[i]-1].pointer = SSTORE2.write(
+                newData[i]
+            );                                
+            emit DataUpdated(sender, tokenIds[i], newPointer);                                
+        }                  
+    }             
+
+    /// @dev Event emitter that signals for indexer that this token has been burned.
+    ///     when a token is burned, the data associated with it will no longer be returned 
+    ///     in`getAllData`, and will return zero values in `getData`
+    /// @param tokenIds tokenIds to target
+    function removeData(uint256[] memory tokenIds) external requireInitialized(msg.sender) {
+        for (uint256 i; i < tokenIds.length; ++i) {
+            emit DataRemoved(msg.sender, tokenIds[i]);
+        }
+    }    
+
+    /////////////////////////
+    // READ
+    /////////////////////////    
 
     /// @dev Getter for acessing data for a specific ID for a given Press
     /// @param targetPress ERC721Press to target 
@@ -190,66 +294,7 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
             }
         }
     } 
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| SORT FUNCTIONALITY |||||||||
-    // ||||||||||||||||||||||||||||||||       
-
-    /// VERSION of function called by calling Press directly
-    /// @dev Facilitates z-index style sorting of data IDs. SortOrders can be positive or negative
-    /// @dev Will only sort ids for a given Press if called directly by the Press
-    /// @dev Access checks enforced in Press
-    /// @param sortCaller address of sortCaller    
-    /// @param tokenIds data IDs to store sortOrders for    
-    /// @param sortOrders sorting values to store
-    function sortData(
-        address sortCaller, 
-        uint256[] calldata tokenIds, 
-        int96[] calldata sortOrders
-    ) external {
-        // Cache address of msg.sender -- which will be the targetPress if called correclty
-        (address targetPress) = msg.sender;
-
-        for (uint256 i = 0; i < tokenIds.length; i++) {       
-            _sortData(targetPress, tokenIds[i], sortOrders[i]);
-        }
-        emit DataSorted(targetPress, tokenIds, sortOrders, sortCaller);
-    }    
-
-    // /// VERSION of function called by writing directly to database
-    // /// @dev Facilitates z-index style sorting of data IDs. SortOrders can be positive or negative
-    // /// @param targetPress address of target ERC721Press    
-    // /// @param ids data IDs to store sortOrders for    
-    // /// @param sortOrders sorting values to store
-    // function sortData(
-    //     address targetPress, 
-    //     uint256[] calldata tokenIds, 
-    //     int96[] calldata sortOrders
-    // ) external {
-        
-    //     // checks is sender has access to sort functionality
-    //     if (IERC721PressRenderer(settingsInfo[targetPress].logic).getSortAccess(targetPress, msg.sender) == false) {
-    //         revert No_Sort_Access();
-    //     }
-
-    //     // prevents users from submitting invalid inputs
-    //     if (tokenIds.length != sortOrders.length) {
-    //         revert Invalid_Input_Length();
-    //     }
-
-    //     for (uint256 i = 0; i < tokenIds.length; i++) {       
-    //         _sortData(targetPress, tokenIds[i], sortOrders[i]);
-    //     }
-    //     emit DataSorted(targetPress, tokenIds, sortOrders, msg.sender);
-    // }
-    
-    /// @notice Internal handler for sort functionality
-    /// @dev No access checks, enforce elsewhere
-    function _sortData(address targetPress, uint256 tokenId, int96 sortOrder) internal {
-        //
-        idToData[targetPress][tokenId-1].sortOrder = sortOrder;
-    }    
-
+  
     // ||||||||||||||||||||||||||||||||
     // ||| PRICE + STATUS CHECKS ||||||
     // ||||||||||||||||||||||||||||||||     

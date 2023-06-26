@@ -112,6 +112,32 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1 {
         }           
     }              
 
+    /// @dev Updates sstore2 data ointers for already existing tokens
+    /// @param tokenIds arbitrary encoded bytes data
+    /// @param newData data passed in alongside update call
+    function updateData(uint256[] memory tokenIds, bytes[] calldata newData) external {
+        // Cache msg.sender
+        (address sender) = msg.sender;
+
+        for (uint256 i = 0; i < tokenIds.length; ++i) {
+            // use sstore2 to store bytes segments in bytes array
+            address newPointer = idToData[sender][tokenIds[i]-1].pointer = SSTORE2.write(
+                newData[i]
+            );                                
+            emit DataUpdated(sender, tokenIds[i], newPointer);                                
+        }                  
+    }             
+
+    /// @dev Event emitter that signals for indexer that this token has been burned.
+    ///     when a token is burned, the data associated with it will no longer be returned 
+    ///     in`getAllData`, and will return zero values in `getData`
+    /// @param tokenIds tokenIds to target
+    function removeData(uint256[] memory tokenIds) external {
+        for (uint256 i; i < tokenIds.length; ++i) {
+            emit DataRemoved(msg.sender, tokenIds[i]);
+        }
+    }        
+
     /// @dev Getter for acessing data for a specific ID for a given Press
     /// @param targetPress ERC721Press to target 
     /// @param tokenId tokenId to retrieve data for 

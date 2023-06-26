@@ -68,6 +68,10 @@ interface IERC721PressDatabase {
     function storeData(bytes calldata data) external;
     /// @notice sorts data stored in database
     function sortData(address targetPress, uint256[] calldata tokenIds, int96[] calldata sortOrders) external;    
+    /// @notice updated data stored in database for a given token
+    function updateData(uint256[] calldata tokenIds, bytes[] calldata newData) external;    
+    /// @notice flag to database that token has been burned
+    function removeData(uint256[] calldata tokenIds) external;        
 
     // Read Functions
     /// @notice returns contractURI for a given Press    
@@ -97,6 +101,12 @@ interface IERC721PressDatabase {
     // ||| EVENTS |||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
+    /// @notice New factory has been given access to Database
+    event NewFactoryAdded(
+        address indexed sender,
+        address indexed factory
+    );        
+
     /// @notice Logic has been updated
     event LogicUpdated(
         address indexed targetPress,
@@ -109,13 +119,33 @@ interface IERC721PressDatabase {
         address indexed renderer
     );    
 
+    /// @notice Data has been stored
+    event DataStored(
+        address indexed targetPress,
+        uint256 indexed tokenId,
+        address pointer
+    );       
+
     /// @notice Data has been sorted
     event DataSorted(
         address indexed targetPress,
         uint256[] ids,
         int96[] sortOrder,
         address sortedBy
-    );    
+    );        
+
+    /// @notice Data has been updated
+    event DataUpdated(
+        address indexed targetPress,
+        uint256 indexed tokenId,
+        address newPointer
+    );           
+
+    /// @notice Data has been removed
+    event DataRemoved(
+        address indexed targetPress,
+        uint256 indexed tokenId
+    );          
 
     // ||||||||||||||||||||||||||||||||
     // ||| ERRORS |||||||||||||||||||||

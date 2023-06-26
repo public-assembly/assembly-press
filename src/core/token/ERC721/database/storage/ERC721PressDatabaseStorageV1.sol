@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import { IERC721PressDatabase } from "../../interfaces/IERC721PressDatabase.sol";
 
 /**
- @notice Database storage variables contract\
+ @notice Database storage variables contract
  */
 abstract contract ERC721PressDatabaseStorageV1 is IERC721PressDatabase {
 
@@ -20,6 +20,6 @@ abstract contract ERC721PressDatabaseStorageV1 is IERC721PressDatabase {
     /// @dev see IERC721PressDatbase for details on Settings struct
     mapping(address => Settings) public settingsInfo;
 
-    /// @notice Storage gap
-    uint256[49] __gap;
+    /// @dev Factory address => isOfficial bool
+    mapping(address => bool) internal _officialFactories;    
 }

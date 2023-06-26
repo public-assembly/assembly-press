@@ -63,6 +63,8 @@ interface IERC721Press {
     error No_Burn_Access();    
     /// @notice msg.sender does not have sort access for given Press
     error No_Sort_Access();            
+    /// @notice msg.sender does not have update access for given Press
+    error No_Update_Access();                
     /// @notice msg.sender does not have settings access for given Press
     error No_Settings_Access(); 
 
