@@ -56,9 +56,11 @@ contract ERC721PressFactory is IERC721PressFactory, Version(1) {
         bytes memory databaseInit,
         IERC721Press.Settings memory settings
     ) public returns (address) {
-        /// Configure ownership details in proxy constructor
+        // Configure ownership details in proxy constructor
         ERC721PressProxy newPress = new ERC721PressProxy(pressImpl, "");
-        /// Initialize the new Press instance
+        // Initialize Press in database
+        IERC721PressDatabase(databaseImpl).initializePress(address(newPress));
+        // Initialize the new Press instance
         ERC721Press(payable(address(newPress))).initialize({
             name: name,
             symbol: symbol,
@@ -67,7 +69,7 @@ contract ERC721PressFactory is IERC721PressFactory, Version(1) {
             databaseInit: databaseInit,
             settings: settings
         });
-        /// Emit creation event from factory
+        // Emit creation event from factory
         emit Create721Press({
             newPress: address(newPress),
             creator: msg.sender,

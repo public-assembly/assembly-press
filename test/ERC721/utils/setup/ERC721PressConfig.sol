@@ -17,9 +17,10 @@ import {MockDatabase} from "../mocks/MockDatabase.sol";
 
 contract ERC721PressConfig is Test {
 
-    // ADDRESSES FOR DATABASE OWNERSHIP
+    // ADDRESSES FOR DATABASE OWNERSHIP + OFFICIAL FACTORY
     address public primaryOwner;
     address public secondaryOwner;
+    address public mockFactory;
     // ADDRESSES FOR PRESS + PRESS PROXY
     ERC721Press public erc721PressImpl;
     ERC721Press public targetPressProxy;
@@ -59,7 +60,14 @@ contract ERC721PressConfig is Test {
     function setUp() public {
         // DEPLOY PRESS + PRESS PROXY CONTRACTS
         erc721PressImpl = new ERC721Press();        
-        targetPressProxy = ERC721Press(payable(address(new ERC721PressProxy(address(erc721PressImpl), ""))));    
+        targetPressProxy = ERC721Press(payable(address(new ERC721PressProxy(address(erc721PressImpl), ""))));  
+        // Artificially initialize Press Proxy address in the database
+        vm.startPrank(primaryOwner);
+        database.setOfficialFactory(mockFactory);
+        vm.stopPrank();
+        vm.startPrank(mockFactory);
+        database.initializePress(address(targetPressProxy));
+        vm.stopPrank();
     }
 
     modifier setUpCurationStrategy() {

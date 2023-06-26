@@ -62,6 +62,8 @@ interface IERC721PressDatabase {
     // ||||||||||||||||||||||||||||||||
     
     // Write functions
+    /// @notice Ininitializes Press in database
+    function initializePress(address targetPress) external;        
     /// @notice initializes database with arbitrary data
     function initializeWithData(bytes memory initData) external;    
     /// @notice stores aribtrary data in database
@@ -106,6 +108,12 @@ interface IERC721PressDatabase {
         address indexed sender,
         address indexed factory
     );        
+
+    /// @notice Emitted when new Press is initialized in database by official factory
+    event PressInitialized(
+        address indexed sender,
+        address indexed targetPress
+    );
 
     /// @notice Logic has been updated
     event LogicUpdated(
@@ -152,6 +160,8 @@ interface IERC721PressDatabase {
     // ||||||||||||||||||||||||||||||||
 
     // Access errors
+    /// @notice msg.sender does not have access to initialize a given Press    
+    error No_Initialize_Access();
     /// @notice msg.sender does not have access to adjust Settings for given Press
     error No_Settings_Access();    
 

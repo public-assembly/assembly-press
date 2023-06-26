@@ -20,7 +20,6 @@ import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-up
 
 contract ERC721PressFactoryTest is ERC721PressConfig {
 
-    
     function test_factory() public {
         
         ERC721Press erc721PressImpl = new ERC721Press();
@@ -60,6 +59,11 @@ contract ERC721PressFactoryTest is ERC721PressConfig {
             royaltyBPS: 250, // 2.5%
             transferable: false
         });        
+
+        // GRANT FACTORY OFFICIAL STATUS
+        vm.startPrank(primaryOwner);
+        databaseImpl.setOfficialFactory(address(erc721Factory));
+        vm.stopPrank();
 
         erc721Factory.createPress({
             name: "Public Assembly",

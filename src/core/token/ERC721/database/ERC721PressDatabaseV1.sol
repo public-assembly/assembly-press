@@ -68,12 +68,20 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     }
 
     function initializePress(address targetPress) external {
-        if (_officalFactories[msg.sender] != true) {
+        if (_officialFactories[msg.sender] != true) {
             revert No_Initialize_Access();
         }
         settingsInfo[targetPress].initialized = 1;
 
-        // emit PressInitialized(address msg.sender, address targetPerss) ??
+        emit PressInitialized(msg.sender, targetPress);
+    }
+
+    function isOfficialFactory(address target) external {
+        if (_officialFactories[target] == true) {
+            true;
+        } else {
+            false;
+        }
     }
 
     // ||||||||||||||||||||||||||||||||
@@ -83,7 +91,7 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     /// @notice Default logic initializer for a given Press
     /// @dev updates settings for msg.sender, so no need to add access control to this function
     /// @param databaseInit data to init with
-    function initializeWithData(bytes memory databaseInit) requireInitialized(targetPress) external {
+    function initializeWithData(bytes memory databaseInit) requireInitialized(msg.sender) external {
 
         // Cache msg.sender
         address sender = msg.sender;

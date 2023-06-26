@@ -16,15 +16,19 @@ import "sstore2/SSTORE2.sol";
 
 contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1 {
 
+    function initializePress(address targetPress) external {
+        settingsInfo[msg.sender].initialized = 1;
+    }
+
     function initializeWithData(bytes memory data) external {
         require(data.length > 0, "not zero length ");
     }
 
-
-
-
-
-
+    /*
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    rest of mock impl is just there for equivalency. not relevant
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    */
 
     // ||||||||||||||||||||||||||||||||
     // ||| MODIFERS |||||||||||||||||||
@@ -39,8 +43,6 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1 {
 
         _;
     }           
-
-
 
     // ||||||||||||||||||||||||||||||||
     // ||| DATABASE ADMIN |||||||||||||
