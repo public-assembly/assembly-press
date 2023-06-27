@@ -67,13 +67,13 @@ interface IERC721PressDatabase {
     /// @notice initializes database with arbitrary data
     function initializeWithData(bytes memory initData) external;    
     /// @notice stores aribtrary data in database
-    function storeData(bytes calldata data) external;
+    function storeData(address storeCaller, bytes calldata data) external;
     /// @notice sorts data stored in database
-    function sortData(address targetPress, uint256[] calldata tokenIds, int96[] calldata sortOrders) external;    
-    /// @notice updated data stored in database for a given token
-    function updateData(uint256[] calldata tokenIds, bytes[] calldata newData) external;    
+    function sortData( address sortCaller, uint256[] calldata tokenIds, int96[] calldata sortOrders) external;    
+    /// @notice overwrite data stored in database for a given token
+    function overwriteData(address overwriteCaller, uint256[] calldata tokenIds, bytes[] calldata newData) external;    
     /// @notice flag to database that token has been burned
-    function removeData(uint256[] calldata tokenIds) external;        
+    function removeData(address removeCaller, uint256[] calldata tokenIds) external;        
 
     // Read Functions
     /// @notice returns contractURI for a given Press    
@@ -130,6 +130,7 @@ interface IERC721PressDatabase {
     /// @notice Data has been stored
     event DataStored(
         address indexed targetPress,
+        address indexed storeCaller,
         uint256 indexed tokenId,
         address pointer
     );       
@@ -137,14 +138,15 @@ interface IERC721PressDatabase {
     /// @notice Data has been sorted
     event DataSorted(
         address indexed targetPress,
+        address indexed sortCaller,
         uint256[] ids,
-        int96[] sortOrder,
-        address sortedBy
+        int96[] sortOrder
     );        
 
-    /// @notice Data has been updated
-    event DataUpdated(
+    /// @notice Data has been overwritten
+    event DataOverwritten(
         address indexed targetPress,
+        address indexed overwriteCaller,
         uint256 indexed tokenId,
         address newPointer
     );           
@@ -152,6 +154,7 @@ interface IERC721PressDatabase {
     /// @notice Data has been removed
     event DataRemoved(
         address indexed targetPress,
+        address indexed removeCaller,
         uint256 indexed tokenId
     );          
 

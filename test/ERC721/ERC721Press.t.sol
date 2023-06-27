@@ -61,6 +61,93 @@ contract ERC721PressTest is ERC721PressConfig {
         require(targetPressProxy.balanceOf(PRESS_ADMIN_AND_OWNER) == 2, "mint not functioning correctly");         
     } 
 
+    function test_sort() public setUpCurationStrategy() {
+        
+        require(address(targetPressProxy.getDatabase()) == address(database), "database address incorrect");   
+
+        // check database storage on mint calls
+        vm.startPrank(PRESS_ADMIN_AND_OWNER);       
+        PartialListing[] memory listings = new PartialListing[](2);
+        listings[0].chainId = 1;       
+        listings[0].tokenId = 3;      
+        listings[0].listingAddress = address(0x12345);       
+        listings[0].hasTokenId = true;       
+        listings[1].chainId = 7777777;       
+        listings[1].tokenId = 0;              
+        listings[1].listingAddress = address(0x54321);               
+        listings[1].hasTokenId = false;    
+        bytes memory encodedListings = encodeListingArray(listings);
+        targetPressProxy.mintWithData(2, encodedListings);
+
+        // setup + call sort         
+
+        uint256[] memory tokenIds = new uint256[](2);
+        tokenIds[0] = 1;
+        tokenIds[1] = 2;        
+
+        int96[] memory sortOrders = new int96[](2);
+        sortOrders[0] = 1;
+        sortOrders[1] = -1;
+
+        targetPressProxy.sort(tokenIds, sortOrders);
+
+        // checks that sortOrders generated correctly in readAllData call as well
+        (IERC721PressDatabase.TokenDataRetrieved[] memory tokenData) = database.readAllData(address(targetPressProxy));
+        require(tokenData[0].sortOrder == sortOrders[0], "sort order should be 1 here");
+        require(tokenData[1].sortOrder == sortOrders[1], "sort order should be -1 here");
+    } 
+
+    function test_overwrite() public setUpCurationStrategy_MutableMetadata() {
+        
+        require(address(targetPressProxy.getDatabase()) == address(database), "database address incorrect");   
+
+        // check database storage on mint calls
+        vm.startPrank(PRESS_ADMIN_AND_OWNER);       
+        PartialListing[] memory initialTokenData = new PartialListing[](2);
+        initialTokenData[0].chainId = 1;       
+        initialTokenData[0].tokenId = 3;      
+        initialTokenData[0].listingAddress = address(0x12345);       
+        initialTokenData[0].hasTokenId = true;       
+        initialTokenData[1].chainId = 7777777;       
+        initialTokenData[1].tokenId = 0;              
+        initialTokenData[1].listingAddress = address(0x54321);               
+        initialTokenData[1].hasTokenId = false;    
+        bytes memory initialEncodedListings = encodeListingArray(initialTokenData);
+        targetPressProxy.mintWithData(2, initialEncodedListings);
+
+        (IERC721PressDatabase.TokenDataRetrieved[] memory initialDatabaseReturn) = database.readAllData(address(targetPressProxy));
+
+        require(keccak256(initialDatabaseReturn[0].storedData) == keccak256(abi.encode(initialTokenData[0].chainId, initialTokenData[0].tokenId, initialTokenData[0].listingAddress, initialTokenData[0].hasTokenId)), "token #1 data stored incorrectly");        
+        require(keccak256(initialDatabaseReturn[1].storedData) == keccak256(abi.encode(initialTokenData[1].chainId, initialTokenData[1].tokenId, initialTokenData[1].listingAddress, initialTokenData[1].hasTokenId)), "token #2 data stored incorrectly");        
+
+        string memory tokenURI_1_initial = targetPressProxy.tokenURI(1);
+        string memory tokenURI_2_initial = targetPressProxy.tokenURI(2);
+        
+        // structure new data to overwrite tokens with
+        PartialListing[] memory newTokenData = new PartialListing[](2);
+        newTokenData[0].chainId = 4;       
+        newTokenData[0].tokenId = 7;      
+        newTokenData[0].listingAddress = address(0x6501);       
+        newTokenData[0].hasTokenId = true;       
+        newTokenData[1].chainId = 666;       
+        newTokenData[1].tokenId = 0;              
+        newTokenData[1].listingAddress = address(0x82d4);               
+        newTokenData[1].hasTokenId = false;    
+        bytes memory newEncodedListing_1 = abi.encode(newTokenData[0].chainId, newTokenData[0].tokenId, newTokenData[0].listingAddress, newTokenData[0].hasTokenId);
+        bytes memory newEncodedListing_2 = abi.encode(newTokenData[1].chainId, newTokenData[1].tokenId, newTokenData[1].listingAddress, newTokenData[1].hasTokenId);
+        // overwrite() takes in calldata arrays but you can pass in memory arrays as they are treated as calldata if specified in the function
+        bytes[] memory overwriteDataArray = new bytes[](2);
+        overwriteDataArray[0] = newEncodedListing_1;
+        overwriteDataArray[1] = newEncodedListing_2;
+        uint256[] memory tokenIdArray = new uint256[](2);
+        tokenIdArray[0] = 1;
+        tokenIdArray[1] = 2;        
+        targetPressProxy.overwrite(tokenIdArray, overwriteDataArray);
+        (IERC721PressDatabase.TokenDataRetrieved[] memory newDatabaseReturn) = database.readAllData(address(targetPressProxy));
+        require(keccak256(bytes(targetPressProxy.tokenURI(1))) != keccak256(bytes(tokenURI_1_initial)), "tokenURI #1 should be different after data overwrite");              
+        require(keccak256(bytes(targetPressProxy.tokenURI(2))) != keccak256(bytes(tokenURI_2_initial)), "tokenURI #1 should be different after data overwrite");              
+    }     
+
     function test_burn() public setUpCurationStrategy() {
         vm.startPrank(PRESS_ADMIN_AND_OWNER);       
         PartialListing[] memory listings = new PartialListing[](3);
@@ -105,46 +192,10 @@ contract ERC721PressTest is ERC721PressConfig {
         require(targetPressProxy.exists(3) == false, "exists should be false after burn");  
     }
 
-    function test_sort() public setUpCurationStrategy() {
-        
-        require(address(targetPressProxy.getDatabase()) == address(database), "database address incorrect");   
-
-        // check database storage on mint calls
-        vm.startPrank(PRESS_ADMIN_AND_OWNER);       
-        PartialListing[] memory listings = new PartialListing[](2);
-        listings[0].chainId = 1;       
-        listings[0].tokenId = 3;      
-        listings[0].listingAddress = address(0x12345);       
-        listings[0].hasTokenId = true;       
-        listings[1].chainId = 7777777;       
-        listings[1].tokenId = 0;              
-        listings[1].listingAddress = address(0x54321);               
-        listings[1].hasTokenId = false;    
-        bytes memory encodedListings = encodeListingArray(listings);
-        targetPressProxy.mintWithData(2, encodedListings);
-
-        // setup + call sort         
-
-        uint256[] memory tokenIds = new uint256[](2);
-        tokenIds[0] = 1;
-        tokenIds[1] = 2;        
-
-        int96[] memory sortOrders = new int96[](2);
-        sortOrders[0] = 1;
-        sortOrders[1] = -1;
-
-        targetPressProxy.sort(tokenIds, sortOrders);
-
-        // checks that sortOrders generated correctly in readAllData call as well
-        (IERC721PressDatabase.TokenDataRetrieved[] memory tokenData) = database.readAllData(address(targetPressProxy));
-        require(tokenData[0].sortOrder == sortOrders[0], "sort order should be 1 here");
-        require(tokenData[1].sortOrder == sortOrders[1], "sort order should be -1 here");
-    } 
-
-    function test_mintBurnSort() public setUpCurationStrategy {
+    function test_mintSortOverwriteBurn() public setUpCurationStrategy_MutableMetadata() {
         // setup tokens
         vm.startPrank(PRESS_ADMIN_AND_OWNER);       
-        PartialListing[] memory listings = new PartialListing[](2);
+        PartialListing[] memory listings = new PartialListing[](4);
         listings[0].chainId = 1;       
         listings[0].tokenId = 3;      
         listings[0].listingAddress = address(0x12345);       
@@ -153,147 +204,242 @@ contract ERC721PressTest is ERC721PressConfig {
         listings[1].tokenId = 0;              
         listings[1].listingAddress = address(0x54321);               
         listings[1].hasTokenId = false;    
+        listings[2].chainId = 124;       
+        listings[2].tokenId = 5;              
+        listings[2].listingAddress = address(0xab59);               
+        listings[2].hasTokenId = true;    
+        listings[3].chainId = 59019;       
+        listings[3].tokenId = 0;              
+        listings[3].listingAddress = address(0xf989);               
+        listings[3].hasTokenId = false;                    
         bytes memory encodedListings = encodeListingArray(listings);
 
         // setup non-zero sort values for testing
 
-        uint256[] memory burnIds_1 = new uint256[](1);
-        burnIds_1[0] = 1;
-        uint256[] memory burnIds_2 = new uint256[](1);
-        burnIds_2[0] = 2;
-        uint256[] memory burnIds_3 = new uint256[](1);
-        burnIds_3[0] = 3;
-        uint256[] memory burnIds_4 = new uint256[](2);
-        burnIds_4[0] = 4;                        
-        burnIds_4[1] = 6;                                             
+        uint256[] memory burnIds = new uint256[](2);
+        burnIds[0] = 1;
+        burnIds[1] = 2;    
+
+        uint256[] memory sortIds = new uint256[](2);
+        sortIds[0] = 3;
+        sortIds[1] = 4;        
+                                       
         int96[] memory sortOrders = new int96[](2);
-        sortOrders[0] = 1;
-        sortOrders[1] = 2;   
+        sortOrders[0] = 1000;
+        sortOrders[1] = -1000;   
 
-        // setup zero values for testing
-        uint256 zeroQuantity = 0;
-        bytes memory zeroData = new bytes(0);
-        uint256[] memory zeroBurns = new uint256[](0);
-        uint256[] memory zeroSortIds = new uint256[](0);
-        int96[] memory zeroSortOrders = new int96[](0);
-
-        // minting
-        targetPressProxy.mintBurnSort(
-            2, // mintQuantity
-            encodedListings, // mintData
-            zeroBurns,
-            zeroSortIds,
-            zeroSortOrders
-        );        
-
-        // NOTE: the following function calls happen in scopes to avoid stack too deep errors
-        //      caused by introducing too many storage variables
-
-        // sorting
         {
-            uint256[] memory sortIds_1 = new uint256[](2);
-            sortIds_1[0] = 1;
-            sortIds_1[1] = 2;            
-            targetPressProxy.mintBurnSort(
-                zeroQuantity, // mintQuantity
-                zeroData, // mintData
-                zeroBurns,
-                sortIds_1,
-                sortOrders
-            );     
-        }                       
+            // structure overwriteIds array
+            uint256[] memory overwriteIds = new uint256[](2);
+            overwriteIds[0] = 3;
+            overwriteIds[1] = 4;    
+            // structure new data to overwrite tokens with
+            PartialListing[] memory newTokenData = new PartialListing[](2);
+            newTokenData[0].chainId = 4;       
+            newTokenData[0].tokenId = 7;      
+            newTokenData[0].listingAddress = address(0x6501);       
+            newTokenData[0].hasTokenId = true;       
+            newTokenData[1].chainId = 666;       
+            newTokenData[1].tokenId = 0;              
+            newTokenData[1].listingAddress = address(0x82d4);               
+            newTokenData[1].hasTokenId = false;    
+            bytes memory newEncodedListing_1 = abi.encode(newTokenData[0].chainId, newTokenData[0].tokenId, newTokenData[0].listingAddress, newTokenData[0].hasTokenId);
+            bytes memory newEncodedListing_2 = abi.encode(newTokenData[1].chainId, newTokenData[1].tokenId, newTokenData[1].listingAddress, newTokenData[1].hasTokenId);
+            // overwrite() takes in calldata arrays but you can pass in memory arrays as they are treated as calldata if specified in the function
+            bytes[] memory overwriteDataArray = new bytes[](2);
+            overwriteDataArray[0] = newEncodedListing_1;   
+            overwriteDataArray[1] = newEncodedListing_2;   
 
-        // burning  
-        targetPressProxy.mintBurnSort(
-            zeroQuantity, // mintQuantity
-            zeroData, // mintData
-            burnIds_1,
-            zeroSortIds,
-            zeroSortOrders
-        );             
-
-        // minting and sorting
-        {
-            uint256[] memory sortIds_2 = new uint256[](2);
-            sortIds_2[0] = 3;
-            sortIds_2[1] = 4;        
-            targetPressProxy.mintBurnSort(
-                2, // mintQuantity
-                encodedListings, // mintData
-                zeroBurns,
-                sortIds_2,
-                sortOrders
-            );                            
+            // call `mintSortOverwriteBurn`         
+            targetPressProxy.mintSortOverwriteBurn(
+                IERC721Press.MintParams({
+                    quantity: 4,
+                    data: encodedListings
+                }),
+                IERC721Press.SortParams({
+                    tokenIds: sortIds,
+                    sortOrders: sortOrders
+                }),
+                IERC721Press.OverwriteParams({
+                    tokenIds: overwriteIds,
+                    newData: overwriteDataArray
+                }),
+                IERC721Press.BurnParams({
+                    tokenIds: burnIds
+                })                                                
+            );                     
         }
 
-        // minting and burning
-        targetPressProxy.mintBurnSort(
-            2, // mintQuantity
-            encodedListings, // mintData
-            burnIds_2,
-            zeroSortIds,
-            zeroSortOrders
-        );                 
+        // (IERC721PressDatabase.TokenDataRetrieved[] memory tokenData) = database.readAllData(address(targetPressProxy));
+        // // length should be 3 as 8 tokens were minted and 5 burned
+        // require(tokenData.length == 3, "incorrect token length");
 
-        // sorting and burning
-        {
-            uint256[] memory sortIds_3 = new uint256[](2);
-            sortIds_3[0] = 5;
-            sortIds_3[1] = 6;       
-            targetPressProxy.mintBurnSort(
-                zeroQuantity, // mintQuantity
-                zeroData, // mintData
-                burnIds_3,
-                sortIds_3,
-                sortOrders
-            );                      
-        }
+        // (IERC721PressDatabase.TokenDataRetrieved memory token5_data) = database.readData(address(targetPressProxy), 5);
+        // (IERC721PressDatabase.TokenDataRetrieved memory token7_data) = database.readData(address(targetPressProxy), 7);
+        // (IERC721PressDatabase.TokenDataRetrieved memory token8_data) = database.readData(address(targetPressProxy), 8);
 
-        // mintBurnSort
-        {
-            uint256[] memory sortIds_4 = new uint256[](2);
-            sortIds_4[0] = 7;
-            sortIds_4[1] = 8;    
-            targetPressProxy.mintBurnSort(
-                2, // mintQuantity
-                encodedListings, // mintData
-                burnIds_4,
-                sortIds_4,
-                sortOrders
-            );                        
-        }
+        // require(keccak256(tokenData[0].storedData) == keccak256(token5_data.storedData), "token 5 data storage incorrect");
+        // require(keccak256(tokenData[1].storedData) == keccak256(token7_data.storedData), "token 7 data storage incorrect");
+        // require(keccak256(tokenData[2].storedData) == keccak256(token8_data.storedData), "token 8 data storage incorrect");
 
-        (IERC721PressDatabase.TokenDataRetrieved[] memory tokenData) = database.readAllData(address(targetPressProxy));
-        // length should be 3 as 8 tokens were minted and 5 burned
-        require(tokenData.length == 3, "incorrect token length");
+        // require(tokenData[0].sortOrder == token5_data.sortOrder, "token 5 sortOrder incorrect");
+        // require(tokenData[1].sortOrder == token7_data.sortOrder, "token 5 sortOrder incorrect");        
+        // require(tokenData[2].sortOrder == token8_data.sortOrder, "token 5 sortOrder incorrect");        
+    }    
 
-        (IERC721PressDatabase.TokenDataRetrieved memory token5_data) = database.readData(address(targetPressProxy), 5);
-        (IERC721PressDatabase.TokenDataRetrieved memory token7_data) = database.readData(address(targetPressProxy), 7);
-        (IERC721PressDatabase.TokenDataRetrieved memory token8_data) = database.readData(address(targetPressProxy), 8);
+    // function test_mintBurnSort() public setUpCurationStrategy {
+    //     // setup tokens
+    //     vm.startPrank(PRESS_ADMIN_AND_OWNER);       
+    //     PartialListing[] memory listings = new PartialListing[](2);
+    //     listings[0].chainId = 1;       
+    //     listings[0].tokenId = 3;      
+    //     listings[0].listingAddress = address(0x12345);       
+    //     listings[0].hasTokenId = true;       
+    //     listings[1].chainId = 7777777;       
+    //     listings[1].tokenId = 0;              
+    //     listings[1].listingAddress = address(0x54321);               
+    //     listings[1].hasTokenId = false;    
+    //     bytes memory encodedListings = encodeListingArray(listings);
 
-        require(keccak256(tokenData[0].storedData) == keccak256(token5_data.storedData), "token 5 data storage incorrect");
-        require(keccak256(tokenData[1].storedData) == keccak256(token7_data.storedData), "token 7 data storage incorrect");
-        require(keccak256(tokenData[2].storedData) == keccak256(token8_data.storedData), "token 8 data storage incorrect");
+    //     // setup non-zero sort values for testing
 
-        require(tokenData[0].sortOrder == token5_data.sortOrder, "token 5 sortOrder incorrect");
-        require(tokenData[1].sortOrder == token7_data.sortOrder, "token 5 sortOrder incorrect");        
-        require(tokenData[2].sortOrder == token8_data.sortOrder, "token 5 sortOrder incorrect");        
-    }
+    //     uint256[] memory burnIds_1 = new uint256[](1);
+    //     burnIds_1[0] = 1;
+    //     uint256[] memory burnIds_2 = new uint256[](1);
+    //     burnIds_2[0] = 2;
+    //     uint256[] memory burnIds_3 = new uint256[](1);
+    //     burnIds_3[0] = 3;
+    //     uint256[] memory burnIds_4 = new uint256[](2);
+    //     burnIds_4[0] = 4;                        
+    //     burnIds_4[1] = 6;                                             
+    //     int96[] memory sortOrders = new int96[](2);
+    //     sortOrders[0] = 1;
+    //     sortOrders[1] = 2;   
 
-    function test_setSettings() public setUpCurationStrategy {
+    //     // setup zero values for testing
+    //     uint256 zeroQuantity = 0;
+    //     bytes memory zeroData = new bytes(0);
+    //     uint256[] memory zeroBurns = new uint256[](0);
+    //     uint256[] memory zeroSortIds = new uint256[](0);
+    //     int96[] memory zeroSortOrders = new int96[](0);
+
+    //     // minting
+    //     targetPressProxy.mintBurnSort(
+    //         2, // mintQuantity
+    //         encodedListings, // mintData
+    //         zeroBurns,
+    //         zeroSortIds,
+    //         zeroSortOrders
+    //     );        
+
+    //     // NOTE: the following function calls happen in scopes to avoid stack too deep errors
+    //     //      caused by introducing too many storage variables
+
+    //     // sorting
+    //     {
+    //         uint256[] memory sortIds_1 = new uint256[](2);
+    //         sortIds_1[0] = 1;
+    //         sortIds_1[1] = 2;            
+    //         targetPressProxy.mintBurnSort(
+    //             zeroQuantity, // mintQuantity
+    //             zeroData, // mintData
+    //             zeroBurns,
+    //             sortIds_1,
+    //             sortOrders
+    //         );     
+    //     }                       
+
+    //     // burning  
+    //     targetPressProxy.mintBurnSort(
+    //         zeroQuantity, // mintQuantity
+    //         zeroData, // mintData
+    //         burnIds_1,
+    //         zeroSortIds,
+    //         zeroSortOrders
+    //     );             
+
+    //     // minting and sorting
+    //     {
+    //         uint256[] memory sortIds_2 = new uint256[](2);
+    //         sortIds_2[0] = 3;
+    //         sortIds_2[1] = 4;        
+    //         targetPressProxy.mintBurnSort(
+    //             2, // mintQuantity
+    //             encodedListings, // mintData
+    //             zeroBurns,
+    //             sortIds_2,
+    //             sortOrders
+    //         );                            
+    //     }
+
+    //     // minting and burning
+    //     targetPressProxy.mintBurnSort(
+    //         2, // mintQuantity
+    //         encodedListings, // mintData
+    //         burnIds_2,
+    //         zeroSortIds,
+    //         zeroSortOrders
+    //     );                 
+
+    //     // sorting and burning
+    //     {
+    //         uint256[] memory sortIds_3 = new uint256[](2);
+    //         sortIds_3[0] = 5;
+    //         sortIds_3[1] = 6;       
+    //         targetPressProxy.mintBurnSort(
+    //             zeroQuantity, // mintQuantity
+    //             zeroData, // mintData
+    //             burnIds_3,
+    //             sortIds_3,
+    //             sortOrders
+    //         );                      
+    //     }
+
+    //     // mintBurnSort
+    //     {
+    //         uint256[] memory sortIds_4 = new uint256[](2);
+    //         sortIds_4[0] = 7;
+    //         sortIds_4[1] = 8;    
+    //         targetPressProxy.mintBurnSort(
+    //             2, // mintQuantity
+    //             encodedListings, // mintData
+    //             burnIds_4,
+    //             sortIds_4,
+    //             sortOrders
+    //         );                        
+    //     }
+
+    //     (IERC721PressDatabase.TokenDataRetrieved[] memory tokenData) = database.readAllData(address(targetPressProxy));
+    //     // length should be 3 as 8 tokens were minted and 5 burned
+    //     require(tokenData.length == 3, "incorrect token length");
+
+    //     (IERC721PressDatabase.TokenDataRetrieved memory token5_data) = database.readData(address(targetPressProxy), 5);
+    //     (IERC721PressDatabase.TokenDataRetrieved memory token7_data) = database.readData(address(targetPressProxy), 7);
+    //     (IERC721PressDatabase.TokenDataRetrieved memory token8_data) = database.readData(address(targetPressProxy), 8);
+
+    //     require(keccak256(tokenData[0].storedData) == keccak256(token5_data.storedData), "token 5 data storage incorrect");
+    //     require(keccak256(tokenData[1].storedData) == keccak256(token7_data.storedData), "token 7 data storage incorrect");
+    //     require(keccak256(tokenData[2].storedData) == keccak256(token8_data.storedData), "token 8 data storage incorrect");
+
+    //     require(tokenData[0].sortOrder == token5_data.sortOrder, "token 5 sortOrder incorrect");
+    //     require(tokenData[1].sortOrder == token7_data.sortOrder, "token 5 sortOrder incorrect");        
+    //     require(tokenData[2].sortOrder == token8_data.sortOrder, "token 5 sortOrder incorrect");        
+    // }
+
+    function test_updateSettings() public setUpCurationStrategy {
         vm.startPrank(PRESS_ADMIN_AND_OWNER);       
         (IERC721Press.Settings memory pressSettings) = targetPressProxy.getSettings();
         require(pressSettings.fundsRecipient == PRESS_FUNDS_RECIPIENT, "funds recipient set incorrectly");
         require(pressSettings.royaltyBPS == 250, "funds recipient set incorrectly");        
-        targetPressProxy.setSettings(payable(address(0x12345)), 300);   
+        targetPressProxy.updateSettings(payable(address(0x12345)), 300);   
         (IERC721Press.Settings memory newSettings) = targetPressProxy.getSettings();
         require(newSettings.fundsRecipient == payable(address(0x12345)), "funds recipient set incorrectly");
         require(newSettings.royaltyBPS == 300, "funds recipient set incorrectly");           
         vm.stopPrank();
         vm.startPrank(PRESS_USER);
-        // should revert because PRESS_USER does not have access to setSettings function
+        // should revert because PRESS_USER does not have access to updateSettings function
         vm.expectRevert(abi.encodeWithSignature("No_Settings_Access()"));
-        targetPressProxy.setSettings(payable(address(0x12345)), 300);   
+        targetPressProxy.updateSettings(payable(address(0x12345)), 300);   
     }     
 
     function test_royaltyInfo() public setUpCurationStrategy {

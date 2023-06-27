@@ -39,7 +39,8 @@ contract ERC721PressFactoryTest is ERC721PressConfig {
         initialRoles[1].role = MANAGER_ROLE;      
         mockAccessPass.mint(PRESS_USER);   
         bool initialIsPaused = false;     
-        bytes memory logicInit = abi.encode(address(mockAccessPass), initialIsPaused, initialRoles);
+        bool initialIsTokenDataImmutable = true;     
+        bytes memory logicInit = abi.encode(address(mockAccessPass), initialIsPaused, initialIsTokenDataImmutable, initialRoles);
 
         // SETUP RENDERER INIT
         string memory contractUriImagePath = "ipfs://THIS_COULD_BE_CONTRACT_URI_IMAGE_PATH";

@@ -40,7 +40,7 @@ contract ERC721PressConfig is Test {
     MockERC721 public mockAccessPass = new MockERC721();
     // DATABASE + LOGIC + RENDERER SETUP
     ERC721PressDatabaseV1 internal database = new ERC721PressDatabaseV1(primaryOwner, secondaryOwner);
-    MockDatabase public mockDatabase = new MockDatabase();
+    MockDatabase public mockDatabase = new MockDatabase(primaryOwner, secondaryOwner);
     RolesWith721GateImmutableMetadataNoFees public logic = new RolesWith721GateImmutableMetadataNoFees();
     CurationMetadataRenderer public renderer = new CurationMetadataRenderer();
 
@@ -81,7 +81,54 @@ contract ERC721PressConfig is Test {
         initialRoles[1].role = MANAGER_ROLE;      
         mockAccessPass.mint(PRESS_USER);   
         bool initialIsPaused = false;     
-        bytes memory logicInit = abi.encode(address(mockAccessPass), initialIsPaused, initialRoles);
+        bool initialIsTokenDataImmutable = true;
+        bytes memory logicInit = abi.encode(address(mockAccessPass), initialIsPaused, initialIsTokenDataImmutable, initialRoles);
+
+        // SETUP RENDERER INIT
+        string memory contractUriImagePath = "ipfs://THIS_COULD_BE_CONTRACT_URI_IMAGE_PATH";
+        bytes memory rendererInit = abi.encode(contractUriImagePath);
+
+        // SETUP DATABASE INIT
+        bytes memory databaseInit = abi.encode(
+            address(logic),
+            logicInit,
+            address(renderer),
+            rendererInit
+        );
+
+        // PRESS SETTINGS
+        IERC721Press.Settings memory pressSettings = IERC721Press.Settings({
+            fundsRecipient: PRESS_FUNDS_RECIPIENT,
+            royaltyBPS: 250, // 2.5%
+            transferable: false
+        });
+
+         // INITIALIZE PROXY
+        targetPressProxy.initialize({
+            name: "Public Assembly",
+            symbol: "PA",
+            initialOwner: PRESS_ADMIN_AND_OWNER,
+            database: database,
+            databaseInit: databaseInit,
+            settings: pressSettings                    
+        });        
+
+        _;
+    }
+
+    modifier setUpCurationStrategy_MutableMetadata() {
+
+        // SETUP LOGIC INIT
+        RolesWith721GateImmutableMetadataNoFees.RoleDetails[] memory initialRoles = 
+            new RolesWith721GateImmutableMetadataNoFees.RoleDetails[](2);
+        initialRoles[0].account = PRESS_ADMIN_AND_OWNER;
+        initialRoles[0].role = ADMIN_ROLE;
+        initialRoles[1].account = PRESS_MANAGER;
+        initialRoles[1].role = MANAGER_ROLE;      
+        mockAccessPass.mint(PRESS_USER);   
+        bool initialIsPaused = false;     
+        bool initialIsTokenDataImmutable = false;
+        bytes memory logicInit = abi.encode(address(mockAccessPass), initialIsPaused, initialIsTokenDataImmutable, initialRoles);
 
         // SETUP RENDERER INIT
         string memory contractUriImagePath = "ipfs://THIS_COULD_BE_CONTRACT_URI_IMAGE_PATH";
@@ -126,7 +173,8 @@ contract ERC721PressConfig is Test {
         initialRoles[1].role = MANAGER_ROLE;      
         mockAccessPass.mint(PRESS_USER);   
         bool initialIsPaused = false;     
-        bytes memory logicInit = abi.encode(address(mockAccessPass), initialIsPaused, initialRoles);
+        bool initialIsTokenDataImmutable = true;
+        bytes memory logicInit = abi.encode(address(mockAccessPass), initialIsPaused, initialIsTokenDataImmutable, initialRoles);
 
         // SETUP RENDERER INIT
         string memory contractUriImagePath = "ipfs://THIS_COULD_BE_CONTRACT_URI_IMAGE_PATH";

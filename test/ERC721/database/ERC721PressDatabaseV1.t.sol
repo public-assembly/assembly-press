@@ -189,6 +189,56 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
         require(tokenData[1].sortOrder == sortOrders[1], "sort order should be -1 here");
     }
 
+    function test_overwriteAndRead() public setUpCurationStrategy_MutableMetadata {
+        require(address(targetPressProxy.getDatabase()) == address(database), "database address incorrect");   
+
+        // check database storage on mint calls
+        vm.startPrank(PRESS_ADMIN_AND_OWNER);       
+        PartialListing[] memory initialTokenData = new PartialListing[](2);
+        initialTokenData[0].chainId = 1;       
+        initialTokenData[0].tokenId = 3;      
+        initialTokenData[0].listingAddress = address(0x12345);       
+        initialTokenData[0].hasTokenId = true;       
+        initialTokenData[1].chainId = 7777777;       
+        initialTokenData[1].tokenId = 0;              
+        initialTokenData[1].listingAddress = address(0x54321);               
+        initialTokenData[1].hasTokenId = false;    
+        bytes memory initialEncodedListings = encodeListingArray(initialTokenData);
+        targetPressProxy.mintWithData(2, initialEncodedListings);
+
+        (IERC721PressDatabase.TokenDataRetrieved[] memory initialDatabaseReturn) = database.readAllData(address(targetPressProxy));
+
+        require(keccak256(initialDatabaseReturn[0].storedData) == keccak256(abi.encode(initialTokenData[0].chainId, initialTokenData[0].tokenId, initialTokenData[0].listingAddress, initialTokenData[0].hasTokenId)), "token #1 data stored incorrectly");        
+        require(keccak256(initialDatabaseReturn[1].storedData) == keccak256(abi.encode(initialTokenData[1].chainId, initialTokenData[1].tokenId, initialTokenData[1].listingAddress, initialTokenData[1].hasTokenId)), "token #2 data stored incorrectly");        
+
+        string memory tokenURI_1_initial = targetPressProxy.tokenURI(1);
+        string memory tokenURI_2_initial = targetPressProxy.tokenURI(2);
+        
+        // structure new data to overwrite tokens with
+        PartialListing[] memory newTokenData = new PartialListing[](2);
+        newTokenData[0].chainId = 4;       
+        newTokenData[0].tokenId = 7;      
+        newTokenData[0].listingAddress = address(0x6501);       
+        newTokenData[0].hasTokenId = true;       
+        newTokenData[1].chainId = 666;       
+        newTokenData[1].tokenId = 0;              
+        newTokenData[1].listingAddress = address(0x82d4);               
+        newTokenData[1].hasTokenId = false;    
+        bytes memory newEncodedListing_1 = abi.encode(newTokenData[0].chainId, newTokenData[0].tokenId, newTokenData[0].listingAddress, newTokenData[0].hasTokenId);
+        bytes memory newEncodedListing_2 = abi.encode(newTokenData[1].chainId, newTokenData[1].tokenId, newTokenData[1].listingAddress, newTokenData[1].hasTokenId);
+        // overwrite() takes in calldata arrays but you can pass in memory arrays as they are treated as calldata if specified in the function
+        bytes[] memory overwriteDataArray = new bytes[](2);
+        overwriteDataArray[0] = newEncodedListing_1;
+        overwriteDataArray[1] = newEncodedListing_2;
+        uint256[] memory tokenIdArray = new uint256[](2);
+        tokenIdArray[0] = 1;
+        tokenIdArray[1] = 2;        
+        targetPressProxy.overwrite(tokenIdArray, overwriteDataArray);
+        (IERC721PressDatabase.TokenDataRetrieved[] memory newDatabaseReturn) = database.readAllData(address(targetPressProxy));
+        require(keccak256(newDatabaseReturn[0].storedData) == keccak256(overwriteDataArray[0]), "token #1 data overwritten incorrectly");        
+        require(keccak256(newDatabaseReturn[1].storedData) == keccak256(overwriteDataArray[1]), "token #2 data overwrriten incorrectly");  
+    }
+
     function test_setRenderer() public setUpCurationStrategy {
         
         require(address(targetPressProxy.getDatabase()) == address(database), "database address incorrect");

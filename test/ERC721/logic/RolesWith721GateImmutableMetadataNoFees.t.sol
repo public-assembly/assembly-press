@@ -29,11 +29,13 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
         (
             address erc721Gate,
             uint80 frozenAt,
-            bool isPaused            
+            bool isPaused,
+            bool isTokenDataImmutable            
         ) = RolesWith721GateImmutableMetadataNoFees(logic).settingsInfo(address(targetPressProxy));        
         require(erc721Gate == address(mockAccessPass), "erc721Gate initialized incorrectly");
         require(frozenAt == 0 , "frozenAt should be 0 post initialization");
         require(isPaused == false , "isPaused initialized incorrectly");        
+        require(isTokenDataImmutable == true , "isTokenDataImmutable initialized incorrectly");        
 
         // test all roles on initialization
         require(RolesWith721GateImmutableMetadataNoFees(pressLogic).roleInfo(address(targetPressProxy), PRESS_ADMIN_AND_OWNER) == ADMIN_ROLE);
@@ -56,7 +58,8 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
         // set up mock data + access roles for init test        
         RolesWith721GateImmutableMetadataNoFees.RoleDetails[] memory mockRoles = 
             new RolesWith721GateImmutableMetadataNoFees.RoleDetails[](0);
-        bytes memory mockInitData = abi.encode(address(0x123), false, mockRoles);        
+        // mockInitData: (erc721Gate, isPaused, isTokenDataImmutable, roles)
+        bytes memory mockInitData = abi.encode(address(0x123), false, true, mockRoles);        
 
         // should revert to enforce check that initializeWithData can only called by the database contract for a given Press
         vm.expectRevert(abi.encodeWithSignature("UnauthorizedInitializer()"));
@@ -165,7 +168,8 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
         (
             address erc721Gate,
             uint80 frozenAt,
-            bool isPaused            
+            bool isPaused,
+            bool isTokenDataImmutable            
         ) = RolesWith721GateImmutableMetadataNoFees(pressLogic).settingsInfo(address(targetPressProxy));   
         require(frozenAt == 0 , "frozenAt should be 0 post initialization");       
         // set up data for mint
@@ -196,7 +200,8 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
         (
             address erc721Gate,
             uint80 frozenAt,
-            bool isPaused            
+            bool isPaused,
+            bool isTokenDataImmutable            
         ) = RolesWith721GateImmutableMetadataNoFees(pressLogic).settingsInfo(address(targetPressProxy));   
 
         require(mockAccessPass.balanceOf(PRESS_USER) == 1, "mint not functioning correctly");
@@ -232,7 +237,8 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
         (
             address erc721Gate_again,
             uint80 frozenAt_again,
-            bool isPaused_again            
+            bool isPaused_again,
+            bool isTokenDataImmutable_again            
         ) = RolesWith721GateImmutableMetadataNoFees(pressLogic).settingsInfo(address(targetPressProxy));     
         require(erc721Gate_again == address(mockAccessPass_2), "setErc721Gate not working correctly");    
         vm.stopPrank();

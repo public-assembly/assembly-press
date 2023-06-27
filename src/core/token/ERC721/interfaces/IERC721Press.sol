@@ -12,9 +12,9 @@ PA PA PA PA
 
 interface IERC721Press {
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| TYPES ||||||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||
+    ////////////////////////////////////////////////////////////
+    // TYPES
+    ////////////////////////////////////////////////////////////
 
     /// @param fundsRecipient Address that receives funds from sale
     /// @param royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty
@@ -24,6 +24,36 @@ interface IERC721Press {
         uint16 royaltyBPS;
         bool transferable;
     }
+
+    /// @param quantity Number of NFTs to mint
+    /// @param data Data to pass in along side mint call
+    struct MintParams {
+        uint256 quantity;
+        bytes data;
+    }    
+
+    /// @param tokenIds Token Ids to sort
+    /// @param sortOrders z-index style sorting values to store
+    struct SortParams {
+        uint256[] tokenIds;
+        int96[] sortOrders;
+    }        
+
+    /// @param tokenIds Token Ids to overwrite
+    /// @param newData Data to overwrite with
+    struct OverwriteParams {
+        uint256[] tokenIds;
+        bytes[] newData;
+    }         
+
+    /// @param tokenIds Token Ids to burn
+    struct BurnParams {
+        uint256[] tokenIds;
+    }           
+
+    ////////////////////////////////////////////////////////////
+    // EVENTS
+    ////////////////////////////////////////////////////////////
 
     // TODO: Not sure if to include
     event ERC721PressInitialized();        
@@ -52,9 +82,9 @@ interface IERC721Press {
         address indexed databaseImpl
     );
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| ERRORS |||||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||
+    ////////////////////////////////////////////////////////////
+    // ERRORS
+    ////////////////////////////////////////////////////////////
 
     // Access errors
     /// @notice msg.sender does not have mint access for given Press
@@ -63,8 +93,8 @@ interface IERC721Press {
     error No_Burn_Access();    
     /// @notice msg.sender does not have sort access for given Press
     error No_Sort_Access();            
-    /// @notice msg.sender does not have update access for given Press
-    error No_Update_Access();                
+    /// @notice msg.sender does not have overwrite access for given Press
+    error No_Overwrite_Access();                
     /// @notice msg.sender does not have settings access for given Press
     error No_Settings_Access(); 
 
@@ -80,9 +110,13 @@ interface IERC721Press {
     /// @notice error when failing to send eth
     error Funds_Send_Failure();    
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| FUNCTIONS ||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||
+    ////////////////////////////////////////////////////////////
+    // FUNCTIONS
+    ////////////////////////////////////////////////////////////
+
+    //////////////////////////////
+    // WRITE FUNCTIONS
+    //////////////////////////////    
 
     /// @notice initializes a Press contract instance
     function initialize(
@@ -92,7 +126,20 @@ interface IERC721Press {
         IERC721PressDatabase database,
         bytes calldata databaseInit,
         Settings memory settings
-    ) external;    
+    ) external;          
+    /// @notice allows user to mint token(s) from the Press contract
+    function mintWithData(uint256 quantity, bytes calldata data) external payable returns (uint256);        
+    /// @notice Facilitates z-index style sorting of tokenIds. SortOrders can be positive or negative
+    function sort(uint256[] calldata tokenIds, int96[] calldata sortOrders) external;       
+    /// @notice Allows user to overwrite data previously stored with a given token
+    function overwrite(uint256[] calldata tokenIds, bytes[] calldata newData) external;           
+
+
+    //////////////////////////////
+    // READ FUNCTIONS
+    //////////////////////////    
+
+
     /// @notice Getter for Press owner
     function owner() external view returns (address);    
     /// @notice Contract uri getter
@@ -102,14 +149,10 @@ interface IERC721Press {
     /// @dev Call proxies to renderer
     /// @param tokenId id of token to get the uri for
     function tokenURI(uint256 tokenId) external view returns (string memory);        
-    /// @notice allows user to mint token(s) from the Press contract
-    function mintWithData(uint256 quantity, bytes calldata data) external payable returns (uint256);        
-    /// @notice Facilitates z-index style sorting of tokenIds. SortOrders can be positive or negative
-    function sort(uint256[] calldata tokenIds, int96[] calldata sortOrders) external;       
     /// @dev Get royalty information for token
     /// @param _tokenId the NFT asset queried for royalty information
-    /// @param _salePrice the sale price of the NFT asset specified by _tokenId
-    function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount);   
+    /// @param _salePrice the sale price of the NFT asset specified by _tokenId    
+    function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount);           
     /// @notice ERC165 supports interface
     /// @param interfaceId interface id to check if supported
     function supportsInterface(bytes4 interfaceId) external view returns (bool);

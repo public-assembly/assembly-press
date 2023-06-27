@@ -89,7 +89,7 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     // ||||||||||||||||||||||||||||||||          
 
     /// @notice Default logic initializer for a given Press
-    /// @dev updates settings for msg.sender, so no need to add access control to this function
+    /// @dev Initializes settings for a given Press
     /// @param databaseInit data to init with
     function initializeWithData(bytes memory databaseInit) requireInitialized(msg.sender) external {
 
@@ -164,18 +164,20 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
 
     /// @dev Function called by mintWithData function in ERC721Press mint call that
     //      updates specific tokenData for msg.sender, so no need to add access control to this function
+    /// @param storeCaller address of account initiating `mintWithData()` from targetPress
     /// @param data data getting passed in along mint
-    function storeData(bytes calldata data) external requireInitialized(msg.sender) {
+    function storeData(address storeCaller, bytes calldata data) external requireInitialized(msg.sender) {
         // data format: tokens
         (bytes[] memory tokens) = abi.decode(data, (bytes[]));
 
-        _storeData(msg.sender, tokens);
+        _storeData(msg.sender, storeCaller, tokens);
     }          
 
     /// @dev Stores indicies of a given bytes array
     /// @param targetPress ERC721Press to target
+    /// @param storeCaller address of account initiating `mintWithData` from targetPress
     /// @param tokens arbitrary encoded bytes data
-    function _storeData(address targetPress, bytes[] memory tokens) internal {     
+    function _storeData(address targetPress, address storeCaller, bytes[] memory tokens) internal {     
         for (uint256 i = 0; i < tokens.length; ++i) {
             // cache storedCounter
             uint256 storedCounter = settingsInfo[targetPress].storedCounter;
@@ -183,11 +185,11 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
             idToData[targetPress][storedCounter].pointer = SSTORE2.write(
                 tokens[i]
             );       
-            // emit event
+            // NOTE: storedCounter trails the tokenId being minted by 1
             emit DataStored(
                 targetPress, 
-                // storedCounter + 1 = tokenId associated with data
-                storedCounter + 1,  
+                storeCaller,
+                storedCounter,  
                 idToData[targetPress][storedCounter].pointer
             );                                       
             // increment press storedCounter after storing data
@@ -198,7 +200,7 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     /// @dev Facilitates z-index style sorting of data IDs. SortOrders can be positive or negative
     /// @dev Will only sort ids for a given Press if called directly by the Press
     /// @dev Access checks enforced in Press
-    /// @param sortCaller address of sortCaller    
+    /// @param sortCaller address of account initiating `sort()` from targetPress 
     /// @param tokenIds data IDs to store sortOrders for    
     /// @param sortOrders sorting values to store
     function sortData(
@@ -207,12 +209,12 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
         int96[] calldata sortOrders
     ) external requireInitialized(msg.sender) {
         // Cache address of msg.sender -- which will be the targetPress if called correclty
-        (address targetPress) = msg.sender;
+        address targetPress = msg.sender;
 
         for (uint256 i = 0; i < tokenIds.length; i++) {       
             _sortData(targetPress, tokenIds[i], sortOrders[i]);
         }
-        emit DataSorted(targetPress, tokenIds, sortOrders, sortCaller);
+        emit DataSorted(targetPress, sortCaller, tokenIds, sortOrders);
     }    
     
     /// @notice Internal handler for sort functionality
@@ -222,29 +224,31 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
         idToData[targetPress][tokenId-1].sortOrder = sortOrder;
     }        
 
-    /// @dev Updates sstore2 data ointers for already existing tokens
+    /// @dev Updates sstore2 data pointers for already existing tokens
+    /// @param overwriteCaller address of account initiating `update()` from targetPress
     /// @param tokenIds arbitrary encoded bytes data
     /// @param newData data passed in alongside update call
-    function updateData(uint256[] memory tokenIds, bytes[] calldata newData) external requireInitialized(msg.sender) {
+    function overwriteData(address overwriteCaller, uint256[] memory tokenIds, bytes[] calldata newData) external requireInitialized(msg.sender) {
         // Cache msg.sender
-        (address sender) = msg.sender;
+        address targetPress = msg.sender;
 
         for (uint256 i = 0; i < tokenIds.length; ++i) {
             // use sstore2 to store bytes segments in bytes array
-            address newPointer = idToData[sender][tokenIds[i]-1].pointer = SSTORE2.write(
+            address newPointer = idToData[targetPress][tokenIds[i]-1].pointer = SSTORE2.write(
                 newData[i]
             );                                
-            emit DataUpdated(sender, tokenIds[i], newPointer);                                
+            emit DataOverwritten(targetPress, overwriteCaller, tokenIds[i], newPointer);                                
         }                  
     }             
 
     /// @dev Event emitter that signals for indexer that this token has been burned.
     ///     when a token is burned, the data associated with it will no longer be returned 
     ///     in`getAllData`, and will return zero values in `getData`
+    /// @param removeCaller address of account initiating `burn` from targetPress
     /// @param tokenIds tokenIds to target
-    function removeData(uint256[] memory tokenIds) external requireInitialized(msg.sender) {
+    function removeData(address removeCaller, uint256[] memory tokenIds) external requireInitialized(msg.sender) {
         for (uint256 i; i < tokenIds.length; ++i) {
-            emit DataRemoved(msg.sender, tokenIds[i]);
+            emit DataRemoved(msg.sender, removeCaller, tokenIds[i]);
         }
     }    
 
@@ -351,7 +355,6 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     /// @param targetPress press contract to check access for
     /// @param burnCaller address of burnCaller to check access for    
     /// @param tokenId tokenId to check access for
-    /// @dev `tokenId` is unused, but present to adhere to the interface requirements of IERC721PressDatabase
     function canBurn(
         address targetPress, 
         address burnCaller,

@@ -25,7 +25,7 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
      * Struct breakdown. Values in parentheses are bytes.
      *
      * First slot
-     * erc721gate (20) + frozenAt (10) + isPaused (1) = 31 bytes 
+     * erc721gate (20) + frozenAt (10) + isPaused (1) + isTokenDataImmutable (1) = 32 bytes 
      */
     struct Settings {
         /// @notice Address of the ERC721 contract used for gating
@@ -34,6 +34,9 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
         uint80 frozenAt;                      
         /// @notice If database is paused by the owner
         bool isPaused;        
+        /// @notice Settable true/false that determines if tokenData can be overwritten after its been stored 
+        /// @dev cannot be updated after initialization      
+        bool isTokenDataImmutable;
     }    
 
     /// @notice Shared struct used to store role data for a given Press
@@ -106,6 +109,16 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
         address sender,
         bool isPaused
     );       
+
+    /// @notice Event emitted when isTokenDataImmutable status updated
+    /// @param targetPress ERC721Press being targeted
+    /// @param sender msg.sender
+    /// @param tokenImmutability isTokenDataImmutable true/false bool
+    event IsTokenDataImmutable(
+        address targetPress,
+        address sender,
+        bool tokenImmutability
+    );           
 
     /// @notice Event emitted when frozenAt status updated
     /// @param targetPress ERC721Press being targeted
@@ -213,12 +226,13 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
             revert UnauthorizedInitializer();
         }
 
-        // data format: erc721Gate, isPaused, initialRoles
+        // data format: erc721Gate, isPaused, isTokenDataImmutable, initialRoles
         (
             address erc721Gate, 
-            bool isPaused,            
+            bool isPaused,
+            bool isTokenDataImmutable,            
             RoleDetails[] memory initialRoles
-        ) = abi.decode(data, (address, bool, RoleDetails[]));
+        ) = abi.decode(data, (address, bool, bool, RoleDetails[]));
 
         // assign initial roles for Press
         _assignRoles(targetPress, initialRoles);
@@ -226,6 +240,7 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
         // configure settings for Press
         _setErc721Gate(targetPress, erc721Gate);
         _setIsPaused(targetPress, isPaused);
+        _setIsTokenDataImmutable(targetPress, isTokenDataImmutable);
     }
 
     //////////////////////////////////////////////////
@@ -357,7 +372,7 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
             sender: msg.sender,
             isPaused: isPaused
         });
-    }        
+    }            
 
     /// @notice Internal handler for updates to frozenAt status for a given targetPress
     /// @dev No access checks, enforce elsewhere
@@ -372,6 +387,22 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
             frozenAt: frozenAt
         });
     }           
+
+    /// NOTE: There is no external version of this function
+    /// @notice Internal handler for updates to isTokenDataImmutable status for a given targetPress
+    /// @dev No access checks, enforce elsewhere
+    /// @dev Can only be called during Press initialization
+    /// @param targetPress target Press index
+    /// @param isTokenDataImmutable true/false value for isTokenDataImmutable
+    function _setIsTokenDataImmutable(address targetPress, bool isTokenDataImmutable) internal {
+        settingsInfo[targetPress].isTokenDataImmutable = isTokenDataImmutable;
+
+        emit IsTokenDataImmutable({
+            targetPress: targetPress,
+            sender: msg.sender,
+            tokenImmutability: isTokenDataImmutable
+        });
+    }                
 
     //////////////////////////////////////////////////
     // VIEW FUNCTIONS
@@ -481,11 +512,21 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
 
     function getTokenDataAccess(address targetPress, address metadataCaller, uint256 tokenId)
         external
-        pure
+        view
         returns (bool)
     {
-        // All token metadata is immutable once stored
-        return false;
+        // If isTokenDataIsImmutable == false, check if metadataCaller is the owner of the token
+        //      being requested for overwriting. If true, grant access.
+        //      If not true, return false in every other scenario
+        if (settingsInfo[targetPress].isTokenDataImmutable == false) {
+            if (ERC721Press(payable(targetPress)).ownerOf(tokenId) == metadataCaller) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     /////////////////////////
