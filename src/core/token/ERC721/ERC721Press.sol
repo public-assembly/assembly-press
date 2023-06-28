@@ -77,7 +77,7 @@ contract ERC721Press is
     * @param initialOwner User that owns the contract upon deployment
     * @param database Database implementation address
     * @param databaseInit Data to initialize database contract with
-    * @param settings see IERC721Press for details   
+    * @param settings See IERC721Press for details   
     */  
     function initialize(
         string calldata name,
