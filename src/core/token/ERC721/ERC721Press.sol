@@ -67,16 +67,18 @@ contract ERC721Press is
     // INITIALIZER 
     ////////////////////////////////////////////////////////////
 
-    /// @notice Initializes a new, creator-owned proxy of ERC721Press.sol
-    /// @dev Database implementation + token transferrability cannot be adjusted after initialization
-    /// @dev `initializerERC721A` for ERC721AUpgradeable
-    ///      `initializer` for OwnableUpgradeable
-    /// @param name Contract name
-    /// @param symbol Contract symbol
-    /// @param initialOwner User that owns the contract upon deployment
-    /// @param database Database implementation address
-    /// @param databaseInit Data to initialize database contract with
-    /// @param settings see IERC721Press for details    
+    /**
+    * @notice Initializes a new, creator-owned proxy of ERC721Press.sol
+    * @dev Database implementation + token transferrability cannot be adjusted after initialization
+    * @dev `initializerERC721A` for ERC721AUpgradeable
+    *      `initializer` for OwnableUpgradeable
+    * @param name Contract name
+    * @param symbol Contract symbol
+    * @param initialOwner User that owns the contract upon deployment
+    * @param database Database implementation address
+    * @param databaseInit Data to initialize database contract with
+    * @param settings see IERC721Press for details   
+    */  
     function initialize(
         string calldata name,
         string calldata symbol,
