@@ -55,6 +55,10 @@ interface IERC721PressDatabase {
         uint8 initialized;
         /// @notice Address of the renderer contract
         address renderer;   
+        // /// @notice uniqueness check flag
+        // bool uniquenessFlag;
+        // /// @notice uniqueness checker contract
+        // address uniqunessChecker;
     }    
 
     // ||||||||||||||||||||||||||||||||

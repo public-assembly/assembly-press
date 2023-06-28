@@ -51,12 +51,7 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
     /// @dev Sets primary + secondary contract ownership
     /// @param _initialOwner The initial owner address
     /// @param _initialSecondaryOwner The initial secondary owner address
-    constructor (address _initialOwner, address _initialSecondaryOwner) {
-        _owner = _initialOwner;
-        _initialSecondaryOwner;
-        emit OwnerUpdated(address(0), _initialOwner);
-        emit SecondaryOwnerUpdated(address(0), _initialSecondaryOwner);
-    }    
+    constructor (address _initialOwner, address _initialSecondaryOwner) DualOwnable(_initialOwner, _initialSecondaryOwner) {}
 
     // ||||||||||||||||||||||||||||||||
     // ||| DATABASE ADMIN |||||||||||||
@@ -76,7 +71,7 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
         emit PressInitialized(msg.sender, targetPress);
     }
 
-    function isOfficialFactory(address target) external {
+    function isOfficialFactory(address target) external view returns (bool) {
         if (_officialFactories[target] == true) {
             true;
         } else {
@@ -181,6 +176,16 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
         for (uint256 i = 0; i < tokens.length; ++i) {
             // cache storedCounter
             uint256 storedCounter = settingsInfo[targetPress].storedCounter;
+
+            // // check to see if this data is unique
+            // if (settingsInfo[targetPress].uniquenessFlag == true) {
+            //     if (settingsInfo[targetPress].uniquenessChecker.checkUnique(tokens[i] == false)) {
+            //         revert Not_Unique();
+            //     } else {
+            //         settingsInfo[targetPress].uniquenessChecker.storeUniqueHash(keccak256(tokens[i]));
+            //     }
+            // }
+
             // use sstore2 to store bytes segments in bytes array
             idToData[targetPress][storedCounter].pointer = SSTORE2.write(
                 tokens[i]

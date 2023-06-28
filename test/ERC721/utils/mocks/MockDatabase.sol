@@ -17,6 +17,8 @@ import "sstore2/SSTORE2.sol";
 
 contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, DualOwnable {
 
+    constructor(address primaryOwner, address secondaryOwner) DualOwnable(primaryOwner, secondaryOwner) {}
+
     function initializePress(address targetPress) external {
         settingsInfo[msg.sender].initialized = 1;
     }
@@ -44,20 +46,6 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, Dua
 
         _;
     }            
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| CONSTRUCTOR ||||||||||||||||
-    // ||||||||||||||||||||||||||||||||       
-
-    /// @dev Sets primary + secondary contract ownership
-    /// @param _initialOwner The initial owner address
-    /// @param _initialSecondaryOwner The initial secondary owner address
-    constructor (address _initialOwner, address _initialSecondaryOwner) {
-        _owner = _initialOwner;
-        _initialSecondaryOwner;
-        emit OwnerUpdated(address(0), _initialOwner);
-        emit SecondaryOwnerUpdated(address(0), _initialSecondaryOwner);
-    }    
 
     // ||||||||||||||||||||||||||||||||
     // ||| DATABASE ADMIN |||||||||||||

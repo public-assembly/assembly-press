@@ -61,6 +61,17 @@ contract ERC721PressFactoryTest is ERC721PressConfig {
             transferable: false
         });        
 
+        // Expect revert because factory hasnt been granted official status 
+        //      to enable it to allowlist Press contracts to initialize on the database yet
+        vm.expectRevert(abi.encodeWithSignature("No_Initialize_Access()"));
+        erc721Factory.createPress({
+            name: "Public Assembly",
+            symbol: "PA",
+            initialOwner: PRESS_ADMIN_AND_OWNER,
+            databaseInit: databaseInit,
+            settings: pressSettings      
+        });        
+
         // GRANT FACTORY OFFICIAL STATUS
         vm.startPrank(primaryOwner);
         databaseImpl.setOfficialFactory(address(erc721Factory));

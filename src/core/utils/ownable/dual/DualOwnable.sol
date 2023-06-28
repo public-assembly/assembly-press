@@ -10,7 +10,15 @@ import {Initializable} from "../../../../../lib/openzeppelin-contracts-upgradeab
 /// @notice Modified from ZORA Ownable2Step
 /// - Uses custom errors declared in IOwnable
 /// - Adds `secondaryOwner` whose privilages can be revoked + `eitherOwner` modifier
-abstract contract DualOwnable is IDualOwnable, DualOwnableStorageV1, Initializable {
+abstract contract DualOwnable is IDualOwnable, DualOwnableStorageV1 {
+    ///                                                          ///
+    ///                          CONSTRUCTOR                     ///
+    ///                                                          ///
+    
+    constructor(address _primaryOwner, address _secondaryOwner) {
+        _transferOwnership(_primaryOwner);
+        _transferSecondaryOwnership(_secondaryOwner);
+    }
 
     ///                                                          ///
     ///                           MODIFIERS                      ///
