@@ -38,9 +38,48 @@ contract AddNewFactoriesTest is ERC721PressConfig {
         databaseImpl.setOfficialFactory(address(erc721Factory));
         databaseImpl.isOfficialFactory(address(erc721Factory));
         vm.stopPrank();
-        databaseImpl.isOfficialFactory(address(erc721Factory));
-        // require(databaseImpl.isOfficialFactory(address(erc721Factory)) == true, "factory not officialized correctly");
+        vm.startPrank(address(erc721Factory));
+        require(databaseImpl.isOfficialFactory(address(erc721Factory)) == true, "factory not officialized correctly");
+        bytes[] memory testDataArray =  new bytes[](1);
+        testDataArray[0] = abi.encode("this is just a test");
+        bytes memory encodedArray = abi.encode(testDataArray);
+        databaseImpl.initializePress(address(erc721Factory));
+        databaseImpl.storeData(address(erc721Factory), encodedArray);
     }
 
-    // TODO: Write test that shows newly added factory being able to write to database
+    function test_addMultipleFactories() public {
+        primaryOwner = address(0x111);
+        secondaryOwner = address(0x222);
+        ERC721Press erc721PressImpl = new ERC721Press();
+        ERC721PressDatabaseV1 databaseImpl = new ERC721PressDatabaseV1(primaryOwner, secondaryOwner);
+        // deploy factory impl
+        ERC721PressFactory erc721Factory = new ERC721PressFactory(
+            address(payable(erc721PressImpl)),
+            address(databaseImpl)
+        );        
+        // GRANT FACTORY OFFICIAL STATUS
+        vm.startPrank(primaryOwner);
+        databaseImpl.setOfficialFactory(address(erc721Factory));
+        databaseImpl.isOfficialFactory(address(erc721Factory));
+        vm.stopPrank();
+        vm.startPrank(address(erc721Factory));
+        require(databaseImpl.isOfficialFactory(address(erc721Factory)) == true, "factory not officialized correctly");
+        bytes[] memory testDataArray =  new bytes[](1);
+        testDataArray[0] = abi.encode("this is just a test");
+        bytes memory encodedArray = abi.encode(testDataArray);
+        databaseImpl.initializePress(address(erc721Factory));
+        databaseImpl.storeData(address(erc721Factory), encodedArray);
+        vm.stopPrank();
+        vm.startPrank(secondaryOwner);
+        ERC721PressFactory newFactory = new ERC721PressFactory(
+            address(payable(erc721PressImpl)),
+            address(databaseImpl)
+        );                
+        databaseImpl.setOfficialFactory(address(newFactory));
+        require(databaseImpl.isOfficialFactory(address(newFactory)) == true, "factory not officialized correctly");
+        vm.stopPrank();
+        vm.startPrank(address(newFactory));
+        databaseImpl.initializePress(address(newFactory));
+        databaseImpl.storeData(address(newFactory), encodedArray);        
+    }    
 }

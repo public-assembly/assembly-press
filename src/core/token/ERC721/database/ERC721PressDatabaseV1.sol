@@ -73,9 +73,9 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
 
     function isOfficialFactory(address target) external view returns (bool) {
         if (_officialFactories[target] == true) {
-            true;
+            return true;
         } else {
-            false;
+            return false;
         }
     }
 
