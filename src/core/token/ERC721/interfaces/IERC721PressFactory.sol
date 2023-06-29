@@ -35,7 +35,6 @@ interface IERC721PressFactory {
   /// @notice Emitted when a new Press is created
   event Create721Press(
     address indexed newPress,
-    address creator,
     address indexed initialOwner,
     address indexed databaseImpl,
     IERC721Press.Settings settings

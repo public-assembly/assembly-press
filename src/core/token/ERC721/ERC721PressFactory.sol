@@ -14,6 +14,7 @@ import {IERC721Press} from "./interfaces/IERC721Press.sol";
 import {IERC721PressDatabase} from "./interfaces/IERC721PressDatabase.sol";
 import {IERC721PressFactory} from "./interfaces/IERC721PressFactory.sol";
 import {Version} from "../../utils/Version.sol";
+import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.sol";
 
 /**
  * @title ERC721PressFactory
@@ -22,7 +23,7 @@ import {Version} from "../../utils/Version.sol";
  * @author Max Bochman
  * @author Salief Lewis
  */
-contract ERC721PressFactory is IERC721PressFactory, Version(1) {
+contract ERC721PressFactory is IERC721PressFactory, Version(1), ReentrancyGuard {
 
     /// @notice Implementation contract behind Press proxies
     address public immutable pressImpl;
@@ -50,12 +51,12 @@ contract ERC721PressFactory is IERC721PressFactory, Version(1) {
     /// @param databaseInit Data to initialize database contract with
     /// @param settings see IERC721Press for details 
     function createPress(
-        string memory name,
-        string memory symbol,
+        string calldata name,
+        string calldata symbol,
         address initialOwner,
-        bytes memory databaseInit,
-        IERC721Press.Settings memory settings
-    ) public returns (address) {
+        bytes calldata databaseInit,
+        IERC721Press.Settings calldata settings
+    ) nonReentrant public returns (address) {
         // Configure ownership details in proxy constructor
         ERC721PressProxy newPress = new ERC721PressProxy(pressImpl, "");
         // Initialize Press in database
@@ -72,7 +73,6 @@ contract ERC721PressFactory is IERC721PressFactory, Version(1) {
         // Emit creation event from factory
         emit Create721Press({
             newPress: address(newPress),
-            creator: msg.sender,
             initialOwner: initialOwner,
             databaseImpl: databaseImpl,
             settings: settings

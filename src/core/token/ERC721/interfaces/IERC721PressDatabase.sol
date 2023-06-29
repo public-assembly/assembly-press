@@ -7,7 +7,7 @@ interface IERC721PressDatabase {
     // ||| TYPES ||||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
 
-    /// @notice Shared struct used to store data for a given token
+    /// @notice Data structure used to store data for a given token
     /**
      * Struct breakdown. Values in parentheses are bytes.
      *
@@ -21,13 +21,7 @@ interface IERC721PressDatabase {
         int96 sortOrder;
     }
 
-    /// @notice Shared struct used to store data for a given token
-    /**
-     * Struct breakdown. Values in parentheses are bytes.
-     *
-     * First slot
-     * pointer (20) + sortOrder (12) = 32 bytes
-    */
+    /// @notice Data structure used to return data when requested for a given token
     struct TokenDataRetrieved {
         /// @notice Bytes data stored atsstore2 data pointer        
         bytes storedData;
@@ -35,7 +29,7 @@ interface IERC721PressDatabase {
         int96 sortOrder;
     }    
 
-    /// @notice Shared struct tracking Press settings in database
+    /// @notice Data structure used to store Press settings in database
     /**
      * Struct breakdown. Values in parentheses are bytes.
      *
@@ -55,54 +49,8 @@ interface IERC721PressDatabase {
         uint8 initialized;
         /// @notice Address of the renderer contract
         address renderer;   
-        // /// @notice uniqueness check flag
-        // bool uniquenessFlag;
-        // /// @notice uniqueness checker contract
-        // address uniqunessChecker;
     }    
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| FUNCTIONS ||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||
-    
-    // Write functions
-    /// @notice Ininitializes Press in database
-    function initializePress(address targetPress) external;        
-    /// @notice initializes database with arbitrary data
-    function initializeWithData(bytes memory initData) external;    
-    /// @notice stores aribtrary data in database
-    function storeData(address storeCaller, bytes calldata data) external;
-    /// @notice sorts data stored in database
-    function sortData( address sortCaller, uint256[] calldata tokenIds, int96[] calldata sortOrders) external;    
-    /// @notice overwrite data stored in database for a given token
-    function overwriteData(address overwriteCaller, uint256[] calldata tokenIds, bytes[] calldata newData) external;    
-    /// @notice flag to database that token has been burned
-    function removeData(address removeCaller, uint256[] calldata tokenIds) external;        
-
-    // Read Functions
-    /// @notice returns contractURI for a given Press    
-    function contractURI() external view returns (string memory);    
-    /// @notice returns tokenURI for a given Press + tokenId
-    function tokenURI(uint256 tokenId ) external view returns (string memory);                
-    /// @notice Getter for data of a specific id of a given Press
-    function readData(address targetPress, uint256 id) external view returns (TokenDataRetrieved memory);
-    /// @notice calculates total mintPrice based on targetPress, mintCaller, and mintQuantity
-    function totalMintPrice(address targetPress, address mintCaller, uint256 mintQuantity) external view returns (uint256);    
-    /// @notice checks if a certain address can access mint functionality for a given Press + quantity combination
-    function canMint(address targetPress, address mintCaller, uint256 mintQuantity) external view returns (bool);
-    /// @notice checks if a certain address can call the burn function for a given Press
-    function canBurn(address targetPress, address burnCaller, uint256 tokenId) external view returns (bool);
-    /// @notice checks if a certain address can call the sort function for a given Press
-    function canSort(address targetPress, address sortCaller) external view returns (bool);    
-    /// @notice checks if a certain address can update the settings {logic, renderer} for a given Press 
-    function canEditSettings(address targetPress, address settingsCaller) external view returns (bool);           
-    /// @notice checks if a certain address can edit contract data post data storage for a given Press
-    function canEditContractData(address targetPress, address metadataCaller) external view returns (bool);        
-    /// @notice checks if a certain address can edit token data post data storage for a given Press
-    function canEditTokenData(address targetPress, address metadataCaller, uint256 tokenId) external view returns (bool);    
-    /// @notice checks if a certain address can edit payments related information for a givenPress
-    function canEditPayments(address targetPress, address withdrawCaller) external view returns (bool);  
-    
     // ||||||||||||||||||||||||||||||||
     // ||| EVENTS |||||||||||||||||||||
     // ||||||||||||||||||||||||||||||||
@@ -175,4 +123,46 @@ interface IERC721PressDatabase {
     // Constraint/invalid/failure errors
     /// @notice Target Press has not been initialized
     error Press_Not_Initialized(); 
+
+    // ||||||||||||||||||||||||||||||||
+    // ||| FUNCTIONS ||||||||||||||||||
+    // ||||||||||||||||||||||||||||||||
+    
+    // Write functions
+    /// @notice Ininitializes Press in database
+    function initializePress(address targetPress) external;        
+    /// @notice initializes database with arbitrary data
+    function initializeWithData(bytes memory initData) external;    
+    /// @notice stores aribtrary data in database
+    function storeData(address storeCaller, bytes calldata data) external;
+    /// @notice sorts data stored in database
+    function sortData( address sortCaller, uint256[] calldata tokenIds, int96[] calldata sortOrders) external;    
+    /// @notice overwrite data stored in database for a given token
+    function overwriteData(address overwriteCaller, uint256[] calldata tokenIds, bytes[] calldata newData) external;    
+    /// @notice flag to database that token has been burned
+    function removeData(address removeCaller, uint256[] calldata tokenIds) external;        
+
+    // Read Functions
+    /// @notice returns contractURI for a given Press    
+    function contractURI() external view returns (string memory);    
+    /// @notice returns tokenURI for a given Press + tokenId
+    function tokenURI(uint256 tokenId ) external view returns (string memory);                
+    /// @notice Getter for data of a specific id of a given Press
+    function readData(address targetPress, uint256 id) external view returns (TokenDataRetrieved memory);
+    /// @notice calculates total mintPrice based on targetPress, mintCaller, and mintQuantity
+    function totalMintPrice(address targetPress, address mintCaller, uint256 mintQuantity) external view returns (uint256);    
+    /// @notice checks if a certain address can access mint functionality for a given Press + quantity combination
+    function canMint(address targetPress, address mintCaller, uint256 mintQuantity) external view returns (bool);
+    /// @notice checks if a certain address can call the burn function for a given Press
+    function canBurn(address targetPress, address burnCaller, uint256 tokenId) external view returns (bool);
+    /// @notice checks if a certain address can call the sort function for a given Press
+    function canSort(address targetPress, address sortCaller) external view returns (bool);    
+    /// @notice checks if a certain address can update the settings {logic, renderer} for a given Press 
+    function canEditSettings(address targetPress, address settingsCaller) external view returns (bool);           
+    /// @notice checks if a certain address can edit contract data post data storage for a given Press
+    function canEditContractData(address targetPress, address metadataCaller) external view returns (bool);        
+    /// @notice checks if a certain address can edit token data post data storage for a given Press
+    function canEditTokenData(address targetPress, address metadataCaller, uint256 tokenId) external view returns (bool);    
+    /// @notice checks if a certain address can edit payments related information for a givenPress
+    function canEditPayments(address targetPress, address withdrawCaller) external view returns (bool);          
 }

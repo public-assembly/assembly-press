@@ -114,7 +114,7 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
 
     // external handler for setLogic function
     function setLogic(address targetPress, address logic, bytes memory logicInit) requireInitialized(targetPress) external {
-        // Check if msg.sender has access to update settings for Press
+        // Request settings access from logic contract
         if (IERC721PressLogic(settingsInfo[targetPress].logic).getSettingsAccess(targetPress, msg.sender) == false) {
             revert No_Settings_Access();
         }
@@ -124,6 +124,7 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
 
     // external handler for setRenderer function
     function setRenderer(address targetPress, address renderer, bytes memory rendererInit) requireInitialized(targetPress) external {
+        // Request settings access from logic contract
         if (IERC721PressLogic(settingsInfo[targetPress].logic).getSettingsAccess(targetPress, msg.sender) == false) {
             revert No_Settings_Access();
         }
@@ -176,16 +177,6 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
         for (uint256 i = 0; i < tokens.length; ++i) {
             // cache storedCounter
             uint256 storedCounter = settingsInfo[targetPress].storedCounter;
-
-            // // check to see if this data is unique
-            // if (settingsInfo[targetPress].uniquenessFlag == true) {
-            //     if (settingsInfo[targetPress].uniquenessChecker.checkUnique(tokens[i] == false)) {
-            //         revert Not_Unique();
-            //     } else {
-            //         settingsInfo[targetPress].uniquenessChecker.storeUniqueHash(keccak256(tokens[i]));
-            //     }
-            // }
-
             // use sstore2 to store bytes segments in bytes array
             idToData[targetPress][storedCounter].pointer = SSTORE2.write(
                 tokens[i]
