@@ -7,10 +7,10 @@ import {console2} from "forge-std/console2.sol";
 import {IERC721Press} from "../../../../src/core/token/ERC721/interfaces/IERC721Press.sol";
 import {ERC721Press} from "../../../../src/core/token/ERC721/ERC721Press.sol";
 import {ERC721PressProxy} from "../../../../src/core/token/ERC721/proxy/ERC721PressProxy.sol";
-import {ERC721PressDatabaseV1} from "../../../../src/core/token/ERC721/database/ERC721PressDatabaseV1.sol";
+import {CurationDatabaseV1} from "../../../../src/strategies/curation/database/CurationDatabaseV1.sol";
 
 import {RolesWith721GateImmutableMetadataNoFees} from "../../../../src/strategies/curation/logic/RolesWith721GateImmutableMetadataNoFees.sol";
-import {CurationMetadataRenderer} from "../../../../src/strategies/curation/renderer/CurationMetadataRenderer.sol";
+import {CurationRendererV1} from "../../../../src/strategies/curation/renderer/CurationRendererV1.sol";
 
 import {MockERC721} from "../mocks/MockERC721.sol";
 import {MockDatabase} from "../mocks/MockDatabase.sol";
@@ -39,10 +39,10 @@ contract ERC721PressConfig is Test {
     uint8 public constant NO_ROLE = 0;        
     MockERC721 public mockAccessPass = new MockERC721();
     // DATABASE + LOGIC + RENDERER SETUP
-    ERC721PressDatabaseV1 internal database = new ERC721PressDatabaseV1(primaryOwner, secondaryOwner);
+    CurationDatabaseV1 internal database = new CurationDatabaseV1(primaryOwner, secondaryOwner);
     MockDatabase public mockDatabase = new MockDatabase(primaryOwner, secondaryOwner);
     RolesWith721GateImmutableMetadataNoFees public logic = new RolesWith721GateImmutableMetadataNoFees();
-    CurationMetadataRenderer public renderer = new CurationMetadataRenderer();
+    CurationRendererV1 public renderer = new CurationRendererV1();
 
     // CURATION SPECIFIC TYPE
     struct PartialListing {

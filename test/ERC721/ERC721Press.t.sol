@@ -6,11 +6,11 @@ import {ERC721PressConfig} from "./utils/setup/ERC721PressConfig.sol";
 
 import {IERC721Press} from "../../src/core/token/ERC721/interfaces/IERC721Press.sol";
 import {IERC721PressDatabase} from "../../src/core/token/ERC721/interfaces/IERC721PressDatabase.sol";
-import {ERC721PressDatabaseV1} from "../../src/core/token/ERC721/database/ERC721PressDatabaseV1.sol";
+import {CurationDatabaseV1} from "../../src/strategies/curation/database/CurationDatabaseV1.sol";
 import {IERC5192} from "../../src/core/token/ERC721/interfaces/IERC5192.sol";
 
 import {RolesWith721GateImmutableMetadataNoFees} from "../../src/strategies/curation/logic/RolesWith721GateImmutableMetadataNoFees.sol";
-import {CurationMetadataRenderer} from "../../src/strategies/curation/renderer/CurationMetadataRenderer.sol";
+import {CurationRendererV1} from "../../src/strategies/curation/renderer/CurationRendererV1.sol";
 import {MockLogic} from "./utils/mocks/MockLogic.sol";
 
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
@@ -47,7 +47,7 @@ contract ERC721PressTest is ERC721PressConfig {
 
     function test_mintWithData() public setUpCurationStrategy {
         vm.startPrank(PRESS_ADMIN_AND_OWNER);       
-        PartialListing[] memory listings = new PartialListing[](2);
+        PartialListing[] memory listings = new PartialListing[](2);        
         listings[0].chainId = 1;       
         listings[0].tokenId = 3;      
         listings[0].listingAddress = address(0x12345);       
@@ -55,11 +55,22 @@ contract ERC721PressTest is ERC721PressConfig {
         listings[1].chainId = 7777777;       
         listings[1].tokenId = 0;              
         listings[1].listingAddress = address(0x54321);               
-        listings[1].hasTokenId = false;    
+        listings[1].hasTokenId = false;      
         bytes memory encodedListings = encodeListingArray(listings);
         targetPressProxy.mintWithData(2, encodedListings);
         require(targetPressProxy.balanceOf(PRESS_ADMIN_AND_OWNER) == 2, "mint not functioning correctly");         
     } 
+
+    function test_mintWithMaliciousData() public setUpCurationStrategy {
+        vm.startPrank(PRESS_ADMIN_AND_OWNER);       
+        bytes[] memory encodedListings = new bytes[](2);   
+        encodedListings[0] = abi.encode(5);
+        encodedListings[1] = abi.encode(8);        
+        bytes memory encodedEncodedListings = abi.encode(encodedListings);   
+        // should revert because data being passed does not fit Listing struct
+        vm.expectRevert();        
+        targetPressProxy.mintWithData(2, encodedEncodedListings);           
+    }
 
     function test_sort() public setUpCurationStrategy() {
         
@@ -459,7 +470,7 @@ contract ERC721PressTest is ERC721PressConfig {
 
         // mockLogic mint price check + fetch
         mockLogic.getMintPrice(address(0x123), address(0x123), 1);
-        uint256 totalMintPrice = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).totalMintPrice(
+        uint256 totalMintPrice = CurationDatabaseV1(address(targetPressProxy.getDatabase())).totalMintPrice(
             address(targetPressProxy), 
             msg.sender, 
             1

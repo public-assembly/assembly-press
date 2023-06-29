@@ -8,27 +8,53 @@ PA PA PA PA
 PA PA PA PA
 */
 
-import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
-import {IERC721Press} from "../interfaces/IERC721Press.sol";
-import {ERC721Press} from "../ERC721Press.sol";
-import {DualOwnable} from "../../../utils/ownable/dual/DualOwnable.sol";
+import {IERC721PressDatabase} from "../../../core/token/ERC721/interfaces/IERC721PressDatabase.sol";
+import {IERC721Press} from "../../../core/token/ERC721/interfaces/IERC721Press.sol";
+import {ERC721Press} from "../../../core/token/ERC721/ERC721Press.sol";
+import {DualOwnable} from "../../../core/utils/ownable/dual/DualOwnable.sol";
 
-import {IERC721PressLogic} from "../interfaces/IERC721PressLogic.sol";
-import {IERC721PressRenderer} from "../interfaces/IERC721PressRenderer.sol";
+import {IERC721PressLogic} from "../../../core/token/ERC721/interfaces/IERC721PressLogic.sol";
+import {IERC721PressRenderer} from "../../../core/token/ERC721/interfaces/IERC721PressRenderer.sol";
 
-import {ERC721PressDatabaseStorageV1} from "./storage/ERC721PressDatabaseStorageV1.sol";
-import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
+import {ERC721PressDatabaseStorageV1} from "../../../core/token/ERC721/storage/ERC721PressDatabaseStorageV1.sol";
+import {IERC721PressDatabase} from "../../../core/token/ERC721/interfaces/IERC721PressDatabase.sol";
 
 import "sstore2/SSTORE2.sol";
 
 /**
-* @title ERC721PressDatabaseV1
-* @notice ERC721PressDatabaseV1 for AssemblyPress architecture
+* @title CurationDatabaseV1
+* @notice Curation focused database built on Assembly Press framework
 *
 * @author Max Bochman
 * @author Salief Lewis
 */
-contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStorageV1, DualOwnable { 
+contract CurationDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStorageV1, DualOwnable { 
+
+    //////////////////////////////////////////////////
+    // TYPES
+    //////////////////////////////////////////////////    
+
+    /// @notice Shared listing used for final decoded output in Curation strategy.
+    /**
+     * Struct breakdown. Values in parentheses are bytes.
+     *
+     * First slot
+     * chainId (32) = 32 bytes
+     * Second slot
+     * tokenId (32) = 32 bytes    
+     * Third slot
+     * listingAddress (20) + sortOrder (12) = 32 bytes
+     */
+    struct Listing {
+        /// @notice ChainID for curated contract
+        uint256 chainId;        
+        /// @notice Token ID that is selected (see `hasTokenId` to see if this applies)
+        uint256 tokenId;        
+        /// @notice Address that is curated
+        address listingAddress;
+        /// @notice Optional sort order, can be negative. Utilized optionally like css z-index for sorting.
+        int96 sortOrder;
+    }    
 
     // ||||||||||||||||||||||||||||||||
     // ||| MODIFERS |||||||||||||||||||
@@ -169,12 +195,17 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
         _storeData(msg.sender, storeCaller, tokens);
     }          
 
-    /// @dev Stores indicies of a given bytes array
-    /// @param targetPress ERC721Press to target
-    /// @param storeCaller address of account initiating `mintWithData` from targetPress
-    /// @param tokens arbitrary encoded bytes data
-    function _storeData(address targetPress, address storeCaller, bytes[] memory tokens) internal {     
+    /// @dev Internal helper function that checks if the data being stored is valid.
+    ///     The function will revert if the data cannot be decoded properly, causing the transaction to fail
+    /// @param data Data to check
+    function _checkValid(bytes memory data) internal pure {
+        Listing memory listing = abi.decode(data, (Listing));
+    }       
+
+    function _storeData(address targetPress, address storeCaller, bytes[] memory tokens) internal {   
         for (uint256 i = 0; i < tokens.length; ++i) {
+            // Check data is valid
+            _checkValid(tokens[i]);
             // cache storedCounter
             uint256 storedCounter = settingsInfo[targetPress].storedCounter;
             // use sstore2 to store bytes segments in bytes array
@@ -189,9 +220,10 @@ contract ERC721PressDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStora
                 idToData[targetPress][storedCounter].pointer
             );                                       
             // increment press storedCounter after storing data
-            ++settingsInfo[targetPress].storedCounter;    
-        }           
-    }              
+            ++settingsInfo[targetPress].storedCounter;              
+
+        }
+    }   
 
     /// @dev Facilitates z-index style sorting of data IDs. SortOrders can be positive or negative
     /// @dev Will only sort ids for a given Press if called directly by the Press

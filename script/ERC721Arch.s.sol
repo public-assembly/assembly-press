@@ -5,9 +5,9 @@ import "forge-std/Script.sol";
 
 import {ERC721Press} from "../src/core/token/ERC721/ERC721Press.sol";
 import {ERC721PressFactory} from "../src/core/token/ERC721/ERC721PressFactory.sol";
-import {ERC721PressDatabaseV1} from "../src/core/token/ERC721/database/ERC721PressDatabaseV1.sol";
+import {CurationDatabaseV1} from "../src/strategies/curation/database/CurationDatabaseV1.sol";
 import {RolesWith721GateImmutableMetadataNoFees} from "../src/strategies/curation/logic/RolesWith721GateImmutableMetadataNoFees.sol";
-import {CurationMetadataRenderer} from "../src/strategies/curation/renderer/CurationMetadataRenderer.sol";
+import {CurationRendererV1} from "../src/strategies/curation/renderer/CurationRendererV1.sol";
 
 contract DeployCore is Script {
 
@@ -26,9 +26,9 @@ contract DeployCore is Script {
 
         RolesWith721GateImmutableMetadataNoFees logic = new RolesWith721GateImmutableMetadataNoFees();
 
-        CurationMetadataRenderer renderer = new CurationMetadataRenderer();
+        CurationRendererV1 renderer = new CurationRendererV1();
 
-        ERC721PressDatabaseV1 database = new ERC721PressDatabaseV1(primaryOwnerAddress, secondaryOwnerAddress);
+        CurationDatabaseV1 database = new CurationDatabaseV1(primaryOwnerAddress, secondaryOwnerAddress);
 
         ERC721PressFactory erc721PressFactory = new ERC721PressFactory(address(erc721Press), address(database));
 

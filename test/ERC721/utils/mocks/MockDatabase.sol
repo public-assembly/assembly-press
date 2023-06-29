@@ -10,7 +10,7 @@ import {DualOwnable} from "../../../../src/core/utils/ownable/dual/DualOwnable.s
 import {IERC721PressLogic} from "../../../../src/core/token/ERC721/interfaces/IERC721PressLogic.sol";
 import {IERC721PressRenderer} from "../../../../src/core/token/ERC721/interfaces/IERC721PressRenderer.sol";
 
-import {ERC721PressDatabaseStorageV1} from "../../../../src/core/token/ERC721/database/storage/ERC721PressDatabaseStorageV1.sol";
+import {ERC721PressDatabaseStorageV1} from "../../../../src/core/token/ERC721/storage/ERC721PressDatabaseStorageV1.sol";
 import {IERC721PressDatabase} from "../../../../src/core/token/ERC721/interfaces/IERC721PressDatabase.sol";
 
 import "sstore2/SSTORE2.sol";

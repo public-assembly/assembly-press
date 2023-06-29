@@ -6,11 +6,10 @@ import {ERC721PressConfig} from "../utils/setup/ERC721PressConfig.sol";
 
 import {IERC721Press} from "../../../src/core/token/ERC721/interfaces/IERC721Press.sol";
 import {IERC721PressDatabase} from "../../../src/core/token/ERC721/interfaces/IERC721PressDatabase.sol";
-import {ERC721PressDatabaseV1} from "../../../src/core/token/ERC721/database/ERC721PressDatabaseV1.sol";
+import {CurationDatabaseV1} from "../../../src/strategies/curation/database/CurationDatabaseV1.sol";
 import {IERC5192} from "../../../src/core/token/ERC721/interfaces/IERC5192.sol";
 
 import {RolesWith721GateImmutableMetadataNoFees} from "../../../src/strategies/curation/logic/RolesWith721GateImmutableMetadataNoFees.sol";
-import {CurationMetadataRenderer} from "../../../src/strategies/curation/renderer/CurationMetadataRenderer.sol";
 
 import {MockERC721} from "../utils/mocks/MockERC721.sol";
 import {MockRenderer} from "../utils/mocks/MockRenderer.sol";
@@ -19,7 +18,7 @@ import {MockLogic} from "../utils/mocks/MockLogic.sol";
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
 import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 
-contract ERC721PressDatabaseV1Test is ERC721PressConfig {  
+contract CurationDatabaseV1Test is ERC721PressConfig {  
 
     function test_initialize() public setUpCurationStrategy {
         
@@ -31,7 +30,7 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
             address pressLogic,
             uint8 initialized,
             address pressRenderer
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));      
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));      
 
         require(storedCounter == 0, "stored counter should be zero since no mints have occurred");
         require(pressLogic == address(logic), "press logic initialized in database incorrectly");
@@ -49,7 +48,7 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
             address pressLogic,
             uint8 initialized,
             address pressRenderer
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy)); 
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy)); 
 
         // check database storage on mint calls
         vm.startPrank(PRESS_ADMIN_AND_OWNER);       
@@ -249,7 +248,7 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
             address pressLogic,
             uint8 initialized,
             address pressRenderer
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));     
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));     
 
         // set up mock renderer for tests
         MockRenderer mockRenderer = new MockRenderer();
@@ -272,7 +271,7 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
             address pressLogic_2,
             uint8 initialized_2,
             address pressRenderer_2
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));         
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));         
 
         // check that address of renderer was updated correctly + renderer was initialized correctly
         require(pressRenderer_2 == address(mockRenderer), "press renderer updated in database incorrectly");
@@ -289,7 +288,7 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
             address pressLogic,
             uint8 initialized,
             address pressRenderer
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));      
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));      
 
         // set up mock logic for tests
         MockLogic mockLogic = new MockLogic();
@@ -312,7 +311,7 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
             address pressLogic_2,
             uint8 initialized_2,
             address pressRenderer_2
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));         
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));         
 
         // check that address of logic was updated correctly + logic was initialized correctly
         require(pressLogic_2 == address(mockLogic), "press logic updated in database incorrectly");
@@ -325,7 +324,7 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
 
         (
             bool isInitialized
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).isInitialized(address(targetPressProxy));
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).isInitialized(address(targetPressProxy));
 
 
         require(isInitialized == true, "isInitialized() not working correctly");
@@ -337,7 +336,7 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
 
         (
             uint256 totalMintPrice
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).totalMintPrice(
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).totalMintPrice(
             address(targetPressProxy),
             address(0x123), // mock msg.sender
             1000 // mock quantity
@@ -353,13 +352,13 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
         vm.startPrank(address(targetPressProxy));
         (
             string memory contractURI
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).contractURI();
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).contractURI();
 
         require(keccak256(bytes(contractURI)) == keccak256(bytes("data:application/json;base64,eyJuYW1lIjogIlB1YmxpYyBBc3NlbWJseSIsImRlc2NyaXB0aW9uIjogIlRoaXMgY2hhbm5lbCBpcyBvd25lZCBieSAweDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAzMzNcblxuVGhlIHRva2VucyBpbiB0aGlzIGNvbGxlY3Rpb24gcHJvdmlkZSBwcm9vZi1vZi1jdXJhdGlvbiBhbmQgYXJlIG5vbi10cmFuc2ZlcmFibGUuXG5cblRoaXMgY3VyYXRpb24gcHJvdG9jb2wgaXMgYSBwcm9qZWN0IG9mIFB1YmxpYyBBc3NlbWJseS5cblxuVG8gbGVhcm4gbW9yZSwgdmlzaXQ6IGh0dHBzOi8vcHVibGljLS0tYXNzZW1ibHkuY29tLyIsImltYWdlIjogImlwZnM6Ly9USElTX0NPVUxEX0JFX0NPTlRSQUNUX1VSSV9JTUFHRV9QQVRIIn0=")), "contractURI not working correctly");
         vm.stopPrank();
 
         vm.startPrank(PRESS_ADMIN_AND_OWNER);        
-        ERC721PressDatabaseV1 testDatabase = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase()));
+        CurationDatabaseV1 testDatabase = CurationDatabaseV1(address(targetPressProxy.getDatabase()));
         // expect revert because contractURI call coming from an address besides the PRESS that was initialized
         vm.expectRevert(abi.encodeWithSignature("Press_Not_Initialized()"));
         testDatabase.contractURI();     
@@ -384,13 +383,13 @@ contract ERC721PressDatabaseV1Test is ERC721PressConfig {
 
         (
             string memory tokenURI
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).tokenURI(1);        
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).tokenURI(1);        
 
         require(keccak256(bytes(tokenURI)) == keccak256(bytes("data:application/json;base64,eyJuYW1lIjogIkN1cmF0aW9uIFJlY2VpcHQgIzEiLCJkZXNjcmlwdGlvbiI6ICJUaGlzIG5vbi10cmFuc2ZlcmFibGUgTkZUIHJlcHJlc2VudHMgYSBsaXN0aW5nIGN1cmF0ZWQgYnkgMHgwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMzMzXG5cbllvdSBjYW4gcmVtb3ZlIHRoaXMgcmVjb3JkIG9mIGN1cmF0aW9uIGJ5IGJ1cm5pbmcgdGhlIE5GVC4gXG5cblRoaXMgY3VyYXRpb24gcHJvdG9jb2wgaXMgYSBwcm9qZWN0IG9mIFB1YmxpYyBBc3NlbWJseS5cblxuVG8gbGVhcm4gbW9yZSwgdmlzaXQ6IGh0dHBzOi8vcHVibGljLS0tYXNzZW1ibHkuY29tLyIsImltYWdlIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjJhV1YzUW05NFBTSXdJREFnTnpJd0lEY3lNQ0lnZUcxc2JuTTlJbWgwZEhBNkx5OTNkM2N1ZHpNdWIzSm5Mekl3TURBdmMzWm5JaUIzYVdSMGFEMGlOekl3SWlCb1pXbG5hSFE5SWpjeU1DSStQSEpsWTNRZ2VEMGlNQ0lnZVQwaU1DSWdkMmxrZEdnOUlqY3lNQ0lnYUdWcFoyaDBQU0kzTWpBaUlITjBlV3hsUFNKbWFXeHNPaUJvYzJ3b016RTNMREkxSlN3ek1DVXBJaUF2UGp4eVpXTjBJSGc5SWpNd0lpQjVQU0k1T0NJZ2QybGtkR2c5SWpZd01DSWdhR1ZwWjJoMFBTSTJNREFpSUhOMGVXeGxQU0ptYVd4c09pQm9jMndvTXpFM0xESTFKU3cxTUNVcElpQXZQanh5WldOMElIZzlJall3SWlCNVBTSXhPREFpSUhkcFpIUm9QU0kwT0RBaUlHaGxhV2RvZEQwaU5EZ3dJaUJ6ZEhsc1pUMGlabWxzYkRvZ2FITnNLRE14Tnl3eU5TVXNOekFsS1NJZ0x6NDhjbVZqZENCNFBTSTVNQ0lnZVQwaU1qY3dJaUIzYVdSMGFEMGlOakFpSUdobGFXZG9kRDBpTmpBaUlITjBlV3hsUFNKbWFXeHNPaUJvYzJ3b016RTNMREkxSlN3M01DVXBJaUF2UGp3dmMzWm5QZz09IiwicHJvcGVydGllcyI6IHsiY2hhaW5JZCI6ICIxIiwiY29udHJhY3QiOiAiMHgwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDEyMzQ1IiwiaGFzVG9rZW5JZCI6ICJ0cnVlIiwidG9rZW5JZCI6ICIzIiwic29ydE9yZGVyIjogIjAiLCJjdXJhdG9yIjogIjB4MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDMzMyJ9fQ==")), "tokenURI not working correctly");
         vm.stopPrank();
 
         vm.startPrank(PRESS_ADMIN_AND_OWNER);        
-        ERC721PressDatabaseV1 testDatabase = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase()));
+        CurationDatabaseV1 testDatabase = CurationDatabaseV1(address(targetPressProxy.getDatabase()));
         // expect revert because tokenURI call coming from an address besides the PRESS that was initialized
         vm.expectRevert(abi.encodeWithSignature("Press_Not_Initialized()"));
         testDatabase.tokenURI(1);     

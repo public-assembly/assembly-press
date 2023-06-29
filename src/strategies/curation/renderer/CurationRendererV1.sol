@@ -18,11 +18,11 @@ import {MetadataBuilder} from "micro-onchain-metadata-utils/MetadataBuilder.sol"
 import {MetadataJSONKeys} from "micro-onchain-metadata-utils/MetadataJSONKeys.sol";
 import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 
-/// @title CurationMetadataRenderer
+/// @title CurationRendererV1
 /// @notice This is a modiified version of an earlier impl authored by Iain Nash
 /// @dev Allows for initialization + editing of a string value for use in contractURI.image 
 /// @dev Builds svg from onchain data for tokenURI.image value 
-contract CurationMetadataRenderer is IERC721PressRenderer {
+contract CurationRendererV1 is IERC721PressRenderer {
 
     //////////////////////////////////////////////////
     // TYPES

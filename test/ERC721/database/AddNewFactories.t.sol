@@ -6,13 +6,12 @@ import {ERC721PressConfig} from "../utils/setup/ERC721PressConfig.sol";
 
 import {IERC721Press} from "../../../src/core/token/ERC721/interfaces/IERC721Press.sol";
 import {IERC721PressDatabase} from "../../../src/core/token/ERC721/interfaces/IERC721PressDatabase.sol";
-import {ERC721PressDatabaseV1} from "../../../src/core/token/ERC721/database/ERC721PressDatabaseV1.sol";
+import {CurationDatabaseV1} from "../../../src/strategies/curation/database/CurationDatabaseV1.sol";
 import {ERC721Press} from "../../../src/core/token/ERC721/ERC721Press.sol";
 import {ERC721PressFactory} from "../../../src/core/token/ERC721/ERC721PressFactory.sol";
 import {IERC5192} from "../../../src/core/token/ERC721/interfaces/IERC5192.sol";
 
 import {RolesWith721GateImmutableMetadataNoFees} from "../../../src/strategies/curation/logic/RolesWith721GateImmutableMetadataNoFees.sol";
-import {CurationMetadataRenderer} from "../../../src/strategies/curation/renderer/CurationMetadataRenderer.sol";
 
 import {MockERC721} from "../utils/mocks/MockERC721.sol";
 import {MockRenderer} from "../utils/mocks/MockRenderer.sol";
@@ -27,7 +26,7 @@ contract AddNewFactoriesTest is ERC721PressConfig {
         primaryOwner = address(0x111);
         secondaryOwner = address(0x222);
         ERC721Press erc721PressImpl = new ERC721Press();
-        ERC721PressDatabaseV1 databaseImpl = new ERC721PressDatabaseV1(primaryOwner, secondaryOwner);
+        CurationDatabaseV1 databaseImpl = new CurationDatabaseV1(primaryOwner, secondaryOwner);
         // deploy factory impl
         ERC721PressFactory erc721Factory = new ERC721PressFactory(
             address(payable(erc721PressImpl)),
@@ -44,14 +43,22 @@ contract AddNewFactoriesTest is ERC721PressConfig {
         testDataArray[0] = abi.encode("this is just a test");
         bytes memory encodedArray = abi.encode(testDataArray);
         databaseImpl.initializePress(address(erc721Factory));
+        // this should revert because trying to store invalid data for CurationDatabaseV1
+        vm.expectRevert();
         databaseImpl.storeData(address(erc721Factory), encodedArray);
+        // TODO: add examples of data not reverting because its using valid data
+        //
+        //
+        //
+        //
+        //        
     }
 
     function test_addMultipleFactories() public {
         primaryOwner = address(0x111);
         secondaryOwner = address(0x222);
         ERC721Press erc721PressImpl = new ERC721Press();
-        ERC721PressDatabaseV1 databaseImpl = new ERC721PressDatabaseV1(primaryOwner, secondaryOwner);
+        CurationDatabaseV1 databaseImpl = new CurationDatabaseV1(primaryOwner, secondaryOwner);
         // deploy factory impl
         ERC721PressFactory erc721Factory = new ERC721PressFactory(
             address(payable(erc721PressImpl)),
@@ -68,6 +75,8 @@ contract AddNewFactoriesTest is ERC721PressConfig {
         testDataArray[0] = abi.encode("this is just a test");
         bytes memory encodedArray = abi.encode(testDataArray);
         databaseImpl.initializePress(address(erc721Factory));
+        // this should revert because trying to store invalid data for CurationDatabaseV1           
+        vm.expectRevert();
         databaseImpl.storeData(address(erc721Factory), encodedArray);
         vm.stopPrank();
         vm.startPrank(secondaryOwner);
@@ -80,6 +89,14 @@ contract AddNewFactoriesTest is ERC721PressConfig {
         vm.stopPrank();
         vm.startPrank(address(newFactory));
         databaseImpl.initializePress(address(newFactory));
+        // this should revert because trying to store invalid data for CurationDatabaseV1      
+        vm.expectRevert();  
         databaseImpl.storeData(address(newFactory), encodedArray);        
+        // TODO: add examples of data not reverting because its using valid data
+        //
+        //
+        //
+        //
+        //
     }    
 }

@@ -6,11 +6,10 @@ import {ERC721PressConfig} from "../utils/setup/ERC721PressConfig.sol";
 
 import {IERC721Press} from "../../../src/core/token/ERC721/interfaces/IERC721Press.sol";
 import {IERC721PressDatabase} from "../../../src/core/token/ERC721/interfaces/IERC721PressDatabase.sol";
-import {ERC721PressDatabaseV1} from "../../../src/core/token/ERC721/database/ERC721PressDatabaseV1.sol";
+import {CurationDatabaseV1} from "../../../src/strategies/curation/database/CurationDatabaseV1.sol";
 import {IERC5192} from "../../../src/core/token/ERC721/interfaces/IERC5192.sol";
 
 import {RolesWith721GateImmutableMetadataNoFees} from "../../../src/strategies/curation/logic/RolesWith721GateImmutableMetadataNoFees.sol";
-import {CurationMetadataRenderer} from "../../../src/strategies/curation/renderer/CurationMetadataRenderer.sol";
 
 import {MockERC721} from "../utils/mocks/MockERC721.sol";
 
@@ -25,7 +24,7 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
             address pressLogic,
             uint8 initialized, 
             address pressRenderer
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));        
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));        
         (
             address erc721Gate,
             uint80 frozenAt,
@@ -52,7 +51,7 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
             address pressLogic,
             uint8 initialized, 
             address pressRenderer
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));      
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));      
 
         vm.startPrank(PRESS_ADMIN_AND_OWNER);
         // set up mock data + access roles for init test        
@@ -78,7 +77,7 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
             address logic,
             uint8 initialized, 
             address renderer
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));        
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));        
         (uint256 logicSpecific_UniversalMintPrice) = RolesWith721GateImmutableMetadataNoFees(logic).getMintPrice(address(targetPressProxy), PRESS_USER, 1);     
         require(logicSpecific_UniversalMintPrice == 0, "mint price incorrect");      
     }    
@@ -89,7 +88,7 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
             address pressLogic,
             uint8 initialized, 
             address renderer
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));        
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));        
         vm.startPrank(PRESS_MANAGER);
         // expect revert because manager doesnt have access to set pause status on this contract
         vm.expectRevert(abi.encodeWithSignature("RequiresAdmin()"));
@@ -130,7 +129,7 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
             address pressLogic,
             uint8 initialized, 
             address renderer
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));
         RolesWith721GateImmutableMetadataNoFees(pressLogic).setIsPaused(address(targetPressProxy), true);
         vm.stopPrank();
         vm.startPrank(PRESS_MANAGER);
@@ -164,7 +163,7 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
             address pressLogic,
             uint8 initialized, 
             address renderer
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));
         (
             address erc721Gate,
             uint80 frozenAt,
@@ -196,7 +195,7 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
             address pressLogic,
             uint8 initialized, 
             address renderer
-        ) = ERC721PressDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));
+        ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).settingsInfo(address(targetPressProxy));
         (
             address erc721Gate,
             uint80 frozenAt,
