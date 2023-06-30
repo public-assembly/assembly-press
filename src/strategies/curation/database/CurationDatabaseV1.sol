@@ -31,7 +31,7 @@ import "sstore2/SSTORE2.sol";
 
 /**
 * @title CurationDatabaseV1
-* @notice Curation focused database built on Assembly Press framework
+* @notice Curation focused database built for Assembly Press framework
 * @dev Inherits from ERC721PressDatabaseSkeletonV1 and implements custom `setOfficiaFactory`,
 *       `storeData`, and `overwriteData` functions without introducing any non-standard storage or events
 * @author Max Bochman
