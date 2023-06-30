@@ -65,6 +65,14 @@ interface IERC721Press {
         uint256 firstMintedTokenId
     );
 
+    /// @notice Event emitted when settings are updated
+    /// @param sender address that sent update txn
+    /// @param settings new settings
+    event SettingsUpdated(
+        address indexed sender,
+        Settings settings
+    );            
+
     ////////////////////////////////////////////////////////////
     // ERRORS
     ////////////////////////////////////////////////////////////

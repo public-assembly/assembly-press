@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { IERC721PressDatabase } from "../interfaces/IERC721PressDatabase.sol";
+import { IERC721PressDatabase } from "../../interfaces/IERC721PressDatabase.sol";
 
 /**
  @notice Database storage variables contract

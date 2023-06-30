@@ -145,7 +145,17 @@ contract CurationDatabaseV1Test is ERC721PressConfig {
         require(address(targetPressProxy.getDatabase()) == address(database), "database address incorrect");   
 
         // check database storage on mint calls
-        vm.startPrank(PRESS_ADMIN_AND_OWNER);       
+        vm.startPrank(PRESS_ADMIN_AND_OWNER);  
+
+        // Incorrect data storage
+        bytes[] memory testDataArray =  new bytes[](1);
+        testDataArray[0] = abi.encode("this is just a test");
+        bytes memory encodedArray = abi.encode(testDataArray);
+        // this should revert because trying to store invalid data for CurationDatabaseV1
+        vm.expectRevert();
+        targetPressProxy.mintWithData(1, encodedArray);          
+
+        // Correct data storage
         PartialListing[] memory listings = new PartialListing[](2);
         listings[0].chainId = 1;       
         listings[0].tokenId = 3;      
@@ -193,6 +203,16 @@ contract CurationDatabaseV1Test is ERC721PressConfig {
 
         // check database storage on mint calls
         vm.startPrank(PRESS_ADMIN_AND_OWNER);       
+
+        // Incorrect data storage
+        bytes[] memory testDataArray =  new bytes[](1);
+        testDataArray[0] = abi.encode("this is just a test");
+        bytes memory encodedArray = abi.encode(testDataArray);
+        // this should revert because trying to store invalid data for CurationDatabaseV1
+        vm.expectRevert();
+        targetPressProxy.mintWithData(1, encodedArray);  
+
+        // Correct Data storage
         PartialListing[] memory initialTokenData = new PartialListing[](2);
         initialTokenData[0].chainId = 1;       
         initialTokenData[0].tokenId = 3;      

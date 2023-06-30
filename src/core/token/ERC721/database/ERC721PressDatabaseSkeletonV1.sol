@@ -1,37 +1,62 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import {IERC721PressDatabase} from "../../../../src/core/token/ERC721/interfaces/IERC721PressDatabase.sol";
+/*
+PA PA PA PA
+PA PA PA PA
+PA PA PA PA
+PA PA PA PA
+*/
 
-import {IERC721Press} from "../../../../src/core/token/ERC721/interfaces/IERC721Press.sol";
-import {ERC721Press} from "../../../../src/core/token/ERC721/ERC721Press.sol";
-import {DualOwnable} from "../../../../src/core/utils/ownable/dual/DualOwnable.sol";
+import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
+import {IERC721Press} from "../interfaces/IERC721Press.sol";
+import {ERC721Press} from "../ERC721Press.sol";
+import {DualOwnable} from "../../../utils/ownable/dual/DualOwnable.sol";
 
-import {IERC721PressLogic} from "../../../../src/core/token/ERC721/interfaces/IERC721PressLogic.sol";
-import {IERC721PressRenderer} from "../../../../src/core/token/ERC721/interfaces/IERC721PressRenderer.sol";
+import {IERC721PressLogic} from "../interfaces/IERC721PressLogic.sol";
+import {IERC721PressRenderer} from "../interfaces/IERC721PressRenderer.sol";
 
-import {ERC721PressDatabaseStorageV1} from "../../../../src/core/token/ERC721/database/storage/ERC721PressDatabaseStorageV1.sol";
-import {IERC721PressDatabase} from "../../../../src/core/token/ERC721/interfaces/IERC721PressDatabase.sol";
+import {ERC721PressDatabaseStorageV1} from "./storage/ERC721PressDatabaseStorageV1.sol";
+import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
 
 import "sstore2/SSTORE2.sol";
 
-contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, DualOwnable {
+/**
+* @title ERC721PressDatabaseSkeletonV1
+* @notice V1 generic database architecture. Strategy specific databases can inherit this to ensure compatibility with Assembly Press framework
+* @dev Contracts that inherit this must implement their own `storeData` and `overwriteData` functions to comply
+*       with IERC721PressDatabase interface
+*
+* @author Max Bochman
+* @author Salief Lewis
+*/
+abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1, IERC721PressDatabase { 
 
-    constructor(address primaryOwner, address secondaryOwner) DualOwnable(primaryOwner, secondaryOwner) {}
+    //////////////////////////////////////////////////
+    // TYPES
+    //////////////////////////////////////////////////    
 
-    function initializePress(address targetPress) external {
-        settingsInfo[msg.sender].initialized = 1;
-    }
-
-    function initializeWithData(bytes memory data) external {
-        require(data.length > 0, "not zero length ");
-    }
-
-    /*
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    rest of mock impl is just there for equivalency. not relevant
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    */
+    /// @notice Shared listing used for final decoded output in Curation strategy.
+    /**
+     * Struct breakdown. Values in parentheses are bytes.
+     *
+     * First slot
+     * chainId (32) = 32 bytes
+     * Second slot
+     * tokenId (32) = 32 bytes    
+     * Third slot
+     * listingAddress (20) + sortOrder (12) = 32 bytes
+     */
+    struct Listing {
+        /// @notice ChainID for curated contract
+        uint256 chainId;        
+        /// @notice Token ID that is selected (see `hasTokenId` to see if this applies)
+        uint256 tokenId;        
+        /// @notice Address that is curated
+        address listingAddress;
+        /// @notice Optional sort order, can be negative. Utilized optionally like css z-index for sorting.
+        int96 sortOrder;
+    }    
 
     // ||||||||||||||||||||||||||||||||
     // ||| MODIFERS |||||||||||||||||||
@@ -51,58 +76,51 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, Dua
     // ||| DATABASE ADMIN |||||||||||||
     // ||||||||||||||||||||||||||||||||     
 
-    function setOfficialFactory(address factory) eitherOwner external {
-        _officialFactories[factory] = true;
-        emit NewFactoryAdded(msg.sender, factory);
-    }
-
-    // NOTE: Removed from Mock
-    // function initializePress(address targetPress) external {
-    //     if (_officialFactories[msg.sender] != true) {
-    //         revert No_Initialize_Access();
-    //     }
-    //     settingsInfo[targetPress].initialized = 1;
-
-    //     emit PressInitialized(msg.sender, targetPress);
-    // }
-
-    function isOfficialFactory(address target) external {
-        if (_officialFactories[target] == true) {
-            true;
-        } else {
-            false;
+    function initializePress(address targetPress) external {
+        if (_officialFactories[msg.sender] != true) {
+            revert No_Initialize_Access();
         }
+        settingsInfo[targetPress].initialized = 1;
+
+        emit PressInitialized(msg.sender, targetPress);
     }
+
+    function isOfficialFactory(address target) external view returns (bool) {
+        if (_officialFactories[target] == true) {
+            return true;
+        } else {
+            return false;
+        }
+    }        
 
     // ||||||||||||||||||||||||||||||||
     // ||| DATABASE PRESS INIT ||||||||
     // ||||||||||||||||||||||||||||||||          
 
-    // NOTE: Removed from Mock
-    // /// @notice Default logic initializer for a given Press
-    // /// @dev updates settings for msg.sender, so no need to add access control to this function
-    // /// @param databaseInit data to init with
-    // function initializeWithData(bytes memory databaseInit) requireInitialized(msg.sender) external {
+    /// @notice Default logic initializer for a given Press
+    /// @dev Initializes settings for a given Press
+    /// @param databaseInit data to init with
+    function initializeWithData(bytes memory databaseInit) requireInitialized(msg.sender) external {
 
-    //     // Cache msg.sender
-    //     address sender = msg.sender;
+        // Cache msg.sender
+        address sender = msg.sender;
 
-    //     // data format: logic, logicInit, renderer, rendererInit
-    //     (   
-    //         address logic,
-    //         bytes memory logicInit,
-    //         address renderer,
-    //         bytes memory rendererInit
-    //     ) = abi.decode(databaseInit, (address, bytes, address, bytes));
+        // data format: logic, logicInit, renderer, rendererInit
+        (   
+            address logic,
+            bytes memory logicInit,
+            address renderer,
+            bytes memory rendererInit
+        ) = abi.decode(databaseInit, (address, bytes, address, bytes));
 
-    //     // set settingsInfo[targetPress]
-    //     settingsInfo[sender].logic = logic;        
-    //     settingsInfo[sender].renderer = renderer;
+        // set settingsInfo[targetPress]
+        settingsInfo[sender].logic = logic;        
+        settingsInfo[sender].renderer = renderer;
         
-    //     // initialize logic + renderer contracts
-    //     _setLogic(sender, logic, logicInit);
-    //     _setRenderer(sender, renderer, rendererInit);                 
-    // }       
+        // initialize logic + renderer contracts
+        _setLogic(sender, logic, logicInit);
+        _setRenderer(sender, renderer, rendererInit);                 
+    }       
 
     // ||||||||||||||||||||||||||||||||
     // ||| DATABASE PRESS ADMIN |||||||
@@ -110,7 +128,7 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, Dua
 
     // external handler for setLogic function
     function setLogic(address targetPress, address logic, bytes memory logicInit) requireInitialized(targetPress) external {
-        // Check if msg.sender has access to update settings for Press
+        // Request settings access from logic contract
         if (IERC721PressLogic(settingsInfo[targetPress].logic).getSettingsAccess(targetPress, msg.sender) == false) {
             revert No_Settings_Access();
         }
@@ -120,6 +138,7 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, Dua
 
     // external handler for setRenderer function
     function setRenderer(address targetPress, address renderer, bytes memory rendererInit) requireInitialized(targetPress) external {
+        // Request settings access from logic contract
         if (IERC721PressLogic(settingsInfo[targetPress].logic).getSettingsAccess(targetPress, msg.sender) == false) {
             revert No_Settings_Access();
         }
@@ -153,41 +172,6 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, Dua
     // WRITE
     /////////////////////////    
 
-    /// @dev Function called by mintWithData function in ERC721Press mint call that
-    //      updates specific tokenData for msg.sender, so no need to add access control to this function
-    /// @param storeCaller address of account initiating `mintWithData()` from targetPress
-    /// @param data data getting passed in along mint
-    function storeData(address storeCaller, bytes calldata data) external requireInitialized(msg.sender) {
-        // data format: tokens
-        (bytes[] memory tokens) = abi.decode(data, (bytes[]));
-
-        _storeData(msg.sender, storeCaller, tokens);
-    }          
-
-    /// @dev Stores indicies of a given bytes array
-    /// @param targetPress ERC721Press to target
-    /// @param storeCaller address of account initiating `mintWithData` from targetPress
-    /// @param tokens arbitrary encoded bytes data
-    function _storeData(address targetPress, address storeCaller, bytes[] memory tokens) internal {     
-        for (uint256 i = 0; i < tokens.length; ++i) {
-            // cache storedCounter
-            uint256 storedCounter = settingsInfo[targetPress].storedCounter;
-            // use sstore2 to store bytes segments in bytes array
-            idToData[targetPress][storedCounter].pointer = SSTORE2.write(
-                tokens[i]
-            );       
-            // NOTE: storedCounter trails the tokenId being minted by 1
-            emit DataStored(
-                targetPress, 
-                storeCaller,
-                storedCounter,  
-                idToData[targetPress][storedCounter].pointer
-            );                                       
-            // increment press storedCounter after storing data
-            ++settingsInfo[targetPress].storedCounter;    
-        }           
-    }              
-
     /// @dev Facilitates z-index style sorting of data IDs. SortOrders can be positive or negative
     /// @dev Will only sort ids for a given Press if called directly by the Press
     /// @dev Access checks enforced in Press
@@ -213,23 +197,6 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, Dua
     function _sortData(address targetPress, uint256 tokenId, int96 sortOrder) internal {
         //
         idToData[targetPress][tokenId-1].sortOrder = sortOrder;
-    }        
-
-    /// @dev Updates sstore2 data ointers for already existing tokens
-    /// @param overwriteCaller address of account initiating `update()` from targetPress
-    /// @param tokenIds arbitrary encoded bytes data
-    /// @param newData data passed in alongside update call
-    function overwriteData(address overwriteCaller, uint256[] memory tokenIds, bytes[] calldata newData) external requireInitialized(msg.sender) {
-        // Cache msg.sender
-        address targetPress = msg.sender;
-
-        for (uint256 i = 0; i < tokenIds.length; ++i) {
-            // use sstore2 to store bytes segments in bytes array
-            address newPointer = idToData[targetPress][tokenIds[i]-1].pointer = SSTORE2.write(
-                newData[i]
-            );                                
-            emit DataOverwritten(targetPress, overwriteCaller, tokenIds[i], newPointer);                                
-        }                  
     }             
 
     /// @dev Event emitter that signals for indexer that this token has been burned.

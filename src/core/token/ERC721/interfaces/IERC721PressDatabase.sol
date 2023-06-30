@@ -129,6 +129,8 @@ interface IERC721PressDatabase {
     // ||||||||||||||||||||||||||||||||
     
     // Write functions
+    /// @notice Sets official factory for database
+    function setOfficialFactory(address factory) external;
     /// @notice Ininitializes Press in database
     function initializePress(address targetPress) external;        
     /// @notice initializes database with arbitrary data
