@@ -73,7 +73,6 @@ contract ERC721PressFactory is IERC721PressFactory, Version(1), ReentrancyGuard 
         // Emit creation event from factory
         emit Create721Press({
             newPress: address(newPress),
-            initialOwner: initialOwner,
             databaseImpl: databaseImpl,
             settings: settings
         });        

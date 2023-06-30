@@ -221,7 +221,6 @@ contract CurationDatabaseV1 is IERC721PressDatabase, ERC721PressDatabaseStorageV
             );                                       
             // increment press storedCounter after storing data
             ++settingsInfo[targetPress].storedCounter;              
-
         }
     }   
 

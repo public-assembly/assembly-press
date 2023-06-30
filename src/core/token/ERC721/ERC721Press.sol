@@ -107,9 +107,6 @@ contract ERC721Press is
 
         // Initialize settings: {fundsRecipient, royaltyBPS, token transferability}
         _settings = settings;   
-
-        emit DatabaseImplSet(address(database));     
-        emit SettingsUpdated(_msgSenderERC721A(), settings);  
     }
 
     ////////////////////////////////////////////////////////////

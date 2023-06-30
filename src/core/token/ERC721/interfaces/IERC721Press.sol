@@ -53,10 +53,7 @@ interface IERC721Press {
 
     ////////////////////////////////////////////////////////////
     // EVENTS
-    ////////////////////////////////////////////////////////////
-
-    // TODO: Not sure if to include
-    event ERC721PressInitialized();        
+    ////////////////////////////////////////////////////////////  
 
     /// @notice Event emitted when minting token
     /// @param sender address that called mintWithData
@@ -66,20 +63,6 @@ interface IERC721Press {
         address indexed sender,
         uint256 quantity,
         uint256 firstMintedTokenId
-    );
-
-    /// @notice Event emitted when settings are updated
-    /// @param sender address that sent update txn
-    /// @param settings new settings
-    event SettingsUpdated(
-        address indexed sender,
-        Settings settings
-    );            
-
-    /// @notice Event emitted when databaseImpl set for Press in constructor
-    /// @param databaseImpl address of databaseImpl
-    event DatabaseImplSet(
-        address indexed databaseImpl
     );
 
     ////////////////////////////////////////////////////////////
