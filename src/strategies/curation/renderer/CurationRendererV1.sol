@@ -2,10 +2,27 @@
 pragma solidity 0.8.17;
 
 /*
-PA PA PA PA
-PA PA PA PA
-PA PA PA PA
-PA PA PA PA
+                                                             .:^!?JJJJ?7!^..                    
+                                                         .^?PB#&&&&&&&&&&&#B57:                 
+                                                       :JB&&&&&&&&&&&&&&&&&&&&&G7.              
+                                                  .  .?#&&&&#7!77??JYYPGB&&&&&&&&#?.            
+                                                ^.  :PB5?7G&#.          ..~P&&&&&&&B^           
+                                              .5^  .^.  ^P&&#:    ~5YJ7:    ^#&&&&&&&7          
+                                             !BY  ..  ^G&&&&#^    J&&&&#^    ?&&&&&&&&!         
+..           : .           . !.             Y##~  .   G&&&&&#^    ?&&&&G.    7&&&&&&&&B.        
+..           : .            ?P             J&&#^  .   G&&&&&&^    :777^.    .G&&&&&&&&&~        
+~GPPP55YYJJ??? ?7!!!!~~~~~~7&G^^::::::::::^&&&&~  .   G&&&&&&^          ....P&&&&&&&&&&7  .     
+ 5&&&&&&&&&&&Y #&&&&&&&&&&#G&&&&&&&###&&G.Y&&&&5. .   G&&&&&&^    .??J?7~.  7&&&&&&&&&#^  .     
+  P#######&&&J B&&&&&&&&&&~J&&&&&&&&&&#7  P&&&&#~     G&&&&&&^    ^#P7.     :&&&&&&&##5. .      
+     ........  ...::::::^: .~^^~!!!!!!.   ?&&&&&B:    G&&&&&&^    .         .&&&&&#BBP:  .      
+                                          .#&&&&&B:   Y&&&&&&~              7&&&BGGGY:  .       
+                                           ~&&&&&&#!  .!B&&&&BP5?~.        :##BP55Y~. ..        
+                                            !&&&&&&&P^  .~P#GY~:          ^BPYJJ7^. ...         
+                                             :G&&&&&&&G7.  .            .!Y?!~:.  .::           
+                                               ~G&&&&&&&#P7:.          .:..   .:^^.             
+                                                 :JB&&&&&&&&BPJ!^:......::^~~~^.                
+                                                    .!YG#&&&&&&&&##GPY?!~:..                    
+                                                         .:^^~~^^:.
 */
 
 import {IERC721Press} from "../../../core/token/ERC721/interfaces/IERC721Press.sol";
@@ -18,10 +35,12 @@ import {MetadataBuilder} from "micro-onchain-metadata-utils/MetadataBuilder.sol"
 import {MetadataJSONKeys} from "micro-onchain-metadata-utils/MetadataJSONKeys.sol";
 import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 
-/// @title CurationRendererV1
-/// @notice This is a modiified version of an earlier impl authored by Iain Nash
-/// @dev Allows for initialization + editing of a string value for use in contractURI.image 
-/// @dev Builds svg from onchain data for tokenURI.image value 
+/**
+* @title CurationRendererV1
+* @notice This is a modiified version of an earlier impl authored by Iain Nash
+* @dev Allows for initialization + editing of a string value for use in contractURI.image 
+* @dev Builds svg from onchain data for tokenURI.image value 
+*/
 contract CurationRendererV1 is IERC721PressRenderer {
 
     //////////////////////////////////////////////////
@@ -60,16 +79,7 @@ contract CurationRendererV1 is IERC721PressRenderer {
     // STORAGE
     //////////////////////////////////////////////////    
 
-    mapping(address => string) public contractUriImageInfo;
-
-    //////////////////////////////////////////////////
-    // ERRORS
-    //////////////////////////////////////////////////    
-
-    /// @notice Initialization coming from unauthorized contract
-    error UnauthorizedInitializer();
-    /// @notice msg.sender does not have access to adjust contractUriImage for given Press
-    error No_Contract_Data_Access();        
+    mapping(address => string) public contractUriImageInfo;    
 
     //////////////////////////////////////////////////
     // EVENTS
@@ -84,6 +94,15 @@ contract CurationRendererV1 is IERC721PressRenderer {
         address sender,
         string contractUriImage
     );              
+
+    //////////////////////////////////////////////////
+    // ERRORS
+    //////////////////////////////////////////////////    
+
+    /// @notice Initialization coming from unauthorized contract
+    error UnauthorizedInitializer();
+    /// @notice msg.sender does not have access to adjust contractUriImage for given Press
+    error No_Contract_Data_Access();        
 
     //////////////////////////////////////////////////
     // INITIALIZER

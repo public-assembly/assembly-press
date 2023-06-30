@@ -51,40 +51,30 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
         uint8 role;
     }     
 
-    //////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
     // STORAGE
-    //////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
 
     string constant public name = "RolesWith721Gate_NoFee";
 
-    // Role constants
+    //////////////////////////////
+    // ROLE CONSTANTS
+    //////////////////////////////  
+
     uint8 constant public ADMIN = 3;
     uint8 constant public MANAGER = 2;
     uint8 constant public USER = 1;
     uint8 constant public NO_ROLE = 0;    
+
+    //////////////////////////////
+    // MAPPINGS
+    ////////////////////////////// 
 
     // Press contract to Setttings {erc721Gate, frozenAt, isPaused} 
     mapping(address => Settings) public settingsInfo;
 
     // Press contract to account to role for determining admin/manager functionality
     mapping(address => mapping(address => uint8)) public roleInfo;    
-
-    //////////////////////////////////////////////////
-    // ERRORS
-    //////////////////////////////////////////////////
-
-    /// @notice Account does not have admin role
-    error RequiresAdmin();
-    /// @notice Account does not have high enough role
-    error RequiresHigherRole();
-    /// @notice Invalid role being assigned
-    error CanOnlyAssignAdminOrManager();    
-    /// @notice Initialization coming from unauthorized contract
-    error UnauthorizedInitializer();
-    /// @notice Database write access is blocked forever
-    error DatabaseFrozen();
-    /// @notice Database write access is temporarily paused for certain roles
-    error DatabasePaused();
 
     //////////////////////////////////////////////////
     // EVENTS
@@ -152,9 +142,26 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
         address account
     );         
 
-    //////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    // ERRORS
+    ////////////////////////////////////////////////////////////
+
+    /// @notice Account does not have admin role
+    error RequiresAdmin();
+    /// @notice Account does not have high enough role
+    error RequiresHigherRole();
+    /// @notice Invalid role being assigned
+    error CanOnlyAssignAdminOrManager();    
+    /// @notice Initialization coming from unauthorized contract
+    error UnauthorizedInitializer();
+    /// @notice Database write access is blocked forever
+    error DatabaseFrozen();
+    /// @notice Database write access is temporarily paused for certain roles
+    error DatabasePaused();    
+
+    ////////////////////////////////////////////////////////////
     // MODIFIERS
-    //////////////////////////////////////////////////    
+    ////////////////////////////////////////////////////////////
 
     /// @notice isAdmin getter for a target index
     /// @param targetPress target Press
@@ -213,9 +220,9 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
         _;     
     }  
 
-    //////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
     // INITIALIZER
-    //////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
 
     /// @notice Initializes Press settings 
     /// @dev Can only be called by the database contract for a given Press
@@ -226,7 +233,7 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
             revert UnauthorizedInitializer();
         }
 
-        // data format: erc721Gate, isPaused, isTokenDataImmutable, initialRoles
+        // Data format: erc721Gate, isPaused, isTokenDataImmutable, initialRoles
         (
             address erc721Gate, 
             bool isPaused,
@@ -234,22 +241,22 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
             RoleDetails[] memory initialRoles
         ) = abi.decode(data, (address, bool, bool, RoleDetails[]));
 
-        // assign initial roles for Press
+        // Assign initial roles for Press
         _assignRoles(targetPress, initialRoles);
 
-        // configure settings for Press
+        // Configure settings for Press
         _setErc721Gate(targetPress, erc721Gate);
         _setIsPaused(targetPress, isPaused);
         _setIsTokenDataImmutable(targetPress, isTokenDataImmutable);
     }
 
-    //////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
     // ROLE ASSIGNMENT
-    //////////////////////////////////////////////////    
+    ////////////////////////////////////////////////////////////
 
-    /////////////////////////
+    //////////////////////////////
     // EXTERNAL
-    /////////////////////////    
+    //////////////////////////////  
 
     /// @notice Assign new roles for given accounts for given press
     /// @param targetPress target Press index
@@ -268,7 +275,7 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
         onlyAdmin(targetPress) 
         external
     {
-        // revoke roles from each account provided
+        // Revoke roles from each account provided
         for (uint256 i; i < accounts.length; ++i) {
             // revoke role from account
             roleInfo[targetPress][accounts[i]] = NO_ROLE;
@@ -281,9 +288,9 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
         }    
     }  
 
-    /////////////////////////
+    //////////////////////////////
     // INTERNAL
-    /////////////////////////      
+    //////////////////////////////     
 
     /// @notice internal assign new roles for given press
     /// @param targetPress target Press index
@@ -307,13 +314,13 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
         }    
     }           
 
-    //////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
     // SETTINGS
-    //////////////////////////////////////////////////      
+    ////////////////////////////////////////////////////////////   
 
-    /////////////////////////
+    //////////////////////////////
     // EXTERNAL
-    /////////////////////////
+    //////////////////////////////  
 
     /// @notice Set the address of the erc721Gate in use for a given targetPress
     /// @dev msg.sender must have ADMIN role
@@ -342,9 +349,9 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
         _setFrozenAt(targetPress, frozenAt);
     }          
 
-    /////////////////////////
+    //////////////////////////////
     // INTERNAL
-    /////////////////////////
+    //////////////////////////////  
 
     /// @notice Internal handler for updates to the address of the erc721Gate in use for a given targetPress
     /// @dev No access checks, enforce elsewhere
@@ -404,9 +411,13 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
         });
     }                
 
-    //////////////////////////////////////////////////
-    // VIEW FUNCTIONS
-    //////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    // READ FUNCTIONS
+    ////////////////////////////////////////////////////////////   
+
+    /////////////////////////
+    // EXTERNAL
+    /////////////////////////    
 
     /// @notice returns access level of a given account for a given Press
     function getAccessLevel(address targetPress, address accountToGetAccessFor)

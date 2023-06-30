@@ -36,11 +36,11 @@ import {IERC721PressDatabase} from "./interfaces/IERC721PressDatabase.sol";
 import {IERC5192} from "./interfaces/IERC5192.sol";
 import {ERC721PressStorageV1} from "./storage/ERC721PressStorageV1.sol";
 
-import {IOwnableUpgradeable} from "../../utils/ownable/IOwnableUpgradeable.sol";
-import {OwnableUpgradeable} from "../../utils/ownable/OwnableUpgradeable.sol";
+import {IOwnableUpgradeable} from "../../utils/ownable/single/IOwnableUpgradeable.sol";
+import {OwnableUpgradeable} from "../../utils/ownable/single/OwnableUpgradeable.sol";
 import {Version} from "../../utils/Version.sol";
 import {FundsReceiver} from "../../utils/FundsReceiver.sol";
-import {TransferUtils} from "../../utils/funds/TransferUtils.sol";
+import {TransferUtils} from "../../utils/TransferUtils.sol";
 
 /**
  * @title ERC721Press
