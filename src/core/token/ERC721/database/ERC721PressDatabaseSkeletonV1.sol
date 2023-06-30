@@ -236,7 +236,6 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
     * @param sortOrder SortOrder value to store
     */
     function _sortData(address targetPress, uint256 tokenId, int96 sortOrder) internal {
-        //
         idToData[targetPress][tokenId-1].sortOrder = sortOrder;
     }             
 
@@ -308,11 +307,11 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         unchecked {
             activeData = new TokenDataRetrieved[](ERC721Press(payable(targetPress)).totalSupply());
 
-            // first data slot tokenData mapping is 0
+            // First data slot tokenData mapping is 0
             uint256 activeIndex;
 
             for (uint256 i; i < settingsInfo[targetPress].storedCounter; ++i) {
-                // skip this listing if user has burned the token (sent to zero address)
+                // Skip this listing if user has burned the token (sent to zero address)
                 if (ERC721Press(payable(targetPress)).exists(i+1) == false) {
                     continue;
                 }
@@ -350,7 +349,7 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
     * @return initialized True/false bool if press is initialized
     */
     function isInitialized(address targetPress) external view returns (bool initialized) {
-        // return false if targetPress has not been initialized
+        // Return false if targetPress has not been initialized
         if (settingsInfo[targetPress].initialized == 0) {
             return false;
         }
