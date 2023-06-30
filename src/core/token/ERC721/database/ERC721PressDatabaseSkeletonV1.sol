@@ -24,9 +24,8 @@ import "sstore2/SSTORE2.sol";
 /**
 * @title ERC721PressDatabaseSkeletonV1
 * @notice V1 generic database architecture. Strategy specific databases can inherit this to ensure compatibility with Assembly Press framework
-* @dev Contracts that inherit this must implement their own `storeData` and `overwriteData` functions to comply
-*       with IERC721PressDatabase interface
-*
+* @dev Contracts that inherit this must implement their own `setOfficialFactory`, `storeData`, `overwriteData` functions 
+*       to comply with IERC721PressDatabase interface
 * @author Max Bochman
 * @author Salief Lewis
 */
@@ -58,11 +57,13 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         int96 sortOrder;
     }    
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| MODIFERS |||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||      
+    ////////////////////////////////////////////////////////////
+    // MODIFIERS
+    ////////////////////////////////////////////////////////////    
 
-    /// @notice Checks if target Press has been initialized
+    /**
+    * @notice Checks if target Press has been initialized
+    */
     modifier requireInitialized(address targetPress) {
 
         if (settingsInfo[targetPress].initialized != 1) {
@@ -72,10 +73,20 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         _;
     }            
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| DATABASE ADMIN |||||||||||||
-    // ||||||||||||||||||||||||||||||||     
+    ////////////////////////////////////////////////////////////
+    // WRITE FUNCTIONS
+    ////////////////////////////////////////////////////////////
 
+    //////////////////////////////
+    // DATABASE ADMIN
+    //////////////////////////////        
+
+    /**
+    * @notice Initializes a Press, giving it the ability to write to database
+    * @dev Can only be called by address set as officialFactory
+    * @dev Addresses cannot be un-initialized
+    * @param targetPress Address of Press to initialize
+    */
     function initializePress(address targetPress) external {
         if (_officialFactories[msg.sender] != true) {
             revert No_Initialize_Access();
@@ -85,6 +96,10 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         emit PressInitialized(msg.sender, targetPress);
     }
 
+    /**
+    * @notice Getter for officialFactory status of an address. If true, can call `initializePress`
+    * @param target Address to check
+    */
     function isOfficialFactory(address target) external view returns (bool) {
         if (_officialFactories[target] == true) {
             return true;
@@ -93,19 +108,20 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         }
     }        
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| DATABASE PRESS INIT ||||||||
-    // ||||||||||||||||||||||||||||||||          
+    //////////////////////////////
+    // PRESS INITIALIZATION
+    //////////////////////////////           
 
-    /// @notice Default logic initializer for a given Press
-    /// @dev Initializes settings for a given Press
-    /// @param databaseInit data to init with
+    /**
+    * @notice Default logic initializer for a given Press
+    * @dev Initializes settings for a given Press
+    * @param databaseInit data to init with
+    */
     function initializeWithData(bytes memory databaseInit) requireInitialized(msg.sender) external {
-
         // Cache msg.sender
         address sender = msg.sender;
 
-        // data format: logic, logicInit, renderer, rendererInit
+        // Data format: logic, logicInit, renderer, rendererInit
         (   
             address logic,
             bytes memory logicInit,
@@ -113,20 +129,26 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
             bytes memory rendererInit
         ) = abi.decode(databaseInit, (address, bytes, address, bytes));
 
-        // set settingsInfo[targetPress]
+        // Set settingsInfo[targetPress]
         settingsInfo[sender].logic = logic;        
         settingsInfo[sender].renderer = renderer;
         
-        // initialize logic + renderer contracts
+        // Initializes logic + renderer contracts
         _setLogic(sender, logic, logicInit);
         _setRenderer(sender, renderer, rendererInit);                 
     }       
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| DATABASE PRESS ADMIN |||||||
-    // ||||||||||||||||||||||||||||||||     
+    //////////////////////////////
+    // PRESS SETTINGS
+    //////////////////////////////       
 
-    // external handler for setLogic function
+    /**
+    * @notice Facilitates updating of logic contract for a given Press
+    * @dev LogicInit can be blank
+    * @param targetPress Press to update logic for
+    * @param logic Address of logic implementation
+    * @param logicInit Data to init logic with
+    */
     function setLogic(address targetPress, address logic, bytes memory logicInit) requireInitialized(targetPress) external {
         // Request settings access from logic contract
         if (IERC721PressLogic(settingsInfo[targetPress].logic).getSettingsAccess(targetPress, msg.sender) == false) {
@@ -136,7 +158,13 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         _setLogic(targetPress, logic, logicInit);
     }  
 
-    // external handler for setRenderer function
+    /**
+    * @notice Facilitates updating of renderer contract for a given Press
+    * @dev RendererInit can be blank
+    * @param targetPress Press to update renderer for
+    * @param renderer Address of renderer implementation
+    * @param rendererInit Data to init renderer with
+    */
     function setRenderer(address targetPress, address renderer, bytes memory rendererInit) requireInitialized(targetPress) external {
         // Request settings access from logic contract
         if (IERC721PressLogic(settingsInfo[targetPress].logic).getSettingsAccess(targetPress, msg.sender) == false) {
@@ -146,8 +174,13 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         _setRenderer(targetPress, renderer, rendererInit);
     }  
 
-    /// @notice internal handler for setLogic function
-    /// @dev no access checks, enforce elsewhere
+    /**
+    * @notice Internal handler for setLogic function
+    * @dev No access checks, enforce elsewhere
+    * @param targetPress Press to update logic for
+    * @param logic Address of logic implementation
+    * @param logicInit Data to init logic with    
+    */
     function _setLogic(address targetPress, address logic, bytes memory logicInit) internal {
         settingsInfo[targetPress].logic = logic;
         IERC721PressLogic(logic).initializeWithData(targetPress, logicInit);
@@ -155,29 +188,32 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         emit LogicUpdated(targetPress, logic);
     }    
 
-    /// @notice internal handler for setRenderer function
-    /// @dev no access checks, enforce elsewhere
+    /**
+    * @notice Internal handler for setRenderer function
+    * @dev RendererInit can be blank
+    * @param targetPress Press to update renderer for
+    * @param renderer Address of renderer implementation
+    * @param rendererInit Data to init renderer with
+    */
     function _setRenderer(address targetPress, address renderer, bytes memory rendererInit) internal {
         settingsInfo[targetPress].renderer = renderer;
         IERC721PressRenderer(renderer).initializeWithData(targetPress, rendererInit);
 
         emit RendererUpdated(targetPress, renderer);
-    }          
+    }             
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| DATA STORAGE |||||||||||||||
-    // ||||||||||||||||||||||||||||||||     
+    //////////////////////////////
+    // SORT DATA
+    //////////////////////////////     
 
-    /////////////////////////
-    // WRITE
-    /////////////////////////    
-
-    /// @dev Facilitates z-index style sorting of data IDs. SortOrders can be positive or negative
-    /// @dev Will only sort ids for a given Press if called directly by the Press
-    /// @dev Access checks enforced in Press
-    /// @param sortCaller address of account initiating `sort()` from targetPress 
-    /// @param tokenIds data IDs to store sortOrders for    
-    /// @param sortOrders sorting values to store
+    /**
+    * @dev Facilitates z-index style sorting of data IDs. SortOrders can be positive or negative
+    * @dev Will only sort ids for a given Press if called directly by the Press
+    * @dev Access checks enforced in Press
+    * @param sortCaller address of account initiating `sort()` from targetPress 
+    * @param tokenIds data IDs to store sortOrders for    
+    * @param sortOrders sorting values to store
+    */
     function sortData(
         address sortCaller, 
         uint256[] calldata tokenIds, 
@@ -192,36 +228,55 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         emit DataSorted(targetPress, sortCaller, tokenIds, sortOrders);
     }    
     
-    /// @notice Internal handler for sort functionality
-    /// @dev No access checks, enforce elsewhere
+    /**
+    * @notice Internal handler for sort functionality
+    * @dev No access checks, enforce elsewhere
+    * @param targetPress address of Press to sort data for
+    * @param tokenId TokenId of Press to sort data for
+    * @param sortOrder SortOrder value to store
+    */
     function _sortData(address targetPress, uint256 tokenId, int96 sortOrder) internal {
         //
         idToData[targetPress][tokenId-1].sortOrder = sortOrder;
     }             
 
-    /// @dev Event emitter that signals for indexer that this token has been burned.
-    ///     when a token is burned, the data associated with it will no longer be returned 
-    ///     in`getAllData`, and will return zero values in `getData`
-    /// @param removeCaller address of account initiating `burn` from targetPress
-    /// @param tokenIds tokenIds to target
+    //////////////////////////////
+    // REMOVE DATA
+    //////////////////////////////       
+
+    /**
+    * @notice Event emitter that signals for indexer that this token has been burned.
+    * @dev when a token is burned, the data associated with it will no longer be returned 
+    *     in`getAllData`, and will return zero values in `getData`
+    * @param removeCaller address of account initiating `burn` from targetPress
+    * @param tokenIds tokenIds to target
+    */
     function removeData(address removeCaller, uint256[] memory tokenIds) external requireInitialized(msg.sender) {
         for (uint256 i; i < tokenIds.length; ++i) {
             emit DataRemoved(msg.sender, removeCaller, tokenIds[i]);
         }
     }    
 
-    /////////////////////////
-    // READ
-    /////////////////////////    
+    ////////////////////////////////////////////////////////////
+    // READ FUNCTIONS
+    ////////////////////////////////////////////////////////////
 
-    /// @dev Getter for acessing data for a specific ID for a given Press
-    /// @param targetPress ERC721Press to target 
-    /// @param tokenId tokenId to retrieve data for 
+    //////////////////////////////
+    // READ DATA
+    //////////////////////////////    
+
+    /**
+    * @notice Getter for acessing data for a specific ID for a given Press
+    * @dev Fetches + returns stored bytes values from sstore2
+    * @param targetPress ERC721Press to target 
+    * @param tokenId tokenId to retrieve data for 
+    * @return data Data stored for given token
+    */
     function readData(address targetPress, uint256 tokenId) 
         external 
         view 
         requireInitialized(targetPress) 
-        returns (TokenDataRetrieved memory) {
+        returns (TokenDataRetrieved memory data) {
 
         // Return blank struct if token has been burnt
         if (ERC721Press(payable(targetPress)).exists(tokenId) == false) {
@@ -238,8 +293,13 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         }
     }
 
-    /// @dev Getter for acessing data for all active IDs for a given Press
-    /// @param targetPress ERC721Press to target     
+    /**
+    * @notice Getter for acessing data for all active IDs for a given Press
+    * @dev Active Ids = Ids whos associated tokens have not been burned
+    * @dev Fetches + returns stored bytes values from sstore2
+    * @param targetPress ERC721Press to target 
+    * @return activeData Array of all active data
+    */
     function readAllData(address targetPress) 
         external 
         view 
@@ -264,26 +324,32 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
             }
         }
     } 
-  
-    // ||||||||||||||||||||||||||||||||
-    // ||| PRICE + STATUS CHECKS ||||||
-    // ||||||||||||||||||||||||||||||||     
 
-    /// @notice checks total mint price for a given Press x mintCaller x mintQuantity
-    /// @param targetPress press contract to check mint price of
-    /// @param mintCaller address of mintCaller to check pricing on behalf of
-    /// @param mintQuantity mintQuantity used to calculate total mint price
+    //////////////////////////////
+    // PRICE + STATUS CHECKS
+    //////////////////////////////           
+
+    /**
+    * @notice Checks total mint price for a given Press x mintCaller x mintQuantity
+    * @param targetPress Press contract to check mint price of
+    * @param mintCaller Address of mintCaller to check pricing on behalf of
+    * @param mintQuantity Quantity used to calculate total mint price
+    * @return price Total price (in wei) needed to process transaction
+    */
     function totalMintPrice(
         address targetPress, 
         address mintCaller,
         uint256 mintQuantity
-    ) external view requireInitialized(targetPress) returns (uint256) {
+    ) external view requireInitialized(targetPress) returns (uint256 price) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getMintPrice(targetPress, mintCaller, mintQuantity);
     }         
 
-    /// @notice checks value of initialized variable in settingsInfo mapping for target Press
-    /// @param targetPress press contract to check initialization status
-    function isInitialized(address targetPress) external view returns (bool) {
+    /**
+    * @notice Checks value of initialized variable in settingsInfo mapping for target Press
+    * @param targetPress Press contract to check initialization status
+    * @return initialized True/false bool if press is initialized
+    */
+    function isInitialized(address targetPress) external view returns (bool initialized) {
         // return false if targetPress has not been initialized
         if (settingsInfo[targetPress].initialized == 0) {
             return false;
@@ -292,102 +358,125 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         return true;
     }             
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| ACCESS CHECKS ||||||||||||||
-    // ||||||||||||||||||||||||||||||||      
+    //////////////////////////////
+    // ACCESS CHECKS
+    //////////////////////////////       
 
-    /// @notice checks mint access for a given mintQuantity + mintCaller
-    /// @param targetPress press contract to check access for
-    /// @param mintCaller address of mintCaller to check access for    
-    /// @param mintQuantity mintQuantity to check access for 
+    /**
+    * @notice Checks mint access for a given mintQuantity + mintCaller
+    * @param targetPress Press contract to check access for
+    * @param mintCaller Address of mintCaller to check access for    
+    * @param mintQuantity Quantiy to check access for 
+    * @return mintAccess True/false bool
+    */
     function canMint(
         address targetPress, 
         address mintCaller,
         uint256 mintQuantity
-    ) external view requireInitialized(targetPress) returns (bool) {
-        //        
+    ) external view requireInitialized(targetPress) returns (bool mintAccess) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getMintAccess(targetPress, mintCaller, mintQuantity);    
     }         
 
-    /// @notice checks burn access for a given burn caller
-    /// @param targetPress press contract to check access for
-    /// @param burnCaller address of burnCaller to check access for    
-    /// @param tokenId tokenId to check access for
+    /**
+    * @notice Checks burn access for a given burn caller
+    * @param targetPress Press contract to check access for
+    * @param burnCaller Address of burnCaller to check access for    
+    * @param tokenId TokenId to check access for
+    * @return burnAccess True/false bool
+    */
     function canBurn(
         address targetPress, 
         address burnCaller,
         uint256 tokenId        
-    ) external view requireInitialized(targetPress) returns (bool) {
-        //
+    ) external view requireInitialized(targetPress) returns (bool burnAccess) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getBurnAccess(targetPress, burnCaller, tokenId);            
     }     
 
-    /// @notice checks sort access for a given sort caller
-    /// @param targetPress press contract to check access for
-    /// @param sortCaller address of sortCaller to check access for    
+    /**
+    * @notice Checks sort access for a given sort caller
+    * @param targetPress Press contract to check access for
+    * @param sortCaller Address of sortCaller to check access for    
+    * @return sortAccess True/false bool
+    */
     function canSort(
         address targetPress, 
         address sortCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-        //
+    ) external view requireInitialized(targetPress) returns (bool sortAccess) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getSortAccess(targetPress, sortCaller);            
     }     
 
-    /// @notice checks settings access for a given settings caller
-    /// @param targetPress press contract to check access for
-    /// @param settingsCaller address of settingsCaller to check access for    
+    /**
+    * @notice Checks settings access for a given settings caller
+    * @param targetPress Press contract to check access for
+    * @param settingsCaller Address of settingsCaller to check access for 
+    * @return settingsAccess True/false bool
+    */   
     function canEditSettings(
         address targetPress, 
         address settingsCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-        //
+    ) external view requireInitialized(targetPress) returns (bool settingsAccess) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getSettingsAccess(targetPress, settingsCaller);            
     }       
 
-    /// @notice checks dataCaller edit access for a given edit caller
-    /// @param targetPress press contract to check access for
-    /// @param dataCaller address of dataCaller to check access for    
+    /**
+    * @notice Checks dataCaller edit access for a given edit caller
+    * @param targetPress Press contract to check access for
+    * @param dataCaller Address of dataCaller to check access for   
+    * @return contractAccess True/false bool 
+    */
     function canEditContractData(
         address targetPress, 
         address dataCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-        //
+    ) external view requireInitialized(targetPress) returns (bool contractAccess) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getContractDataAccess(targetPress, dataCaller);
     }        
 
-    /// @notice checks dataCaller edit access for a given edit caller
-    /// @param targetPress press contract to check access for
-    /// @param dataCaller address of dataCaller to check access for
-    /// @param tokenId tokenId to check access for        
+    /**
+    * @notice Checks dataCaller edit access for a given edit caller
+    * @param targetPress Press contract to check access for
+    * @param dataCaller Address of dataCaller to check access for
+    * @param tokenId TokenId to check access for     
+    * @return tokenAccess True/false bool 
+    */   
     function canEditTokenData(
         address targetPress, 
         address dataCaller,
         uint256 tokenId
-    ) external view requireInitialized(targetPress) returns (bool) {
-        //
+    ) external view requireInitialized(targetPress) returns (bool tokenAccess) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getTokenDataAccess(targetPress, dataCaller, tokenId);
     }    
 
-    /// @notice checks payments access for a given caller
-    /// @param targetPress press contract to check access for
-    /// @param paymentsCaller address of paymentsCaller to check access for   
+    /**
+    * @notice Checks payments access for a given caller
+    * @param targetPress Press contract to check access for
+    * @param paymentsCaller Address of paymentsCaller to check access for   
+    * @return paymentsAccess True/false bool     
+    */
     function canEditPayments(
         address targetPress, 
         address paymentsCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-        //
+    ) external view requireInitialized(targetPress) returns (bool paymentsAccess) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getPaymentsAccess(targetPress, paymentsCaller);
     }         
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| METADATA RENDERING |||||||||
-    // ||||||||||||||||||||||||||||||||  
+    //////////////////////////////
+    // DATA RENDERING
+    //////////////////////////////   
 
-    function contractURI() requireInitialized(msg.sender) external view returns (string memory) {
+    /**
+    * @notice ContractURI getter for a given Press.
+    * @return uri String contractURI
+    */
+    function contractURI() requireInitialized(msg.sender) external view returns (string memory uri) {
         return IERC721PressRenderer(settingsInfo[msg.sender].renderer).getContractURI(msg.sender);
     }          
 
-    function tokenURI(uint256 tokenId) requireInitialized(msg.sender) external view returns (string memory) {
+    /**
+    * @notice TokenURI getter for a given Press + tokenId
+    * @param tokenId TokenId to get uri for
+    * @return uri String tokenURI
+    */
+    function tokenURI(uint256 tokenId) requireInitialized(msg.sender) external view returns (string memory uri) {
         return IERC721PressRenderer(settingsInfo[msg.sender].renderer).getTokenURI(msg.sender, tokenId);
     }              
 }
