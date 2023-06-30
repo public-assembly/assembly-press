@@ -39,6 +39,32 @@ import "sstore2/SSTORE2.sol";
 */
 contract CurationDatabaseV1 is ERC721PressDatabaseSkeletonV1, DualOwnable { 
 
+    //////////////////////////////////////////////////
+    // TYPES
+    //////////////////////////////////////////////////    
+
+    /// @notice Shared listing used for final decoded output in Curation strategy.
+    /**
+     * Struct breakdown. Values in parentheses are bytes.
+     *
+     * First slot
+     * chainId (32) = 32 bytes
+     * Second slot
+     * tokenId (32) = 32 bytes    
+     * Third slot
+     * listingAddress (20) + sortOrder (12) = 32 bytes
+     */
+    struct Listing {
+        /// @notice ChainID for curated contract
+        uint256 chainId;        
+        /// @notice Token ID that is selected (see `hasTokenId` to see if this applies)
+        uint256 tokenId;        
+        /// @notice Address that is curated
+        address listingAddress;
+        /// @notice Optional sort order, can be negative. Utilized optionally like css z-index for sorting.
+        int96 sortOrder;
+    }        
+
     ////////////////////////////////////////////////////////////
     // CONSTRUCTOR 
     ////////////////////////////////////////////////////////////     
