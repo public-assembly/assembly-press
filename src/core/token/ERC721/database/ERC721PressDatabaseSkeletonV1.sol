@@ -28,7 +28,6 @@ pragma solidity 0.8.17;
 import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
 import {IERC721Press} from "../interfaces/IERC721Press.sol";
 import {ERC721Press} from "../ERC721Press.sol";
-import {DualOwnable} from "../../../utils/ownable/dual/DualOwnable.sol";
 
 import {IERC721PressLogic} from "../interfaces/IERC721PressLogic.sol";
 import {IERC721PressRenderer} from "../interfaces/IERC721PressRenderer.sol";
