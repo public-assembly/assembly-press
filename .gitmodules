@@ -20,3 +20,6 @@
 [submodule "lib/sstore2"]
 	path = lib/sstore2
 	url = https://github.com/0xSequence/sstore2
+[submodule "lib/solidity-bytes-utils"]
+	path = lib/solidity-bytes-utils
+	url = https://github.com/gnsps/solidity-bytes-utils
