@@ -58,7 +58,7 @@ contract ERC721PressTest is ERC721PressConfig {
         listings[1].hasTokenId = false;      
         bytes memory encodedListings = encodeListingArray(listings);
         targetPressProxy.mintWithData(2, encodedListings);
-        require(targetPressProxy.balanceOf(PRESS_ADMIN_AND_OWNER) == 2, "mint not functioning correctly");         
+        require(targetPressProxy.balanceOf(PRESS_ADMIN_AND_OWNER) == 2, "mint not functioning correctly");   
     } 
 
     function test_mintWithMaliciousData() public setUpCurationStrategy {
