@@ -28,28 +28,32 @@ pragma solidity 0.8.17;
 import {ERC721PressDatabaseSkeletonV1} from "../../../core/token/ERC721/database/ERC721PressDatabaseSkeletonV1.sol";
 import {DualOwnable} from "../../../core/utils/ownable/dual/DualOwnable.sol";
 import "sstore2/SSTORE2.sol";
+import {BytesLib} from "solidity-bytes-utils/BytesLib.sol";
 
 /**
-* @title CurationDatabaseV1
+* @title CurationDatabaseV2
 * @notice Curation focused database built for Assembly Press framework
 * @dev Inherits from ERC721PressDatabaseSkeletonV1 and implements custom `setOfficiaFactory`,
 *       `storeData`, and `overwriteData` functions without introducing any non-standard storage or events
 * @author Max Bochman
 * @author Salief Lewis
 */
-contract CurationDatabaseV1 is ERC721PressDatabaseSkeletonV1, DualOwnable { 
+contract CurationDatabaseV2 is ERC721PressDatabaseSkeletonV1, DualOwnable { 
 
     //////////////////////////////////////////////////
     // TYPES
     //////////////////////////////////////////////////    
 
+    /// @notice Shared listing used for final decoded output in Curation strategy.
     /**
-     * @notice Shared listing used for final decoded output in Curation strategy.
-     * @dev See below for struct breakdown. Values in parentheses are bytes.
+     * Struct breakdown. Values in parentheses are bytes.
      *
-     * First slot: chainId (32) = 32 bytes
-     * Second slot: tokenId (32) = 32 bytes    
-     * Third slot: listingAddress (20) + hasTokenId (1) = 21 bytes
+     * First slot
+     * chainId (32) = 32 bytes
+     * Second slot
+     * tokenId (32) = 32 bytes    
+     * Third slot
+     * listingAddress (20) + sortOrder (12) = 32 bytes
      */
     struct Listing {
         /// @notice ChainID for curated contract
@@ -58,8 +62,8 @@ contract CurationDatabaseV1 is ERC721PressDatabaseSkeletonV1, DualOwnable {
         uint256 tokenId;        
         /// @notice Address that is curated
         address listingAddress;
-        /// @notice True/false whether tokenId is relevant for listing
-        bool hasTokenId;
+        /// @notice Has token Id ********
+        uint8 hasTokenId;
     }        
 
     ////////////////////////////////////////////////////////////
@@ -91,13 +95,20 @@ contract CurationDatabaseV1 is ERC721PressDatabaseSkeletonV1, DualOwnable {
     // CUSTOM DATA VALIDATION + STORE + OVERWRITE FUNCTIONS
     ////////////////////////////////////////////////////////////
 
+    uint256 constant PACKED_LISTING_STRUCT_LENGTH = 85;
+
     /**
     * @dev Internal helper function that checks validity of data to be stored
     *     The function will revert if the data cannot be decoded properly, causing the transaction to fail
     * @param data Data to check
     */
     function _validateData(bytes memory data) internal pure {
-        Listing memory listing = abi.decode(data, (Listing));
+        Listing memory listing = Listing({
+            chainId: BytesLib.toUint256(data, 0),
+            tokenId: BytesLib.toUint256(data, 32),
+            listingAddress: BytesLib.toAddress(data, 64),
+            hasTokenId: BytesLib.toUint8(data, 84)            
+        });      
     }       
 
     /**
@@ -110,17 +121,19 @@ contract CurationDatabaseV1 is ERC721PressDatabaseSkeletonV1, DualOwnable {
         // Cache msg.sender -- which is the Press if called correctly
         address sender = msg.sender;
         
-        // data format: tokens
-        (bytes[] memory tokens) = abi.decode(data, (bytes[]));
+        // Calculate number of tokens
+        uint256 tokens = data.length / PACKED_LISTING_STRUCT_LENGTH;
 
-        for (uint256 i = 0; i < tokens.length; ++i) {
+        for (uint256 i = 0; i < tokens; ++i) {
             // Check data is valid
-            _validateData(tokens[i]);
+            _validateData(
+                data[(i * PACKED_LISTING_STRUCT_LENGTH):((i+1) * PACKED_LISTING_STRUCT_LENGTH)]
+            );
             // cache storedCounter
             uint256 storedCounter = settingsInfo[sender].storedCounter;
             // use sstore2 to store bytes segments in bytes array
             idToData[sender][storedCounter].pointer = SSTORE2.write(
-                tokens[i]
+                data[(i * PACKED_LISTING_STRUCT_LENGTH):((i+1) * PACKED_LISTING_STRUCT_LENGTH)]
             );       
             // NOTE: storedCounter trails the tokenId being minted by 1
             emit DataStored(
@@ -130,8 +143,8 @@ contract CurationDatabaseV1 is ERC721PressDatabaseSkeletonV1, DualOwnable {
                 idToData[sender][storedCounter].pointer
             );                                       
             // increment press storedCounter after storing data
-            ++settingsInfo[sender].storedCounter;              
-        }        
+             ++settingsInfo[sender].storedCounter;              
+        }       
     }              
 
     /**

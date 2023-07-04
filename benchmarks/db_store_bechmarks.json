@@ -1,0 +1,22 @@
+{
+    "ABI_ENCODE_ARRAY_OF_ABI_ENCODE_STRUCTS": {
+        "STORE_1": {
+            "GAS": "108,554",
+            "TEST": "forge test --match-contract ERC721PressTest --match-test test_mint_1_WithData"
+        },
+        "STORE_2": {
+            "GAS": "193,883",
+            "TEST": "forge test --match-contract ERC721PressTest --match-test test_mint_2_WithData"
+        }
+    },
+    "ABI_ENCODE_PACKED_ABI_ENCODE_PACKED_CONTENTS_OF_STRUCT": {
+        "STORE_1": {
+            "GAS": "",
+            "TEST": ""
+        },
+        "STORE_2": {
+            "GAS": "",
+            "TEST": ""
+        }
+    }    
+}

@@ -84,4 +84,59 @@ contract ERC721PressFactoryTest is ERC721PressConfig {
             settings: pressSettings      
         });
     }
+
+    function test_gasTest() public {
+        
+        ERC721Press erc721PressImpl = new ERC721Press();
+        CurationDatabaseV1 databaseImpl = new CurationDatabaseV1(primaryOwner, secondaryOwner);
+        // deploy factory impl
+        ERC721PressFactory erc721Factory = new ERC721PressFactory(
+            address(payable(erc721PressImpl)),
+            address(databaseImpl)
+        );
+
+        // SETUP LOGIC INIT
+        RolesWith721GateImmutableMetadataNoFees.RoleDetails[] memory initialRoles = 
+            new RolesWith721GateImmutableMetadataNoFees.RoleDetails[](2);
+        initialRoles[0].account = PRESS_ADMIN_AND_OWNER;
+        initialRoles[0].role = ADMIN_ROLE;
+        initialRoles[1].account = PRESS_MANAGER;
+        initialRoles[1].role = MANAGER_ROLE;      
+        mockAccessPass.mint(PRESS_USER);   
+        bool initialIsPaused = false;     
+        bool initialIsTokenDataImmutable = true;     
+        bytes memory logicInit = abi.encode(address(mockAccessPass), initialIsPaused, initialIsTokenDataImmutable, initialRoles);
+
+        // SETUP RENDERER INIT
+        string memory contractUriImagePath = "ipfs://THIS_COULD_BE_CONTRACT_URI_IMAGE_PATH";
+        bytes memory rendererInit = abi.encode(contractUriImagePath);
+
+        // SETUP DATABASE INIT
+        bytes memory databaseInit = abi.encode(
+            address(logic),
+            logicInit,
+            address(renderer),
+            rendererInit
+        );
+
+        // PRESS SETTINGS
+        IERC721Press.Settings memory pressSettings = IERC721Press.Settings({
+            fundsRecipient: PRESS_FUNDS_RECIPIENT,
+            royaltyBPS: 250, // 2.5%
+            transferable: false
+        });            
+
+        // GRANT FACTORY OFFICIAL STATUS
+        vm.startPrank(primaryOwner);
+        databaseImpl.setOfficialFactory(address(erc721Factory));
+        vm.stopPrank();
+
+        erc721Factory.createPress({
+            name: "Public Assembly",
+            symbol: "PA",
+            initialOwner: PRESS_ADMIN_AND_OWNER,
+            databaseInit: databaseInit,
+            settings: pressSettings      
+        });        
+    }    
 }

@@ -1,0 +1,182 @@
+{
+    "ASSEMBLY_PRESS": {
+        "OLD": {
+            "GITHUB_BRANCH": "https://github.com/public-assembly/AssemblyPress",
+            "ERC721": {
+                "CREATE_CONTRACT": {
+                    "TESTS": {
+                        "TXN_LINK": "forge test --match-contract ERC721PressTest --match-test test_factory -vvvv",
+                        "GAS_SPENT_WEI": "604,690"
+                    },
+                    "LIVE_TXN": {
+                        "TXN_LINK": "https://sepolia.etherscan.io/tx/0x0044a7bea5386922274c5de9eaf45622d399d68692b8b07d377f48a2b8387462",
+                        "GAS_SPENT_WEI": "616,006"
+                    }
+                },
+                "MINT_WITH_DATA_1": {
+                    "TESTS": {
+                        "PATH": "forge test --match-contract ERC721Press_GasTest -vvvv",
+                        "GAS_SPENT_WEI": "137,837"
+                    },
+                    "LIVE_TXN": {
+                        "TXN_LINK": "https://sepolia.etherscan.io/tx/0x5b0a5a7562ca2fb3ce0b67697cb4db229d2ec09d6ac0c892abaade7058a672c8",
+                        "GAS_SPENT_WEI": "147,703"                        
+                    }
+                },
+                "MINT_WITH_DATA_2": {
+                    "TESTS": {
+                        "PATH": "",
+                        "GAS_SPENT_WEI": ""
+                    },
+                    "LIVE_TXN": {
+                        "TXN_LINK": "",
+                        "GAS_SPENT_WEI": ""                        
+                    }
+                }                                    
+            },
+            "ERC1155": {                
+                "CREATE_CONTRACT": {
+                    "TESTS": {
+                        "PATH": "",
+                        "GAS_SPENT_WEI": ""
+                    },
+                    "LIVE_TXN": {
+                        "TXN_LINK": "https://sepolia.etherscan.io/tx/0x63fbee5da871adfe53818731a30f5f94b468eb83f6bdbd59e9ff1c1571351e5a",
+                        "GAS_SPENT_WEI": "451,567"                        
+                    }                    
+                },
+                "MINT_NEW": {
+                    "TESTS": {
+                        "PATH": "",
+                        "GAS_SPENT_WEI": ""
+                    },                    
+                    "LIVE_TXN": {
+                        "TXN_LINK": "https://sepolia.etherscan.io/tx/0x7e55c0ad790b3505866af2f8404721b687f7bfb8fbf557f267bb0ea1949c366b",
+                        "GAS_SPENT_WEI": "509,538 (distributed 1 copy to 3 authors)"
+                    }
+                },
+                "MINT_EXISTING_1": {
+                    "TESTS": {
+                        "PATH": "",
+                        "GAS_SPENT_WEI": ""
+                    },    
+                    "LIVE_TXN": {
+                        "TXN_LINK": "https://sepolia.etherscan.io/tx/0x217659f77b2494a84b95e6c7ed05c97c947cc9c10679912bd28295c428cea15d",
+                        "GAS_SPENT_WEI": "111,697"                
+                    }                    
+                }            
+            }      
+        },
+        "NEW": {
+            "GITHUB_BRANCH": "https://github.com/public-assembly/AssemblyPress/tree/0xTranqui/Full-Rewrite-230615",
+            "ERC721": {
+                "CREATE_CONTRACT": {
+                    "TESTS": {
+                        "PATH": "--match-contract ERC721PressFactoryTest --match-test test_gasTest",
+                        "GAS_SPENT_WEI": "653,048"
+                    },
+                    "LIVE_TXN": {
+                        "TXN_LINK": "https://sepolia.etherscan.io/tx/0x61965d34b77a628b6a9b70ab474a2d2646148150534f3defcbea33539783c8d6",
+                        "GAS_SPENT_WEI": "689,334"
+                    }
+                },
+                "CURATION_DATABASE_V1": {
+                    "MINT_WITH_DATA_1": {
+                        "TESTS": {
+                            "PATH": "forge test --match-contract ERC721PressTest --match-test test_mint_1_WithData -vvvv",
+                            "GAS_SPENT_WEI": "169,968"
+                        },
+                        "LIVE_TXN": {
+                            "TXN_LINK": "",
+                            "GAS_SPENT_WEI": ""
+                        }
+                    },
+                    "MINT_WITH_DATA_2": {
+                        "TESTS": {
+                            "PATH": "forge test --match-contract ERC721PressTest --match-test test_mint_2_WithData -vvvv",
+                            "GAS_SPENT_WEI": "258,503"
+                        },
+                        "LIVE_TXN": {
+                            "TXN_LINK": "",
+                            "GAS_SPENT_WEI": ""
+                        }
+                    }                       
+                },
+                "CURATION_DATABASE_V2": {
+                    "MINT_WITH_DATA_1": {
+                        "TESTS": {
+                            "PATH": "forge test --match-contract CurationDatabaseV2Test --match-test test_mintWithData -vvvv",
+                            "GAS_SPENT_WEI": "188,178"
+                        },
+                        "LIVE_TXN": {
+                            "TXN_LINK": "",
+                            "GAS_SPENT_WEI": ""
+                        }
+                    },
+                    "MINT_WITH_DATA_2": {
+                        "TESTS": {
+                            "PATH": "",
+                            "GAS_SPENT_WEI": ""
+                        },
+                        "LIVE_TXN": {
+                            "TXN_LINK": "",
+                            "GAS_SPENT_WEI": ""
+                        }
+                    }                       
+                }                                             
+            },
+            "ERC1155": {
+                "CREATE_CONTRACT": {
+                    "TXN_LINK": "",
+                    "GAS_SPENT_WEI": ""
+                },
+                "MINT_NEW": {
+                    "TXN_LINK": "",
+                    "GAS_SPENT_WEI": ""
+                },
+                "MINT_EXISTING_1": {
+                    "TXN_LINK": "",
+                    "GAS_SPENT_WEI": ""                
+                }            
+            }              
+        }
+    },
+    "ZORA": {
+        "ERC721": {
+            "CREATE_EDITION": {
+                "TXN_LINK": "https://etherscan.io/tx/0x9cb75de5f6cf527c39e9fe23871d67e5fa812dd27f830de84018e69aa7eb51b5",
+                "GAS_SPENT_WEI": "540,263"
+            },
+            "PURCHASE_1": {
+                "TXN_LINK": "https://etherscan.io/tx/0x43a1269f6fce2aa8b14345b8d426bac4ddf4a918f5e132efe3e83436514e8bee",
+                "GAS_SPENT_WEI": "112,177"
+            },
+            "PURCHASE_2": {
+                "TXN_LINK": "https://etherscan.io/tx/0x539f910bc7471bb7e3c0e7b6b17099cf9b735aeef51cbcdb8960874a1db8e334",
+                "GAS_SPENT_WEI": "114,082"
+            }                           
+        },
+        "ERC1155": {
+            "CREATE_CONTRACT": {
+                "TXN_LINK": "",
+                "GAS_SPENT_WEI": ""
+            },
+            "SETUP_NEW_TOKEN": {
+                "TXN_LINK": "",
+                "GAS_SPENT_WEI": ""
+            },
+            "CREATE_CONTRACT_AND_SETUP_NEW_TOKEN": {
+                "TXN_LINK": "https://etherscan.io/tx/0x26d644e15ede73b3e3069da33e3c9681450643d51a2f70d4a890ebd986b327b0",
+                "GAS_SPENT_WEI": "670,016"
+            },            
+            "MINT_1": {
+                "TXN_LINK": "https://etherscan.io/tx/0x8ddf34f358ae0ab8a5d38fc751fb422da234a89fd62eb1f03752a3dbf3a194f1",
+                "GAS_SPENT_WEI": "103,853"                
+            },
+            "MINT_2": {
+                "TXN_LINK": "https://etherscan.io/tx/0xe865dc2643cd13c085ec1d283ab6e54a5fb271415a6196286cfd2ad117b96812",
+                "GAS_SPENT_WEI": "103,853 "                
+            }                                    
+        }        
+    },        
+}

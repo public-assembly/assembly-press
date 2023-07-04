@@ -15,6 +15,7 @@ import {MockLogic} from "./utils/mocks/MockLogic.sol";
 
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
 import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
+import {BytesLib} from "solidity-bytes-utils/BytesLib.sol";
 
 contract ERC721PressTest is ERC721PressConfig {
 
@@ -45,7 +46,19 @@ contract ERC721PressTest is ERC721PressConfig {
         });                    
     }
 
-    function test_mintWithData() public setUpCurationStrategy {
+    function test_mint_1_WithData() public setUpCurationStrategy {
+        vm.startPrank(PRESS_ADMIN_AND_OWNER);       
+        PartialListing[] memory listings = new PartialListing[](1);        
+        listings[0].chainId = 1;       
+        listings[0].tokenId = 3;      
+        listings[0].listingAddress = address(0x12345);       
+        listings[0].hasTokenId = true;            
+        bytes memory encodedListings = encodeListingArray(listings);
+        targetPressProxy.mintWithData(1, encodedListings);
+        require(targetPressProxy.balanceOf(PRESS_ADMIN_AND_OWNER) == 1, "mint not functioning correctly");   
+    }     
+
+    function test_mint_2_WithData() public setUpCurationStrategy {
         vm.startPrank(PRESS_ADMIN_AND_OWNER);       
         PartialListing[] memory listings = new PartialListing[](2);        
         listings[0].chainId = 1;       
@@ -460,7 +473,7 @@ contract ERC721PressTest is ERC721PressConfig {
         require(precalculatedRoyalty == expectedRoyaltyValue, "royalties not calculated correctly");
     }         
 
-    function test_mintWithData_paymentRouting() public setUpCurationStrategy {
+    function test_paymentRouting() public setUpCurationStrategy {
         vm.startPrank(PRESS_ADMIN_AND_OWNER);
         // set up mock logic for tests
         MockLogic mockLogic = new MockLogic();
@@ -556,4 +569,80 @@ contract ERC721PressTest is ERC721PressConfig {
     // *
     // *
     // *
+
+
+    // Tests with more optimal data passing
+    // 07/04/2023
+
+    struct ModifiedListing {
+        uint256 chainId;
+        uint256 tokenId;
+        address listingAddress;
+        uint8 hasTokenId;
+    }
+
+    function test_BytesUtils() public {
+
+        ModifiedListing memory listing = ModifiedListing({
+            chainId: 1,
+            tokenId: 2,
+            listingAddress: 0x153D2A196dc8f1F6b9Aa87241864B3e4d4FEc170,
+            hasTokenId: 1
+        });
+
+        bytes memory packedListing = abi.encodePacked(
+            listing.chainId,
+            listing.tokenId,
+            listing.listingAddress,
+            listing.hasTokenId
+        );
+
+        uint256 decodedChainId = BytesLib.toUint256(packedListing, 0);
+        require(decodedChainId == listing.chainId, "chainId encoding didnt work");
+
+        uint256 decodedtokenId = BytesLib.toUint256(packedListing, 32);
+        require(decodedtokenId== listing.tokenId, "tokenIdencoding didnt work");        
+
+        address decodedListingAddress = BytesLib.toAddress(packedListing, 64);
+        require(decodedListingAddress == listing.listingAddress, "listingAddress encoding didnt work");       
+
+        uint8 decodedHasTokenId = BytesLib.toUint8(packedListing, 84);
+        require(decodedHasTokenId == listing.hasTokenId, "decodedHasTokenId encoding didnt work");        
+
+
+
+        // uint256 value = 7;
+        // bytes memory uint256_Test = abi.encodePacked(value);
+        // uint256 decoded = BytesLib.toUint256(uint256_Test, 0);
+        // require(decoded == 7, "didnt work");
+    }
+
+    function test_constructListing() public {
+
+        ModifiedListing memory listing = ModifiedListing({
+            chainId: 1,
+            tokenId: 2,
+            listingAddress: 0x153D2A196dc8f1F6b9Aa87241864B3e4d4FEc170,
+            hasTokenId: 1
+        });
+
+        bytes memory packedListing = abi.encodePacked(
+            listing.chainId,
+            listing.tokenId,
+            listing.listingAddress,
+            listing.hasTokenId
+        );
+
+        ModifiedListing memory reconstructedListing = ModifiedListing({
+            chainId: BytesLib.toUint256(packedListing, 0),
+            tokenId: BytesLib.toUint256(packedListing, 32),
+            listingAddress: BytesLib.toAddress(packedListing, 64),
+            hasTokenId: BytesLib.toUint8(packedListing, 84)
+        });
+
+        require(reconstructedListing.chainId == listing.chainId, "chainId encoding didnt work");
+        require(reconstructedListing.tokenId == listing.tokenId, "tokenIdencoding didnt work");        
+        require(reconstructedListing.listingAddress == listing.listingAddress, "listingAddress encoding didnt work");       
+        require(reconstructedListing.hasTokenId == listing.hasTokenId, "decodedHasTokenId encoding didnt work");  
+    }
 }
