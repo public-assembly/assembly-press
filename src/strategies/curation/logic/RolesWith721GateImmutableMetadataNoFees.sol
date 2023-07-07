@@ -3,6 +3,7 @@ pragma solidity 0.8.17;
 
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
 
+import {ICurationLogic} from "./ICurationLogic.sol";
 import {IERC721PressLogic} from "../../../core/token/ERC721/interfaces/IERC721PressLogic.sol";
 import {IERC721Press} from "../../../core/token/ERC721/interfaces/IERC721Press.sol";
 import {ERC721Press} from "../../../core/token/ERC721/ERC721Press.sol";
@@ -14,15 +15,15 @@ import {ERC721Press} from "../../../core/token/ERC721/ERC721Press.sol";
 * @notice Facilitates metadata mutability logic. Token metadata cannot be adjusted after set
 * @author Max Bochman
 */
-contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
+contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic, ICurationLogic {
 
     //////////////////////////////////////////////////
     // TYPES
     //////////////////////////////////////////////////
 
-    /// @notice Shared struct tracking Press settings in logic
     /**
-     * Struct breakdown. Values in parentheses are bytes.
+     * @notice Shared struct tracking Press settings in logic
+     * @dev Struct breakdown. Values in parentheses are bytes.
      *
      * First slot
      * erc721gate (20) + frozenAt (10) + isPaused (1) + isTokenDataImmutable (1) = 32 bytes 
@@ -39,9 +40,9 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
         bool isTokenDataImmutable;
     }    
 
-    /// @notice Shared struct used to store role data for a given Press
     /**
-     * Struct breakdown. Values in parentheses are bytes.
+     * @notice Shared struct used to store role data for a given Press
+     * @dev Struct breakdown. Values in parentheses are bytes.
      *
      * First slot
      * account (20) + role (1) = 21 bytes
@@ -419,6 +420,23 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
     // EXTERNAL
     /////////////////////////    
 
+    /* CUSTOM FOR CURATION ******** */
+
+    function getSortAccess(address targetPress, address sortCaller)
+        external
+        view
+        NotFrozen(targetPress)
+        returns (bool)
+    {   
+        if (_getAccessLevel(targetPress, sortCaller) < MANAGER) {
+            return false;
+        } else {
+            return true;
+        }
+    }        
+
+    /* STANDARD ******************* */        
+
     /// @notice returns access level of a given account for a given Press
     function getAccessLevel(address targetPress, address accountToGetAccessFor)
         external
@@ -469,19 +487,6 @@ contract RolesWith721GateImmutableMetadataNoFees is IERC721PressLogic {
             return true;
         }
     }        
-
-    function getSortAccess(address targetPress, address sortCaller)
-        external
-        view
-        NotFrozen(targetPress)
-        returns (bool)
-    {   
-        if (_getAccessLevel(targetPress, sortCaller) < MANAGER) {
-            return false;
-        } else {
-            return true;
-        }
-    }    
 
     function getSettingsAccess(address targetPress, address settingsCaller)
         external

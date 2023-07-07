@@ -25,30 +25,7 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-import { IERC721PressDatabase } from "../../interfaces/IERC721PressDatabase.sol";
-
-/**
- @notice Database storage variables contract
- */
-contract ERC721PressDatabaseStorageV1 {
-
-  /**
-  * @notice Press => ID => Pointer to encoded data
-  * @dev The first `id` stored will be 0, which means data Ids trail their corresponding
-  *       tokenIds by 1
-  * @dev Can contain blank/burned entries (not garbage compacted)
-  * @dev See IERC721PressDatabase for details on TokenData struct
-  */
-  mapping(address => mapping(uint256 => address)) public idToData;
-
-  /**
-  * @notice Press => Settings information
-  * @dev see IERC721PressDatbase for details on Settings struct
-  */
-  mapping(address => IERC721PressDatabase.Settings) public settingsInfo;
-
-  /**
-  * @dev Factory address => isOfficial bool
-  */
-  mapping(address => bool) internal _officialFactories;    
+interface ICurationLogic {
+    /// @notice Checks if a certain address get call the sort function for a given Press
+    function getSortAccess(address targetPress, address sortCaller) external view returns (bool);     
 }

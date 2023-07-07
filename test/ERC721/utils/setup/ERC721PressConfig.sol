@@ -44,18 +44,6 @@ contract ERC721PressConfig is Test {
     RolesWith721GateImmutableMetadataNoFees public logic = new RolesWith721GateImmutableMetadataNoFees();
     CurationRendererV1 public renderer = new CurationRendererV1();
 
-    // CURATION SPECIFIC TYPE
-    struct PartialListing {
-        /// @notice ChainID for curated contract
-        uint256 chainId;        
-        /// @notice Token ID that is selected (see `hasTokenId` to see if this applies)
-        uint256 tokenId;        
-        /// @notice Address that is curated
-        address listingAddress;
-        /// @notice If `tokenId` applies to the listing
-        bool hasTokenId;        
-    }
-
     // Gets run before every test 
     function setUp() public {
         // DEPLOY PRESS + PRESS PROXY CONTRACTS
@@ -210,7 +198,7 @@ contract ERC721PressConfig is Test {
 
     // LISTING ENCODING HELPERS
 
-    function encodeListing(PartialListing memory _listing) public pure returns (bytes memory) {
+    function encodeListing(CurationDatabaseV1.Listing memory _listing) public pure returns (bytes memory) {
         return abi.encode(
             _listing.chainId,
             _listing.tokenId,
@@ -219,11 +207,29 @@ contract ERC721PressConfig is Test {
         );
     }     
 
-    function encodeListingArray(PartialListing[] memory _listings) public returns (bytes memory) {
+    function encodeListingArray(CurationDatabaseV1.Listing[] memory _listings) public returns (bytes memory) {
         bytes[] memory encodedListings = new bytes[](_listings.length);
         for (uint i = 0; i < _listings.length; i++) {
             encodedListings[i] = encodeListing(_listings[i]);
         }
         return abi.encode(encodedListings);
     }        
+
+    /* Archiving internal helper that utilized encodePacked to more efficiently encode data
+    function encodeListings(CurationDatabaseV1.Listing[] memory _listings) public pure returns (bytes memory) {
+        bytes memory encodedListings;
+        for (uint i = 0; i < _listings.length; ++i) {
+            encodedListings = bytes.concat(
+                encodedListings, 
+                abi.encodePacked(
+                    _listings[i].chainId,
+                    _listings[i].tokenId,
+                    _listings[i].listingAddress,
+                    _listings[i].hasTokenId                    
+                )
+            );
+        }
+        return encodedListings;
+    }        
+    */
 }

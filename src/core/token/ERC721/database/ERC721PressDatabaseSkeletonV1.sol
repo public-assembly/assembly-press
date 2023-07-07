@@ -52,7 +52,7 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
     ////////////////////////////////////////////////////////////    
 
     /**
-    * @notice Checks if target Press has been initialized
+    * @notice Checks if target Press has been initialized to the database
     */
     modifier requireInitialized(address targetPress) {
 
@@ -190,44 +190,7 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         IERC721PressRenderer(renderer).initializeWithData(targetPress, rendererInit);
 
         emit RendererUpdated(targetPress, renderer);
-    }             
-
-    //////////////////////////////
-    // SORT DATA
-    //////////////////////////////     
-
-    /**
-    * @dev Facilitates z-index style sorting of data IDs. SortOrders can be positive or negative
-    * @dev Will only sort ids for a given Press if called directly by the Press
-    * @dev Access checks enforced in Press
-    * @param sortCaller address of account initiating `sort()` from targetPress 
-    * @param tokenIds data IDs to store sortOrders for    
-    * @param sortOrders sorting values to store
-    */
-    function sortData(
-        address sortCaller, 
-        uint256[] calldata tokenIds, 
-        int96[] calldata sortOrders
-    ) external requireInitialized(msg.sender) {
-        // Cache address of msg.sender -- which will be the targetPress if called correclty
-        address targetPress = msg.sender;
-
-        for (uint256 i = 0; i < tokenIds.length; i++) {       
-            _sortData(targetPress, tokenIds[i], sortOrders[i]);
-        }
-        emit DataSorted(targetPress, sortCaller, tokenIds, sortOrders);
-    }    
-    
-    /**
-    * @notice Internal handler for sort functionality
-    * @dev No access checks, enforce elsewhere
-    * @param targetPress address of Press to sort data for
-    * @param tokenId TokenId of Press to sort data for
-    * @param sortOrder SortOrder value to store
-    */
-    function _sortData(address targetPress, uint256 tokenId, int96 sortOrder) internal {
-        idToData[targetPress][tokenId-1].sortOrder = sortOrder;
-    }             
+    }                   
 
     //////////////////////////////
     // REMOVE DATA
@@ -235,8 +198,8 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
 
     /**
     * @notice Event emitter that signals for indexer that this token has been burned.
-    * @dev when a token is burned, the data associated with it will no longer be returned 
-    *     in`getAllData`, and will return zero values in `getData`
+    * @dev When a token is burned, the data associated with it will no longer be returned 
+    *     in `getAllData`, and will return zero values in `getData`
     * @param removeCaller address of account initiating `burn` from targetPress
     * @param tokenIds tokenIds to target
     */
@@ -265,20 +228,14 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         external 
         view 
         requireInitialized(targetPress) 
-        returns (TokenDataRetrieved memory data) {
+        returns (bytes memory data) {
 
-        // Return blank struct if token has been burnt
+        // Return blank data if token has been burnt
         if (ERC721Press(payable(targetPress)).exists(tokenId) == false) {
             bytes memory bytesZeroValue = new bytes(0);
-            return TokenDataRetrieved({
-                storedData: bytesZeroValue,
-                sortOrder: 0
-            });            
+            return bytesZeroValue;         
         } else {
-            return TokenDataRetrieved({
-                storedData: SSTORE2.read(idToData[targetPress][tokenId-1].pointer),
-                sortOrder: idToData[targetPress][tokenId-1].sortOrder
-            });
+            return SSTORE2.read(idToData[targetPress][tokenId-1]);
         }
     }
 
@@ -293,9 +250,9 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         external 
         view 
         requireInitialized(targetPress)
-        returns (TokenDataRetrieved[] memory activeData) {
+        returns (bytes[] memory activeData) {
         unchecked {
-            activeData = new TokenDataRetrieved[](ERC721Press(payable(targetPress)).totalSupply());
+            activeData = new bytes[](ERC721Press(payable(targetPress)).totalSupply());
 
             // First data slot tokenData mapping is 0
             uint256 activeIndex;
@@ -305,10 +262,7 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
                 if (ERC721Press(payable(targetPress)).exists(i+1) == false) {
                     continue;
                 }
-                activeData[activeIndex] = TokenDataRetrieved({
-                        storedData: SSTORE2.read(idToData[targetPress][i].pointer),
-                        sortOrder: idToData[targetPress][i].sortOrder
-                });              
+                activeData[activeIndex] = SSTORE2.read(idToData[targetPress][i]);        
                 ++activeIndex;
             }
         }
@@ -379,20 +333,7 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
         uint256 tokenId        
     ) external view requireInitialized(targetPress) returns (bool burnAccess) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getBurnAccess(targetPress, burnCaller, tokenId);            
-    }     
-
-    /**
-    * @notice Checks sort access for a given sort caller
-    * @param targetPress Press contract to check access for
-    * @param sortCaller Address of sortCaller to check access for    
-    * @return sortAccess True/false bool
-    */
-    function canSort(
-        address targetPress, 
-        address sortCaller
-    ) external view requireInitialized(targetPress) returns (bool sortAccess) {
-        return IERC721PressLogic(settingsInfo[targetPress].logic).getSortAccess(targetPress, sortCaller);            
-    }     
+    }      
 
     /**
     * @notice Checks settings access for a given settings caller

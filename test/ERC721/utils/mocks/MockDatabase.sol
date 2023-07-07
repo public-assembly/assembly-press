@@ -33,11 +33,13 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, Dua
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     */
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| MODIFERS |||||||||||||||||||
-    // ||||||||||||||||||||||||||||||||      
+    ////////////////////////////////////////////////////////////
+    // MODIFIERS
+    ////////////////////////////////////////////////////////////    
 
-    /// @notice Checks if target Press has been initialized
+    /**
+    * @notice Checks if target Press has been initialized to the database
+    */
     modifier requireInitialized(address targetPress) {
 
         if (settingsInfo[targetPress].initialized != 1) {
@@ -47,70 +49,49 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, Dua
         _;
     }            
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| DATABASE ADMIN |||||||||||||
-    // ||||||||||||||||||||||||||||||||     
+    ////////////////////////////////////////////////////////////
+    // WRITE FUNCTIONS
+    ////////////////////////////////////////////////////////////
 
+    //////////////////////////////
+    // DATABASE ADMIN
+    //////////////////////////////        
+
+    /**
+    * @notice Gives factory ability to initalize contracts in this database
+    * @dev Ability cannot be removed once set
+    * @param factory Address of factory to grant initialise ability
+    */
     function setOfficialFactory(address factory) eitherOwner external {
         _officialFactories[factory] = true;
         emit NewFactoryAdded(msg.sender, factory);
     }
 
-    // NOTE: Removed from Mock
-    // function initializePress(address targetPress) external {
-    //     if (_officialFactories[msg.sender] != true) {
-    //         revert No_Initialize_Access();
-    //     }
-    //     settingsInfo[targetPress].initialized = 1;
-
-    //     emit PressInitialized(msg.sender, targetPress);
-    // }
-
-    function isOfficialFactory(address target) external {
+    /**
+    * @notice Getter for officialFactory status of an address. If true, can call `initializePress`
+    * @param target Address to check
+    */
+    function isOfficialFactory(address target) external view returns (bool) {
         if (_officialFactories[target] == true) {
-            true;
+            return true;
         } else {
-            false;
+            return false;
         }
-    }
+    }        
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| DATABASE PRESS INIT ||||||||
-    // ||||||||||||||||||||||||||||||||          
+    //////////////////////////////
+    // PRESS SETTINGS
+    //////////////////////////////       
 
-    // NOTE: Removed from Mock
-    // /// @notice Default logic initializer for a given Press
-    // /// @dev updates settings for msg.sender, so no need to add access control to this function
-    // /// @param databaseInit data to init with
-    // function initializeWithData(bytes memory databaseInit) requireInitialized(msg.sender) external {
-
-    //     // Cache msg.sender
-    //     address sender = msg.sender;
-
-    //     // data format: logic, logicInit, renderer, rendererInit
-    //     (   
-    //         address logic,
-    //         bytes memory logicInit,
-    //         address renderer,
-    //         bytes memory rendererInit
-    //     ) = abi.decode(databaseInit, (address, bytes, address, bytes));
-
-    //     // set settingsInfo[targetPress]
-    //     settingsInfo[sender].logic = logic;        
-    //     settingsInfo[sender].renderer = renderer;
-        
-    //     // initialize logic + renderer contracts
-    //     _setLogic(sender, logic, logicInit);
-    //     _setRenderer(sender, renderer, rendererInit);                 
-    // }       
-
-    // ||||||||||||||||||||||||||||||||
-    // ||| DATABASE PRESS ADMIN |||||||
-    // ||||||||||||||||||||||||||||||||     
-
-    // external handler for setLogic function
+    /**
+    * @notice Facilitates updating of logic contract for a given Press
+    * @dev LogicInit can be blank
+    * @param targetPress Press to update logic for
+    * @param logic Address of logic implementation
+    * @param logicInit Data to init logic with
+    */
     function setLogic(address targetPress, address logic, bytes memory logicInit) requireInitialized(targetPress) external {
-        // Check if msg.sender has access to update settings for Press
+        // Request settings access from logic contract
         if (IERC721PressLogic(settingsInfo[targetPress].logic).getSettingsAccess(targetPress, msg.sender) == false) {
             revert No_Settings_Access();
         }
@@ -118,8 +99,15 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, Dua
         _setLogic(targetPress, logic, logicInit);
     }  
 
-    // external handler for setRenderer function
+    /**
+    * @notice Facilitates updating of renderer contract for a given Press
+    * @dev RendererInit can be blank
+    * @param targetPress Press to update renderer for
+    * @param renderer Address of renderer implementation
+    * @param rendererInit Data to init renderer with
+    */
     function setRenderer(address targetPress, address renderer, bytes memory rendererInit) requireInitialized(targetPress) external {
+        // Request settings access from logic contract
         if (IERC721PressLogic(settingsInfo[targetPress].logic).getSettingsAccess(targetPress, msg.sender) == false) {
             revert No_Settings_Access();
         }
@@ -127,8 +115,13 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, Dua
         _setRenderer(targetPress, renderer, rendererInit);
     }  
 
-    /// @notice internal handler for setLogic function
-    /// @dev no access checks, enforce elsewhere
+    /**
+    * @notice Internal handler for setLogic function
+    * @dev No access checks, enforce elsewhere
+    * @param targetPress Press to update logic for
+    * @param logic Address of logic implementation
+    * @param logicInit Data to init logic with    
+    */
     function _setLogic(address targetPress, address logic, bytes memory logicInit) internal {
         settingsInfo[targetPress].logic = logic;
         IERC721PressLogic(logic).initializeWithData(targetPress, logicInit);
@@ -136,188 +129,174 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, Dua
         emit LogicUpdated(targetPress, logic);
     }    
 
-    /// @notice internal handler for setRenderer function
-    /// @dev no access checks, enforce elsewhere
+    /**
+    * @notice Internal handler for setRenderer function
+    * @dev RendererInit can be blank
+    * @param targetPress Press to update renderer for
+    * @param renderer Address of renderer implementation
+    * @param rendererInit Data to init renderer with
+    */
     function _setRenderer(address targetPress, address renderer, bytes memory rendererInit) internal {
         settingsInfo[targetPress].renderer = renderer;
         IERC721PressRenderer(renderer).initializeWithData(targetPress, rendererInit);
 
         emit RendererUpdated(targetPress, renderer);
-    }          
+    }                   
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| DATA STORAGE |||||||||||||||
-    // ||||||||||||||||||||||||||||||||     
+    //////////////////////////////
+    // STORE DATA
+    //////////////////////////////    
 
-    /////////////////////////
-    // WRITE
-    /////////////////////////    
-
-    /// @dev Function called by mintWithData function in ERC721Press mint call that
-    //      updates specific tokenData for msg.sender, so no need to add access control to this function
-    /// @param storeCaller address of account initiating `mintWithData()` from targetPress
-    /// @param data data getting passed in along mint
+    /**
+    * @dev Function called by mintWithData function in ERC721Press mint call that
+    *      updates specific tokenData for msg.sender, so no need to add access control to this function
+    * @param storeCaller address of account initiating `mintWithData()` from targetPress
+    * @param data data getting passed in along mint
+    */
     function storeData(address storeCaller, bytes calldata data) external requireInitialized(msg.sender) {
-        // data format: tokens
-        (bytes[] memory tokens) = abi.decode(data, (bytes[]));
+        // Cache msg.sender -- which is the Press if called correctly
+        address sender = msg.sender;
 
-        _storeData(msg.sender, storeCaller, tokens);
-    }          
+        // Cache storedCounter
+        // NOTE: storedCounter trails associated tokenId by 1
+        uint256 storedCounter = settingsInfo[sender].storedCounter;
+        // Use sstore2 to store bytes segments from bytes array                
+        idToData[sender][storedCounter] = SSTORE2.write(data);       
+        emit DataStored(
+            sender, 
+            storeCaller,
+            storedCounter,  
+            idToData[sender][storedCounter]
+        );                                       
+        // Increment press storedCounter after storing data
+        ++settingsInfo[sender].storedCounter;         
+    }   
 
-    /// @dev Stores indicies of a given bytes array
-    /// @param targetPress ERC721Press to target
-    /// @param storeCaller address of account initiating `mintWithData` from targetPress
-    /// @param tokens arbitrary encoded bytes data
-    function _storeData(address targetPress, address storeCaller, bytes[] memory tokens) internal {     
-        for (uint256 i = 0; i < tokens.length; ++i) {
-            // cache storedCounter
-            uint256 storedCounter = settingsInfo[targetPress].storedCounter;
-            // use sstore2 to store bytes segments in bytes array
-            idToData[targetPress][storedCounter].pointer = SSTORE2.write(
-                tokens[i]
-            );       
-            // NOTE: storedCounter trails the tokenId being minted by 1
-            emit DataStored(
-                targetPress, 
-                storeCaller,
-                storedCounter,  
-                idToData[targetPress][storedCounter].pointer
-            );                                       
-            // increment press storedCounter after storing data
-            ++settingsInfo[targetPress].storedCounter;    
-        }           
-    }              
+    //////////////////////////////
+    // OVERWRITE DATA
+    //////////////////////////////                
 
-    /// @dev Facilitates z-index style sorting of data IDs. SortOrders can be positive or negative
-    /// @dev Will only sort ids for a given Press if called directly by the Press
-    /// @dev Access checks enforced in Press
-    /// @param sortCaller address of account initiating `sort()` from targetPress 
-    /// @param tokenIds data IDs to store sortOrders for    
-    /// @param sortOrders sorting values to store
-    function sortData(
-        address sortCaller, 
-        uint256[] calldata tokenIds, 
-        int96[] calldata sortOrders
-    ) external requireInitialized(msg.sender) {
-        // Cache address of msg.sender -- which will be the targetPress if called correclty
-        address targetPress = msg.sender;
-
-        for (uint256 i = 0; i < tokenIds.length; i++) {       
-            _sortData(targetPress, tokenIds[i], sortOrders[i]);
-        }
-        emit DataSorted(targetPress, sortCaller, tokenIds, sortOrders);
-    }    
-    
-    /// @notice Internal handler for sort functionality
-    /// @dev No access checks, enforce elsewhere
-    function _sortData(address targetPress, uint256 tokenId, int96 sortOrder) internal {
-        //
-        idToData[targetPress][tokenId-1].sortOrder = sortOrder;
-    }        
-
-    /// @dev Updates sstore2 data ointers for already existing tokens
-    /// @param overwriteCaller address of account initiating `update()` from targetPress
-    /// @param tokenIds arbitrary encoded bytes data
-    /// @param newData data passed in alongside update call
+    /**
+    * @dev Updates sstore2 data pointers for already existing tokens
+    * @param overwriteCaller address of account initiating `update()` from targetPress
+    * @param tokenIds arbitrary encoded bytes data
+    * @param newData data passed in alongside update call
+    */
     function overwriteData(address overwriteCaller, uint256[] memory tokenIds, bytes[] calldata newData) external requireInitialized(msg.sender) {
         // Cache msg.sender
         address targetPress = msg.sender;
 
-        for (uint256 i = 0; i < tokenIds.length; ++i) {
+        for (uint256 i = 0; i < tokenIds.length; ++i) {       
             // use sstore2 to store bytes segments in bytes array
-            address newPointer = idToData[targetPress][tokenIds[i]-1].pointer = SSTORE2.write(
+            address newPointer = idToData[targetPress][tokenIds[i]-1] = SSTORE2.write(
                 newData[i]
             );                                
             emit DataOverwritten(targetPress, overwriteCaller, tokenIds[i], newPointer);                                
         }                  
-    }             
+    }              
 
-    /// @dev Event emitter that signals for indexer that this token has been burned.
-    ///     when a token is burned, the data associated with it will no longer be returned 
-    ///     in`getAllData`, and will return zero values in `getData`
-    /// @param removeCaller address of account initiating `burn` from targetPress
-    /// @param tokenIds tokenIds to target
+    //////////////////////////////
+    // REMOVE DATA
+    //////////////////////////////       
+
+    /**
+    * @notice Event emitter that signals for indexer that this token has been burned.
+    * @dev When a token is burned, the data associated with it will no longer be returned 
+    *     in `getAllData`, and will return zero values in `getData`
+    * @param removeCaller address of account initiating `burn` from targetPress
+    * @param tokenIds tokenIds to target
+    */
     function removeData(address removeCaller, uint256[] memory tokenIds) external requireInitialized(msg.sender) {
         for (uint256 i; i < tokenIds.length; ++i) {
             emit DataRemoved(msg.sender, removeCaller, tokenIds[i]);
         }
     }    
 
-    /////////////////////////
-    // READ
-    /////////////////////////    
+    ////////////////////////////////////////////////////////////
+    // READ FUNCTIONS
+    ////////////////////////////////////////////////////////////
 
-    /// @dev Getter for acessing data for a specific ID for a given Press
-    /// @param targetPress ERC721Press to target 
-    /// @param tokenId tokenId to retrieve data for 
+    //////////////////////////////
+    // READ DATA
+    //////////////////////////////    
+
+    /**
+    * @notice Getter for acessing data for a specific ID for a given Press
+    * @dev Fetches + returns stored bytes values from sstore2
+    * @param targetPress ERC721Press to target 
+    * @param tokenId tokenId to retrieve data for 
+    * @return data Data stored for given token
+    */
     function readData(address targetPress, uint256 tokenId) 
         external 
         view 
         requireInitialized(targetPress) 
-        returns (TokenDataRetrieved memory) {
+        returns (bytes memory data) {
 
-        // Return blank struct if token has been burnt
+        // Return blank data if token has been burnt
         if (ERC721Press(payable(targetPress)).exists(tokenId) == false) {
             bytes memory bytesZeroValue = new bytes(0);
-            return TokenDataRetrieved({
-                storedData: bytesZeroValue,
-                sortOrder: 0
-            });            
+            return bytesZeroValue;         
         } else {
-            return TokenDataRetrieved({
-                storedData: SSTORE2.read(idToData[targetPress][tokenId-1].pointer),
-                sortOrder: idToData[targetPress][tokenId-1].sortOrder
-            });
+            return SSTORE2.read(idToData[targetPress][tokenId-1]);
         }
     }
 
-    /// @dev Getter for acessing data for all active IDs for a given Press
-    /// @param targetPress ERC721Press to target     
+    /**
+    * @notice Getter for acessing data for all active IDs for a given Press
+    * @dev Active Ids = Ids whos associated tokens have not been burned
+    * @dev Fetches + returns stored bytes values from sstore2
+    * @param targetPress ERC721Press to target 
+    * @return activeData Array of all active data
+    */
     function readAllData(address targetPress) 
         external 
         view 
         requireInitialized(targetPress)
-        returns (TokenDataRetrieved[] memory activeData) {
+        returns (bytes[] memory activeData) {
         unchecked {
-            activeData = new TokenDataRetrieved[](ERC721Press(payable(targetPress)).totalSupply());
+            activeData = new bytes[](ERC721Press(payable(targetPress)).totalSupply());
 
-            // first data slot tokenData mapping is 0
+            // First data slot tokenData mapping is 0
             uint256 activeIndex;
 
             for (uint256 i; i < settingsInfo[targetPress].storedCounter; ++i) {
-                // skip this listing if user has burned the token (sent to zero address)
+                // Skip this listing if user has burned the token (sent to zero address)
                 if (ERC721Press(payable(targetPress)).exists(i+1) == false) {
                     continue;
                 }
-                activeData[activeIndex] = TokenDataRetrieved({
-                        storedData: SSTORE2.read(idToData[targetPress][i].pointer),
-                        sortOrder: idToData[targetPress][i].sortOrder
-                });              
+                activeData[activeIndex] =  SSTORE2.read(idToData[targetPress][i]);        
                 ++activeIndex;
             }
         }
     } 
-  
-    // ||||||||||||||||||||||||||||||||
-    // ||| PRICE + STATUS CHECKS ||||||
-    // ||||||||||||||||||||||||||||||||     
 
-    /// @notice checks total mint price for a given Press x mintCaller x mintQuantity
-    /// @param targetPress press contract to check mint price of
-    /// @param mintCaller address of mintCaller to check pricing on behalf of
-    /// @param mintQuantity mintQuantity used to calculate total mint price
+    //////////////////////////////
+    // PRICE + STATUS CHECKS
+    //////////////////////////////           
+
+    /**
+    * @notice Checks total mint price for a given Press x mintCaller x mintQuantity
+    * @param targetPress Press contract to check mint price of
+    * @param mintCaller Address of mintCaller to check pricing on behalf of
+    * @param mintQuantity Quantity used to calculate total mint price
+    * @return price Total price (in wei) needed to process transaction
+    */
     function totalMintPrice(
         address targetPress, 
         address mintCaller,
         uint256 mintQuantity
-    ) external view requireInitialized(targetPress) returns (uint256) {
+    ) external view requireInitialized(targetPress) returns (uint256 price) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getMintPrice(targetPress, mintCaller, mintQuantity);
     }         
 
-    /// @notice checks value of initialized variable in settingsInfo mapping for target Press
-    /// @param targetPress press contract to check initialization status
-    function isInitialized(address targetPress) external view returns (bool) {
-        // return false if targetPress has not been initialized
+    /**
+    * @notice Checks value of initialized variable in settingsInfo mapping for target Press
+    * @param targetPress Press contract to check initialization status
+    * @return initialized True/false bool if press is initialized
+    */
+    function isInitialized(address targetPress) external view returns (bool initialized) {
+        // Return false if targetPress has not been initialized
         if (settingsInfo[targetPress].initialized == 0) {
             return false;
         }
@@ -325,102 +304,112 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, Dua
         return true;
     }             
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| ACCESS CHECKS ||||||||||||||
-    // ||||||||||||||||||||||||||||||||      
+    //////////////////////////////
+    // ACCESS CHECKS
+    //////////////////////////////       
 
-    /// @notice checks mint access for a given mintQuantity + mintCaller
-    /// @param targetPress press contract to check access for
-    /// @param mintCaller address of mintCaller to check access for    
-    /// @param mintQuantity mintQuantity to check access for 
+    /**
+    * @notice Checks mint access for a given mintQuantity + mintCaller
+    * @param targetPress Press contract to check access for
+    * @param mintCaller Address of mintCaller to check access for    
+    * @param mintQuantity Quantiy to check access for 
+    * @return mintAccess True/false bool
+    */
     function canMint(
         address targetPress, 
         address mintCaller,
         uint256 mintQuantity
-    ) external view requireInitialized(targetPress) returns (bool) {
-        //        
+    ) external view requireInitialized(targetPress) returns (bool mintAccess) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getMintAccess(targetPress, mintCaller, mintQuantity);    
     }         
 
-    /// @notice checks burn access for a given burn caller
-    /// @param targetPress press contract to check access for
-    /// @param burnCaller address of burnCaller to check access for    
-    /// @param tokenId tokenId to check access for
+    /**
+    * @notice Checks burn access for a given burn caller
+    * @param targetPress Press contract to check access for
+    * @param burnCaller Address of burnCaller to check access for    
+    * @param tokenId TokenId to check access for
+    * @return burnAccess True/false bool
+    */
     function canBurn(
         address targetPress, 
         address burnCaller,
         uint256 tokenId        
-    ) external view requireInitialized(targetPress) returns (bool) {
-        //
+    ) external view requireInitialized(targetPress) returns (bool burnAccess) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getBurnAccess(targetPress, burnCaller, tokenId);            
-    }     
+    }      
 
-    /// @notice checks sort access for a given sort caller
-    /// @param targetPress press contract to check access for
-    /// @param sortCaller address of sortCaller to check access for    
-    function canSort(
-        address targetPress, 
-        address sortCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-        //
-        return IERC721PressLogic(settingsInfo[targetPress].logic).getSortAccess(targetPress, sortCaller);            
-    }     
-
-    /// @notice checks settings access for a given settings caller
-    /// @param targetPress press contract to check access for
-    /// @param settingsCaller address of settingsCaller to check access for    
+    /**
+    * @notice Checks settings access for a given settings caller
+    * @param targetPress Press contract to check access for
+    * @param settingsCaller Address of settingsCaller to check access for 
+    * @return settingsAccess True/false bool
+    */   
     function canEditSettings(
         address targetPress, 
         address settingsCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-        //
+    ) external view requireInitialized(targetPress) returns (bool settingsAccess) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getSettingsAccess(targetPress, settingsCaller);            
     }       
 
-    /// @notice checks dataCaller edit access for a given edit caller
-    /// @param targetPress press contract to check access for
-    /// @param dataCaller address of dataCaller to check access for    
+    /**
+    * @notice Checks dataCaller edit access for a given edit caller
+    * @param targetPress Press contract to check access for
+    * @param dataCaller Address of dataCaller to check access for   
+    * @return contractAccess True/false bool 
+    */
     function canEditContractData(
         address targetPress, 
         address dataCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-        //
+    ) external view requireInitialized(targetPress) returns (bool contractAccess) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getContractDataAccess(targetPress, dataCaller);
     }        
 
-    /// @notice checks dataCaller edit access for a given edit caller
-    /// @param targetPress press contract to check access for
-    /// @param dataCaller address of dataCaller to check access for
-    /// @param tokenId tokenId to check access for        
+    /**
+    * @notice Checks dataCaller edit access for a given edit caller
+    * @param targetPress Press contract to check access for
+    * @param dataCaller Address of dataCaller to check access for
+    * @param tokenId TokenId to check access for     
+    * @return tokenAccess True/false bool 
+    */   
     function canEditTokenData(
         address targetPress, 
         address dataCaller,
         uint256 tokenId
-    ) external view requireInitialized(targetPress) returns (bool) {
-        //
+    ) external view requireInitialized(targetPress) returns (bool tokenAccess) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getTokenDataAccess(targetPress, dataCaller, tokenId);
     }    
 
-    /// @notice checks payments access for a given caller
-    /// @param targetPress press contract to check access for
-    /// @param paymentsCaller address of paymentsCaller to check access for   
+    /**
+    * @notice Checks payments access for a given caller
+    * @param targetPress Press contract to check access for
+    * @param paymentsCaller Address of paymentsCaller to check access for   
+    * @return paymentsAccess True/false bool     
+    */
     function canEditPayments(
         address targetPress, 
         address paymentsCaller
-    ) external view requireInitialized(targetPress) returns (bool) {
-        //
+    ) external view requireInitialized(targetPress) returns (bool paymentsAccess) {
         return IERC721PressLogic(settingsInfo[targetPress].logic).getPaymentsAccess(targetPress, paymentsCaller);
     }         
 
-    // ||||||||||||||||||||||||||||||||
-    // ||| METADATA RENDERING |||||||||
-    // ||||||||||||||||||||||||||||||||  
+    //////////////////////////////
+    // DATA RENDERING
+    //////////////////////////////   
 
-    function contractURI() requireInitialized(msg.sender) external view returns (string memory) {
+    /**
+    * @notice ContractURI getter for a given Press.
+    * @return uri String contractURI
+    */
+    function contractURI() requireInitialized(msg.sender) external view returns (string memory uri) {
         return IERC721PressRenderer(settingsInfo[msg.sender].renderer).getContractURI(msg.sender);
     }          
 
-    function tokenURI(uint256 tokenId) requireInitialized(msg.sender) external view returns (string memory) {
+    /**
+    * @notice TokenURI getter for a given Press + tokenId
+    * @param tokenId TokenId to get uri for
+    * @return uri String tokenURI
+    */
+    function tokenURI(uint256 tokenId) requireInitialized(msg.sender) external view returns (string memory uri) {
         return IERC721PressRenderer(settingsInfo[msg.sender].renderer).getTokenURI(msg.sender, tokenId);
-    }              
+    }  
 }

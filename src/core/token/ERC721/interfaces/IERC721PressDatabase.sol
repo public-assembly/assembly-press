@@ -31,38 +31,13 @@ interface IERC721PressDatabase {
     // TYPES
     ////////////////////////////////////////////////////////////
 
-    /// @notice Data structure used to store data for a given token
     /**
-     * Struct breakdown. Values in parentheses are bytes.
+     * @notice Data structure used to store Press settings in database
+     * @dev Struct breakdown. Values in parentheses are bytes.
      *
-     * First slot
-     * pointer (20) + sortOrder (12) = 32 bytes
-    */
-    struct TokenData {
-        /// @notice Sstore2 data pointer        
-        address pointer;
-        /// @notice Optional z-index style sorting mechanism for ids. Can be negative
-        int96 sortOrder;
-    }
-
-    /// @notice Data structure used to return data when requested for a given token
-    struct TokenDataRetrieved {
-        /// @notice Bytes data stored atsstore2 data pointer        
-        bytes storedData;
-        /// @notice Optional z-index style sorting mechanism for ids. Can be negative
-        int96 sortOrder;
-    }    
-
-    /// @notice Data structure used to store Press settings in database
-    /**
-     * Struct breakdown. Values in parentheses are bytes.
-     *
-     * First slot
-     * storedCounter (32) = 32 bytes
-     * Second slot     
-     * logic (20) + initialized (1) = 21 bytes
-     * Third slot
-     * renderer (20) = 20 bytes   
+     * First slot: storedCounter (32) = 32 bytes
+     * Second slot: logic (20) + initialized (1) = 21 bytes
+     * Third slot: renderer (20) = 20 bytes   
      */
     struct Settings {
         /// @notice Keeps track of how many data slots have been filled
@@ -109,15 +84,7 @@ interface IERC721PressDatabase {
         address indexed storeCaller,
         uint256 indexed tokenId,
         address pointer
-    );       
-
-    /// @notice Data has been sorted
-    event DataSorted(
-        address indexed targetPress,
-        address indexed sortCaller,
-        uint256[] ids,
-        int96[] sortOrder
-    );        
+    );             
 
     /// @notice Data has been overwritten
     event DataOverwritten(
@@ -139,6 +106,13 @@ interface IERC721PressDatabase {
     ////////////////////////////////////////////////////////////
 
     //////////////////////////////
+    // INVALID + FAILURE ERRORS
+    //////////////////////////////      
+
+    /// @notice Target Press has not been initialized
+    error Press_Not_Initialized(); 
+
+    //////////////////////////////
     // ACCESS ERRORS
     //////////////////////////////  
 
@@ -146,13 +120,6 @@ interface IERC721PressDatabase {
     error No_Initialize_Access();
     /// @notice msg.sender does not have access to adjust Settings for given Press
     error No_Settings_Access();    
-
-    //////////////////////////////
-    // INVALID + FAILURE ERRORS
-    //////////////////////////////      
-
-    /// @notice Target Press has not been initialized
-    error Press_Not_Initialized(); 
 
     ////////////////////////////////////////////////////////////
     // FUNCTIONS
@@ -169,9 +136,7 @@ interface IERC721PressDatabase {
     /// @notice Initializes database with arbitrary data
     function initializeWithData(bytes memory initData) external;    
     /// @notice Stores aribtrary data in database
-    function storeData(address storeCaller, bytes calldata data) external;
-    /// @notice Sorts data stored in database
-    function sortData( address sortCaller, uint256[] calldata tokenIds, int96[] calldata sortOrders) external;    
+    function storeData(address storeCaller, bytes calldata data) external;  
     /// @notice Overwrite data stored in database for a given token
     function overwriteData(address overwriteCaller, uint256[] calldata tokenIds, bytes[] calldata newData) external;    
     /// @notice Flag to database that token has been burned
@@ -186,15 +151,15 @@ interface IERC721PressDatabase {
     /// @notice Returns tokenURI for a given Press + tokenId
     function tokenURI(uint256 tokenId ) external view returns (string memory);                
     /// @notice Getter for data of a specific id of a given Press
-    function readData(address targetPress, uint256 id) external view returns (TokenDataRetrieved memory);
+    function readData(address targetPress, uint256 id) external view returns (bytes memory);
+    /// @notice Getter for all active data of a given Press
+    function readAllData(address targetPress) external view returns (bytes[] memory);    
     /// @notice Calculates total mintPrice based on targetPress, mintCaller, and mintQuantity
     function totalMintPrice(address targetPress, address mintCaller, uint256 mintQuantity) external view returns (uint256);    
     /// @notice Checks if a certain address can access mint functionality for a given Press + quantity combination
     function canMint(address targetPress, address mintCaller, uint256 mintQuantity) external view returns (bool);
     /// @notice Checks if a certain address can call the burn function for a given Press
-    function canBurn(address targetPress, address burnCaller, uint256 tokenId) external view returns (bool);
-    /// @notice Checks if a certain address can call the sort function for a given Press
-    function canSort(address targetPress, address sortCaller) external view returns (bool);    
+    function canBurn(address targetPress, address burnCaller, uint256 tokenId) external view returns (bool);  
     /// @notice Checks if a certain address can update the settings {logic, renderer} for a given Press 
     function canEditSettings(address targetPress, address settingsCaller) external view returns (bool);           
     /// @notice Checks if a certain address can edit contract data post data storage for a given Press

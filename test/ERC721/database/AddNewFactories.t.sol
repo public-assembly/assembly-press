@@ -39,13 +39,16 @@ contract AddNewFactoriesTest is ERC721PressConfig {
         vm.stopPrank();
         vm.startPrank(address(erc721Factory));
         require(databaseImpl.isOfficialFactory(address(erc721Factory)) == true, "factory not officialized correctly");
-        bytes[] memory testDataArray =  new bytes[](1);
-        testDataArray[0] = abi.encode("this is just a test");
-        bytes memory encodedArray = abi.encode(testDataArray);
         databaseImpl.initializePress(address(erc721Factory));
-        // this should revert because trying to store invalid data for CurationDatabaseV1
+        // run data storage testes
+        bytes memory invalidData = abi.encode("this is invalid data");
+        // this should revert because trying to store invalid format data for CurationDatabaseV1
         vm.expectRevert();
-        databaseImpl.storeData(address(erc721Factory), encodedArray);
+        databaseImpl.storeData(address(erc721Factory), invalidData);        
+        bytes memory zeroValue = new bytes(0);
+        // this should revert because trying to store empty data for CurationDatabaseV1        
+        vm.expectRevert();
+        databaseImpl.storeData(address(erc721Factory), zeroValue);
         // TODO: add examples of data not reverting because its using valid data
         //
         //

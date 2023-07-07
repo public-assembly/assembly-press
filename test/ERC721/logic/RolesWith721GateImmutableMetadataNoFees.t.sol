@@ -138,11 +138,11 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
         RolesWith721GateImmutableMetadataNoFees(pressLogic).setIsPaused(address(targetPressProxy), false);
         vm.stopPrank();
         vm.startPrank(PRESS_USER);
-        PartialListing[] memory listings = new PartialListing[](1);
+        CurationDatabaseV1.Listing[] memory listings = new CurationDatabaseV1.Listing[](1);
         listings[0].chainId = 1;       
         listings[0].tokenId = 3;      
         listings[0].listingAddress = address(0x12345);       
-        listings[0].hasTokenId = true;       
+        listings[0].hasTokenId = 1;       
         bytes memory encodedListings = encodeListingArray(listings);
         // expect revert because minting is now paused on this press for accounts with role < MANAGER due to pressLogic contract
         vm.expectRevert(abi.encodeWithSignature("DatabasePaused()"));
@@ -172,11 +172,11 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
         ) = RolesWith721GateImmutableMetadataNoFees(pressLogic).settingsInfo(address(targetPressProxy));   
         require(frozenAt == 0 , "frozenAt should be 0 post initialization");       
         // set up data for mint
-        PartialListing[] memory listings = new PartialListing[](1);
+        CurationDatabaseV1.Listing[] memory listings = new CurationDatabaseV1.Listing[](1);
         listings[0].chainId = 1;       
         listings[0].tokenId = 3;      
         listings[0].listingAddress = address(0x12345);       
-        listings[0].hasTokenId = true;       
+        listings[0].hasTokenId = 1;       
         bytes memory encodedListings = encodeListingArray(listings);
         // mint call should go through because not frozen
         targetPressProxy.mintWithData(1, encodedListings);
@@ -209,11 +209,11 @@ contract RolesWith721GateImmutableMetadataNoFeesTest is ERC721PressConfig {
         // check that PRESS_USER still has USER access due to having balance 1 of erc721Gate
         require(RolesWith721GateImmutableMetadataNoFees(pressLogic).getAccessLevel(address(targetPressProxy), PRESS_USER) == USER, "incorrect access level");         
         // set up data for mint
-        PartialListing[] memory listings = new PartialListing[](1);
+        CurationDatabaseV1.Listing[] memory listings = new CurationDatabaseV1.Listing[](1);
         listings[0].chainId = 1;       
         listings[0].tokenId = 3;      
         listings[0].listingAddress = address(0x12345);       
-        listings[0].hasTokenId = true;       
+        listings[0].hasTokenId = 1;       
         bytes memory encodedListings = encodeListingArray(listings);
         // mint call should go through because PRESS_USER has USER access
         targetPressProxy.mintWithData(1, encodedListings);

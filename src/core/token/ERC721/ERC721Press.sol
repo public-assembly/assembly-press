@@ -214,33 +214,6 @@ contract ERC721Press is
     }        
 
     //////////////////////////////
-    // SORT
-    //////////////////////////////     
-
-    /**
-    * @notice Facilitates z-index style sorting of tokenIds
-    * @dev SortOrders can be positive or negative
-    * @param tokenIds TokenIds to store sortOrders for    
-    * @param sortOrders Sort orders to store
-    */
-    function sort(uint256[] calldata tokenIds, int96[] calldata sortOrders) public {
-        // Cache msg.sender
-        (address sender) = _msgSenderERC721A();
-
-        // Request sender sort access from database
-        if (_database.canSort(address(this), sender) == false) {
-            revert No_Sort_Access();
-        }
-        // Prevents users from submitting invalid inputs
-        if (tokenIds.length != sortOrders.length) {
-            revert Invalid_Input_Length();
-        }
-
-        // Update database with sort data
-        _database.sortData(sender, tokenIds, sortOrders);                
-    }    
-
-    //////////////////////////////
     // OVERWRITE
     //////////////////////////////  
 
@@ -253,11 +226,6 @@ contract ERC721Press is
     function overwrite(uint256[] calldata tokenIds, bytes[] calldata newData) public {
         // Cache msg.sender
         (address sender) = _msgSenderERC721A();    
-
-        // Prevents users from submitting invalid inputs
-        if (tokenIds.length != newData.length) {
-            revert Invalid_Input_Length();
-        }        
 
         for (uint256 i; i < tokenIds.length; ++i) {
             // Request token overwrite access from database
@@ -329,49 +297,7 @@ contract ERC721Press is
 
         // Call database to emit `DataRemoved` event
         _database.removeData(sender, tokenIds);
-    }        
-
-    //////////////////////////////
-    // MINT_SORT_OVERWRITE_BURN
-    //////////////////////////////   
-    
-    /**
-    * @notice Facilitates the processing of mint, sort, overwrite, & burn calls in a single transaction
-    * @dev Skips calls for which no inputs are provided
-    * @param mintParams Inputs for internal mint calls {uint256 quantity, bytes calldata data}
-    * @param sortParams Inputs for sort call {uint256[] calldata tokenIds, int96[] calldata sortOrders}
-    * @param overwriteParams Inputs for overwrite call {uint256[] calldata tokenIds, bytes[] calldata newData}
-    * @param burnParams Inputs for burnBatch call {uint256[] calldata tokenIds}
-    */
-    function mintSortOverwriteBurn(
-        IERC721Press.MintParams calldata mintParams,
-        IERC721Press.SortParams calldata sortParams,
-        IERC721Press.OverwriteParams calldata overwriteParams,
-        IERC721Press.BurnParams calldata burnParams
-    ) external payable nonReentrant {
-        // Cache msg.sender
-        address sender = _msgSenderERC721A();
-
-        // Process mint if non-zero inputs
-        if (mintParams.quantity != 0) {
-            // Process access + msg value checks + eth transfer (if applicable)
-            _mintChecks(sender, mintParams.quantity, msg.value);
-            // `mintWithData` processes mint + data storage
-            _mintWithData(sender, mintParams.quantity, mintParams.data);
-        }
-        // Process sort if non-zero inputs        
-        if (sortParams.tokenIds.length != 0) {
-            sort(sortParams.tokenIds, sortParams.sortOrders); 
-        }     
-        // Process overwrite if non-zero inputs        
-        if (overwriteParams.tokenIds.length != 0) {
-            overwrite(overwriteParams.tokenIds, overwriteParams.newData); 
-        }     
-        // Process burn if non-zero inputs
-        if (burnParams.tokenIds.length != 0) {
-            burnBatch(burnParams.tokenIds);            
-        }
-    }        
+    }               
 
     //////////////////////////////
     // SETTINGS

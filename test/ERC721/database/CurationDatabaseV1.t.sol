@@ -52,23 +52,31 @@ contract CurationDatabaseV1Test is ERC721PressConfig {
 
         // check database storage on mint calls
         vm.startPrank(PRESS_ADMIN_AND_OWNER);       
-        PartialListing[] memory listings = new PartialListing[](2);
+
+        // invalid data tests
+        bytes[] memory testDataArray =  new bytes[](1);
+        testDataArray[0] = abi.encode("this is just a test");
+        bytes memory encodedArray = abi.encode(testDataArray);
+        // this should revert because trying to store invalid data for CurationDatabaseV1
+        vm.expectRevert();
+        targetPressProxy.mintWithData(1, encodedArray);     
+
+        // valid data tesets
+        CurationDatabaseV1.Listing[] memory listings = new CurationDatabaseV1.Listing[](2);
         listings[0].chainId = 1;       
         listings[0].tokenId = 3;      
         listings[0].listingAddress = address(0x12345);       
-        listings[0].hasTokenId = true;       
+        listings[0].hasTokenId = 1;       
         listings[1].chainId = 7777777;       
         listings[1].tokenId = 0;              
         listings[1].listingAddress = address(0x54321);               
-        listings[1].hasTokenId = false;    
+        listings[1].hasTokenId = 0;    
         bytes memory encodedListings = encodeListingArray(listings);
         targetPressProxy.mintWithData(2, encodedListings);
         // array of structs that look like {bytes storedData, int96 sortOrder}
-        (IERC721PressDatabase.TokenDataRetrieved[] memory tokenData) = database.readAllData(address(targetPressProxy));
-        require(keccak256(tokenData[0].storedData) == keccak256(abi.encode(listings[0].chainId, listings[0].tokenId, listings[0].listingAddress, listings[0].hasTokenId)), "token #1 data not stored properly");
-        require(tokenData[0].sortOrder == 0, "sort order should be zero here");
-        require(keccak256(tokenData[1].storedData) == keccak256(abi.encode(listings[1].chainId, listings[1].tokenId, listings[1].listingAddress, listings[1].hasTokenId)), "token #2 data not stored properly");                
-        require(tokenData[1].sortOrder == 0, "sort order should be zero here");
+        bytes[] memory tokenData = database.readAllData(address(targetPressProxy));
+        require(keccak256(tokenData[0]) == keccak256(abi.encode(listings[0].chainId, listings[0].tokenId, listings[0].listingAddress, listings[0].hasTokenId)), "token #1 data not stored properly");
+        require(keccak256(tokenData[1]) == keccak256(abi.encode(listings[1].chainId, listings[1].tokenId, listings[1].listingAddress, listings[1].hasTokenId)), "token #2 data not stored properly");                
 
         // process PRESS_USER mints for later checks
         vm.stopPrank();
@@ -136,7 +144,7 @@ contract CurationDatabaseV1Test is ERC721PressConfig {
         require(database.canEditPayments(address(targetPressProxy), PRESS_NO_ROLE_1) == false, "non-user payments caller should have different access");              
 
         // readAllData return should be an array of length 5 since 10 tokens have been minted by this point and 5 tokens have been burned
-        (IERC721PressDatabase.TokenDataRetrieved[] memory tokenDataPostBurn) = database.readAllData(address(targetPressProxy));
+        bytes[] memory tokenDataPostBurn = database.readAllData(address(targetPressProxy));
         require(tokenDataPostBurn.length == 5, "read data not skipping burned tokens");
     }    
 
@@ -147,26 +155,19 @@ contract CurationDatabaseV1Test is ERC721PressConfig {
         // check database storage on mint calls
         vm.startPrank(PRESS_ADMIN_AND_OWNER);  
 
-        // Incorrect data storage
-        bytes[] memory testDataArray =  new bytes[](1);
-        testDataArray[0] = abi.encode("this is just a test");
-        bytes memory encodedArray = abi.encode(testDataArray);
-        // this should revert because trying to store invalid data for CurationDatabaseV1
-        vm.expectRevert();
-        targetPressProxy.mintWithData(1, encodedArray);          
-
-        // Correct data storage
-        PartialListing[] memory listings = new PartialListing[](2);
+        // mint tokens to sort
+        CurationDatabaseV1.Listing[] memory listings = new CurationDatabaseV1.Listing[](2);
         listings[0].chainId = 1;       
         listings[0].tokenId = 3;      
         listings[0].listingAddress = address(0x12345);       
-        listings[0].hasTokenId = true;       
+        listings[0].hasTokenId = 1;       
         listings[1].chainId = 7777777;       
         listings[1].tokenId = 0;              
         listings[1].listingAddress = address(0x54321);               
-        listings[1].hasTokenId = false;    
+        listings[1].hasTokenId = 0;    
         bytes memory encodedListings = encodeListingArray(listings);
         targetPressProxy.mintWithData(2, encodedListings);
+        vm.stopPrank();
 
         // setup + call sort         
 
@@ -174,28 +175,30 @@ contract CurationDatabaseV1Test is ERC721PressConfig {
         tokenIds[0] = 1;
         tokenIds[1] = 2;        
 
-        int96[] memory sortOrders = new int96[](2);
+        int128[] memory sortOrders = new int128[](2);
         sortOrders[0] = 1;
         sortOrders[1] = -1;
 
-        targetPressProxy.sort(tokenIds, sortOrders);
+
+        vm.startPrank(PRESS_USER);  
+        // should revert because PRESS_USER does not have sort access
+        vm.expectRevert(abi.encodeWithSignature("No_Sort_Access()"));
+        database.sortData(address(targetPressProxy), tokenIds, sortOrders);
+
+        vm.stopPrank();
+        vm.startPrank(PRESS_ADMIN_AND_OWNER);
+        database.sortData(address(targetPressProxy), tokenIds, sortOrders);
 
         // checks that sortOrders being stored in database `idToData` mapping correctly
-        (
-            address pointerAddress,
-            int96 sortValue
-        ) = database.idToData(address(targetPressProxy), 0);
+        int128 sortValue = database.slotToSort(address(targetPressProxy), 0);
         require(sortOrders[0] == sortValue, "sort order incorrect");
-        (
-            address pointerAddress_2,
-            int96 sortValue_2
-        ) = database.idToData(address(targetPressProxy), 1);
+        int128 sortValue_2 = database.slotToSort(address(targetPressProxy), 1);
         require(sortOrders[1] == sortValue_2, "sort order incorrect");   
 
         // checks that sortOrders generated correctly in readAllData call as well
-        (IERC721PressDatabase.TokenDataRetrieved[] memory tokenData) = database.readAllData(address(targetPressProxy));
-        require(tokenData[0].sortOrder == sortOrders[0], "sort order should be 1 here");
-        require(tokenData[1].sortOrder == sortOrders[1], "sort order should be -1 here");
+        int128[] memory sortData = database.getAllSortData(address(targetPressProxy));
+        require(sortData[0] == sortOrders[0], "sort order should be 1 here");
+        require(sortData[1] == sortOrders[1], "sort order should be -1 here");
     }
 
     function test_overwriteAndRead() public setUpCurationStrategy_MutableMetadata {
@@ -213,36 +216,36 @@ contract CurationDatabaseV1Test is ERC721PressConfig {
         targetPressProxy.mintWithData(1, encodedArray);  
 
         // Correct Data storage
-        PartialListing[] memory initialTokenData = new PartialListing[](2);
+        CurationDatabaseV1.Listing[] memory initialTokenData = new CurationDatabaseV1.Listing[](2);
         initialTokenData[0].chainId = 1;       
         initialTokenData[0].tokenId = 3;      
         initialTokenData[0].listingAddress = address(0x12345);       
-        initialTokenData[0].hasTokenId = true;       
+        initialTokenData[0].hasTokenId = 1;       
         initialTokenData[1].chainId = 7777777;       
         initialTokenData[1].tokenId = 0;              
         initialTokenData[1].listingAddress = address(0x54321);               
-        initialTokenData[1].hasTokenId = false;    
+        initialTokenData[1].hasTokenId = 0;    
         bytes memory initialEncodedListings = encodeListingArray(initialTokenData);
         targetPressProxy.mintWithData(2, initialEncodedListings);
 
-        (IERC721PressDatabase.TokenDataRetrieved[] memory initialDatabaseReturn) = database.readAllData(address(targetPressProxy));
+        bytes[] memory initialDatabaseReturn = database.readAllData(address(targetPressProxy));
 
-        require(keccak256(initialDatabaseReturn[0].storedData) == keccak256(abi.encode(initialTokenData[0].chainId, initialTokenData[0].tokenId, initialTokenData[0].listingAddress, initialTokenData[0].hasTokenId)), "token #1 data stored incorrectly");        
-        require(keccak256(initialDatabaseReturn[1].storedData) == keccak256(abi.encode(initialTokenData[1].chainId, initialTokenData[1].tokenId, initialTokenData[1].listingAddress, initialTokenData[1].hasTokenId)), "token #2 data stored incorrectly");        
+        require(keccak256(initialDatabaseReturn[0]) == keccak256(abi.encode(initialTokenData[0].chainId, initialTokenData[0].tokenId, initialTokenData[0].listingAddress, initialTokenData[0].hasTokenId)), "token #1 data stored incorrectly");        
+        require(keccak256(initialDatabaseReturn[1]) == keccak256(abi.encode(initialTokenData[1].chainId, initialTokenData[1].tokenId, initialTokenData[1].listingAddress, initialTokenData[1].hasTokenId)), "token #2 data stored incorrectly");        
 
         string memory tokenURI_1_initial = targetPressProxy.tokenURI(1);
         string memory tokenURI_2_initial = targetPressProxy.tokenURI(2);
         
         // structure new data to overwrite tokens with
-        PartialListing[] memory newTokenData = new PartialListing[](2);
+        CurationDatabaseV1.Listing[] memory newTokenData = new CurationDatabaseV1.Listing[](2);
         newTokenData[0].chainId = 4;       
         newTokenData[0].tokenId = 7;      
         newTokenData[0].listingAddress = address(0x6501);       
-        newTokenData[0].hasTokenId = true;       
+        newTokenData[0].hasTokenId = 1;       
         newTokenData[1].chainId = 666;       
         newTokenData[1].tokenId = 0;              
         newTokenData[1].listingAddress = address(0x82d4);               
-        newTokenData[1].hasTokenId = false;    
+        newTokenData[1].hasTokenId = 0;    
         bytes memory newEncodedListing_1 = abi.encode(newTokenData[0].chainId, newTokenData[0].tokenId, newTokenData[0].listingAddress, newTokenData[0].hasTokenId);
         bytes memory newEncodedListing_2 = abi.encode(newTokenData[1].chainId, newTokenData[1].tokenId, newTokenData[1].listingAddress, newTokenData[1].hasTokenId);
         // overwrite() takes in calldata arrays but you can pass in memory arrays as they are treated as calldata if specified in the function
@@ -253,9 +256,9 @@ contract CurationDatabaseV1Test is ERC721PressConfig {
         tokenIdArray[0] = 1;
         tokenIdArray[1] = 2;        
         targetPressProxy.overwrite(tokenIdArray, overwriteDataArray);
-        (IERC721PressDatabase.TokenDataRetrieved[] memory newDatabaseReturn) = database.readAllData(address(targetPressProxy));
-        require(keccak256(newDatabaseReturn[0].storedData) == keccak256(overwriteDataArray[0]), "token #1 data overwritten incorrectly");        
-        require(keccak256(newDatabaseReturn[1].storedData) == keccak256(overwriteDataArray[1]), "token #2 data overwrriten incorrectly");  
+        bytes[] memory newDatabaseReturn = database.readAllData(address(targetPressProxy));
+        require(keccak256(newDatabaseReturn[0]) == keccak256(overwriteDataArray[0]), "token #1 data overwritten incorrectly");        
+        require(keccak256(newDatabaseReturn[1]) == keccak256(overwriteDataArray[1]), "token #2 data overwrriten incorrectly");  
     }
 
     function test_setRenderer() public setUpCurationStrategy {
@@ -389,11 +392,11 @@ contract CurationDatabaseV1Test is ERC721PressConfig {
         require(address(targetPressProxy.getDatabase()) == address(database), "database address incorrect");
 
         // build data for tokens
-        PartialListing[] memory listings = new PartialListing[](1);
+        CurationDatabaseV1.Listing[] memory listings = new CurationDatabaseV1.Listing[](1);
         listings[0].chainId = 1;       
         listings[0].tokenId = 3;      
         listings[0].listingAddress = address(0x12345);       
-        listings[0].hasTokenId = true;       
+        listings[0].hasTokenId = 1;       
         bytes memory encodedListings = encodeListingArray(listings);
         vm.startPrank(PRESS_ADMIN_AND_OWNER);
         targetPressProxy.mintWithData(1, encodedListings);             
@@ -405,7 +408,8 @@ contract CurationDatabaseV1Test is ERC721PressConfig {
             string memory tokenURI
         ) = CurationDatabaseV1(address(targetPressProxy.getDatabase())).tokenURI(1);        
 
-        require(keccak256(bytes(tokenURI)) == keccak256(bytes("data:application/json;base64,eyJuYW1lIjogIkN1cmF0aW9uIFJlY2VpcHQgIzEiLCJkZXNjcmlwdGlvbiI6ICJUaGlzIG5vbi10cmFuc2ZlcmFibGUgTkZUIHJlcHJlc2VudHMgYSBsaXN0aW5nIGN1cmF0ZWQgYnkgMHgwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMzMzXG5cbllvdSBjYW4gcmVtb3ZlIHRoaXMgcmVjb3JkIG9mIGN1cmF0aW9uIGJ5IGJ1cm5pbmcgdGhlIE5GVC4gXG5cblRoaXMgY3VyYXRpb24gcHJvdG9jb2wgaXMgYSBwcm9qZWN0IG9mIFB1YmxpYyBBc3NlbWJseS5cblxuVG8gbGVhcm4gbW9yZSwgdmlzaXQ6IGh0dHBzOi8vcHVibGljLS0tYXNzZW1ibHkuY29tLyIsImltYWdlIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjJhV1YzUW05NFBTSXdJREFnTnpJd0lEY3lNQ0lnZUcxc2JuTTlJbWgwZEhBNkx5OTNkM2N1ZHpNdWIzSm5Mekl3TURBdmMzWm5JaUIzYVdSMGFEMGlOekl3SWlCb1pXbG5hSFE5SWpjeU1DSStQSEpsWTNRZ2VEMGlNQ0lnZVQwaU1DSWdkMmxrZEdnOUlqY3lNQ0lnYUdWcFoyaDBQU0kzTWpBaUlITjBlV3hsUFNKbWFXeHNPaUJvYzJ3b016RTNMREkxSlN3ek1DVXBJaUF2UGp4eVpXTjBJSGc5SWpNd0lpQjVQU0k1T0NJZ2QybGtkR2c5SWpZd01DSWdhR1ZwWjJoMFBTSTJNREFpSUhOMGVXeGxQU0ptYVd4c09pQm9jMndvTXpFM0xESTFKU3cxTUNVcElpQXZQanh5WldOMElIZzlJall3SWlCNVBTSXhPREFpSUhkcFpIUm9QU0kwT0RBaUlHaGxhV2RvZEQwaU5EZ3dJaUJ6ZEhsc1pUMGlabWxzYkRvZ2FITnNLRE14Tnl3eU5TVXNOekFsS1NJZ0x6NDhjbVZqZENCNFBTSTVNQ0lnZVQwaU1qY3dJaUIzYVdSMGFEMGlOakFpSUdobGFXZG9kRDBpTmpBaUlITjBlV3hsUFNKbWFXeHNPaUJvYzJ3b016RTNMREkxSlN3M01DVXBJaUF2UGp3dmMzWm5QZz09IiwicHJvcGVydGllcyI6IHsiY2hhaW5JZCI6ICIxIiwiY29udHJhY3QiOiAiMHgwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDEyMzQ1IiwiaGFzVG9rZW5JZCI6ICJ0cnVlIiwidG9rZW5JZCI6ICIzIiwic29ydE9yZGVyIjogIjAiLCJjdXJhdG9yIjogIjB4MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDMzMyJ9fQ==")), "tokenURI not working correctly");
+        // {"name": "Curation Receipt #1","description": "This non-transferable NFT represents a listing curated by 0x0000000000000000000000000000000000000333\n\nYou can remove this record of curation by burning the NFT. \n\nThis curation protocol is a project of Public Assembly.\n\nTo learn more, visit: https://public---assembly.com/","image": "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNzIwIDcyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iNzIwIiBoZWlnaHQ9IjcyMCI+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjcyMCIgaGVpZ2h0PSI3MjAiIHN0eWxlPSJmaWxsOiBoc2woMzE3LDI1JSwzMCUpIiAvPjxyZWN0IHg9IjMwIiB5PSI5OCIgd2lkdGg9IjYwMCIgaGVpZ2h0PSI2MDAiIHN0eWxlPSJmaWxsOiBoc2woMzE3LDI1JSw1MCUpIiAvPjxyZWN0IHg9IjYwIiB5PSIxODAiIHdpZHRoPSI0ODAiIGhlaWdodD0iNDgwIiBzdHlsZT0iZmlsbDogaHNsKDMxNywyNSUsNzAlKSIgLz48cmVjdCB4PSI5MCIgeT0iMjcwIiB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHN0eWxlPSJmaWxsOiBoc2woMzE3LDI1JSw3MCUpIiAvPjwvc3ZnPg==","properties": {"chainId": "1","contract": "0x0000000000000000000000000000000000012345","hasTokenId": "1","tokenId": "3","sortOrder": "0","curator": "0x0000000000000000000000000000000000000333"}}
+        require(keccak256(bytes(tokenURI)) == keccak256(bytes("data:application/json;base64,eyJuYW1lIjogIkN1cmF0aW9uIFJlY2VpcHQgIzEiLCJkZXNjcmlwdGlvbiI6ICJUaGlzIG5vbi10cmFuc2ZlcmFibGUgTkZUIHJlcHJlc2VudHMgYSBsaXN0aW5nIGN1cmF0ZWQgYnkgMHgwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMzMzXG5cbllvdSBjYW4gcmVtb3ZlIHRoaXMgcmVjb3JkIG9mIGN1cmF0aW9uIGJ5IGJ1cm5pbmcgdGhlIE5GVC4gXG5cblRoaXMgY3VyYXRpb24gcHJvdG9jb2wgaXMgYSBwcm9qZWN0IG9mIFB1YmxpYyBBc3NlbWJseS5cblxuVG8gbGVhcm4gbW9yZSwgdmlzaXQ6IGh0dHBzOi8vcHVibGljLS0tYXNzZW1ibHkuY29tLyIsImltYWdlIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjJhV1YzUW05NFBTSXdJREFnTnpJd0lEY3lNQ0lnZUcxc2JuTTlJbWgwZEhBNkx5OTNkM2N1ZHpNdWIzSm5Mekl3TURBdmMzWm5JaUIzYVdSMGFEMGlOekl3SWlCb1pXbG5hSFE5SWpjeU1DSStQSEpsWTNRZ2VEMGlNQ0lnZVQwaU1DSWdkMmxrZEdnOUlqY3lNQ0lnYUdWcFoyaDBQU0kzTWpBaUlITjBlV3hsUFNKbWFXeHNPaUJvYzJ3b016RTNMREkxSlN3ek1DVXBJaUF2UGp4eVpXTjBJSGc5SWpNd0lpQjVQU0k1T0NJZ2QybGtkR2c5SWpZd01DSWdhR1ZwWjJoMFBTSTJNREFpSUhOMGVXeGxQU0ptYVd4c09pQm9jMndvTXpFM0xESTFKU3cxTUNVcElpQXZQanh5WldOMElIZzlJall3SWlCNVBTSXhPREFpSUhkcFpIUm9QU0kwT0RBaUlHaGxhV2RvZEQwaU5EZ3dJaUJ6ZEhsc1pUMGlabWxzYkRvZ2FITnNLRE14Tnl3eU5TVXNOekFsS1NJZ0x6NDhjbVZqZENCNFBTSTVNQ0lnZVQwaU1qY3dJaUIzYVdSMGFEMGlOakFpSUdobGFXZG9kRDBpTmpBaUlITjBlV3hsUFNKbWFXeHNPaUJvYzJ3b016RTNMREkxSlN3M01DVXBJaUF2UGp3dmMzWm5QZz09IiwicHJvcGVydGllcyI6IHsiY2hhaW5JZCI6ICIxIiwiY29udHJhY3QiOiAiMHgwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDEyMzQ1IiwiaGFzVG9rZW5JZCI6ICIxIiwidG9rZW5JZCI6ICIzIiwic29ydE9yZGVyIjogIjAiLCJjdXJhdG9yIjogIjB4MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDMzMyJ9fQ==")), "tokenURI not working correctly");
         vm.stopPrank();
 
         vm.startPrank(PRESS_ADMIN_AND_OWNER);        

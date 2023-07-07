@@ -42,32 +42,6 @@ interface IERC721Press {
         bool transferable;
     }
 
-    /// @param quantity Number of NFTs to mint
-    /// @param data Data to pass in along side mint call
-    struct MintParams {
-        uint256 quantity;
-        bytes data;
-    }    
-
-    /// @param tokenIds Token Ids to sort
-    /// @param sortOrders z-index style sorting values to store
-    struct SortParams {
-        uint256[] tokenIds;
-        int96[] sortOrders;
-    }        
-
-    /// @param tokenIds Token Ids to overwrite
-    /// @param newData Data to overwrite with
-    struct OverwriteParams {
-        uint256[] tokenIds;
-        bytes[] newData;
-    }         
-
-    /// @param tokenIds Token Ids to burn
-    struct BurnParams {
-        uint256[] tokenIds;
-    }           
-
     ////////////////////////////////////////////////////////////
     // EVENTS
     ////////////////////////////////////////////////////////////  
@@ -98,9 +72,7 @@ interface IERC721Press {
     /// @notice msg.sender does not have mint access for given Press
     error No_Mint_Access();
     /// @notice msg.sender does not have burn access for given Press
-    error No_Burn_Access();    
-    /// @notice msg.sender does not have sort access for given Press
-    error No_Sort_Access();            
+    error No_Burn_Access();              
     /// @notice msg.sender does not have overwrite access for given Press
     error No_Overwrite_Access();                
     /// @notice msg.sender does not have settings access for given Press
@@ -136,9 +108,7 @@ interface IERC721Press {
         Settings memory settings
     ) external;          
     /// @notice allows user to mint token(s) from the Press contract
-    function mintWithData(uint256 quantity, bytes calldata data) external payable returns (uint256);        
-    /// @notice Facilitates z-index style sorting of tokenIds. SortOrders can be positive or negative
-    function sort(uint256[] calldata tokenIds, int96[] calldata sortOrders) external;       
+    function mintWithData(uint256 quantity, bytes calldata data) external payable returns (uint256);             
     /// @notice Allows user to overwrite data previously stored with a given token
     function overwrite(uint256[] calldata tokenIds, bytes[] calldata newData) external;           
 
