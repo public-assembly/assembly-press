@@ -25,36 +25,47 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-import {IERC721Press} from "../interfaces/IERC721Press.sol";
-import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
+import {IERC1155PressDatabase} from "../interfaces/IERC1155PressDatabase.sol";
 
-contract ERC721PressStorageV1 {
+contract ERC1155PressStorageV1 {
 
-  ////////////////////////////////////////////////////////////
-  // PUBLIC STORAGE
-  ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    // PUBLIC STORAGE
+    //////////////////////////////////////////////////////////// 
 
-  /// @dev Max royalty BPS
-  uint16 constant public MAX_ROYALTY_BPS = 50_00;
+    /**
+    * @dev Max royalty BPS
+    */
+    uint16 constant public MAX_ROYALTY_BPS = 50_00;
 
-  ////////////////////////////////////////////////////////////
-  // INTERNAL STORAGE
-  ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    // INTERNAL STORAGE
+    ////////////////////////////////////////////////////////////
 
-  /**
-  * @notice Storage for database impl
-  * @dev Set during initialization and cannot be updated
-  */
-  IERC721PressDatabase internal _database;
+    /**
+    * @notice Contract name
+    */
+    string internal _name;
+    /**
+    * @notice Contract sumbol
+    */
+    string internal _symbol;
+    /**
+    * @dev Counter to keep track of tokenId. First token minted will be tokenId #1
+    */
+    uint256 internal _tokenCount = 0;
+    /**
+    * @notice Token level total supply
+    */
+    mapping(uint256 => uint256) internal _totalSupply;      
+    /**
+    * @notice Token level minted tracker
+    */
+    mapping(uint256 => mapping(address => uint256)) internal _mintedPerAddress;    
 
-  /**
-  * @notice Settings for Press contract
-  */
-  IERC721Press.Settings internal _settings;      
-
-  /**
-  * @dev Recommended max mint batch size for ERC721A
-  */
-  uint256 constant internal _MAX_MINT_BATCH_SIZE = 8;
+    /**
+    * @notice Storage for database impl
+    * @dev Set during initialization and cannot be updated
+    */
+    IERC1155PressDatabase internal _database;
 }
-

@@ -25,36 +25,36 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-import {IERC721Press} from "../interfaces/IERC721Press.sol";
-import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
+import { IERC1155PressDatabase } from "../../interfaces/IERC1155PressDatabase.sol";
 
-contract ERC721PressStorageV1 {
-
-  ////////////////////////////////////////////////////////////
-  // PUBLIC STORAGE
-  ////////////////////////////////////////////////////////////
-
-  /// @dev Max royalty BPS
-  uint16 constant public MAX_ROYALTY_BPS = 50_00;
-
-  ////////////////////////////////////////////////////////////
-  // INTERNAL STORAGE
-  ////////////////////////////////////////////////////////////
+/**
+ @notice Database storage variables contract
+ */
+contract ERC1155PressDatabaseStorageV1 {
 
   /**
-  * @notice Storage for database impl
-  * @dev Set during initialization and cannot be updated
+  * @notice Press => ID => Pointer to encoded data
+  * @dev The first `id` stored will be 0, which means data Ids trail their corresponding
+  *       tokenIds by 1
+  * @dev Can contain blank/burned entries (not garbage compacted)
+  * @dev See IERC1155PressDatabase for details on TokenData struct
   */
-  IERC721PressDatabase internal _database;
+  mapping(address => mapping(uint256 => address)) public idToData;
 
   /**
-  * @notice Settings for Press contract
+  * @notice Press => ContractSettings
+  * @dev see IERC1155PressDatabase for details on ContractSettings struct
   */
-  IERC721Press.Settings internal _settings;      
+  mapping(address => IERC1155PressDatabase.ContractSettings) public contractSettingsInfo;
 
   /**
-  * @dev Recommended max mint batch size for ERC721A
+  * @notice Press => TokenId => TokenSettings
+  * @dev see IERC155PressDatabase for details on TokenSettings struct
   */
-  uint256 constant internal _MAX_MINT_BATCH_SIZE = 8;
+  mapping(address => mapping(uint256 => IERC1155PressDatabase.TokenSettings)) public tokenSettingsInfo;  
+
+  /**
+  * @dev Factory address => isOfficial bool
+  */
+  mapping(address => bool) internal _officialFactories;    
 }
-

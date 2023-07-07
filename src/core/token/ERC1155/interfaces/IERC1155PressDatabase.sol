@@ -25,36 +25,59 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-import {IERC721Press} from "../interfaces/IERC721Press.sol";
-import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
-
-contract ERC721PressStorageV1 {
+interface IERC1155PressDatabase {  
 
   ////////////////////////////////////////////////////////////
-  // PUBLIC STORAGE
-  ////////////////////////////////////////////////////////////
-
-  /// @dev Max royalty BPS
-  uint16 constant public MAX_ROYALTY_BPS = 50_00;
-
-  ////////////////////////////////////////////////////////////
-  // INTERNAL STORAGE
+  // TYPES
   ////////////////////////////////////////////////////////////
 
   /**
-  * @notice Storage for database impl
-  * @dev Set during initialization and cannot be updated
+  * @notice Data structure used to store contract settings in database for a given Press
+  * @dev Struct breakdown. Values in parentheses are bytes.
+  *
+  * First slot: contractLogic (20) = 20 bytes
+  * Second slot: contractRenderer (20) + initialized (1) = 21 bytes   
   */
-  IERC721PressDatabase internal _database;
+  struct ContractSettings {               
+    /// @notice Address of the logic contract
+    address contractLogic;                        
+    /// @notice Address of the renderer contract
+    address contractRenderer;   
+    /// @notice Has contract been initialized. 0 = not initialized, 1 = initialized
+    uint8 initialized;    
+  }        
 
   /**
-  * @notice Settings for Press contract
+  * @notice Data structure used to store token settings in database for a given token + Press
+  * @dev Struct breakdown. Values in parentheses are bytes.
+  *
+  * First slot: fuudsRecipient (20) + royaltyBPS (2) + transferable (1) + tokenInitialized (1) = 24 bytes
+  * Second slot: tokenLogic (20) = 20 bytes
+  * Third slot: tokenRenderer (20) = 20 bytes   
   */
-  IERC721Press.Settings internal _settings;      
+  struct TokenSettings {               
+    /// @notice Address that receives funds from sale
+    address payable fundsRecipient;
+    /// @notice BPS of the royalty set on the contract. Can be 0 for no royalty
+    uint16 royaltyBPS;
+    /// @notice Whether or not tokens from this contract can be transferred
+    bool transferable;
+    /// @notice Has token been initialized. 0 = not initialized, 1 = initialized
+    uint8 initialized;
+    /// @notice Address of the logic contract
+    address tokenLogic;                        
+    /// @notice Address of the renderer contract
+    address tokenRenderer;   
+  }       
 
-  /**
-  * @dev Recommended max mint batch size for ERC721A
-  */
-  uint256 constant internal _MAX_MINT_BATCH_SIZE = 8;
+  ////////////////////////////////////////////////////////////
+  // FUNCTIONS
+  ////////////////////////////////////////////////////////////
+
+  //////////////////////////////
+  // WRITE FUNCTIONS
+  //////////////////////////////      
+        
+  /// @notice Initializes database with arbitrary data
+  function initializeWithData(bytes memory initData) external;      
 }
-
