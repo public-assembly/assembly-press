@@ -118,12 +118,8 @@ abstract contract ERC721PressDatabaseSkeletonV1 is ERC721PressDatabaseStorageV1,
             address renderer,
             bytes memory rendererInit
         ) = abi.decode(databaseInit, (address, bytes, address, bytes));
-
-        // Set settingsInfo[targetPress]
-        settingsInfo[sender].logic = logic;        
-        settingsInfo[sender].renderer = renderer;
         
-        // Initializes logic + renderer contracts
+        // Sets ands initializes logic + renderer contracts
         _setLogic(sender, logic, logicInit);
         _setRenderer(sender, renderer, rendererInit);                 
     }       

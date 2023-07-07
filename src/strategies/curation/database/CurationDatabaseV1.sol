@@ -276,7 +276,7 @@ contract CurationDatabaseV1 is ERC721PressDatabaseSkeletonV1, ICurationTypesV1, 
                 data[(i * PACKED_LISTING_STRUCT_LENGTH):((i+1) * PACKED_LISTING_STRUCT_LENGTH)]
             );
             // Cache storedCounter
-            // NOTE: storedCounter trails associated tokenId by 1
+            // NOTEe: storedCounter trails associated tokenId by 1
             uint256 storedCounter = settingsInfo[sender].storedCounter;
             // Use sstore2 to store bytes segments from bytes array                
             idToData[sender][storedCounter] = SSTORE2.write(
