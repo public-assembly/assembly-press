@@ -34,6 +34,15 @@ contract ERC1155PressStorageV1 {
     //////////////////////////////////////////////////////////// 
 
     /**
+    * @notice Contract name
+    */
+    string public name;
+    /**
+    * @notice Contract sumbol
+    */
+    string public symbol;    
+
+    /**
     * @dev Max royalty BPS
     */
     uint16 constant public MAX_ROYALTY_BPS = 50_00;
@@ -43,21 +52,14 @@ contract ERC1155PressStorageV1 {
     ////////////////////////////////////////////////////////////
 
     /**
-    * @notice Contract name
-    */
-    string internal _name;
-    /**
-    * @notice Contract sumbol
-    */
-    string internal _symbol;
-    /**
     * @dev Counter to keep track of tokenId. First token minted will be tokenId #1
+    * @dev Can also be used as a num minted lookup
     */
     uint256 internal _tokenCount = 0;
     /**
-    * @notice Token level total supply
+    * @notice Token level total supply (impacted by burns)
     */
-    mapping(uint256 => uint256) internal _totalSupply;      
+    mapping(uint256 => uint256) internal _totalSupply;           
     /**
     * @notice Token level minted tracker
     */

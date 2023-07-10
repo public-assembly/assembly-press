@@ -111,6 +111,8 @@ interface IERC721PressDatabase {
 
     /// @notice Target Press has not been initialized
     error Press_Not_Initialized(); 
+    /// @notice TokenId has not been minted
+    error Token_Not_Minted();
 
     //////////////////////////////
     // ACCESS ERRORS

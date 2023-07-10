@@ -35,14 +35,17 @@ interface IERC1155PressDatabase {
   * @notice Data structure used to store contract settings in database for a given Press
   * @dev Struct breakdown. Values in parentheses are bytes.
   *
-  * First slot: contractLogic (20) = 20 bytes
-  * Second slot: contractRenderer (20) + initialized (1) = 21 bytes   
+  * First slot: storedCounter (32) = 32 bytes
+  * Second slot: logic (20) = 20 bytes
+  * Third slot: renderer (20) + initialized (1) = 21 bytes   
   */
-  struct ContractSettings {               
+  struct PressSettings {               
+    /// @notice Keeps track of how many data slots have been filled
+    uint256 storedCounter;         
     /// @notice Address of the logic contract
-    address contractLogic;                        
+    address logic;                        
     /// @notice Address of the renderer contract
-    address contractRenderer;   
+    address renderer;   
     /// @notice Has contract been initialized. 0 = not initialized, 1 = initialized
     uint8 initialized;    
   }        
@@ -51,7 +54,7 @@ interface IERC1155PressDatabase {
   * @notice Data structure used to store token settings in database for a given token + Press
   * @dev Struct breakdown. Values in parentheses are bytes.
   *
-  * First slot: fuudsRecipient (20) + royaltyBPS (2) + transferable (1) + tokenInitialized (1) = 24 bytes
+  * First slot: fuudsRecipient (20) + royaltyBPS (2) + transferable (1) + initialized (1) = 24 bytes
   * Second slot: tokenLogic (20) = 20 bytes
   * Third slot: tokenRenderer (20) = 20 bytes   
   */
@@ -65,10 +68,94 @@ interface IERC1155PressDatabase {
     /// @notice Has token been initialized. 0 = not initialized, 1 = initialized
     uint8 initialized;
     /// @notice Address of the logic contract
-    address tokenLogic;                        
+    address logic;                        
     /// @notice Address of the renderer contract
-    address tokenRenderer;   
+    address renderer;   
   }       
+
+    ////////////////////////////////////////////////////////////
+    // EVENTS
+    ////////////////////////////////////////////////////////////
+
+    /// @notice New factory has been given access to Database
+    event NewFactoryAdded(
+        address indexed sender,
+        address indexed factory
+    );        
+
+    /// @notice Emitted when new Press is initialized in database by official factory
+    event PressInitialized(
+        address indexed sender,
+        address indexed targetPress
+    );        
+
+    /// @notice Press logic has been updated
+    event PressLogicUpdated(
+        address indexed targetPress,
+        address indexed logic
+    );    
+
+    /// @notice Press renderer has been updated
+    event PressRendererUpdated(
+        address indexed targetPress,
+        address indexed renderer
+    );    
+
+    /// @notice Press logic has been updated
+    event TokenLogicUpdated(
+        address indexed targetPress,
+        uint256 indexed tokenId,
+        address indexed logic
+    );    
+
+    /// @notice Token renderer has been updated
+    event TokenRendererUpdated(
+        address indexed targetPress,
+        uint256 indexed tokenId,        
+        address indexed renderer
+    );           
+
+    /// @notice Data has been stored
+    event DataStored(
+        address indexed targetPress,
+        address indexed storeCaller,
+        uint256 indexed tokenId,
+        address pointer
+    );             
+
+    /// @notice Data has been overwritten
+    event DataOverwritten(
+        address indexed targetPress,
+        address indexed overwriteCaller,
+        uint256 indexed tokenId,
+        address newPointer
+    );     
+
+    ////////////////////////////////////////////////////////////
+    // ERRORS
+    ////////////////////////////////////////////////////////////
+  
+    //////////////////////////////
+    // INVALID + FAILURE ERRORS
+    //////////////////////////////      
+
+    /// @notice Target Press has not been initialized
+    error Press_Not_Initialized(); 
+    /// @notice Target Press => tokenId has not been initialized
+    error Token_Not_Initialized();     
+    /// @notice TokenId has not been minted
+    error Token_Not_Minted();
+
+    //////////////////////////////
+    // ACCESS ERRORS
+    //////////////////////////////  
+
+    /// @notice msg.sender does not have access to initialize a given Press or token   
+    error No_Initialize_Access();
+    /// @notice msg.sender does not have access to adjust PressSettings for given Press
+    error No_PressSettings_Access();    
+    /// @notice msg.sender does not have access to adjust tokenSettings for given Press
+    error No_TokenSettings_Access();        
 
   ////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -79,5 +166,7 @@ interface IERC1155PressDatabase {
   //////////////////////////////      
         
   /// @notice Initializes database with arbitrary data
-  function initializeWithData(bytes memory initData) external;      
+  function initializePressWithData(bytes memory initData) external;      
+  /// @notice Checks if a certain address can edit contract data post data storage for a given Press
+  function canEditContractData(address targetPress, address metadataCaller) external view returns (bool);
 }

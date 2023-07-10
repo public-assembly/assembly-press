@@ -145,7 +145,14 @@ contract CurationDatabaseV1Test is ERC721PressConfig {
 
         // readAllData return should be an array of length 5 since 10 tokens have been minted by this point and 5 tokens have been burned
         bytes[] memory tokenDataPostBurn = database.readAllData(address(targetPressProxy));
-        require(tokenDataPostBurn.length == 5, "read data not skipping burned tokens");
+        bytes memory bytesZeroValue = new bytes(0);
+        require(keccak256(tokenDataPostBurn[0]) == keccak256(bytesZeroValue), "token 1 data not removed corectly during burn");
+        require(keccak256(tokenDataPostBurn[2]) == keccak256(bytesZeroValue), "token 3 data not removed corectly during burn");
+        require(keccak256(tokenDataPostBurn[4]) == keccak256(bytesZeroValue), "token 5 data not removed corectly during burn");
+        require(keccak256(tokenDataPostBurn[5]) == keccak256(bytesZeroValue), "token 6 data not removed corectly during burn");
+        require(keccak256(tokenDataPostBurn[6]) == keccak256(bytesZeroValue), "token 7 data not removed corectly during burn");
+
+        // require(tokenDataPostBurn.length == 5, "read data not skipping burned tokens");
     }    
 
     function test_sortAndRead() public setUpCurationStrategy {

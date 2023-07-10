@@ -25,7 +25,7 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-import { IERC1155PressDatabase } from "../../interfaces/IERC1155PressDatabase.sol";
+import {IERC1155PressDatabase} from "../../interfaces/IERC1155PressDatabase.sol";
 
 /**
  @notice Database storage variables contract
@@ -42,10 +42,10 @@ contract ERC1155PressDatabaseStorageV1 {
   mapping(address => mapping(uint256 => address)) public idToData;
 
   /**
-  * @notice Press => ContractSettings
-  * @dev see IERC1155PressDatabase for details on ContractSettings struct
+  * @notice Press => PressSettings
+  * @dev see IERC1155PressDatabase for details on PressSettings struct
   */
-  mapping(address => IERC1155PressDatabase.ContractSettings) public contractSettingsInfo;
+  mapping(address => IERC1155PressDatabase.PressSettings) public pressSettingsInfo;
 
   /**
   * @notice Press => TokenId => TokenSettings
@@ -56,5 +56,5 @@ contract ERC1155PressDatabaseStorageV1 {
   /**
   * @dev Factory address => isOfficial bool
   */
-  mapping(address => bool) internal _officialFactories;    
+  mapping(address => bool) internal _officialFactories;       
 }

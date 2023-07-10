@@ -110,8 +110,8 @@ contract CurationDatabaseV1 is ERC721PressDatabaseSkeletonV1, ICurationTypesV1, 
     *     The function will revert if the data cannot be decoded properly, causing the transaction to fail
     * @param data Data to validate
     */
-    function _validateData(bytes memory data) internal view {
-        Listing memory listing = abi.decode(data, (Listing));
+    function _validateData(bytes memory data) internal pure {
+        abi.decode(data, (Listing));
     }     
 
     //////////////////////////////
