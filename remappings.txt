@@ -1,7 +1,0 @@
-ds-test/=lib/forge-std/lib/ds-test/src/
-forge-std/=lib/forge-std/src/
-openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
-openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/
-erc721a-upgradeable/=lib/erc721a-upgradeable/contracts/
-solmate/=lib/solmate/src/
-micro-onchain-metadata-utils/=lib/micro-onchain-metadata-utils/src/
