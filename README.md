@@ -1,23 +1,13 @@
-# Assembly Press v4 Re-write
+## Assembly Press (WIP)
 
-[Link](https://sepolia.etherscan.io/address/0x71b51f5d321bcf1441c49584a9373a0f6f10055f) to first Press created from new architecture
+## DESCRIPTION
 
-## Local Development
+Assenbly Press is a full-stack framework for onchain applications. It consists of protocol, backend, and front end sections. It is unfinished, use code at your own risk. Please see local deevelopment instructions in the README.md within the folder for eaach section.
 
-### Prerequisites
-Ensure [Foundry](https://github.com/foundry-rs/foundry) is installed. Run the command `foundryup` to make sure it is up to date.
+## SKIP TO
 
-### Installation
+Protocol
 
-Clone the repo and navigate to the directory. Install the project's dependencies with the following command:
-```
-$ forge install
-```
+Backend
 
-Configure the environment variables necesary to run the test suite. `SEPOLIA_RPC_URL`, `MAINNET_RPC_URL`, and `GOERLI_RPC_URL` should be supplied.
-
-Next, run the test suite with the following command:
-```
-$ forge test
-```
-All tests should pass.
+Frontend
