@@ -6,8 +6,8 @@ Assenbly Press is a full-stack framework for onchain applications. It consists o
 
 ### SKIP TO
 
-⛓️ [Protocol]()
+⛓️ [Protocol](https://github.com/public-assembly/AssemblyPress/tree/main/protocol)
 
-🌐 [Backend]()
+🌐 [Backend](https://github.com/public-assembly/AssemblyPress/tree/main/backend)
 
-🤝 [Frontend]()
+🤝 [Frontend](https://github.com/public-assembly/AssemblyPress/tree/main/frontend)
