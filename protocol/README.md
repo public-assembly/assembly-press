@@ -1,3 +1,9 @@
+## Protocol Developmenet Status
+ERC721 - First draft complete
+ERC1155 - In-progress
+Curation - First draft complete
+Archive - In-progress
+
 ## Protocol Local Development
 
 ### Prerequisites
