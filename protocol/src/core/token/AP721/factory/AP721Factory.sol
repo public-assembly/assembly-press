@@ -25,8 +25,8 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-import {AP721} from "../press/AP721.sol";
-import {AP721Proxy} from "../press/proxy/AP721Proxy.sol";
+import {AP721} from "../nft/AP721.sol";
+import {AP721Proxy} from "../nft/proxy/AP721Proxy.sol";
 import {IAP721Factory} from "../interfaces/IAP721Factory.sol";
 import {Version} from "../../../utils/Version.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.sol";
