@@ -25,45 +25,56 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-import {IERC721PressLogic} from "./IERC721PressLogic.sol";
-import {IERC721PressRenderer} from "./IERC721PressRenderer.sol";
-import {IERC721Press} from "./IERC721Press.sol";
+import {IERC721PressFeeModule} from "../../../core/token/ERC721/interfaces/IERC721PressFeeModule.sol";
+import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
 
-interface IERC721PressFactory {
+/**
+* @title TokenGateFeeModule
+* @notice tbd
+* @dev tbd
+*/
+contract TokenGateFeeModule is IERC721PressFeeModule {
 
-  ////////////////////////////////////////////////////////////
-  // EVENTS
-  ////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////
+    // STORAGE
+    //////////////////////////////////////////////////    
 
-  /// @notice Emitted when the underlying Press impl is set in constructor
-  event PressImplementationSet(address indexed pressImpl);
-  /// @notice Emitted when the underlying Database impl is set in constructor
-  event DatabaseImplementationSet(address indexed databaseImpl);
-  /// @notice Emitted when a new Press is created
-  event Create721Press(
-    address indexed newPress,
-    address indexed databaseImpl,
-    IERC721Press.Settings settings
-  );  
-  
-  ////////////////////////////////////////////////////////////
-  // ERRORS
-  ////////////////////////////////////////////////////////////
+    address erc721Gate;
+    uint256 feeForNonHolders;
+    address feeRecipient;
 
-  /// @notice Implementation address cannot be set to zero
-  error Address_Cannot_Be_Zero();  
-  
-  ////////////////////////////////////////////////////////////
-  // FUNCTIONS
-  ////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////
+    // CONSTRUCTOR
+    //////////////////////////////////////////////////    
 
-  /// @notice Creates a new, creator-owned proxy of `ERC721Press.sol`
-  function createPress(
-    string memory name,
-    string memory symbol,
-    address initialOwner,
-    bytes memory databaseInit,
-    IERC721Press.Settings memory settings,
-    bytes memory optionalPressInit
-  ) external returns (address);
-}
+    constructor(address _erc721Gate, uint256 _feeForNonHolders, address _feeRecipeint) {
+        erc721Gate = _erc721Gate;
+        feeForNonHolders = _feeForNonHolders;
+        feeRecipient = _feeRecipeint;
+    }
+
+    //////////////////////////////////////////////////
+    // FUNCTIONS
+    //////////////////////////////////////////////////     
+
+    //////////////////////////////
+    // WRITE FUNCTIONS
+    //////////////////////////////    
+
+    //////////////////////////////
+    // READ FUNCTIONS
+    //////////////////////////////    
+
+    function getFeeInstructions(address targetPress, address user, uint256 storageSlots) external view returns (address, uint256) {
+        return (address(0), 0);
+    }    
+
+    // function getFeeInstructions(address targetPress, address user, uint256 storageSlots) external view returns (address, uint256) {
+    //     // If user doesnt own token, has to pay fee. If they do, no fee required        
+    //     if (IERC721(erc721Gate).balanceOf(user) == 0) {
+    //         return (feeRecipient, feeForNonHolders);
+    //     } else {
+    //         return (feeRecipient, feeForNonHolders);
+    //     }
+    // }
+}  

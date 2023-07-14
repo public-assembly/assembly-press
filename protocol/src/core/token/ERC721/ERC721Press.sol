@@ -150,14 +150,15 @@ contract ERC721Press is
         // Request sender mint access from database contract
         if (_database.canMint(address(this), sender, quantity) != true) {
             revert No_Mint_Access();
-        }
-        // Request totalMintPrice for given sender * quantity from database contract
-        if (msgValue != _database.totalMintPrice(address(this), sender, quantity)) {
+        }    
+        // Request storageFee for given sender * quantity from database contract
+        (address storageFeeRecipient, uint256 storageFee) = _database.getStorageFee(address(this), sender, quantity);
+        if (msgValue != storageFee) {
             revert Incorrect_Msg_Value();
-        }        
+        }     
         // Process ETH transfer for transaction (if applicable)
         (bool success) = TransferUtils.safeSendETH(
-            _settings.fundsRecipient, 
+            storageFeeRecipient,
             msgValue, 
             TransferUtils._FUNDS_SEND_NORMAL_GAS_LIMIT
         );

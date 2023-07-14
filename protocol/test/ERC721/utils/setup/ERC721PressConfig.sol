@@ -11,6 +11,7 @@ import {CurationDatabaseV1} from "../../../../src/strategies/curation/database/C
 
 import {RolesWith721GateImmutableMetadataNoFees} from "../../../../src/strategies/curation/logic/RolesWith721GateImmutableMetadataNoFees.sol";
 import {CurationRendererV1} from "../../../../src/strategies/curation/renderer/CurationRendererV1.sol";
+import {TokenGateFeeModule} from "../../../../src/strategies/curation/fees/TokenGateFeeModule.sol";
 
 import {MockERC721} from "../mocks/MockERC721.sol";
 import {MockDatabase} from "../mocks/MockDatabase.sol";
@@ -43,6 +44,7 @@ contract ERC721PressConfig is Test {
     MockDatabase public mockDatabase = new MockDatabase(primaryOwner, secondaryOwner);
     RolesWith721GateImmutableMetadataNoFees public logic = new RolesWith721GateImmutableMetadataNoFees();
     CurationRendererV1 public renderer = new CurationRendererV1();
+    TokenGateFeeModule public feeModule = new TokenGateFeeModule(address(0), 0, address(0));
 
     // Gets run before every test 
     function setUp() public {
@@ -54,7 +56,7 @@ contract ERC721PressConfig is Test {
         database.setOfficialFactory(mockFactory);
         vm.stopPrank();
         vm.startPrank(mockFactory);
-        database.initializePress(address(targetPressProxy));
+        database.initializePress(address(targetPressProxy), address(feeModule));
         vm.stopPrank();
     }
 

@@ -19,12 +19,17 @@ contract MockDatabase is IERC721PressDatabase, ERC721PressDatabaseStorageV1, Dua
 
     constructor(address primaryOwner, address secondaryOwner) DualOwnable(primaryOwner, secondaryOwner) {}
 
-    function initializePress(address targetPress) external {
+    function initializePress(address targetPress, bytes memory optionalPressInit) external {
         settingsInfo[msg.sender].initialized = 1;
     }
 
     function initializeWithData(bytes memory data) external {
         require(data.length > 0, "not zero length ");
+    }
+
+
+    function getStorageFee(address targetPress, address user, uint256 numTokens) external view returns (address, uint256) {
+        return (address(0), 0);
     }
 
     /*

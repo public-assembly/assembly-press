@@ -87,6 +87,7 @@ contract ERC721PressFactory is IERC721PressFactory, Version(1), ReentrancyGuard 
     * @param initialOwner User that owns the contract upon deployment
     * @param databaseInit Data to initialize database contract with
     * @param settings See IERC721Press for details 
+    * @param optionalPressInit Additional bytes data that can be passed into initializePress call
     * @return press Address of created Press
     */
     function createPress(
@@ -94,12 +95,13 @@ contract ERC721PressFactory is IERC721PressFactory, Version(1), ReentrancyGuard 
         string calldata symbol,
         address initialOwner,
         bytes calldata databaseInit,
-        IERC721Press.Settings calldata settings
+        IERC721Press.Settings calldata settings,
+        bytes calldata optionalPressInit
     ) nonReentrant public returns (address press) {
         // Configure ownership details in proxy constructor
         ERC721PressProxy newPress = new ERC721PressProxy(pressImpl, "");
         // Initialize Press in database
-        IERC721PressDatabase(databaseImpl).initializePress(address(newPress));
+        IERC721PressDatabase(databaseImpl).initializePress(address(newPress), optionalPressInit);
         // Initialize the new Press instance
         ERC721Press(payable(address(newPress))).initialize({
             name: name,

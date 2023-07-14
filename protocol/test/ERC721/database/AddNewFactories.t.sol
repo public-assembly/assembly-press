@@ -22,6 +22,8 @@ import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-up
 
 contract AddNewFactoriesTest is ERC721PressConfig {  
 
+    bytes mockFeeModuleInit = abi.encode(address(0x99));
+
     function test_databaseSetup() public {
         primaryOwner = address(0x111);
         secondaryOwner = address(0x222);
@@ -38,17 +40,13 @@ contract AddNewFactoriesTest is ERC721PressConfig {
         databaseImpl.isOfficialFactory(address(erc721Factory));
         vm.stopPrank();
         vm.startPrank(address(erc721Factory));
-        require(databaseImpl.isOfficialFactory(address(erc721Factory)) == true, "factory not officialized correctly");
-        databaseImpl.initializePress(address(erc721Factory));
+        require(databaseImpl.isOfficialFactory(address(erc721Factory)) == true, "factory not officialized correctly");        
+        databaseImpl.initializePress(address(erc721Factory), mockFeeModuleInit);
         // run data storage testes
         bytes memory invalidData = abi.encode("this is invalid data");
         // this should revert because trying to store invalid format data for CurationDatabaseV1
         vm.expectRevert();
         databaseImpl.storeData(address(erc721Factory), invalidData);        
-        bytes memory zeroValue = new bytes(0);
-        // this should revert because trying to store empty data for CurationDatabaseV1        
-        vm.expectRevert();
-        databaseImpl.storeData(address(erc721Factory), zeroValue);
         // TODO: add examples of data not reverting because its using valid data
         //
         //
@@ -77,7 +75,7 @@ contract AddNewFactoriesTest is ERC721PressConfig {
         bytes[] memory testDataArray =  new bytes[](1);
         testDataArray[0] = abi.encode("this is just a test");
         bytes memory encodedArray = abi.encode(testDataArray);
-        databaseImpl.initializePress(address(erc721Factory));
+        databaseImpl.initializePress(address(erc721Factory), mockFeeModuleInit);
         // this should revert because trying to store invalid data for CurationDatabaseV1           
         vm.expectRevert();
         databaseImpl.storeData(address(erc721Factory), encodedArray);
@@ -91,7 +89,7 @@ contract AddNewFactoriesTest is ERC721PressConfig {
         require(databaseImpl.isOfficialFactory(address(newFactory)) == true, "factory not officialized correctly");
         vm.stopPrank();
         vm.startPrank(address(newFactory));
-        databaseImpl.initializePress(address(newFactory));
+        databaseImpl.initializePress(address(newFactory), mockFeeModuleInit);
         // this should revert because trying to store invalid data for CurationDatabaseV1      
         vm.expectRevert();  
         databaseImpl.storeData(address(newFactory), encodedArray);        

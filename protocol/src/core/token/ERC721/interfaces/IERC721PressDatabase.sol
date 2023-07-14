@@ -134,7 +134,7 @@ interface IERC721PressDatabase {
     /// @notice Sets official factory for database
     function setOfficialFactory(address factory) external;
     /// @notice Ininitializes Press in database
-    function initializePress(address targetPress) external;        
+    function initializePress(address targetPress, bytes memory optionalPressInit) external;        
     /// @notice Initializes database with arbitrary data
     function initializeWithData(bytes memory initData) external;    
     /// @notice Stores aribtrary data in database
@@ -156,8 +156,8 @@ interface IERC721PressDatabase {
     function readData(address targetPress, uint256 id) external view returns (bytes memory);
     /// @notice Getter for all active data of a given Press
     function readAllData(address targetPress) external view returns (bytes[] memory);    
-    /// @notice Calculates total mintPrice based on targetPress, mintCaller, and mintQuantity
-    function totalMintPrice(address targetPress, address mintCaller, uint256 mintQuantity) external view returns (uint256);    
+    /// @notice Calculates total data storage fee based on targetPress, mintCaller, and number of tokens
+    function getStorageFee(address targetPress, address user, uint256 numTokens) external view returns (address, uint256);
     /// @notice Checks if a certain address can access mint functionality for a given Press + quantity combination
     function canMint(address targetPress, address mintCaller, uint256 mintQuantity) external view returns (bool);
     /// @notice Checks if a certain address can call the burn function for a given Press

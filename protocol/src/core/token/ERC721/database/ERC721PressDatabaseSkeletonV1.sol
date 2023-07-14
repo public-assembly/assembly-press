@@ -40,8 +40,8 @@ import "sstore2/SSTORE2.sol";
 /**
  * @title ERC721PressDatabaseSkeletonV1
  * @notice V1 generic database architecture. Strategy specific databases can inherit this to ensure compatibility with Assembly Press framework
- * @dev Contracts that inherit this must implement their own `setOfficialFactory`, `storeData`, `overwriteData` functions
- *       to comply with IERC721PressDatabase interface
+ * @dev Contracts that inherit this must implement their own `setOfficialFactory`, `initializePress`, `getStorageFee`, 
+ *      `storeData`, `overwriteData` functions to comply with IERC721PressDatabase interface
  * @author Max Bochman
  * @author Salief Lewis
  */
@@ -71,21 +71,6 @@ abstract contract ERC721PressDatabaseSkeletonV1 is
     //////////////////////////////
     // DATABASE ADMIN
     //////////////////////////////
-
-    /**
-     * @notice Initializes a Press, giving it the ability to write to database
-     * @dev Can only be called by address set as officialFactory
-     * @dev Addresses cannot be un-initialized
-     * @param targetPress Address of Press to initialize
-     */
-    function initializePress(address targetPress) external {
-        if (_officialFactories[msg.sender] != true) {
-            revert No_Initialize_Access();
-        }
-        settingsInfo[targetPress].initialized = 1;
-
-        emit PressInitialized(msg.sender, targetPress);
-    }
 
     /**
      * @notice Getter for officialFactory status of an address. If true, can call `initializePress`

@@ -33,7 +33,7 @@ interface IERC721Press {
     // TYPES
     ////////////////////////////////////////////////////////////
 
-    /// @param fundsRecipient Address that receives funds from sale
+    /// @param fundsRecipient Address that receives funds for ERC2981 royalties
     /// @param royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty
     /// @param transferable Whether or not tokens from this contract can be transferred
     struct Settings {

@@ -68,7 +68,8 @@ contract ERC721PressFactoryTest is ERC721PressConfig {
             symbol: "PA",
             initialOwner: PRESS_ADMIN_AND_OWNER,
             databaseInit: databaseInit,
-            settings: pressSettings      
+            settings: pressSettings,
+            optionalPressInit: new bytes(0)      
         });        
 
         // GRANT FACTORY OFFICIAL STATUS
@@ -81,7 +82,8 @@ contract ERC721PressFactoryTest is ERC721PressConfig {
             symbol: "PA",
             initialOwner: PRESS_ADMIN_AND_OWNER,
             databaseInit: databaseInit,
-            settings: pressSettings      
+            settings: pressSettings,
+            optionalPressInit: new bytes(0)      
         });
     }
 
@@ -136,7 +138,8 @@ contract ERC721PressFactoryTest is ERC721PressConfig {
             symbol: "PA",
             initialOwner: PRESS_ADMIN_AND_OWNER,
             databaseInit: databaseInit,
-            settings: pressSettings      
+            settings: pressSettings,
+            optionalPressInit: new bytes(0)           
         });        
     }    
 }

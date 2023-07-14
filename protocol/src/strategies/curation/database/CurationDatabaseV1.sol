@@ -27,6 +27,7 @@ pragma solidity 0.8.17;
 
 import {ERC721PressDatabaseSkeletonV1} from "../../../core/token/ERC721/database/ERC721PressDatabaseSkeletonV1.sol";
 import {ERC721Press} from "../../../core/token/ERC721/ERC721Press.sol";
+import {IERC721PressFeeModule} from "../../../core/token/ERC721/interfaces/IERC721PressFeeModule.sol";
 import {ICurationTypesV1} from "../types/ICurationTypesV1.sol";
 import {ICurationLogic} from "../logic/ICurationLogic.sol";
 import {DualOwnable} from "../../../core/utils/ownable/dual/DualOwnable.sol";
@@ -37,7 +38,7 @@ import {BytesLib} from "solidity-bytes-utils/BytesLib.sol";
 * @title CurationDatabaseV1
 * @notice Curation focused database built for Assembly Press framework
 * @dev Inherits from ERC721PressDatabaseSkeletonV1 and implements IERC721PressDatabase required
-*       `setOfficiaFactory`, `storeData`, and `overwriteData` functions 
+*       `setOfficiaFactory`, `getStorageFee`, `storeData`, and `overwriteData` functions 
 * @dev Introduces custom storage + functions enabling `sortData` functionality
 * @author Max Bochman
 * @author Salief Lewis
@@ -48,12 +49,21 @@ contract CurationDatabaseV1 is ERC721PressDatabaseSkeletonV1, ICurationTypesV1, 
     // STORAGE
     ////////////////////////////////////////////////////////////        
 
+    // {address targetPress => address feeModule}
+    mapping(address => address) feeModuleInfo;
+
     // {address targetPress => uint256 tokenId => int128 sortOrder}
     mapping(address => mapping(uint256 => int128)) public slotToSort;   
 
     ////////////////////////////////////////////////////////////
     // EVENTS
-    ////////////////////////////////////////////////////////////       
+    ////////////////////////////////////////////////////////////     
+
+    /// @notice Fee module set for a given Pres
+    event FeeModuleSet(
+        address indexed targetPress,
+        address indexed feeModule
+    );   
 
     /// @notice Data has been sorted
     event DataSorted(
@@ -92,13 +102,40 @@ contract CurationDatabaseV1 is ERC721PressDatabaseSkeletonV1, ICurationTypesV1, 
     //////////////////////////////
 
     /**
+     * @notice Initializes a Press, giving it the ability to write to database
+     * @dev Can only be called by address set as officialFactory
+     * @dev Addresses cannot be un-initialized
+     * @param targetPress Address of Press to initialize
+     */
+    function initializePress(address targetPress, bytes memory optionalPressInit) external {
+        if (_officialFactories[msg.sender] != true) {
+            revert No_Initialize_Access();
+        }
+        // Handle Press initialization
+        settingsInfo[targetPress].initialized = 1;
+        emit PressInitialized(msg.sender, targetPress);
+        // Handle fee module initialization
+        (address feeModule) = abi.decode(optionalPressInit, (address));
+        feeModuleInfo[targetPress] = feeModule;
+        emit FeeModuleSet(targetPress, feeModule);
+    }    
+
+    /**
     * @notice Gives factory ability to initalize contracts in this database
     * @dev Ability cannot be removed once set
-    * @param factory Address of factory to grant initialise ability
+    * @param factory Address of factory to grant initialize ability
     */
     function setOfficialFactory(address factory) eitherOwner external {
         _officialFactories[factory] = true;
         emit NewFactoryAdded(msg.sender, factory);
+    }
+
+    //////////////////////////////
+    // FEES 
+    //////////////////////////////    
+
+    function getStorageFee(address targetPress, address storeCaller, uint256 storageSlots) external view returns (address, uint256) {
+        return IERC721PressFeeModule(feeModuleInfo[targetPress]).getFeeInstructions(targetPress, storeCaller, storageSlots);
     }
 
     //////////////////////////////
@@ -121,11 +158,13 @@ contract CurationDatabaseV1 is ERC721PressDatabaseSkeletonV1, ICurationTypesV1, 
     /**
     * @dev Function called by mintWithData function in ERC721Press mint call that
     *      updates specific tokenData for msg.sender, so no need to add access control to this function
+    * @dev Storage fee checks do not occur here. Must be implemented in ERC721Press implementation
     * @param storeCaller address of account initiating `mintWithData()` from targetPress
     * @param data data getting passed in along mint
     */
     function storeData(address storeCaller, bytes calldata data) external requireInitialized(msg.sender) {    
         // Cache msg.sender -- which is the Press if called correctly
+        // TODO: replace with _msgSender
         address sender = msg.sender;
         
         // Calculate number of tokens
@@ -165,6 +204,7 @@ contract CurationDatabaseV1 is ERC721PressDatabaseSkeletonV1, ICurationTypesV1, 
     */
     function overwriteData(address overwriteCaller, uint256[] memory tokenIds, bytes[] calldata newData) external requireInitialized(msg.sender) {
         // Cache msg.sender -- which is the Press if called correctly
+        // TODO: replace with _msgSender()
         address targetPress = msg.sender;
 
         // Prevents users from submitting invalid inputs
