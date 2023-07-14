@@ -78,7 +78,6 @@ abstract contract OwnableUpgradeable is IOwnableUpgradeable, Initializable {
     /// @param _newOwner The new owner address
     function transferOwnership(address _newOwner)
         public
-        notZeroAddress(_newOwner)
         onlyOwner
     {
         _transferOwnership(_newOwner);
@@ -101,7 +100,6 @@ abstract contract OwnableUpgradeable is IOwnableUpgradeable, Initializable {
     /// @param _newOwner The new owner address
     function safeTransferOwnership(address _newOwner)
         public
-        notZeroAddress(_newOwner)
         onlyOwner
     {
         _pendingOwner = _newOwner;
