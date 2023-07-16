@@ -107,7 +107,7 @@ contract AP721Factory is IAP721Factory, Version(1), ReentrancyGuard {
         // Configure ownership details in proxy constructor
         AP721Proxy newAP721 = new AP721Proxy(ap721Impl, "");
         // Decode factoryInit
-        (string memory name, string memory symbol) = abi.decode(factoryIinit, (string, string));        
+        (string memory name, string memory symbol) = abi.decode(factoryInit, (string, string));        
         // Initialize AP721Proxy
         AP721(payable(address(newAP721))).initialize({
             name: name,

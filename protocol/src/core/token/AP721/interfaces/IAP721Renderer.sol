@@ -25,24 +25,8 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-import {IAP721Database} from "../../interfaces/IAP721Database.sol";
-
-/**
- @notice Database storage variables contract
- */
-contract AP721DatabaseSkeletonStorageV1 {
-
-  /**
-  * @notice AP721 => id => Pointer to encoded data
-  * @dev The first `id` stored will be 0, which means ids trail their corresponding
-  *       tokenIds by 1
-  * @dev Can contain blank/burned storage
-  */
-  mapping(address => mapping(uint256 => address)) public tokenData;
-
-  /**
-  * @notice AP721 => Settings information
-  * @dev see IAP721Database for details on Settings struct
-  */
-  mapping(address => IAP721Database.Settings) public ap721Settings;
+interface IAP721Renderer {
+    function initializeWithData(address target, bytes memory initData) external;
+    function getContractURI(address targetPress) external view returns (string memory);    
+    function getTokenURI(address targetPress, uint256 tokenId) external view returns (string memory);   
 }

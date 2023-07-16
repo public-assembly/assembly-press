@@ -3,11 +3,13 @@ pragma solidity 0.8.17;
 
 /* PA */
 
+import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.sol";
+
 /**
 * @title ERC721Press
 *
 */
-contract AP721 {
+contract AP721 is ReentrancyGuard {
 
     ////////////////////////////////////////////////////////////
     // MODIFIERS 
@@ -76,6 +78,7 @@ contract AP721 {
 
     }
 
+    // tokens can only be burned through database
     function burn(uint256 tokenId) onlyDatabase external {
 
     }     

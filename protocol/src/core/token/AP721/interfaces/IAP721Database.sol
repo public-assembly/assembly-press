@@ -51,7 +51,7 @@ interface IAP721Database {
      * @notice Data structure used to store Press settings in database
      * @dev Struct breakdown. Values in parentheses are bytes.
      *
-     * First slot: storedCounter (32) = 32 bytes
+     * First slot: storageCounter (32) = 32 bytes
      * Second slot: logic (20) + initialized (1) = 21 bytes
      * Third slot: renderer (20) = 20 bytes   
      * TODO: confirm that the struct takes up all 32 bytes even if the storage inside of it is less than 32
@@ -59,7 +59,7 @@ interface IAP721Database {
      */
     struct Settings {
         /// @notice Keeps track of how many data slots have been filled
-        uint256 storedCounter;                
+        uint256 storageCounter;                
         /// @notice Address of the logic contract
         address logic;                        
         /// @notice initialized uint. 0 = not initialized, 1 = initialized
@@ -108,7 +108,7 @@ interface IAP721Database {
         bytes[] memory databaseInits,
         address[] memory factories,
         bytes[] memory factoryInits
-    ) external virtual returns (address);    
+    ) external virtual returns (address[] memory);    
 
     /// @notice Store aribtrary data in database
     function store(address target, bytes memory data) external;
@@ -116,6 +116,9 @@ interface IAP721Database {
     function overwrite(address target, uint256[] memory tokenIds, bytes[] memory data) external;
     /// @notice Erase data stored in database for a given token
     function erase(address target, uint256[] memory tokenIds) external;
+
+
+
     /// @notice Store aribtrary data in database for multiple targets
     function multiStore(address[] memory targets, bytes[] memory data) external;
     /// @notice Overwrite data stored in database for a given token for multiple targets
