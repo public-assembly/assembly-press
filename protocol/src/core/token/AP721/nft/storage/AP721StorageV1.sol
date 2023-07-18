@@ -26,8 +26,9 @@ pragma solidity 0.8.17;
 */
 
 contract AP721StorageV1 {
-  
   // TODO: Check if missing UUPS storage gap?
+
+  address internal _database;
 
   /**
   * @dev Recommended max mint batch size for ERC721A

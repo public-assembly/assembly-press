@@ -31,15 +31,10 @@ interface IAP721Factory {
   // EVENTS
   ////////////////////////////////////////////////////////////
 
-  /// @notice Emitted when the underlying Press impl is set in constructor
-  event PressImplementationSet(address indexed pressImpl);
+  /// @notice Emitted when the underlying AP721 impl is set in constructor
+  event AP721ImplementationSet(address indexed pressImpl);
   /// @notice Emitted when the underlying Database impl is set in constructor
   event DatabaseImplementationSet(address indexed databaseImpl);
-  /// @notice Emitted when a new Press is created
-  event CreateAP721(
-    address indexed newAP721,
-    address indexed databaseImpl
-  );  
   
   ////////////////////////////////////////////////////////////
   // ERRORS
@@ -47,15 +42,16 @@ interface IAP721Factory {
 
   /// @notice Implementation address cannot be set to zero
   error Address_Cannot_Be_Zero();  
+  /// @notice Error when msg.sender is not the stored database impl
+  error Msg_Sender_Not_Database();  
   
   ////////////////////////////////////////////////////////////
   // FUNCTIONS
   ////////////////////////////////////////////////////////////
 
   /// @notice Creates a new, creator-owned proxy of `AP721.sol`
-  function createPress(
-    string memory name,
-    string memory symbol,
-    address initialOwner
+  function create(
+    address initialOwner,
+    bytes memory factoryInit
   ) external returns (address);
 }

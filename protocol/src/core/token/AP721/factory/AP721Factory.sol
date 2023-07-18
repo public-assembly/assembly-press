@@ -62,8 +62,7 @@ contract AP721Factory is IAP721Factory, Version(1), ReentrancyGuard {
      * @notice Checks if database is msg.sender
      */
     modifier onlyDatabase() {
-        address sender = _msgSender();
-        if (sender != databaseImpl) {
+        if (msg.sender != databaseImpl) {
             revert Msg_Sender_Not_Database();
         }
 
@@ -78,15 +77,15 @@ contract AP721Factory is IAP721Factory, Version(1), ReentrancyGuard {
     * @notice Sets the implementation address upon deployment
     * @dev Implementation addresses cannot be updated after deployment 
     */
-    constructor(address _pressImpl, address _databaseImpl) {
-        if (_pressImpl == address(0) || _databaseImpl == address(0)) { 
+    constructor(address _ap721Impl, address _databaseImpl) {
+        if (_ap721Impl == address(0) || _databaseImpl == address(0)) { 
             revert Address_Cannot_Be_Zero();
         }
 
-        pressImpl = _pressImpl;
+        ap721Impl = _ap721Impl;
         databaseImpl = _databaseImpl;
 
-        emit PressImplementationSet(pressImpl);
+        emit AP721ImplementationSet(_ap721Impl);
         emit DatabaseImplementationSet(databaseImpl);
     }
 
@@ -105,21 +104,13 @@ contract AP721Factory is IAP721Factory, Version(1), ReentrancyGuard {
         bytes memory factoryInit
     ) nonReentrant onlyDatabase public returns (address ap721) {
         // Configure ownership details in proxy constructor
-        AP721Proxy newAP721 = new AP721Proxy(ap721Impl, "");
-        // Decode factoryInit
-        (string memory name, string memory symbol) = abi.decode(factoryInit, (string, string));        
+        AP721Proxy newAP721 = new AP721Proxy(ap721Impl, "");     
         // Initialize AP721Proxy
         AP721(payable(address(newAP721))).initialize({
-            name: name,
-            symbol: symbol,
             initialOwner: initialOwner,
-            databaseImpl: databaseImpl
-        });
-        // Emit creation event from factory
-        emit CreateAP721({
-            newPress: address(newPress),
-            databaseImpl: databaseImpl
-        });        
+            database: databaseImpl,
+            init: factoryInit
+        });     
         return address(newAP721);
     }
 }

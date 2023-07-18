@@ -31,7 +31,6 @@ interface IAP721Database {
     // TYPES
     ////////////////////////////////////////////////////////////
 
-
     /**
      * @notice Data structure used to store AP721 config in database
      * @dev Struct breakdown. Values in parentheses are bytes.
@@ -74,17 +73,85 @@ interface IAP721Database {
     // EVENTS
     ////////////////////////////////////////////////////////////  
 
+    /// @notice Event emitted when setting up a new AP721
+    /// @param ap721 Address of new ap721 setup
+    /// @param sender Address of sender who called setupAP721 function
+    /// @param initialOwner Address of owner set on AP721
+    /// @param logic Address of logic contract set for AP721
+    /// @param renderer Address of renderer contract set on ap721
+    /// @param factory Address of factory designated for setup process
+    event SetupAP721 (
+        address indexed ap721,
+        address indexed sender,
+        address indexed initialOwner,
+        address logic,
+        address renderer,
+        address factory 
+    );
+
+    /// @notice Logic has been updated
+    event LogicUpdated(
+        address indexed target,
+        address indexed logic
+    );    
+
+    /// @notice Renderer has been updated
+    event RendererUpdated(
+        address indexed target,
+        address indexed renderer
+    );  
+
+
+    /// @notice Data has been stored
+    event DataStored(
+        address indexed target,
+        address indexed sender,
+        uint256 indexed tokenId,
+        address pointer
+    );             
+
+    /// @notice Data has been overwritten
+    event DataOverwritten(
+        address indexed target,
+        address indexed sender,
+        uint256 indexed tokenId,
+        address pointer
+    );           
+
+    /// @notice Data has been removed
+    event DataRemoved(
+        address indexed target,
+        address indexed sender,
+        uint256 indexed tokenId
+    );          
+
     ////////////////////////////////////////////////////////////
     // ERRORS
     ////////////////////////////////////////////////////////////
 
     //////////////////////////////
     // INVALID + FAILURE ERRORS
-    //////////////////////////////      
+    //////////////////////////////     
+
+    /// @notice Target has not been initialized
+    error Target_Not_Initialized(); 
+    /// @notice TokenId has not been minted
+    error Token_Not_Minted();    
+    /// @notice Array input lengths don't match
+    error Invalid_Input_Length();     
 
     //////////////////////////////
     // ACCESS ERRORS
     //////////////////////////////  
+    
+    /// @notice Msg.sender does not have access to call store for tatget
+    error No_Store_Access();    
+    /// @notice Msg.sender does not have access to call overwrite for tatget
+    error No_Overwrite_Access();                
+    /// @notice Msg.sender does not have access to call remove for tatget
+    error No_Remove_Access();    
+    /// @notice Msg.sender does not have access to edit settings for tatget
+    error No_Settings_Access();        
 
     ////////////////////////////////////////////////////////////
     // FUNCTIONS
@@ -100,33 +167,37 @@ interface IAP721Database {
         bytes memory databaseInit,
         address factory,
         bytes memory factoryInit
-    ) external virtual returns (address);
-
-    /// @notice Facilitates deploy + initialization of multiple, creator-owned proxies of `AP721.sol`
-    function multiSetupAP721(
-        address[] memory initialOwners,
-        bytes[] memory databaseInits,
-        address[] memory factories,
-        bytes[] memory factoryInits
-    ) external virtual returns (address[] memory);    
-
+    ) external returns (address);
     /// @notice Store aribtrary data in database
-    function store(address target, bytes memory data) external;
+    function store(address target, uint256 quantity, bytes memory data) external;
     /// @notice Overwrite data stored in database for a given token
     function overwrite(address target, uint256[] memory tokenIds, bytes[] memory data) external;
     /// @notice Erase data stored in database for a given token
-    function erase(address target, uint256[] memory tokenIds) external;
+    function remove(address target, uint256[] memory tokenIds) external;
 
-
-
-    /// @notice Store aribtrary data in database for multiple targets
-    function multiStore(address[] memory targets, bytes[] memory data) external;
-    /// @notice Overwrite data stored in database for a given token for multiple targets
-    function multiOverwrite(address[] memory targets, uint256[][] memory tokenIds, uint256[][] memory data) external;
-    /// @notice Erase data stored in database for a given token for multiple targets
-    function multiErase(address[] memory targets, uint256[][] memory tokenIds) external;  
+    // /// @notice Facilitates deploy + initialization of multiple, creator-owned proxies of `AP721.sol`
+    // function multiSetupAP721(
+    //     address[] memory initialOwners,
+    //     bytes[] memory databaseInits,
+    //     address[] memory factories,
+    //     bytes[] memory factoryInits
+    // ) external returns (address[] memory);    
+    // /// @notice Store aribtrary data in database for multiple targets
+    // function multiStore(address[] memory targets, bytes[] memory data) external;
+    // /// @notice Overwrite data stored in database for a given token for multiple targets
+    // function multiOverwrite(address[] memory targets, uint256[][] memory tokenIds, uint256[][] memory data) external;
+    // /// @notice Erase data stored in database for a given token for multiple targets
+    // function multiErase(address[] memory targets, uint256[][] memory tokenIds) external;  
 
     //////////////////////////////
     // READ FUNCTIONS
     //////////////////////////////        
+    /// @notice Returns contractURI for a given AP721    
+    function contractURI() external view returns (string memory);    
+    /// @notice Returns tokenURI for a given AP721 + tokenId
+    function tokenURI(uint256 tokenId) external view returns (string memory);   
+    /// @notice Get token transferability status for a target AP721
+    function getSettings(address target) external view returns (Settings memory);                 
+    /// @notice Get token transferability status for a target AP721
+    function getTransferable(address target) external view returns (bool);
 }

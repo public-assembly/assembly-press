@@ -323,7 +323,7 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
     function contractURI()
         external
         view
-        returns (string memory uri)
+        returns (string memory)
     {
         // Cache msg.sender -- Press if as intended
         address sender = msg.sender;
@@ -342,7 +342,7 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
      * @param tokenId TokenId to get uri for
      * @return uri String uri
      */
-    function uri(uint256 tokenId) external view returns (string memory uri) {
+    function uri(uint256 tokenId) external view returns (string memory) {
         // Cache msg.sender -- Press if as intended
         address sender = msg.sender;
 

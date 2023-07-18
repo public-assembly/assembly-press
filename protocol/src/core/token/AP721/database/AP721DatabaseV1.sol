@@ -28,12 +28,12 @@ pragma solidity 0.8.17;
 import {AP721DatabaseStorageV1} from "./storage/AP721DatabaseStorageV1.sol";
 import {AP721} from "../nft/AP721.sol";
 import {IAP721} from "../interfaces/IAP721.sol";
+import {IAP721Factory} from "../interfaces/IAP721Factory.sol";
 import {IAP721Database} from "../interfaces/IAP721Database.sol";
 import {IAP721Logic} from "../interfaces/IAP721Logic.sol";
 import {IAP721Renderer} from "../interfaces/IAP721Renderer.sol";
 
 import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.sol";
-import {ERC2771Context} from "openzeppelin-contracts/metatx/ERC2771Context.sol";
 import "sstore2/SSTORE2.sol";
 
 // TODO: should there be a way to store contract level data as well? not just token data?
@@ -42,6 +42,7 @@ import "sstore2/SSTORE2.sol";
 //          canStoreTokenData + canStoreContractData? --- unclear
 // TODO: should `readAllData` call return a tokenId alongside the bytes values returned for each slot?
 // TODO: add in all of the multi functions
+// TODO: confirm if this database impl needs to inherit ERC2771 to enable _msgSender() to be compatible with GSN contracts
 
 /**
  * @title AP721DatabaseV1
@@ -55,8 +56,7 @@ import "sstore2/SSTORE2.sol";
 contract AP721DatabaseV1 is
     AP721DatabaseStorageV1,
     IAP721Database,
-    ReentrancyGuard,
-    ERC2771Context
+    ReentrancyGuard
 {
 
     ////////////////////////////////////////////////////////////
@@ -82,13 +82,22 @@ contract AP721DatabaseV1 is
     // AP721 SETUP
     //////////////////////////////
 
-    // default implementation does not include any checks on if factory is allowed
+    /**
+     * @notice Facilitates setup of a new AP721Proxy in the database
+     * @dev Default implementation does not include any checks on if factory is allowed
+     * @param initialOwner User that will own the AP721Proxy upon deployment
+     * @param databaseInit Data to initialize database with
+     * @param factory Address of factory to use for AP721Proxy deployment
+     * @param factoryInit Data to initialize factory with
+     */    
     function setupAP721(
         address initialOwner, 
         bytes memory databaseInit,
         address factory,
         bytes memory factoryInit
     ) nonReentrant external virtual returns (address) {
+        // Cache msg.sender
+        address sender = msg.sender;
         // Call factory to create + initialize a new AP721Proxy
         address newAP721 = IAP721Factory(factory).create(
             initialOwner,
@@ -103,9 +112,19 @@ contract AP721DatabaseV1 is
             address renderer,
             bytes memory rendererInit,
         ) = abi.decode(databaseInit, (address, bytes, address, bytes, address));
-        // Set logic + renderer contracts for AP721Proxy
-        _setLogic(newAP721, logic, logicInit);
-        _setRenderer(newAP721, renderer, rendererInit);
+        // Set + initialize logic
+        _setLogic(newAP721, logic, logicInit);    
+        // Set + initialize renderer
+        _setRenderer(newAP721, renderer, rendererInit);    
+        // Emit setup event        
+        emit SetupAP721({
+            ap721: newAP721,
+            sender: sender,
+            initialOwner: initialOwner,
+            logic: logic,
+            renderer: renderer,
+            factory: factory
+        });        
         // Return address of newly created AP721Proxy
         return newAP721;
     }        
@@ -130,11 +149,12 @@ contract AP721DatabaseV1 is
         bytes memory logicInit
     ) external requireInitialized(target) {
         // Request settings access from logic contract
-        if (!IAP721Logic(ap721Settings[target].logic).getSettingsAccess(target, _msgSender())) {
+        if (!IAP721Logic(ap721Settings[target].logic).getSettingsAccess(target, msg.sender)) {
             revert No_Settings_Access();
         }        
         // Update + initialize new logic contract
         _setLogic(target, logic, logicInit);
+        emit LogicUpdated(target, logic);
     }    
 
     /**
@@ -151,7 +171,6 @@ contract AP721DatabaseV1 is
     ) internal {
         ap721Settings[target].logic = logic;
         IAP721Logic(logic).initializeWithData(target, logicInit);
-        emit LogicUpdated(target, logic);
     }    
 
     /**
@@ -167,11 +186,12 @@ contract AP721DatabaseV1 is
         bytes memory rendererInit
     ) external requireInitialized(target) {
         // Request settings access from renderer contract
-        if (!IAP721Renderer(ap721Settings[target].renderer).getSettingsAccess(target, _msgSender())) {
+        if (!IAP721Logic(ap721Settings[target].logic).getSettingsAccess(target, msg.sender)) {
             revert No_Settings_Access();
         }        
         // Update + initialize new renderer contract
         _setRenderer(target, renderer, rendererInit);
+        emit RendererUpdated(target, renderer);
     }        
 
     /**
@@ -187,8 +207,7 @@ contract AP721DatabaseV1 is
         bytes memory rendererInit
     ) internal {
         ap721Settings[target].renderer = renderer;
-        IAP721Renderer(renderer).initializeWithData(target, rendererInit);
-        emit RendererUpdated(target, renderer);
+        IAP721Renderer(renderer).initializeWithData(target, rendererInit);        
     }        
 
     // TODO:
@@ -212,11 +231,15 @@ contract AP721DatabaseV1 is
     //////////////////////////////    
 
     /**
-    * @dev This database impl does not run any checks on the msg.value. No fees can be charged
-    */
+    * @notice Facilitates token level data storage
+    * @dev Stores data for a specified target address and mints storage receipts from that target to the msg.sender
+    * @param target Target address to store data for
+    * @param quantity How many storage slots to fill
+    * @param data Data to be stored
+    */    
     function store(address target, uint256 quantity, bytes memory data) requireInitialized(target) external virtual {
         // Cache msg.sender
-       address sender = _msgSender();
+       address sender = msg.sender;
         // Check if sender can store data in target
         if (!IAP721Logic(ap721Settings[target].logic).getStoreAccess(target, sender, quantity)) {
             revert No_Store_Access();
@@ -246,16 +269,23 @@ contract AP721DatabaseV1 is
             ++ap721Settings[target].storageCounter;              
         }       
         // Mint tokens to sender
-        IAP721(target).mint(quantity, sender);        
+        IAP721(target).mint(sender, quantity);        
     }  
 
-    function overwrite(address target, uint256[] memory tokenIds, bytes[] memory newData) requireInitialized(target) external virtual {
+    /**
+    * @notice Facilitates overwrites of token level data storage
+    * @dev Overwrites existing data for specified target address + tokenId(s)
+    * @param target Target address to store data for
+    * @param tokenIds TokenIds to target
+    * @param data Data to be stored
+    */    
+    function overwrite(address target, uint256[] memory tokenIds, bytes[] memory data) requireInitialized(target) external virtual {
         // Prevents users from submitting invalid inputs
-        if (tokenIds.length != newData.length) {
+        if (tokenIds.length != data.length) {
             revert Invalid_Input_Length();
         }            
         // Cache msg.sender
-        address sender = _msgSender();
+        address sender = msg.sender;
 
         for (uint256 i = 0; i < tokenIds.length; ++i) {
             // Check if sender can overwrite data in target for given tokenId
@@ -263,12 +293,12 @@ contract AP721DatabaseV1 is
                 revert No_Overwrite_Access();
             }    
             // Check data is valid
-            _validateData(newData[i]);            
+            _validateData(data[i]);            
             // Cache storageCounter for tokenId
             uint256 storageCounter = tokenIds[i] - 1;
             // Use sstore2 to store bytes segments                          
             address newPointer = tokenData[target][storageCounter] = SSTORE2.write(
-                tokens[i]
+                data[i]
             );              
             emit DataOverwritten(target, sender, storageCounter, newPointer);                                
         }              
@@ -283,7 +313,7 @@ contract AP721DatabaseV1 is
      */
     function remove(address target, uint256[] memory tokenIds) external virtual requireInitialized(target) {
         // Cache msg.sender
-        address sender = _msgSender();        
+        address sender = msg.sender;        
 
         for (uint256 i; i < tokenIds.length; ++i) {
             // Cache storageCounter for tokenId
@@ -333,15 +363,33 @@ contract AP721DatabaseV1 is
      * @param target Target address
      * @return allData Array of all data stored
      */
-    function readAllData(address target) external view requireInitialized(targetPress) returns (bytes[] memory allData) {
+    function readAllData(address target) external view requireInitialized(target) returns (bytes[] memory allData) {
         unchecked {
             allData = new bytes[](AP721(payable(target)).lastMintedTokenId());
 
-            for (uint256 i; i < ap721Settings[target].storedCounter; ++i) {
+            for (uint256 i; i < ap721Settings[target].storageCounter; ++i) {
                 // Will return bytes(0) if token has been burnt
                 allData[i] = SSTORE2.read(tokenData[target][i]);
             }
         }
+    }    
+
+    /**
+     * @notice Getter for accessing settings from a given target
+     * @dev Fetches + returns settings information from a given target
+     * @param target Target address
+     */
+    function getSettings(address target) external view returns (IAP721Database.Settings memory) {
+        return ap721Settings[target];
+    }
+
+    /**
+     * @notice Getter for accessing token transferability status from a given target
+     * @dev Called by AP721 implementation to determine transferability status
+     * @param target Target address
+     */
+    function getTransferable(address target) external view returns (bool) {
+        return ap721Settings[target].ap721Config.transferable;
     }    
 
     //////////////////////////////
@@ -431,15 +479,12 @@ contract AP721DatabaseV1 is
     // DATA RENDERING
     //////////////////////////////
 
-    // tokenURI
-    // contractURI
-
     /**
      * @notice ContractURI getter for a given AP721
      * @return uri String contractURI
      */
     function contractURI() public view requireInitialized(msg.sender) returns (string memory uri) {
-        return IAP721(ap721Settings[msg.sender].renderer).getContractURI(msg.sender);
+        return IAP721Renderer(ap721Settings[msg.sender].renderer).getContractURI(msg.sender);
     }
 
     /**
@@ -448,6 +493,6 @@ contract AP721DatabaseV1 is
      * @return uri String tokenURI
      */
     function tokenURI(uint256 tokenId) external view requireInitialized(msg.sender) returns (string memory uri) {
-        return IAP721(ap721Settings[msg.sender].renderer).getTokenURI(msg.sender, 1);
+        return IAP721Renderer(ap721Settings[msg.sender].renderer).getTokenURI(msg.sender, tokenId);
     }    
 }

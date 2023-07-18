@@ -28,7 +28,7 @@ pragma solidity 0.8.17;
 import {IAP721Database} from "../../interfaces/IAP721Database.sol";
 
 /**
- @notice Database storage variables contract
+ @notice Database storage contract
  */
 contract AP721DatabaseStorageV1 {
 

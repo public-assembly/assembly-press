@@ -56,7 +56,7 @@ contract ERC721PressConfig is Test {
         database.setOfficialFactory(mockFactory);
         vm.stopPrank();
         vm.startPrank(mockFactory);
-        database.initializePress(address(targetPressProxy), address(feeModule));
+        database.initializePress(address(targetPressProxy), abi.encode(address(feeModule)));
         vm.stopPrank();
     }
 
