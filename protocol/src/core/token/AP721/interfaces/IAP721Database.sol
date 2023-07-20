@@ -135,8 +135,8 @@ interface IAP721Database {
 
     /// @notice Target has not been initialized
     error Target_Not_Initialized(); 
-    /// @notice TokenId has not been minted
-    error Token_Not_Minted();    
+    /// @notice TokenId does not exist
+    error Token_Does_Not_Exist();    
     /// @notice Array input lengths don't match
     error Invalid_Input_Length();     
 

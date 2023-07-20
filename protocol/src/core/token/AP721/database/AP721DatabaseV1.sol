@@ -85,6 +85,8 @@ contract AP721DatabaseV1 is
     /**
      * @notice Facilitates setup of a new AP721Proxy in the database
      * @dev Default implementation does not include any checks on if factory is allowed
+     * @dev Default implementaton does not provide ability to set fundsRecipient or royaltyBPS
+     *      for created AP721
      * @param initialOwner User that will own the AP721Proxy upon deployment
      * @param databaseInit Data to initialize database with
      * @param factory Address of factory to use for AP721Proxy deployment
@@ -103,15 +105,18 @@ contract AP721DatabaseV1 is
             initialOwner,
             factoryInit
         );
-        // Initialize new AP721Proxy in database
-        ap721Settings[newAP721].initialized = 1;
         // Decode database init
         (
             address logic,
             bytes memory logicInit,
             address renderer,
             bytes memory rendererInit,
-        ) = abi.decode(databaseInit, (address, bytes, address, bytes, address));
+            bool transferable
+        ) = abi.decode(databaseInit, (address, bytes, address, bytes, bool));
+        // Initialize AP721Proxy in database
+        ap721Settings[newAP721].initialized = 1;        
+        // Initialize token transferability for AP721Proxy
+        ap721Settings[newAP721].ap721Config.transferable = transferable;            
         // Set + initialize logic
         _setLogic(newAP721, logic, logicInit);    
         // Set + initialize renderer
@@ -288,6 +293,10 @@ contract AP721DatabaseV1 is
         address sender = msg.sender;
 
         for (uint256 i = 0; i < tokenIds.length; ++i) {
+            // Check if tokenId exists
+            if (!AP721(payable(target)).exists(tokenIds[i])) {
+                revert Token_Does_Not_Exist();
+            }
             // Check if sender can overwrite data in target for given tokenId
             if (!IAP721Logic(ap721Settings[target].logic).getOverwriteAccess(target, sender, tokenIds[i])) {
                 revert No_Overwrite_Access();
@@ -348,10 +357,10 @@ contract AP721DatabaseV1 is
      * @return data Data stored for given token
      */
     function readData(address target, uint256 tokenId) external view requireInitialized(target) returns (bytes memory data) {
-        // Revert lookup if tokenId has not been minted
-        if (tokenId > AP721(payable(target)).lastMintedTokenId()) {
-            revert Token_Not_Minted();
-        }             
+        // Revert lookup if tokenId doesnt exist
+        if (!AP721(payable(target)).exists(tokenId)) {
+            revert Token_Does_Not_Exist();
+        }
         // Will return bytes(0) if token has been burnt
         // NOTE: tokenData storage trails associated tokenIds by 1
         return SSTORE2.read(tokenData[target][tokenId - 1]);

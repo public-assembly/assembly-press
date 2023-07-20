@@ -300,9 +300,7 @@ contract AP721 is
         // Get AP721 settings from database
         (IAP721Database.Settings memory settings) = IAP721Database(_database).getSettings(address(this));   
         // Return no royalty value or recipient if fundsRecipient is zero value
-        if (settings.ap721Config.fundsRecipient == address(0)) {
-            return (address(0), 0);
-        }             
+        if (settings.ap721Config.fundsRecipient == address(0)) return (address(0), 0);
         // If royaltyBPS > 100%, return royalty amount as the full _salePrice. Else return _salePrice * roylatyBPS / 10,000 
         if (settings.ap721Config.royaltyBPS > 100_000) {
             return (settings.ap721Config.fundsRecipient, _salePrice);

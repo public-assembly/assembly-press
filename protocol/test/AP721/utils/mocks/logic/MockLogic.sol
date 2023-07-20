@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import {IAP721Logic} from "../../../../src/core/token/AP721/interfaces/IAP721Logic.sol";
+import {IAP721Logic} from "../../../../../src/core/token/AP721/interfaces/IAP721Logic.sol";
+import {DatabaseGuard} from "../../../../../src/core/utils/DatabaseGuard.sol";
 
-contract MockLogic is IAP721Logic { 
+contract MockLogic is IAP721Logic, DatabaseGuard {  
 
-    function initializeWithData(address target, bytes memory initData) external {
-        return;
-    }
+    constructor(address _databaseImpl) DatabaseGuard(_databaseImpl) {}
+
+    function initializeWithData(address target, bytes memory initData) onlyDatabase external {}
 
     function name() external view returns (string memory) {
         return "MockLogic";
