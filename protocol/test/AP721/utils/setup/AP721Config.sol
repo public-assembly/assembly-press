@@ -76,6 +76,4 @@ contract AP721Config is Test {
         // return address of newly setup AP721
         return database.setupAP721(initialOwner, databaseInit, factory, factoryInit);
     }
-}
-
-// 
+} 

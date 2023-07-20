@@ -18,7 +18,6 @@ import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-up
 
 contract AP721DatabaseV1Test is AP721Config {
 
-
     function test_setupAP721() public {
         // setup logic + renderer inits
         bytes memory adminInit = abi.encode(AP721_ADMIN);
@@ -128,6 +127,12 @@ contract AP721DatabaseV1Test is AP721Config {
             NON_TRANSFERABLE
         );           
     }        
+
+    // `store`
+    // `overwrite`
+    // `remove`
+    // `setLogic`
+    // `setRenderer`
 }
 
 /* 
@@ -168,6 +173,7 @@ questions:
             provides an example for how to do this, but nothing is enforced.
             Should we add a closng function check that AP721 last token minted = ap721Settings.storagerCounter + 1?
                 - cant even enforce this ^ so probalby not worth it
+    - questions: could potentially revert if storing an enormous amount of data over gas limit?
 `overwrite`    
     - calling permissions determined by logic contract set for given target
     - will revert if
@@ -177,6 +183,7 @@ questions:
     - must result in
         - newly created sstoer2 datapointer
             - what happens if you overrwrite with empty data?
+    - questions: could potentially revert if storing an enormous amount of data over gas limit?
 `remove`    
     - calling permissions determined by logic contract set for given target
     - will revert if
