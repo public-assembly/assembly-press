@@ -108,11 +108,11 @@ contract AP721DatabaseV1 is
         // Decode database init
         (
             address logic,
-            bytes memory logicInit,
             address renderer,
-            bytes memory rendererInit,
-            bool transferable
-        ) = abi.decode(databaseInit, (address, bytes, address, bytes, bool));
+            bool transferable,
+            bytes memory logicInit,
+            bytes memory rendererInit            
+        ) = abi.decode(databaseInit, (address, address, bool, bytes, bytes));
         // Initialize AP721Proxy in database
         ap721Settings[newAP721].initialized = 1;        
         // Initialize token transferability for AP721Proxy

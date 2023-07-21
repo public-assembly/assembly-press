@@ -67,10 +67,10 @@ contract AP721Config is Test {
         bytes memory factoryInit = abi.encode(name, symbol);
         bytes memory databaseInit = abi.encode(
             logic,
-            logicInit,
             renderer,
-            rendererInit,
-            tokenTransferability
+            tokenTransferability,
+            logicInit,
+            rendererInit
         );
 
         // return address of newly setup AP721
