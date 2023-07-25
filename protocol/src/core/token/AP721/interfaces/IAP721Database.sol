@@ -25,8 +25,7 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-interface IAP721Database {  
-
+interface IAP721Database {
     ////////////////////////////////////////////////////////////
     // TYPES
     ////////////////////////////////////////////////////////////
@@ -38,11 +37,11 @@ interface IAP721Database {
      * First slot: fundsRecipient (20) + royaltyBPS (2) + transferable (1) = 23 bytes
      */
     struct AP721Config {
-        /// @notice 
+        /// @notice
         address fundsRecipient;
-        /// @notice 
+        /// @notice
         uint16 royaltyBPS;
-        /// @notice 
+        /// @notice
         bool transferable;
     }
 
@@ -52,26 +51,26 @@ interface IAP721Database {
      *
      * First slot: storageCounter (32) = 32 bytes
      * Second slot: logic (20) + initialized (1) = 21 bytes
-     * Third slot: renderer (20) = 20 bytes   
+     * Third slot: renderer (20) = 20 bytes
      * TODO: confirm that the struct takes up all 32 bytes even if the storage inside of it is less than 32
      * Fourth slot: ap721Config (32) = 32 bytes
      */
     struct Settings {
         /// @notice Keeps track of how many data slots have been filled
-        uint256 storageCounter;                
+        uint256 storageCounter;
         /// @notice Address of the logic contract
-        address logic;                        
+        address logic;
         /// @notice initialized uint. 0 = not initialized, 1 = initialized
         uint8 initialized;
         /// @notice Address of the renderer contract
-        address renderer;   
+        address renderer;
         /// Stores config settings for AP721 contract
         AP721Config ap721Config;
-    }    
+    }
 
     ////////////////////////////////////////////////////////////
     // EVENTS
-    ////////////////////////////////////////////////////////////  
+    ////////////////////////////////////////////////////////////
 
     /// @notice Event emitted when setting up a new AP721
     /// @param ap721 Address of new ap721 setup
@@ -80,50 +79,29 @@ interface IAP721Database {
     /// @param logic Address of logic contract set for AP721
     /// @param renderer Address of renderer contract set on ap721
     /// @param factory Address of factory designated for setup process
-    event SetupAP721 (
+    event SetupAP721(
         address indexed ap721,
         address indexed sender,
         address indexed initialOwner,
         address logic,
         address renderer,
-        address factory 
+        address factory
     );
 
     /// @notice Logic has been updated
-    event LogicUpdated(
-        address indexed target,
-        address indexed logic
-    );    
+    event LogicUpdated(address indexed target, address indexed logic);
 
     /// @notice Renderer has been updated
-    event RendererUpdated(
-        address indexed target,
-        address indexed renderer
-    );  
-
+    event RendererUpdated(address indexed target, address indexed renderer);
 
     /// @notice Data has been stored
-    event DataStored(
-        address indexed target,
-        address indexed sender,
-        uint256 indexed tokenId,
-        address pointer
-    );             
+    event DataStored(address indexed target, address indexed sender, uint256 indexed tokenId, address pointer);
 
     /// @notice Data has been overwritten
-    event DataOverwritten(
-        address indexed target,
-        address indexed sender,
-        uint256 indexed tokenId,
-        address pointer
-    );           
+    event DataOverwritten(address indexed target, address indexed sender, uint256 indexed tokenId, address pointer);
 
     /// @notice Data has been removed
-    event DataRemoved(
-        address indexed target,
-        address indexed sender,
-        uint256 indexed tokenId
-    );          
+    event DataRemoved(address indexed target, address indexed sender, uint256 indexed tokenId);
 
     ////////////////////////////////////////////////////////////
     // ERRORS
@@ -131,27 +109,27 @@ interface IAP721Database {
 
     //////////////////////////////
     // INVALID + FAILURE ERRORS
-    //////////////////////////////     
+    //////////////////////////////
 
     /// @notice Target has not been initialized
-    error Target_Not_Initialized(); 
+    error Target_Not_Initialized();
     /// @notice TokenId does not exist
-    error Token_Does_Not_Exist();    
+    error Token_Does_Not_Exist();
     /// @notice Array input lengths don't match
-    error Invalid_Input_Length();     
+    error Invalid_Input_Length();
 
     //////////////////////////////
     // ACCESS ERRORS
-    //////////////////////////////  
-    
+    //////////////////////////////
+
     /// @notice Msg.sender does not have access to call store for tatget
-    error No_Store_Access();    
+    error No_Store_Access();
     /// @notice Msg.sender does not have access to call overwrite for tatget
-    error No_Overwrite_Access();                
+    error No_Overwrite_Access();
     /// @notice Msg.sender does not have access to call remove for tatget
-    error No_Remove_Access();    
+    error No_Remove_Access();
     /// @notice Msg.sender does not have access to edit settings for tatget
-    error No_Settings_Access();        
+    error No_Settings_Access();
 
     ////////////////////////////////////////////////////////////
     // FUNCTIONS
@@ -159,15 +137,12 @@ interface IAP721Database {
 
     //////////////////////////////
     // WRITE FUNCTIONS
-    //////////////////////////////           
+    //////////////////////////////
 
     /// @notice Facilitates deploy + initialization of a new, creator-owned proxy of `AP721.sol`
-    function setupAP721(
-        address initialOwner,
-        bytes memory databaseInit,
-        address factory,
-        bytes memory factoryInit
-    ) external returns (address);
+    function setupAP721(address initialOwner, bytes memory databaseInit, address factory, bytes memory factoryInit)
+        external
+        returns (address);
     /// @notice Store aribtrary data in database
     function store(address target, uint256 quantity, bytes memory data) external;
     /// @notice Overwrite data stored in database for a given token
@@ -181,23 +156,23 @@ interface IAP721Database {
     //     bytes[] memory databaseInits,
     //     address[] memory factories,
     //     bytes[] memory factoryInits
-    // ) external returns (address[] memory);    
+    // ) external returns (address[] memory);
     // /// @notice Store aribtrary data in database for multiple targets
     // function multiStore(address[] memory targets, bytes[] memory data) external;
     // /// @notice Overwrite data stored in database for a given token for multiple targets
     // function multiOverwrite(address[] memory targets, uint256[][] memory tokenIds, uint256[][] memory data) external;
     // /// @notice Erase data stored in database for a given token for multiple targets
-    // function multiErase(address[] memory targets, uint256[][] memory tokenIds) external;  
+    // function multiErase(address[] memory targets, uint256[][] memory tokenIds) external;
 
     //////////////////////////////
     // READ FUNCTIONS
-    //////////////////////////////        
-    /// @notice Returns contractURI for a given AP721    
-    function contractURI() external view returns (string memory);    
+    //////////////////////////////
+    /// @notice Returns contractURI for a given AP721
+    function contractURI() external view returns (string memory);
     /// @notice Returns tokenURI for a given AP721 + tokenId
-    function tokenURI(uint256 tokenId) external view returns (string memory);   
+    function tokenURI(uint256 tokenId) external view returns (string memory);
     /// @notice Get token transferability status for a target AP721
-    function getSettings(address target) external view returns (Settings memory);                 
+    function getSettings(address target) external view returns (Settings memory);
     /// @notice Get token transferability status for a target AP721
     function getTransferable(address target) external view returns (bool);
 }

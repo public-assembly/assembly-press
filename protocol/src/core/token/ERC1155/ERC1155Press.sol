@@ -55,33 +55,32 @@ contract ERC1155Press is
     ReentrancyGuardUpgradeable,
     OwnableUpgradeable
 {
-
     ////////////////////////////////////////////////////////////
-    // INITIALIZER 
+    // INITIALIZER
     ////////////////////////////////////////////////////////////
 
     /**
-    * @notice Initializes a new, creator-owned proxy of ERC1155Press.sol
-    * @dev `initializer` for OpenZeppelin's OwnableUpgradeable
-    * @param _name Contract name
-    * @param _symbol Contract symbol
-    * @param initialOwner User that owns the contract upon deployment
-    * @param database Database implementation address
-    * @param databaseInit Data to initialize database contract with
-    */
+     * @notice Initializes a new, creator-owned proxy of ERC1155Press.sol
+     * @dev `initializer` for OpenZeppelin's OwnableUpgradeable
+     * @param _name Contract name
+     * @param _symbol Contract symbol
+     * @param initialOwner User that owns the contract upon deployment
+     * @param database Database implementation address
+     * @param databaseInit Data to initialize database contract with
+     */
     function initialize(
-        string memory _name, 
-        string memory _symbol, 
+        string memory _name,
+        string memory _symbol,
         address initialOwner,
         IERC1155PressDatabase database,
         bytes memory databaseInit
     ) external nonReentrant initializer {
         // Setup reentrancy guard
         __ReentrancyGuard_init();
-        // Setup owner for Ownable 
+        // Setup owner for Ownable
         __Ownable_init(initialOwner);
         // Setup UUPS
-        __UUPSUpgradeable_init();   
+        __UUPSUpgradeable_init();
 
         // Setup contract name + contract symbol. Cannot be updated after initialization
         name = _name;
@@ -89,7 +88,7 @@ contract ERC1155Press is
 
         // Set + Initialize Database
         _database = database;
-        _database.initializePressWithData(databaseInit);   
+        _database.initializePressWithData(databaseInit);
     }
 
     ////////////////////////////////////////////////////////////
@@ -114,19 +113,19 @@ contract ERC1155Press is
     //   uint256 initializedToken = _database.initializeToken(databaseInit);
 
     //   // Update database with data included in `mintWithData` call
-    //   _database.storeData(sender, initializedToken, data); 
+    //   _database.storeData(sender, initializedToken, data);
 
     //   // For each recipient provided, mint them given quantity of tokenId being newly minted
     //   for (uint256 i = 0; i < recipients.length; ++i) {
     //       // Mint quantity of given tokenId to recipient
-    //     _mint(recipients[i], tokenId, quantity, new bytes(0));        
-    //   } 
+    //     _mint(recipients[i], tokenId, quantity, new bytes(0));
+    //   }
     //   emit NewTokenMinted({
     //       tokenId: tokenId,
     //       sender: sender,
     //       recipient: recipients
     //       quantity: quantity
-    //   });                 
+    //   });
     // }
 
     // create an array of length 1
@@ -135,7 +134,7 @@ contract ERC1155Press is
         array[0] = element;
 
         return array;
-    }    
+    }
 
     /// @notice This gets the next token in line to be minted when minting linearly (default behavior) and updates the counter
     function _getAndUpdateNextTokenId() internal returns (uint256) {
@@ -149,26 +148,26 @@ contract ERC1155Press is
     ////////////////////////////////////////////////////////////
 
     /**
-    * @notice Getter for database contract address used by Press
-    * @return databaseAddress Database contract used by Press
-    */
+     * @notice Getter for database contract address used by Press
+     * @return databaseAddress Database contract used by Press
+     */
     function getDatabase() public view returns (IERC1155PressDatabase databaseAddress) {
         return _database;
-    }    
+    }
 
     /**
-    * @notice Getter for tokenIds created for Press
-    * @return numMinted Database contract used by Press
-    */    
+     * @notice Getter for tokenIds created for Press
+     * @return numMinted Database contract used by Press
+     */
     function getNumMinted() public view returns (uint256 numMinted) {
         return _tokenCount;
     }
 
     //////////////////////////////
     // INTERNAL
-    //////////////////////////////    
+    //////////////////////////////
 
     /// @dev Can only be called by an admin or the contract owner
     /// @param newImplementation proposed new upgrade implementation
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}    
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

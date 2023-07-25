@@ -28,7 +28,6 @@ import {IERC721PressDatabase} from "../interfaces/IERC721PressDatabase.sol";
 */
 
 interface IERC721Press {
-
     ////////////////////////////////////////////////////////////
     // TYPES
     ////////////////////////////////////////////////////////////
@@ -44,25 +43,18 @@ interface IERC721Press {
 
     ////////////////////////////////////////////////////////////
     // EVENTS
-    ////////////////////////////////////////////////////////////  
+    ////////////////////////////////////////////////////////////
 
     /// @notice Event emitted when minting token
     /// @param sender address that called mintWithData
     /// @param quantity numder of tokens to mint
     /// @param firstMintedTokenId first tokenId minted in txn
-    event MintWithData(
-        address indexed sender,
-        uint256 quantity,
-        uint256 firstMintedTokenId
-    );
+    event MintWithData(address indexed sender, uint256 quantity, uint256 firstMintedTokenId);
 
     /// @notice Event emitted when settings are updated
     /// @param sender address that sent update txn
     /// @param settings new settings
-    event SettingsUpdated(
-        address indexed sender,
-        Settings settings
-    );            
+    event SettingsUpdated(address indexed sender, Settings settings);
 
     ////////////////////////////////////////////////////////////
     // ERRORS
@@ -72,23 +64,23 @@ interface IERC721Press {
     /// @notice msg.sender does not have mint access for given Press
     error No_Mint_Access();
     /// @notice msg.sender does not have burn access for given Press
-    error No_Burn_Access();              
+    error No_Burn_Access();
     /// @notice msg.sender does not have overwrite access for given Press
-    error No_Overwrite_Access();                
+    error No_Overwrite_Access();
     /// @notice msg.sender does not have settings access for given Press
-    error No_Settings_Access(); 
+    error No_Settings_Access();
 
     // Constraint & failure errors
     /// @notice msg.value incorrect for mint call
-    error Incorrect_Msg_Value();    
+    error Incorrect_Msg_Value();
     /// @notice Royalty percentage too high
-    error Royalty_Percentage_Too_High(uint16 bps);    
+    error Royalty_Percentage_Too_High(uint16 bps);
     /// @notice Array input lengths don't match
-    error Invalid_Input_Length();    
+    error Invalid_Input_Length();
     /// @notice error when attempting to transfer non-transferrable token
-    error Non_Transferrable_Token();    
+    error Non_Transferrable_Token();
     /// @notice error when failing to send eth
-    error Funds_Send_Failure();    
+    error Funds_Send_Failure();
 
     ////////////////////////////////////////////////////////////
     // FUNCTIONS
@@ -96,39 +88,42 @@ interface IERC721Press {
 
     //////////////////////////////
     // WRITE FUNCTIONS
-    //////////////////////////////    
+    //////////////////////////////
 
     /// @notice initializes a Press contract instance
     function initialize(
         string memory name,
         string memory symbol,
-        address initialOwner,        
+        address initialOwner,
         IERC721PressDatabase database,
         bytes calldata databaseInit,
         Settings memory settings
-    ) external;          
+    ) external;
     /// @notice allows user to mint token(s) from the Press contract
-    function mintWithData(uint256 quantity, bytes calldata data) external payable returns (uint256);             
+    function mintWithData(uint256 quantity, bytes calldata data) external payable returns (uint256);
     /// @notice Allows user to overwrite data previously stored with a given token
-    function overwrite(uint256[] calldata tokenIds, bytes[] calldata newData) external;           
+    function overwrite(uint256[] calldata tokenIds, bytes[] calldata newData) external;
 
     //////////////////////////////
     // READ FUNCTIONS
-    //////////////////////////////  
+    //////////////////////////////
 
     /// @notice Getter for Press owner
-    function owner() external view returns (address);    
+    function owner() external view returns (address);
     /// @notice Contract uri getter
     /// @dev Call proxies to renderer
     function contractURI() external view returns (string memory);
     /// @notice Token uri getter
     /// @dev Call proxies to renderer
     /// @param tokenId id of token to get the uri for
-    function tokenURI(uint256 tokenId) external view returns (string memory);        
+    function tokenURI(uint256 tokenId) external view returns (string memory);
     /// @dev Get royalty information for token
     /// @param _tokenId the NFT asset queried for royalty information
-    /// @param _salePrice the sale price of the NFT asset specified by _tokenId    
-    function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount);           
+    /// @param _salePrice the sale price of the NFT asset specified by _tokenId
+    function royaltyInfo(uint256 _tokenId, uint256 _salePrice)
+        external
+        view
+        returns (address receiver, uint256 royaltyAmount);
     /// @notice ERC165 supports interface
     /// @param interfaceId interface id to check if supported
     function supportsInterface(bytes4 interfaceId) external view returns (bool);

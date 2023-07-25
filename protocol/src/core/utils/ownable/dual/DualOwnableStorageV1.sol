@@ -26,19 +26,18 @@ pragma solidity 0.8.17;
 */
 
 abstract contract DualOwnableStorageV1 {
-    
     /**
-    * @dev The address of the owner
-    */
+     * @dev The address of the owner
+     */
     address internal _owner;
 
     /**
-    * @dev The address of the pending Owner
-    */
-    address internal _pendingOwner;       
+     * @dev The address of the pending Owner
+     */
+    address internal _pendingOwner;
 
     /**
-    * @dev The address of the secondary owner
-    */
+     * @dev The address of the secondary owner
+     */
     address internal _secondaryOwner;
 }

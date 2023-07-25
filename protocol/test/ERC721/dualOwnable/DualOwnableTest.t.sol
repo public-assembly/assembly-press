@@ -12,14 +12,13 @@ contract MockOwnedContract is DualOwnable {
 
     function permissionedDoThing() public eitherOwner returns (bool) {
         return true;
-    }    
+    }
 }
 
 contract DualOwnableTest is Test {
-
     address public primaryOwner = address(0x111);
     address public secondaryOwner = address(0x222);
-    address public nonOwner = address (0x333);
+    address public nonOwner = address(0x333);
     MockOwnedContract public mockOwnedContract;
 
     function setUp() public {
@@ -57,7 +56,7 @@ contract DualOwnableTest is Test {
         // should revert because sceonary owner calling transfer primary ownership
         vm.expectRevert(abi.encodeWithSignature("ONLY_OWNER()"));
         mockOwnedContract.safeTransferOwnership(newOwner);
-        vm.stopPrank();        
+        vm.stopPrank();
         vm.prank(primaryOwner);
         mockOwnedContract.safeTransferOwnership(newOwner);
         assertEq(mockOwnedContract.pendingOwner(), newOwner);
@@ -131,12 +130,11 @@ contract DualOwnableTest is Test {
         vm.prank(primaryOwner);
         mockOwnedContract.resignSecondaryOwnership();
         assertEq(mockOwnedContract.secondaryOwner(), address(0));
-    }    
+    }
 
     function test_ResignSecondaryOwnership_SecondaryOwner() public {
         vm.prank(secondaryOwner);
         mockOwnedContract.resignSecondaryOwnership();
         assertEq(mockOwnedContract.secondaryOwner(), address(0));
-    }        
+    }
 }
-

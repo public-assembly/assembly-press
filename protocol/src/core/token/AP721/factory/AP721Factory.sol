@@ -39,24 +39,23 @@ import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.s
  * @author Salief Lewis
  */
 contract AP721Factory is IAP721Factory, Version(1), ReentrancyGuard {
-
     //////////////////////////////////////////////////
     // STORAGE
-    //////////////////////////////////////////////////   
+    //////////////////////////////////////////////////
 
     /**
-    * @notice Implementation contract behind ap721 proxies
-    */
+     * @notice Implementation contract behind ap721 proxies
+     */
     address public immutable ap721Impl;
 
     /**
-    * @notice Enshrined database contract passed into each `create` call
-    */
-    address public immutable databaseImpl;  
+     * @notice Enshrined database contract passed into each `create` call
+     */
+    address public immutable databaseImpl;
 
     ////////////////////////////////////////////////////////////
-    // MODIFIERS 
-    ////////////////////////////////////////////////////////////    
+    // MODIFIERS
+    ////////////////////////////////////////////////////////////
 
     /**
      * @notice Checks if database is msg.sender
@@ -67,18 +66,18 @@ contract AP721Factory is IAP721Factory, Version(1), ReentrancyGuard {
         }
 
         _;
-    }         
+    }
 
     //////////////////////////////////////////////////
     // CONSTRUCTOR
-    //////////////////////////////////////////////////         
-    
+    //////////////////////////////////////////////////
+
     /**
-    * @notice Sets the implementation address upon deployment
-    * @dev Implementation addresses cannot be updated after deployment 
-    */
+     * @notice Sets the implementation address upon deployment
+     * @dev Implementation addresses cannot be updated after deployment
+     */
     constructor(address _ap721Impl, address _databaseImpl) {
-        if (_ap721Impl == address(0) || _databaseImpl == address(0)) { 
+        if (_ap721Impl == address(0) || _databaseImpl == address(0)) {
             revert Address_Cannot_Be_Zero();
         }
 
@@ -91,26 +90,28 @@ contract AP721Factory is IAP721Factory, Version(1), ReentrancyGuard {
 
     //////////////////////////////////////////////////
     // WRITE FUNCTIONS
-    //////////////////////////////////////////////////   
+    //////////////////////////////////////////////////
 
     /**
-    * @notice Creates a new, creator-owned proxy of `AP721.sol`
-    * @param initialOwner User that owns the contract upon deployment
-    * @param factoryInit Init to decode and pass to ap721 `initialize` function
-    * @return ap721 Address of newly initialized AP721Proxy
-    */
-    function create(
-        address initialOwner,
-        bytes memory factoryInit
-    ) nonReentrant onlyDatabase public returns (address ap721) {
+     * @notice Creates a new, creator-owned proxy of `AP721.sol`
+     * @param initialOwner User that owns the contract upon deployment
+     * @param factoryInit Init to decode and pass to ap721 `initialize` function
+     * @return ap721 Address of newly initialized AP721Proxy
+     */
+    function create(address initialOwner, bytes memory factoryInit)
+        public
+        nonReentrant
+        onlyDatabase
+        returns (address ap721)
+    {
         // Configure ownership details in proxy constructor
-        AP721Proxy newAP721 = new AP721Proxy(ap721Impl, "");     
+        AP721Proxy newAP721 = new AP721Proxy(ap721Impl, "");
         // Initialize AP721Proxy
         AP721(payable(address(newAP721))).initialize({
             initialOwner: initialOwner,
             database: databaseImpl,
             init: factoryInit
-        });     
+        });
         return address(newAP721);
     }
 }

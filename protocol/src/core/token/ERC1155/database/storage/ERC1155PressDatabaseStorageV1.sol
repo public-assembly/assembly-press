@@ -28,33 +28,32 @@ pragma solidity 0.8.17;
 import {IERC1155PressDatabase} from "../../interfaces/IERC1155PressDatabase.sol";
 
 /**
- @notice Database storage variables contract
+ * @notice Database storage variables contract
  */
 contract ERC1155PressDatabaseStorageV1 {
+    /**
+     * @notice Press => ID => Pointer to encoded data
+     * @dev The first `id` stored will be 0, which means data Ids trail their corresponding
+     *       tokenIds by 1
+     * @dev Can contain blank/burned entries (not garbage compacted)
+     * @dev See IERC1155PressDatabase for details on TokenData struct
+     */
+    mapping(address => mapping(uint256 => address)) public idToData;
 
-  /**
-  * @notice Press => ID => Pointer to encoded data
-  * @dev The first `id` stored will be 0, which means data Ids trail their corresponding
-  *       tokenIds by 1
-  * @dev Can contain blank/burned entries (not garbage compacted)
-  * @dev See IERC1155PressDatabase for details on TokenData struct
-  */
-  mapping(address => mapping(uint256 => address)) public idToData;
+    /**
+     * @notice Press => PressSettings
+     * @dev see IERC1155PressDatabase for details on PressSettings struct
+     */
+    mapping(address => IERC1155PressDatabase.PressSettings) public pressSettingsInfo;
 
-  /**
-  * @notice Press => PressSettings
-  * @dev see IERC1155PressDatabase for details on PressSettings struct
-  */
-  mapping(address => IERC1155PressDatabase.PressSettings) public pressSettingsInfo;
+    /**
+     * @notice Press => TokenId => TokenSettings
+     * @dev see IERC155PressDatabase for details on TokenSettings struct
+     */
+    mapping(address => mapping(uint256 => IERC1155PressDatabase.TokenSettings)) public tokenSettingsInfo;
 
-  /**
-  * @notice Press => TokenId => TokenSettings
-  * @dev see IERC155PressDatabase for details on TokenSettings struct
-  */
-  mapping(address => mapping(uint256 => IERC1155PressDatabase.TokenSettings)) public tokenSettingsInfo;  
-
-  /**
-  * @dev Factory address => isOfficial bool
-  */
-  mapping(address => bool) internal _officialFactories;       
+    /**
+     * @dev Factory address => isOfficial bool
+     */
+    mapping(address => bool) internal _officialFactories;
 }

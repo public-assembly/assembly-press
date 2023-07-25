@@ -26,32 +26,28 @@ pragma solidity 0.8.17;
 */
 
 interface IAP721Factory {
+    ////////////////////////////////////////////////////////////
+    // EVENTS
+    ////////////////////////////////////////////////////////////
 
-  ////////////////////////////////////////////////////////////
-  // EVENTS
-  ////////////////////////////////////////////////////////////
+    /// @notice Emitted when the underlying AP721 impl is set in constructor
+    event AP721ImplementationSet(address indexed pressImpl);
+    /// @notice Emitted when the underlying Database impl is set in constructor
+    event DatabaseImplementationSet(address indexed databaseImpl);
 
-  /// @notice Emitted when the underlying AP721 impl is set in constructor
-  event AP721ImplementationSet(address indexed pressImpl);
-  /// @notice Emitted when the underlying Database impl is set in constructor
-  event DatabaseImplementationSet(address indexed databaseImpl);
-  
-  ////////////////////////////////////////////////////////////
-  // ERRORS
-  ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    // ERRORS
+    ////////////////////////////////////////////////////////////
 
-  /// @notice Implementation address cannot be set to zero
-  error Address_Cannot_Be_Zero();  
-  /// @notice Error when msg.sender is not the stored database impl
-  error Msg_Sender_Not_Database();  
-  
-  ////////////////////////////////////////////////////////////
-  // FUNCTIONS
-  ////////////////////////////////////////////////////////////
+    /// @notice Implementation address cannot be set to zero
+    error Address_Cannot_Be_Zero();
+    /// @notice Error when msg.sender is not the stored database impl
+    error Msg_Sender_Not_Database();
 
-  /// @notice Creates a new, creator-owned proxy of `AP721.sol`
-  function create(
-    address initialOwner,
-    bytes memory factoryInit
-  ) external returns (address);
+    ////////////////////////////////////////////////////////////
+    // FUNCTIONS
+    ////////////////////////////////////////////////////////////
+
+    /// @notice Creates a new, creator-owned proxy of `AP721.sol`
+    function create(address initialOwner, bytes memory factoryInit) external returns (address);
 }

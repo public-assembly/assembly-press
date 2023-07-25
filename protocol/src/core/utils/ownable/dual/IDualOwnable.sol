@@ -26,15 +26,14 @@ pragma solidity 0.8.17;
 */
 
 /**
-* @title IDualOwnable
-* @author Max Bochman
-* @notice The external Ownable events, errors, and functions
-*/
+ * @title IDualOwnable
+ * @author Max Bochman
+ * @notice The external Ownable events, errors, and functions
+ */
 interface IDualOwnable {
-    
     ////////////////////////////////////////////////////////////
     // EVENTS
-    ////////////////////////////////////////////////////////////  
+    ////////////////////////////////////////////////////////////
 
     /// @notice Emitted when ownership has been updated
     /// @param prevOwner The previous owner address
@@ -49,33 +48,33 @@ interface IDualOwnable {
     /// @notice Emitted when a pending ownership transfer has been canceled
     /// @param owner The current owner address
     /// @param canceledOwner The canceled owner address
-    event OwnerCanceled(address indexed owner, address indexed canceledOwner);       
+    event OwnerCanceled(address indexed owner, address indexed canceledOwner);
 
     /// @notice Emitted when secondary ownership has been updated
     /// @param prevSecondaryOwner The previous secondary owner address
     /// @param newSecondaryOwner The new secondary owner address
-    event SecondaryOwnerUpdated(address indexed prevSecondaryOwner, address indexed newSecondaryOwner);     
+    event SecondaryOwnerUpdated(address indexed prevSecondaryOwner, address indexed newSecondaryOwner);
 
     ////////////////////////////////////////////////////////////
     // ERRORS
-    ////////////////////////////////////////////////////////////  
+    ////////////////////////////////////////////////////////////
 
     /// @dev Reverts if an unauthorized user calls an owner function
     error ONLY_OWNER();
     /// @dev Reverts if an unauthorized user calls a pending owner function
-    error ONLY_PENDING_OWNER();    
+    error ONLY_PENDING_OWNER();
     /// @dev Reverts if an unauthorized user calls an eitherOwner function
-    error NOT_EITHER_OWNER();    
+    error NOT_EITHER_OWNER();
     /// @dev Owner cannot be the zero/burn address
     error OWNER_CANNOT_BE_ZERO_ADDRESS();
 
     ////////////////////////////////////////////////////////////
     // FUNCTIONS
-    ////////////////////////////////////////////////////////////  
+    ////////////////////////////////////////////////////////////
 
     //////////////////////////////
     // WRITE FUNCTIONS
-    //////////////////////////////       
+    //////////////////////////////
 
     /// @notice Forces an ownership transfer
     /// @param newOwner The new owner address
@@ -86,19 +85,19 @@ interface IDualOwnable {
     /// @notice Accepts an ownership transfer
     function acceptOwnership() external;
     /// @notice Cancels a pending ownership transfer
-    function cancelOwnershipTransfer() external;    
+    function cancelOwnershipTransfer() external;
     /// @notice Forces a secondary ownership transfer
     /// @param newSecondaryOwner The new secondary owner address
-    function transferSecondaryOwnership(address newSecondaryOwner) external;     
+    function transferSecondaryOwnership(address newSecondaryOwner) external;
 
     //////////////////////////////
     // READ FUNCTIONS
-    //////////////////////////////         
+    //////////////////////////////
 
     /// @notice The address of the owner
     function owner() external view returns (address);
     /// @notice The address of the pending owner
-    function pendingOwner() external view returns (address);    
+    function pendingOwner() external view returns (address);
     /// @notice The address of the secondary owner
-    function secondaryOwner() external view returns (address);   
+    function secondaryOwner() external view returns (address);
 }

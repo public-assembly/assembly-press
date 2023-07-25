@@ -28,46 +28,45 @@ pragma solidity 0.8.17;
 import {IERC1155PressDatabase} from "../interfaces/IERC1155PressDatabase.sol";
 
 contract ERC1155PressStorageV1 {
-
     ////////////////////////////////////////////////////////////
     // PUBLIC STORAGE
-    //////////////////////////////////////////////////////////// 
+    ////////////////////////////////////////////////////////////
 
     /**
-    * @notice Contract name
-    */
+     * @notice Contract name
+     */
     string public name;
     /**
-    * @notice Contract sumbol
-    */
-    string public symbol;    
+     * @notice Contract sumbol
+     */
+    string public symbol;
 
     /**
-    * @dev Max royalty BPS
-    */
-    uint16 constant public MAX_ROYALTY_BPS = 50_00;
+     * @dev Max royalty BPS
+     */
+    uint16 public constant MAX_ROYALTY_BPS = 50_00;
 
     ////////////////////////////////////////////////////////////
     // INTERNAL STORAGE
     ////////////////////////////////////////////////////////////
 
     /**
-    * @dev Counter to keep track of tokenId. First token minted will be tokenId #1
-    * @dev Can also be used as a num minted lookup
-    */
+     * @dev Counter to keep track of tokenId. First token minted will be tokenId #1
+     * @dev Can also be used as a num minted lookup
+     */
     uint256 internal _tokenCount = 0;
     /**
-    * @notice Token level total supply (impacted by burns)
-    */
-    mapping(uint256 => uint256) internal _totalSupply;           
+     * @notice Token level total supply (impacted by burns)
+     */
+    mapping(uint256 => uint256) internal _totalSupply;
     /**
-    * @notice Token level minted tracker
-    */
-    mapping(uint256 => mapping(address => uint256)) internal _mintedPerAddress;    
+     * @notice Token level minted tracker
+     */
+    mapping(uint256 => mapping(address => uint256)) internal _mintedPerAddress;
 
     /**
-    * @notice Storage for database impl
-    * @dev Set during initialization and cannot be updated
-    */
+     * @notice Storage for database impl
+     * @dev Set during initialization and cannot be updated
+     */
     IERC1155PressDatabase internal _database;
 }

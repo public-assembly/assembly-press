@@ -26,32 +26,31 @@ pragma solidity 0.8.17;
 */
 
 interface IAP721Logic {
-    
     ////////////////////////////////////////////////////////////
     // FUNCTIONS
     ////////////////////////////////////////////////////////////
 
     //////////////////////////////
     // WRITE FUNCTIONS
-    //////////////////////////////       
+    //////////////////////////////
 
     /// @notice Initializes target + initial setup data in logic contract
-    function initializeWithData(address target, bytes memory initData) external;      
+    function initializeWithData(address target, bytes memory initData) external;
 
     //////////////////////////////
     // READ FUNCTIONS
-    //////////////////////////////      
-  
+    //////////////////////////////
+
     /// @notice Getter for contract name
-    function name() external view returns (string memory);    
+    function name() external view returns (string memory);
     /// @notice Checks if a certain address has store access for a given AP721
-    function getStoreAccess(address target, address sender, uint256 quantity) external view returns (bool);    
+    function getStoreAccess(address target, address sender, uint256 quantity) external view returns (bool);
     /// @notice Checks if a certain address has overwrite access for a given AP721 + tokenId
-    function getOverwriteAccess(address target, address sender, uint256 tokeknId) external view returns (bool);   
+    function getOverwriteAccess(address target, address sender, uint256 tokeknId) external view returns (bool);
     /// @notice Checks if a certain address has remove access for a given AP721 + tokenId
-    function getRemoveAccess(address target, address sender, uint256 tokeknId) external view returns (bool);           
+    function getRemoveAccess(address target, address sender, uint256 tokeknId) external view returns (bool);
     /// @notice Checks if a certain address can update the settings for a given AP721
-    function getSettingsAccess(address target, address sender) external view returns (bool); 
+    function getSettingsAccess(address target, address sender) external view returns (bool);
     /// @notice Checks if a certain address get edit contract data post data storage for a given AP721
-    function getContractDataAccess(address targetPress, address metadataCaller) external view returns (bool);          
+    function getContractDataAccess(address targetPress, address metadataCaller) external view returns (bool);
 }

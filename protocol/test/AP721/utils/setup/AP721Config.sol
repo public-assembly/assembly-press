@@ -4,9 +4,6 @@ pragma solidity 0.8.17;
 import {Test} from "forge-std/Test.sol";
 import {console2} from "forge-std/console2.sol";
 
-import {Test} from "forge-std/Test.sol";
-import {console2} from "forge-std/console2.sol";
-
 import {IAP721} from "../../../../src/core/token/AP721/interfaces/IAP721.sol";
 import {AP721} from "../../../../src/core/token/AP721/nft/AP721.sol";
 import {AP721Proxy} from "../../../../src/core/token/AP721/nft/proxy/AP721Proxy.sol";
@@ -18,15 +15,17 @@ import {MockLogic_OnlyAdmin} from "../mocks/logic/MockLogic_OnlyAdmin.sol";
 import {MockRenderer} from "../mocks/renderer/MockRenderer.sol";
 
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
-import {IERC2981Upgradeable, IERC165Upgradeable} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
-
+import {
+    IERC2981Upgradeable,
+    IERC165Upgradeable
+} from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 
 contract AP721Config is Test {
-
     // AP721 Init Args
     string constant CONTRACT_NAME = "Name";
     string constant CONTRACT_SYMBOL = "SYMBOL";
     bool constant NON_TRANSFERABLE = false;
+    bool constant TRANSFERABLE = true;
     // AP721 Global contracts
     AP721DatabaseV1 database;
     AP721Factory factoryImpl;
@@ -48,7 +47,7 @@ contract AP721Config is Test {
         invalidFactoryImpl = new AP721Factory(address(payable(ap721Impl)), address(0x666));
         mockLogic = new MockLogic(address(database));
         mockLogic_OnlyAdmin = new MockLogic_OnlyAdmin(address(database));
-        mockRenderer = new MockRenderer(address(database));        
+        mockRenderer = new MockRenderer(address(database));
     }
 
     function createAP721(
@@ -62,18 +61,11 @@ contract AP721Config is Test {
         bytes memory rendererInit,
         bool tokenTransferability
     ) public virtual returns (address) {
-
         // Setup inits
         bytes memory factoryInit = abi.encode(name, symbol);
-        bytes memory databaseInit = abi.encode(
-            logic,
-            renderer,
-            tokenTransferability,
-            logicInit,
-            rendererInit
-        );
+        bytes memory databaseInit = abi.encode(logic, renderer, tokenTransferability, logicInit, rendererInit);
 
         // return address of newly setup AP721
         return database.setupAP721(initialOwner, databaseInit, factory, factoryInit);
     }
-} 
+}

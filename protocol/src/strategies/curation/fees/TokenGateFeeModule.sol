@@ -29,15 +29,14 @@ import {IERC721PressFeeModule} from "../../../core/token/ERC721/interfaces/IERC7
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
 
 /**
-* @title TokenGateFeeModule
-* @notice tbd
-* @dev tbd
-*/
+ * @title TokenGateFeeModule
+ * @notice tbd
+ * @dev tbd
+ */
 contract TokenGateFeeModule is IERC721PressFeeModule {
-
     //////////////////////////////////////////////////
     // STORAGE
-    //////////////////////////////////////////////////    
+    //////////////////////////////////////////////////
 
     address erc721Gate;
     uint256 feeForNonHolders;
@@ -45,7 +44,7 @@ contract TokenGateFeeModule is IERC721PressFeeModule {
 
     //////////////////////////////////////////////////
     // CONSTRUCTOR
-    //////////////////////////////////////////////////    
+    //////////////////////////////////////////////////
 
     constructor(address _erc721Gate, uint256 _feeForNonHolders, address _feeRecipeint) {
         erc721Gate = _erc721Gate;
@@ -55,26 +54,30 @@ contract TokenGateFeeModule is IERC721PressFeeModule {
 
     //////////////////////////////////////////////////
     // FUNCTIONS
-    //////////////////////////////////////////////////     
+    //////////////////////////////////////////////////
 
     //////////////////////////////
     // WRITE FUNCTIONS
-    //////////////////////////////    
+    //////////////////////////////
 
     //////////////////////////////
     // READ FUNCTIONS
-    //////////////////////////////    
+    //////////////////////////////
 
-    function getFeeInstructions(address targetPress, address user, uint256 storageSlots) external view returns (address, uint256) {
+    function getFeeInstructions(address targetPress, address user, uint256 storageSlots)
+        external
+        view
+        returns (address, uint256)
+    {
         return (address(0), 0);
-    }    
+    }
 
     // function getFeeInstructions(address targetPress, address user, uint256 storageSlots) external view returns (address, uint256) {
-    //     // If user doesnt own token, has to pay fee. If they do, no fee required        
+    //     // If user doesnt own token, has to pay fee. If they do, no fee required
     //     if (IERC721(erc721Gate).balanceOf(user) == 0) {
     //         return (feeRecipient, feeForNonHolders);
     //     } else {
     //         return (feeRecipient, feeForNonHolders);
     //     }
     // }
-}  
+}

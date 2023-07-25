@@ -44,10 +44,7 @@ import "sstore2/SSTORE2.sol";
  * @author Max Bochman
  * @author Salief Lewis
  */
-abstract contract ERC1155PressDatabaseSkeletonV1 is
-    ERC1155PressDatabaseStorageV1,
-    IERC1155PressDatabase
-{
+abstract contract ERC1155PressDatabaseSkeletonV1 is ERC1155PressDatabaseStorageV1, IERC1155PressDatabase {
     ////////////////////////////////////////////////////////////
     // MODIFIERS
     ////////////////////////////////////////////////////////////
@@ -81,7 +78,6 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
     //////////////////////////////
     // DATABASE ADMIN
     //////////////////////////////
- 
 
     /**
      * @notice Initializes a Press, giving it the ability to write to database
@@ -91,8 +87,8 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
      */
     function initializePress(address targetPress) external {
         // Cache msg.sender -- which should be a Factory if called correctly
-        address factory = msg.sender;        
-        
+        address factory = msg.sender;
+
         if (_officialFactories[factory] != true) {
             revert No_Initialize_Access();
         }
@@ -108,40 +104,34 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
      * @param target Address to check
      */
     function isOfficialFactory(address target) external view returns (bool) {
-        return _officialFactories[target];      
-    }        
+        return _officialFactories[target];
+    }
 
     //////////////////////////////
     // PRESS INITIALIZATION
-    //////////////////////////////        
+    //////////////////////////////
 
     /**
      * @notice Default logic initializer for a given Press
      * @dev Initializes settings for a given Press
      * @param databaseInit data to init with
      */
-    function initializePressWithData(
-        bytes memory databaseInit
-    ) external {
+    function initializePressWithData(bytes memory databaseInit) external {
         // Cache msg.sender -- which is Press if called correctly
-        address sender = msg.sender;          
-        
+        address sender = msg.sender;
+
         if (pressSettingsInfo[sender].initialized != 1) {
             revert Press_Not_Initialized();
-        }              
+        }
 
         // Data format: pressLogic, pressLogicInit, pressRenderer, pressRendererInit
-        (
-            address pressLogic,
-            bytes memory pressLogicInit,
-            address pressRenderer,
-            bytes memory pressRendererInit
-        ) = abi.decode(databaseInit, (address, bytes, address, bytes));
+        (address pressLogic, bytes memory pressLogicInit, address pressRenderer, bytes memory pressRendererInit) =
+            abi.decode(databaseInit, (address, bytes, address, bytes));
 
         // Sets ands initializes logic + renderer contracts
         _setPressLogic(sender, pressLogic, pressLogicInit);
         _setPressRenderer(sender, pressRenderer, pressRendererInit);
-    }    
+    }
 
     //////////////////////////////
     // PRESS SETTINGS
@@ -154,17 +144,13 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
      * @param logic Address of logic implementation
      * @param logicInit Data to init logic with
      */
-    function _setPressLogic(
-        address targetPress,
-        address logic,
-        bytes memory logicInit
-    ) internal {
+    function _setPressLogic(address targetPress, address logic, bytes memory logicInit) internal {
         pressSettingsInfo[targetPress].logic = logic;
         IERC1155PressLogic(logic).initializeWithData(targetPress, logicInit);
 
         emit PressLogicUpdated(targetPress, logic);
-    }    
-        
+    }
+
     /**
      * @notice Internal handler for setPressRenderer function
      * @dev RendererInit can be blank
@@ -172,19 +158,12 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
      * @param renderer Address of renderer implementation
      * @param rendererInit Data to init renderer with
      */
-    function _setPressRenderer(
-        address targetPress,
-        address renderer,
-        bytes memory rendererInit
-    ) internal {
+    function _setPressRenderer(address targetPress, address renderer, bytes memory rendererInit) internal {
         pressSettingsInfo[targetPress].renderer = renderer;
-        IERC1155PressRenderer(renderer).initializeWithData(
-            targetPress,
-            rendererInit
-        );
+        IERC1155PressRenderer(renderer).initializeWithData(targetPress, rendererInit);
 
         emit PressRendererUpdated(targetPress, renderer);
-    }        
+    }
 
     //////////////////////////////
     // TOKEN SETTINGS
@@ -198,18 +177,13 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
      * @param logic Address of logic implementation
      * @param logicInit Data to init logic with
      */
-    function _setTokenLogic(
-        address targetPress,
-        uint256 tokenId,
-        address logic,
-        bytes memory logicInit
-    ) internal {
+    function _setTokenLogic(address targetPress, uint256 tokenId, address logic, bytes memory logicInit) internal {
         tokenSettingsInfo[targetPress][tokenId].logic = logic;
         // IERC721PressLogic(logic).initializeWithData(targetPress, logicInit);
 
         emit TokenLogicUpdated(targetPress, tokenId, logic);
-    }    
-        
+    }
+
     /**
      * @notice Internal handler for setTokenRenderer function
      * @dev RendererInit can be blank
@@ -218,12 +192,9 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
      * @param renderer Address of renderer implementation
      * @param rendererInit Data to init renderer with
      */
-    function _setTokenRenderer(
-        address targetPress,
-        uint256 tokenId,
-        address renderer,
-        bytes memory rendererInit
-    ) internal {
+    function _setTokenRenderer(address targetPress, uint256 tokenId, address renderer, bytes memory rendererInit)
+        internal
+    {
         tokenSettingsInfo[targetPress][tokenId].renderer = renderer;
         // IERC721PressRenderer(renderer).initializeWithData(
         //     targetPress,
@@ -231,7 +202,7 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
         // );
 
         emit TokenRendererUpdated(targetPress, tokenId, renderer);
-    }         
+    }
 
     ////////////////////////////////////////////////////////////
     // READ FUNCTIONS
@@ -248,14 +219,16 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
      * @param tokenId tokenId to retrieve data for
      * @return data Data stored for given token
      */
-    function readData(
-        address targetPress,
-        uint256 tokenId
-    ) external view requirePressInitialized(targetPress) returns (bytes memory data) {
+    function readData(address targetPress, uint256 tokenId)
+        external
+        view
+        requirePressInitialized(targetPress)
+        returns (bytes memory data)
+    {
         // Revert lookup if token has not been minted
         if (tokenId > ERC1155Press(payable(targetPress)).getNumMinted()) {
             revert Token_Not_Minted();
-        }          
+        }
         // Will return bytes(0) data if token has been burnt
         return SSTORE2.read(idToData[targetPress][tokenId - 1]);
     }
@@ -266,12 +239,10 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
      * @param targetPress ERC1155Press to target
      * @return allData Array of all data
      */
-    function readAllData(
-        address targetPress
-    ) external view returns (bytes[] memory allData) {
+    function readAllData(address targetPress) external view returns (bytes[] memory allData) {
         if (pressSettingsInfo[targetPress].initialized != 1) {
             revert Press_Not_Initialized();
-        }         
+        }
         unchecked {
             allData = new bytes[](
                 ERC1155Press(payable(targetPress)).getNumMinted()
@@ -279,13 +250,10 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
 
             for (uint256 i; i < pressSettingsInfo[targetPress].storedCounter; ++i) {
                 // Will return address(0) if token has been burnt
-                allData[i] = SSTORE2.read(
-                    idToData[targetPress][i]
-                );
+                allData[i] = SSTORE2.read(idToData[targetPress][i]);
             }
         }
-    }    
-
+    }
 
     //////////////////////////////
     // ACCESS CHECKS
@@ -297,20 +265,16 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
      * @param dataCaller Address of dataCaller to check access for
      * @return contractAccess True/false bool
      */
-    function canEditContractData(
-        address targetPress,
-        address dataCaller
-    ) external view returns (bool) {
+    function canEditContractData(address targetPress, address dataCaller) external view returns (bool) {
         // Cache msg.sender
         // TODO: make _msgSender();
         address sender = msg.sender;
-        
+
         if (pressSettingsInfo[sender].initialized != 1) {
             revert Press_Not_Initialized();
-        }              
+        }
         return IERC1155PressLogic(pressSettingsInfo[sender].logic).getContractDataAccess(sender, dataCaller);
     }
-
 
     //////////////////////////////
     // DATA RENDERING
@@ -320,21 +284,15 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
      * @notice ContractURI getter for a given Press.
      * @return uri String contractURI
      */
-    function contractURI()
-        external
-        view
-        returns (string memory)
-    {
+    function contractURI() external view returns (string memory) {
         // Cache msg.sender -- Press if as intended
         address sender = msg.sender;
 
         if (pressSettingsInfo[sender].initialized != 1) {
             revert Press_Not_Initialized();
-        } 
+        }
 
-        return
-            IERC1155PressRenderer(pressSettingsInfo[sender].renderer)
-                .getContractURI(sender);
+        return IERC1155PressRenderer(pressSettingsInfo[sender].renderer).getContractURI(sender);
     }
 
     /**
@@ -346,24 +304,16 @@ abstract contract ERC1155PressDatabaseSkeletonV1 is
         // Cache msg.sender -- Press if as intended
         address sender = msg.sender;
 
-        if (tokenSettingsInfo[sender][tokenId-1].initialized != 1) {
+        if (tokenSettingsInfo[sender][tokenId - 1].initialized != 1) {
             revert Token_Not_Initialized();
-        }    
+        }
 
         // if token doesnt have a renderer override, get uri from press renderer
-        if (tokenSettingsInfo[sender][tokenId-1].renderer == address(0)) {
-
-            return IERC1155PressRenderer(pressSettingsInfo[sender].renderer).getTokenURI(
-                sender,
-                tokenId
-            );            
-
+        if (tokenSettingsInfo[sender][tokenId - 1].renderer == address(0)) {
+            return IERC1155PressRenderer(pressSettingsInfo[sender].renderer).getTokenURI(sender, tokenId);
         }
 
         // if token does have a renderer override, get uri from token renderer
-        return IERC1155PressRenderer(tokenSettingsInfo[sender][tokenId].renderer).getTokenURI(
-            sender,
-            tokenId
-        );    
-    }    
+        return IERC1155PressRenderer(tokenSettingsInfo[sender][tokenId].renderer).getTokenURI(sender, tokenId);
+    }
 }

@@ -37,7 +37,6 @@ interface IOwnableUpgradeable {
     /// @dev Owner cannot be the zero/burn address
     error OWNER_CANNOT_BE_ZERO_ADDRESS();
 
-
     ///                                                          ///
     ///                           FUNCTIONS                      ///
     ///                                                          ///

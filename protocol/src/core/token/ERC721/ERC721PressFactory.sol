@@ -41,31 +41,30 @@ import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.s
  * @author Salief Lewis
  */
 contract ERC721PressFactory is IERC721PressFactory, Version(1), ReentrancyGuard {
-
     //////////////////////////////////////////////////
     // STORAGE
-    //////////////////////////////////////////////////   
+    //////////////////////////////////////////////////
 
     /**
-    * @notice Implementation contract behind Press proxies
-    */
+     * @notice Implementation contract behind Press proxies
+     */
     address public immutable pressImpl;
 
     /**
-    * @notice Enshrined database contract passed into each `createPress` call
-    */
-    address public immutable databaseImpl;  
+     * @notice Enshrined database contract passed into each `createPress` call
+     */
+    address public immutable databaseImpl;
 
     //////////////////////////////////////////////////
     // CONSTRUCTOR
-    //////////////////////////////////////////////////         
-    
+    //////////////////////////////////////////////////
+
     /**
-    * @notice Sets the implementation address upon deployment
-    * @dev Implementation addresses cannot be updated after deployment 
-    */
+     * @notice Sets the implementation address upon deployment
+     * @dev Implementation addresses cannot be updated after deployment
+     */
     constructor(address _pressImpl, address _databaseImpl) {
-        if (_pressImpl == address(0) || _databaseImpl == address(0)) { 
+        if (_pressImpl == address(0) || _databaseImpl == address(0)) {
             revert Address_Cannot_Be_Zero();
         }
 
@@ -78,18 +77,18 @@ contract ERC721PressFactory is IERC721PressFactory, Version(1), ReentrancyGuard 
 
     //////////////////////////////////////////////////
     // WRITE FUNCTIONS
-    //////////////////////////////////////////////////   
+    //////////////////////////////////////////////////
 
     /**
-    * @notice Creates a new, creator-owned proxy of `ERC721Press.sol`
-    * @param name Contract name
-    * @param symbol Contract symbol
-    * @param initialOwner User that owns the contract upon deployment
-    * @param databaseInit Data to initialize database contract with
-    * @param settings See IERC721Press for details 
-    * @param optionalPressInit Additional bytes data that can be passed into initializePress call
-    * @return press Address of created Press
-    */
+     * @notice Creates a new, creator-owned proxy of `ERC721Press.sol`
+     * @param name Contract name
+     * @param symbol Contract symbol
+     * @param initialOwner User that owns the contract upon deployment
+     * @param databaseInit Data to initialize database contract with
+     * @param settings See IERC721Press for details
+     * @param optionalPressInit Additional bytes data that can be passed into initializePress call
+     * @return press Address of created Press
+     */
     function createPress(
         string calldata name,
         string calldata symbol,
@@ -97,7 +96,7 @@ contract ERC721PressFactory is IERC721PressFactory, Version(1), ReentrancyGuard 
         bytes calldata databaseInit,
         IERC721Press.Settings calldata settings,
         bytes calldata optionalPressInit
-    ) nonReentrant public returns (address press) {
+    ) public nonReentrant returns (address press) {
         // Configure ownership details in proxy constructor
         ERC721PressProxy newPress = new ERC721PressProxy(pressImpl, "");
         // Initialize Press in database
@@ -112,11 +111,7 @@ contract ERC721PressFactory is IERC721PressFactory, Version(1), ReentrancyGuard 
             settings: settings
         });
         // Emit creation event from factory
-        emit Create721Press({
-            newPress: address(newPress),
-            databaseImpl: databaseImpl,
-            settings: settings
-        });        
+        emit Create721Press({newPress: address(newPress), databaseImpl: databaseImpl, settings: settings});
         return address(newPress);
     }
 }

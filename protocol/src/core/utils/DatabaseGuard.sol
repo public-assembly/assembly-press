@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-abstract contract DatabaseGuard { 
-    
+abstract contract DatabaseGuard {
     /// @notice Storage for databaseImpl address
-    address immutable databaseImpl;  
+    address immutable databaseImpl;
 
     /// @notice Error if databaseImpl set to address(0) in constructor
     error Database_Impl_Cannot_Be_Zero();
@@ -18,14 +17,14 @@ abstract contract DatabaseGuard {
         }
 
         _;
-    }     
+    }
 
     /**
-    * @notice Sets the implementation address upon deployment
-    * @dev Implementation addresses cannot be updated after deployment 
-    */
+     * @notice Sets the implementation address upon deployment
+     * @dev Implementation addresses cannot be updated after deployment
+     */
     constructor(address _databaseImpl) {
         if (_databaseImpl == address(0)) revert Database_Impl_Cannot_Be_Zero();
         databaseImpl = _databaseImpl;
-    }              
+    }
 }

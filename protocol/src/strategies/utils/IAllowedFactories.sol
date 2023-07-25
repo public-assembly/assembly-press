@@ -1,7 +1,7 @@
 //   /**
 //   * @dev Factory address => isAllowed bool
 //   */
-//   mapping(address => bool) internal _allowedFactories;    
+//   mapping(address => bool) internal _allowedFactories;
 
 // /// @notice Sets official factory for database
 // function setOfficialFactory(address factory) external;
@@ -23,4 +23,4 @@
 //     }
 
 //     _;
-// }    
+// }

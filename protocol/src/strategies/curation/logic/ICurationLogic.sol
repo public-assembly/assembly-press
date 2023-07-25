@@ -27,5 +27,5 @@ pragma solidity 0.8.17;
 
 interface ICurationLogic {
     /// @notice Checks if a certain address get call the sort function for a given Press
-    function getSortAccess(address targetPress, address sortCaller) external view returns (bool);     
+    function getSortAccess(address targetPress, address sortCaller) external view returns (bool);
 }
