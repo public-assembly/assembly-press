@@ -15,6 +15,6 @@ library TransferUtils {
     /// @param recipient The address to send ETH to
     /// @param value The amount of ETH to send
     function safeSendETH(address recipient, uint256 value, uint256 gasLimit) internal returns (bool success) {
-        (success, ) = recipient.call{value: value, gas: gasLimit}("");
+        (success,) = recipient.call{value: value, gas: gasLimit}("");
     }
 }

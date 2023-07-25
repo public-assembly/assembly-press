@@ -25,55 +25,23 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
+import {IAP721Database} from "../../interfaces/IAP721Database.sol";
+
 /**
- * @title ICurationTypesV1
- * @notice Interface for types used across Curation strategy
- * @author Max Bochman
- * @author Salief Lewis
+ * @notice Database storage contract
  */
-interface ICurationTypesV1 {
+contract AP721DatabaseStorageV1 {
     /**
-     * @notice Shared listing used for final decoded output in Curation strategy.
-     * @dev See below for struct breakdown. Values in parentheses are bytes.
-     *
-     * First slot: chainId (32) = 32 bytes
-     * Second slot: tokenId (32) = 32 bytes
-     * Third slot: listingAddress (20) + hasTokenId (1) = 21 bytes
+     * @notice AP721 => id => Pointer to encoded data
+     * @dev The first `id` stored will be 0, which means ids trail their corresponding
+     *       tokenIds by 1
+     * @dev Can contain blank/burned storage
      */
-    struct Listing {
-        /// @notice ChainID for curated contract
-        uint256 chainId;
-        /// @notice Token ID that is selected (see `hasTokenId` to see if this applies)
-        uint256 tokenId;
-        /// @notice Address that is curated
-        address listingAddress;
-        /// @notice Whether tokenId is relevant for listing. 0 = false, 1 = true
-        uint8 hasTokenId;
-    }
+    mapping(address => mapping(uint256 => address)) public tokenData;
 
     /**
-     * @notice Shared enhanced listing sturct used for final decoded output in Curation strategy.
-     * @dev Struct breakdown. Values in parentheses are bytes.
-     * @dev Adds sortOrder + curator as values
-     *
-     * First slot: chainId (32) = 32 bytes
-     * Second slot: tokenId (32) = 32 bytes
-     * Third slot: listingAddress (20) + hasTokenId (1) =  21 bytes
-     * Fourth slot: curator (20) = 20 bytes
-     * Fifth slot: sortOrder (12) = 12 bytes
+     * @notice AP721 => Settings information
+     * @dev see IAP721Database for details on Settings struct
      */
-    struct EnhancedListing {
-        /// @notice ChainID for curated contract
-        uint256 chainId;
-        /// @notice Token ID that is selected (see `hasTokenId` to see if this applies)
-        uint256 tokenId;
-        /// @notice Address that is curated
-        address listingAddress;
-        /// @notice If `tokenId` applies to the listing
-        uint8 hasTokenId;
-        /// @notice Address that curated this listing
-        address curator;
-        /// @notice Optional sort order, can be negative. Utilized optionally like css z-index for sorting.
-        int128 sortOrder;
-    }
+    mapping(address => IAP721Database.Settings) public ap721Settings;
 }

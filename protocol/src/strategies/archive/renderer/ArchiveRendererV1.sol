@@ -36,16 +36,15 @@ import {MetadataBuilder} from "micro-onchain-metadata-utils/MetadataBuilder.sol"
 import {MetadataJSONKeys} from "micro-onchain-metadata-utils/MetadataJSONKeys.sol";
 
 /**
-* @title ArchiveRendererV1
-* @dev Allows for initialization + editing of a string value for use in contractURI.image 
-*/
+ * @title ArchiveRendererV1
+ * @dev Allows for initialization + editing of a string value for use in contractURI.image
+ */
 contract ArchiveRendererV1 is IERC1155PressRenderer {
-
     //////////////////////////////////////////////////
     // STORAGE
-    //////////////////////////////////////////////////    
+    //////////////////////////////////////////////////
 
-    mapping(address => string) public contractUriImageInfo;    
+    mapping(address => string) public contractUriImageInfo;
 
     //////////////////////////////////////////////////
     // EVENTS
@@ -55,24 +54,20 @@ contract ArchiveRendererV1 is IERC1155PressRenderer {
     /// @param targetPress ERC1155Press being targeted
     /// @param sender msg.sender
     /// @param contractUriImage string value for contractURI.image
-    event ContractUriImageUpdated(
-        address targetPress,
-        address sender,
-        string contractUriImage
-    );              
+    event ContractUriImageUpdated(address targetPress, address sender, string contractUriImage);
 
     //////////////////////////////////////////////////
     // ERRORS
-    //////////////////////////////////////////////////    
+    //////////////////////////////////////////////////
 
     /// @notice Initialization coming from unauthorized contract
     error UnauthorizedInitializer();
     /// @notice msg.sender does not have access to adjust contractUriImage for given Press
-    error No_Contract_Data_Access();        
+    error No_Contract_Data_Access();
 
     //////////////////////////////////////////////////
     // INITIALIZER
-    //////////////////////////////////////////////////    
+    //////////////////////////////////////////////////
 
     /// @notice Initializes Press contractURI Image value
     /// @dev Can only be called by the database contract for a given Press
@@ -81,35 +76,38 @@ contract ArchiveRendererV1 is IERC1155PressRenderer {
         // Ensure that only the expected database contract is calling this function
         if (msg.sender != address(ERC1155Press(payable(targetPress)).getDatabase())) {
             revert UnauthorizedInitializer();
-        }        
-        
+        }
+
         (string memory contractUriImage) = abi.decode(data, (string));
 
         contractUriImageInfo[targetPress] = contractUriImage;
 
-        emit ContractUriImageUpdated(targetPress, msg.sender, contractUriImage);        
+        emit ContractUriImageUpdated(targetPress, msg.sender, contractUriImage);
     }
 
     //////////////////////////////////////////////////
     // CONTRACT URI ADMIN
-    //////////////////////////////////////////////////    
+    //////////////////////////////////////////////////
 
     /// @notice Facilitates updating of image value returned in contractURI view call
     function setContractUriImage(address targetPress, string memory contractUriImage) external {
-        
         // Check msg.sender contractUriImage access for given target Press
-        if (IERC1155PressDatabase(address(ERC1155Press(payable(targetPress)).getDatabase())).canEditContractData(targetPress, msg.sender) == false) {
+        if (
+            IERC1155PressDatabase(address(ERC1155Press(payable(targetPress)).getDatabase())).canEditContractData(
+                targetPress, msg.sender
+            ) == false
+        ) {
             revert No_Contract_Data_Access();
         }
 
         contractUriImageInfo[targetPress] = contractUriImage;
 
         emit ContractUriImageUpdated(targetPress, msg.sender, contractUriImage);
-    }        
+    }
 
     //////////////////////////////////////////////////
     // CONTRACT URI + TOKEN URI VIEW FUNNCTIONS
-    //////////////////////////////////////////////////    
+    //////////////////////////////////////////////////
 
     /// @notice return contractURI for a given Press
     /// @dev This is what Press database contract calls to get contractURI
@@ -122,10 +120,7 @@ contract ArchiveRendererV1 is IERC1155PressRenderer {
         items[0].quote = true;
 
         items[1].key = MetadataJSONKeys.keyDescription;
-        items[1].value = string.concat(
-            "This content archive is owned by ",
-            Strings.toHexString(press.owner())
-        );
+        items[1].value = string.concat("This content archive is owned by ", Strings.toHexString(press.owner()));
         items[1].quote = true;
         items[2].key = MetadataJSONKeys.keyImage;
         items[2].quote = true;
@@ -139,12 +134,11 @@ contract ArchiveRendererV1 is IERC1155PressRenderer {
     /// @notice return tokenURI for a given Press + tokenId
     /// @dev This is what Press database contract calls to get tokenURI
     function getTokenURI(address targetPress, uint256 tokenId) external view returns (string memory) {
-
         // Get database contract for given Press (tokenURI call originates from ERC1155Press)
         ArchiveDatabaseV1 database = ArchiveDatabaseV1(address(ERC1155Press(payable(targetPress)).getDatabase()));
 
         // Returns bytes data stored for token
-        bytes memory tokenData = database.readData(targetPress, tokenId);       
+        bytes memory tokenData = database.readData(targetPress, tokenId);
 
         // Decode bytes into Listing struct
         string memory stringTokenURI = abi.decode(tokenData, (string));
@@ -152,4 +146,3 @@ contract ArchiveRendererV1 is IERC1155PressRenderer {
         return stringTokenURI;
     }
 }
-        

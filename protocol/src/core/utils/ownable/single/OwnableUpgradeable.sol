@@ -54,11 +54,7 @@ abstract contract OwnableUpgradeable is IOwnableUpgradeable, Initializable {
 
     /// @dev Initializes contract ownership
     /// @param _initialOwner The initial owner address
-    function __Ownable_init(address _initialOwner)
-        internal
-        notZeroAddress(_initialOwner)
-        onlyInitializing
-    {
+    function __Ownable_init(address _initialOwner) internal notZeroAddress(_initialOwner) onlyInitializing {
         _owner = _initialOwner;
 
         emit OwnerUpdated(address(0), _initialOwner);
@@ -76,11 +72,7 @@ abstract contract OwnableUpgradeable is IOwnableUpgradeable, Initializable {
 
     /// @notice Forces an ownership transfer from the last owner
     /// @param _newOwner The new owner address
-    function transferOwnership(address _newOwner)
-        public
-        notZeroAddress(_newOwner)
-        onlyOwner
-    {
+    function transferOwnership(address _newOwner) public onlyOwner {
         _transferOwnership(_newOwner);
     }
 
@@ -99,11 +91,7 @@ abstract contract OwnableUpgradeable is IOwnableUpgradeable, Initializable {
 
     /// @notice Initiates a two-step ownership transfer
     /// @param _newOwner The new owner address
-    function safeTransferOwnership(address _newOwner)
-        public
-        notZeroAddress(_newOwner)
-        onlyOwner
-    {
+    function safeTransferOwnership(address _newOwner) public onlyOwner {
         _pendingOwner = _newOwner;
 
         emit OwnerPending(_owner, _newOwner);
