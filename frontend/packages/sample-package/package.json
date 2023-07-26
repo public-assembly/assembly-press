@@ -1,0 +1,29 @@
+{
+  "name": "sample-package",
+  "version": "0.0.0",
+  "description": "Example package with some web3 peer dependencies",
+  "main": "dist/sample-package.cjs.js",
+  "module": "dist/sample-package.esm.js",
+  "types": "src/index.ts",
+  "author": "Public Assembly",
+  "license": "MIT",
+  "private": false,
+  "files": ["dist/**"],
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "swr": "^1.3.0",
+    "viem": "^1.4.1",
+    "wagmi": "^0.12.12"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.20",
+    "@types/react-dom": "^18.0.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "swr": "^1.3.0",
+    "typescript": "^5.1.6",
+    "viem": "^1.4.1",
+    "wagmi": "^1.3.9"
+  }
+}

@@ -1,0 +1,1 @@
+export { WebThreeComponent } from './WebThreeComponent'
