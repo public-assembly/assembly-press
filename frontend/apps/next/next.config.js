@@ -5,7 +5,7 @@ const withMDX = require('@next/mdx')()
 const nextConfig = {
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   reactStrictMode: true,
-  transpilePackages: ['sample-package'],
+  transpilePackages: ['ap-hooks'],
   webpack: (config) => {
     config.resolve.fallback = { fs: false, net: false, tls: false }
     config.externals.push('pino-pretty', 'lokijs', 'encoding')

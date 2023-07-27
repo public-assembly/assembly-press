@@ -1,5 +1,5 @@
 import { usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi";
-import { AP721DatabaseV1Abi } from "contracts";
+import { AP721DatabaseV1Abi } from "../contracts";
 import { optimismGoerli } from 'wagmi/chains';
 import { Hex, Hash } from 'viem';
 
