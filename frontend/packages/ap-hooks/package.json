@@ -1,18 +1,23 @@
 {
   "name": "ap-hooks",
   "version": "0.0.0",
-  "description": "Example package with some web3 peer dependencies",
-  "main": "dist/ap-hooks.cjs.js",
-  "module": "dist/ap-hooks.esm.js",
-  "types": "src/index.ts",
+  "description": "Hooks for interacting with the Assembly Press protocol",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "author": "Public Assembly",
   "license": "MIT",
   "private": false,
-  "files": ["dist/**"],
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --external react",
+    "dev": "tsup src/index.ts --format esm,cjs --watch --dts --external react",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+  },
   "peerDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "swr": "^1.3.0",
     "viem": "^1.4.1",
     "wagmi": "^0.12.12"
   },
@@ -21,7 +26,6 @@
     "@types/react-dom": "^18.0.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "swr": "^1.3.0",
     "typescript": "^5.1.6",
     "viem": "^1.4.1",
     "wagmi": "^1.3.9"

@@ -9,36 +9,39 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "build": "turbo run build",
-    "build:package": "preconstruct build",
     "clean": "turbo run clean && rimraf dist",
-    "dev": "preconstruct dev && turbo run dev",
+    "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "postinstall": "preconstruct dev",
-    "prepare": "husky install",
     "format": "rome format . --write",
     "version-packages": "changeset version",
-    "release": "preconstruct build && changeset version && changeset publish"
+    "release": "changeset version && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.1",
-    "@preconstruct/cli": "^2.5.0",
-    "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
     "process": "^0.11.10",
     "rimraf": "^3.0.2",
     "rome": "^12.0.0",
     "tsc-files": "^1.1.3",
+    "tsup": "^7.1.0",
     "turbo": "^1.9.3",
     "typescript": "^5.0.4"
   },
-  "preconstruct": {
-    "packages": ["packages/*"]
-  },
   "lint-staged": {
-    "apps/**/*.{js,ts,jsx,tsx}": ["rome check .", "rome format . --write"],
-    "packages/**/*.{js,ts,jsx,tsx}": ["rome check .", "rome format . --write"],
-    "*.json": ["rome format . --write"],
-    "**/*.{ts,tsx}": ["tsc-files --noEmit"]
+    "apps/**/*.{js,ts,jsx,tsx}": [
+      "rome check .",
+      "rome format . --write"
+    ],
+    "packages/**/*.{js,ts,jsx,tsx}": [
+      "rome check .",
+      "rome format . --write"
+    ],
+    "*.json": [
+      "rome format . --write"
+    ],
+    "**/*.{ts,tsx}": [
+      "tsc-files --noEmit"
+    ]
   },
   "engines": {
     "node": "^14.13.1 || >=16.0.0",
