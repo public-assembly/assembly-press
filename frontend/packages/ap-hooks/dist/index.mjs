@@ -1,3 +1,5 @@
+'use client'
+
 // src/hooks/useStore.ts
 import {
   usePrepareContractWrite,
