@@ -5,7 +5,7 @@ import {
   useSetRenderer,
   useStore,
   useOverwrite,
-} from 'ap-hooks';
+} from '@public-assembly/ap-hooks';
 import { Hash, Hex, encodeAbiParameters, parseAbiParameters } from 'viem';
 import { useAccount } from 'wagmi';
 

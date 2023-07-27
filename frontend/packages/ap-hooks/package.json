@@ -1,5 +1,5 @@
 {
-  "name": "ap-hooks",
+  "name": "@public-assembly/ap-hooks",
   "version": "0.0.1",
   "description": "Hooks for interacting with the Assembly Press protocol",
   "main": "dist/index.js",
