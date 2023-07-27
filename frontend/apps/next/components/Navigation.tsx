@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 const pages = [
   {
     slug: '/',
-    title: 'assemble package',
+    title: 'Assembly Press Demo',
   },
 ]
 
