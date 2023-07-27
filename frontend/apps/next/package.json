@@ -21,7 +21,6 @@
     "postcss": "^8.4.23",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "sample-package": "workspace:*",
     "tailwindcss": "^3.3.2",
     "viem": "^1.4.1",
     "wagmi": "^1.3.9"
