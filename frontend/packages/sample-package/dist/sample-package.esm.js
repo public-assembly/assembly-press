@@ -1,0 +1,1 @@
+/Users/maximbochman/Desktop/plz/frontend/packages/sample-package/src/index.ts
