@@ -1,7 +1,6 @@
 {
-  "name": "assemble-package-sandbox",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "assembly-press-demo",
+  "version": "0.0.1",
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -14,6 +13,7 @@
     "@mdx-js/loader": "^2.3.0",
     "@mdx-js/react": "^2.3.0",
     "@next/mdx": "^13.4.1",
+    "@public-assembly/ap-hooks": "workspace:*",
     "autoprefixer": "^10.4.14",
     "connectkit": "^1.5.0",
     "next": "^13.4.12",
@@ -28,7 +28,7 @@
   "devDependencies": {
     "@types/mdx": "^2.0.3",
     "@types/node": "^18.7.18",
-    "@types/react": "^18.2.16",
+    "@types/react": "^18.2.17",
     "@types/react-dom": "^18.2.7",
     "typescript": "^5.1.6"
   }

@@ -1,0 +1,11 @@
+
+> assembly-press-demo@0.0.1 build /Users/salieflewis/Desktop/public/assembly-press/frontend/apps/next
+> next build
+
+- info Loaded env from /Users/salieflewis/Desktop/public/assembly-press/frontend/apps/next/.env
+- warn You have enabled experimental feature (mdxRs) in next.config.js.
+- warn Experimental features are not covered by semver, and may cause unexpected or broken application behavior. Use at your own risk.
+
+- info Creating an optimized production build...
+- info Compiled successfully
+- info Linting and checking validity of types...

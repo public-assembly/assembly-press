@@ -20,6 +20,6 @@ export const config = createConfig(
     walletConnectProjectId: walletConnectID as string,
     appName: 'Assembly Press Demo',
     autoConnect: true,
-    chains
+    chains,
   }),
 )

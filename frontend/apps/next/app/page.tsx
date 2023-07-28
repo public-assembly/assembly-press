@@ -1,7 +1,6 @@
 'use client'
 
-import { Header, Footer } from '../components'
-import { ButtonGrid } from '../components'
+import { Header, Footer, ButtonGrid } from '../components'
 import Docs from './docs/docs.mdx'
 
 export default function Page() {
