@@ -1,35 +1,11 @@
 
-> assemble-package-sandbox@1.0.0 build /Users/salieflewis/Desktop/public/assembly-press/frontend/apps/next
+> assembly-press-demo@0.0.1 build /Users/salieflewis/Desktop/public/assembly-press/frontend/apps/next
 > next build
 
+- info Loaded env from /Users/salieflewis/Desktop/public/assembly-press/frontend/apps/next/.env
 - warn You have enabled experimental feature (mdxRs) in next.config.js.
 - warn Experimental features are not covered by semver, and may cause unexpected or broken application behavior. Use at your own risk.
 
 - info Creating an optimized production build...
 - info Compiled successfully
 - info Linting and checking validity of types...
-- info Collecting page data...
-- info Generating static pages (0/3)
-- info Generating static pages (3/3)
-- info Finalizing page optimization...
-
-Route (app)                                Size     First Load JS
-─ ○ /                                      8.28 kB         503 kB
-+ First Load JS shared by all              494 kB
-  ├ chunks/01f010a1-181bca31be90daee.js    146 kB
-  ├ chunks/40e5ea9a-f2d6d8e2c63f355b.js    50.5 kB
-  ├ chunks/958-40458850143b2258.js         25.8 kB
-  ├ chunks/981-c25659fcec4e306e.js         269 kB
-  ├ chunks/main-app-82015d853a1ee7eb.js    218 B
-  └ chunks/webpack-aba0c189410d6919.js     2.04 kB
-
-Route (pages)                              Size     First Load JS
-─ ○ /404                                   183 B          76.1 kB
-+ First Load JS shared by all              75.9 kB
-  ├ chunks/framework-5914f800e5c1bf38.js   45.1 kB
-  ├ chunks/main-1585a6715202bd50.js        28.6 kB
-  ├ chunks/pages/_app-9e596f79057dd503.js  198 B
-  └ chunks/webpack-aba0c189410d6919.js     2.04 kB
-
-○  (Static)  automatically rendered as static HTML (uses no initial props)
-
