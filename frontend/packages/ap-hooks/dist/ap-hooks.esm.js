@@ -1,1 +1,0 @@
-/Users/maximbochman/Desktop/code/plz/frontend/packages/ap-hooks/src/index.ts
