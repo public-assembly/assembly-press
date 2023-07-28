@@ -1,16 +1,15 @@
-'use client'
+'use client';
 
-import { Header, Footer, ButtonGrid } from '../components'
-import Docs from './docs/docs.mdx'
+import { Header, Footer, ButtonGrid } from '../components';
 
 export default function Page() {
   return (
     <>
       <Header />
-      <section className='p-6'>
+      <section className='px-8 mt-24'>
         <ButtonGrid />
       </section>
       <Footer />
     </>
-  )
+  );
 }
