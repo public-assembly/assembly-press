@@ -48,7 +48,7 @@ importers:
         specifier: ^13.4.1
         version: 13.4.1(@mdx-js/loader@2.3.0)(@mdx-js/react@2.3.0)
       '@public-assembly/ap-hooks':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../packages/ap-hooks
       autoprefixer:
         specifier: ^10.4.14
