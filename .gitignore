@@ -23,3 +23,5 @@ frontend/node_modules/.cache/
 
 # Dotenv file
 .env
+
+.DS_STORE
