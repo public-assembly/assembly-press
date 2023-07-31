@@ -32,9 +32,12 @@ PRIVATE_KEY='' (for funding Bundlr)
 
 ALCHEMY_KEY=''
 ETHERSCAN_API_KEY=''
-# You can change `OWNER` to any address and the script will be able to populate the event tables, but not the Transaction table. Refer to `prisma.schema` to see Transaction table and other Event tables. Notice that Bundlr will only keep track of the transactions that were funded by the address corresponding to the private key you provided.
+
+#### You can change `OWNER` to any address and the script will be able to populate the event tables, but not the Transaction table. Refer to `prisma.schema` to see Transaction table and other Event tables. Notice that Bundlr will only keep track of the transactions that were funded by the address corresponding to the private key you provided.
+
 OWNER='' 
-# Address of the contract you want to track. We're currently using `ERC721_PRESS_FACTORY`. In theory you can use any address but you will have to adjust the event information and ABI accordingly.
+
+#### Address of the contract you want to track. We're currently using `ERC721_PRESS_FACTORY`. In theory you can use any address but you will have to adjust the event information and ABI accordingly.
 CONTRACT_ADDRESS=''
 
 
@@ -50,13 +53,13 @@ Replace `USER`, `PASSWORD`, and `DATABASE` with your PostgreSQL username, passwo
 
 to start indexer and check for events related from the given addresses:
 
-pnpm ts-node processAndUpload.ts
+`pnpm ts-node processAndUpload.ts`
 
 some useful prisma commands:
 
-npx prisma generate -- schema== prisma/schema.prisma
-npx prisma migrate dev --name init
-npx prisma migrate deploy
+`npx prisma migrate dev --name init`
+`npx prisma migrate deploy`
+`npx prisma generate`
 
 ## Files
 
