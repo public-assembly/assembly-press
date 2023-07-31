@@ -53,7 +53,7 @@ Replace `USER`, `PASSWORD`, and `DATABASE` with your PostgreSQL username, passwo
 
 to start indexer and check for events related from the given addresses:
 
-`pnpm ts-node processAndUpload.ts`
+`pnpm start`
 
 some useful prisma commands:
 
