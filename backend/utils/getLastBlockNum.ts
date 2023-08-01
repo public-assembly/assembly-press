@@ -2,6 +2,7 @@ import { apolloClient } from '../apollo/apolloClient'
 import { LAST_EVENT_QUERY } from '../gql'
 import { getContractCreationTxn } from '.'
 import { viemClient } from '../viem/client'
+import fetch from 'cross-fetch'
 
 export const getLastBlockNum = async () => {
   const { data } = await apolloClient.query({

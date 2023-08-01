@@ -1,4 +1,4 @@
-import fetch from 'node-fetch'
+import fetch from 'cross-fetch'
 
 export async function getContractCreationTxn(etherscanApiUrl: string) {
   try {
