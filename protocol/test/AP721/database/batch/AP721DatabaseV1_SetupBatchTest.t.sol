@@ -27,24 +27,24 @@ contract AP721DatabaseV1_SetupBatchTest is AP721Config {
         // setup logic + renderer inits
         bytes memory adminInit = abi.encode(AP721_ADMIN);
         bytes memory factoryInit = abi.encode(CONTRACT_NAME, CONTRACT_SYMBOL);
-        bytes memory databaseInit = abi.encode(address(mockLogic), address(mockRenderer), false, adminInit, adminInit);
+        bytes memory databaseInit = abi.encode(address(mockLogic), address(mockRenderer), NON_TRANSFERABLE, adminInit, adminInit);
 
         AP721DatabaseV1.SetupAP721BatchArgs[] memory setupAP721BatchArgs = new AP721DatabaseV1.SetupAP721BatchArgs[](3);    
 
         setupAP721BatchArgs[0] = AP721DatabaseV1.SetupAP721BatchArgs({
-            initialOwner: address(0x1),
+            initialOwner: AP721_ADMIN,
             databaseInit: databaseInit,
             factory: address(factoryImpl),
             factoryInit: factoryInit
         });
         setupAP721BatchArgs[1] = AP721DatabaseV1.SetupAP721BatchArgs({
-            initialOwner: address(0x2),
+            initialOwner: AP721_ADMIN,
             databaseInit: databaseInit,
             factory: address(factoryImpl),
             factoryInit: factoryInit
         });
         setupAP721BatchArgs[2] = AP721DatabaseV1.SetupAP721BatchArgs({
-            initialOwner: address(0x3),
+            initialOwner: AP721_ADMIN,
             databaseInit: databaseInit,
             factory: address(factoryImpl),
             factoryInit: factoryInit
@@ -53,6 +53,24 @@ contract AP721DatabaseV1_SetupBatchTest is AP721Config {
         address[] memory newAP721s = database.setupAP721Batch(setupAP721BatchArgs);
 
         for (uint256 i; i < newAP721s.length; ++i) {
+            // Fetch newly initialized database settings
+            (IAP721Database.Settings memory settings) = database.getSettings(newAP721s[i]);
+            // Initialization tests
+            require(
+                keccak256(bytes(AP721(payable(newAP721s[i])).name())) == keccak256(bytes(CONTRACT_NAME)), "name set incorrectly"
+            );
+            require(
+                keccak256(bytes(AP721(payable(newAP721s[i])).symbol())) == keccak256(bytes(CONTRACT_SYMBOL)),
+                "symbol set incorrectly"
+            );            
+            require(AP721(payable(newAP721s[i])).owner() == AP721_ADMIN, "owner set incorrectly");
+            require(settings.initialized == 1, "initialized flag not set correctly");
+            require(settings.logic == address(mockLogic), "logic address set incorrectly");
+            require(settings.renderer == address(mockRenderer), "renderer address set incorrectly");
+            require(settings.storageCounter == 0, "storage counter should be zero upon initialization");
+            require(
+                settings.ap721Config.transferable == NON_TRANSFERABLE, "token transferability not initialzied correctly"
+            );
             vm.prank(address(database));
             // should revert because newAP721 is an AP721Proxy that should already have been initialized, and cannot be re-initialized
             vm.expectRevert();
