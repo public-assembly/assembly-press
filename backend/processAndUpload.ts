@@ -9,6 +9,7 @@ import {
 import { DatabaseLog } from './types'
 import { apolloClient } from './apollo/apolloClient'
 import { NEW_TRANSACTIONS_QUERY } from './gql'
+import { schedule } from "node-cron";
 
 async function main() {
   await getBalance()
@@ -216,12 +217,16 @@ export async function processCleanedLogs(cleanedLogs: DatabaseLog[]) {
   }
 }
 
-main()
-  .catch((e) => {
-    console.error('Error running main: ', e)
-    throw e
-  })
-  .finally(async () => {
-    console.log('Finished all Prisma operations, disconnecting...')
-    await prisma.$disconnect()
-  })
+schedule("* * * * *", function () {
+  main();
+});
+
+// main()
+//   .catch((e) => {
+//     console.error('Error running main: ', e)
+//     throw e
+//   })
+//   .finally(async () => {
+//     console.log('Finished all Prisma operations, disconnecting...')
+//     await prisma.$disconnect()
+//   })

@@ -23,10 +23,12 @@
     "dotenv": "^16.1.4",
     "graphql": "^16.7.1",
     "graphql-tag": "^2.12.6",
+    "node-cron": "^3.0.2",
     "node-fetch": "2",
     "viem": "^1.4.1"
   },
   "devDependencies": {
+    "@types/node-cron": "^3.0.8",
     "@types/node-fetch": "^2.6.4",
     "prisma": "^5.0.0",
     "rome": "^12.1.3",
