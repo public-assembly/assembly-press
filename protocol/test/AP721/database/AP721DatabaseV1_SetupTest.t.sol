@@ -20,7 +20,6 @@ import {
 } from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 
 contract AP721DatabaseV1_SetupTest is AP721Config {
-    /* SETUPAP721 TESTS */
 
     function test_setupAP721() public {
         // setup logic + renderer inits
@@ -276,10 +275,6 @@ contract AP721DatabaseV1_SetupTest is AP721Config {
         );
     }
 }
-
-// `store`
-// `overwrite`
-// `remove`
 
 /*  
 

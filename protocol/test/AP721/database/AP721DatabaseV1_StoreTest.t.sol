@@ -20,6 +20,7 @@ import {
 } from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 
 contract AP721DatabaseV1_StoreTest is AP721Config {
+    
     function test_store() public {
         // setup logic + renderer inits
         bytes memory adminInit = abi.encode(AP721_ADMIN);
@@ -190,7 +191,7 @@ contract AP721DatabaseV1_StoreTest is AP721Config {
         database.store(newAP721, (type(uint256).max + 1), encodedTokenDataArray);
     }
 
-    function test_Revert_EmptyTokenData_store() public {
+    function test_WhatHappensWithEmptyTokenData_store() public {
         // setup logic + renderer inits
         bytes memory adminInit = abi.encode(AP721_ADMIN);
         // create new ap721

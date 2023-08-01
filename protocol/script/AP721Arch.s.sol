@@ -34,10 +34,8 @@ contract DeployCore is Script {
 // ======= DEPLOY SCRIPTS =====
 
 // source .env
-// forge script script/AP721Arch.s.sol:DeployCore --rpc-url $OPTIMISM_GOERLI_RPC_URL --broadcast --verify --verifier-url https://api-goerli-optimistic.etherscan.io/
-// forge script script/AP721Arch.s.sol:DeployCore --rpc-url $SEPOLIA_RPC_URL --broadcast --verify  -vvvv
-// forge script script/AP721Arch.s.sol:DeployCore --rpc-url $GOERLI_RPC_URL --broadcast --verify  -vvvv
-// forge script script/AP721Arch.s.sol:DeployCore --rpc-url $MAINNET_RPC_URL --broadcast --verify  -vvvv
+// forge script script/AP721Arch.s.sol:DeployCore -vvvv --rpc-url $RPC_URL --broadcast --verify
+// forge script script/AP721Arch.s.sol:DeployCore -vvvv --rpc-url $RPC_URL --broadcast --verify --verifier-url {block exploerer verifier url}
 
 
-// --verifier-url https://goerli-optimism.etherscan.io/
+// optimism goerli verifier url https://api-goerli-optimistic.etherscan.io/

@@ -55,6 +55,8 @@ import "sstore2/SSTORE2.sol";
  * @author Salief Lewis
  */
 contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGuard {
+
+
     ////////////////////////////////////////////////////////////
     // MODIFIERS
     ////////////////////////////////////////////////////////////
@@ -121,9 +123,6 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
         // Return address of newly created AP721Proxy
         return newAP721;
     }
-
-    // TODO:
-    // multiSetupAP721()
 
     //////////////////////////////
     // AP721 SETTINGS
@@ -488,4 +487,117 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
     function tokenURI(uint256 tokenId) external view requireInitialized(msg.sender) returns (string memory uri) {
         return IAP721Renderer(ap721Settings[msg.sender].renderer).getTokenURI(msg.sender, tokenId);
     }
+
+
+
+
+
+
+
+    //////////////////////////////
+    // BATCH THINGS
+    //////////////////////////////
+
+    // types
+    struct SetupAP721BatchArgs {
+        address initialOwner;
+        bytes databaseInit;
+        address factory;
+        bytes factoryInit;
+    }    
+
+
+    /**
+     * @notice Facilitates batch setup of new AP721Proxys in the database
+     * @param setupAP721BatchArgs Args to process function
+     * TODO: Decide if input length checks should be added inside of for loop     
+     */
+    function setupAP721Batch(SetupAP721BatchArgs[] memory setupAP721BatchArgs)
+        external
+        virtual
+        nonReentrant
+        returns (address[] memory newAP721s)
+    { 
+        // Cache msg.sender
+        address sender = msg.sender;
+        // Cache for loop length
+        uint256 length = setupAP721BatchArgs.length;
+        // Setup array of addresses to return at the end
+        newAP721s = new address[](length);
+
+        for (uint256 i; i < length; ++i) {
+            // Call factory to create + initialize a new AP721Proxy
+            address newAP721 = IAP721Factory(setupAP721BatchArgs[i].factory).create(setupAP721BatchArgs[i].initialOwner, setupAP721BatchArgs[i].factoryInit);
+            // Decode database init
+            (address logic, address renderer, bool transferable, bytes memory logicInit, bytes memory rendererInit) =
+                abi.decode(setupAP721BatchArgs[i].databaseInit, (address, address, bool, bytes, bytes));
+            // Initialize AP721Proxy in database
+            ap721Settings[newAP721].initialized = 1;
+            // Initialize token transferability for AP721Proxy
+            ap721Settings[newAP721].ap721Config.transferable = transferable;
+            // Set + initialize logic
+            _setLogic(newAP721, logic, logicInit);
+            // Set + initialize renderer
+            _setRenderer(newAP721, renderer, rendererInit);     
+            // Emit setup event
+            emit SetupAP721({
+                ap721: newAP721,
+                sender: sender,
+                initialOwner: setupAP721BatchArgs[i].initialOwner,
+                logic: logic,
+                renderer: renderer,
+                factory: setupAP721BatchArgs[i].factory
+            });                   
+            // Store newAP721 address to memory
+            newAP721s[i] = newAP721;
+        }
+        return newAP721s;
+    }    
+
+    /**
+     * @notice Facilitates token level data storage
+     * @dev Stores data for a specified target address and mints storage receipts from that target to the msg.sender
+     * @param targets Target address to store data for
+     * @param quantities How many storage slots to fill
+     * @param data Data to be stored
+     */
+    function storeBatch(address[] memory targets, uint256[] memory quantities, bytes[] memory data) external virtual {
+        // Cache msg.sender
+        address sender = msg.sender;
+
+        // TODO: decide if any input length validations should occur
+        for (uint256 i; i < targets.length; ++i) {
+            if (ap721Settings[targets[i]].initialized != 1) {
+                revert Target_Not_Initialized();
+            }   
+            // Check if sender can store data in target
+            if (!IAP721Logic(ap721Settings[targets[i]].logic).getStoreAccess(targets[i], sender, quantities[i])) {
+                revert No_Store_Access();
+            }
+
+            // Decode token data
+            bytes[] memory tokens = abi.decode(data[i], (bytes[]));
+
+            // Store data for each token
+            for (uint256 j = 0; j < quantities[i]; ++j) {
+                // Check data is valid
+                _validateData(tokens[j]);
+                // Cache storageCounter
+                // NOTE: storageCounter trails associated tokenId by 1
+                uint256 storageCounter = ap721Settings[targets[i]].storageCounter;
+                // Use sstore2 to store bytes segments
+                address pointer = tokenData[targets[i]][storageCounter] = SSTORE2.write(tokens[j]);
+                emit DataStored(
+                    targets[i],
+                    sender,
+                    storageCounter, // this trails tokenId associated with storage by 1
+                    pointer
+                );
+                // Increment target storageCounter after storing data
+                ++ap721Settings[targets[i]].storageCounter;
+            }
+            // Mint tokens to sender
+            IAP721(targets[i]).mint(sender, quantities[i]);                 
+        }   
+    }    
 }

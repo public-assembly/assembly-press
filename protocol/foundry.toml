@@ -5,11 +5,11 @@ libs = ['lib']
 solc_version = '0.8.17'
 optimizer = true
 optimizer_runs = 5000
-# via_ir = true
+# via_ir = false
 
 [rpc_endpoints]
-goerli = "${GOERLI_RPC_URL}"
-mainnet = "${MAINNET_RPC_URL}"
+goerli = "${RPC_URL}"
+mainnet = "${RPC_URL}"
 
 [etherscan]
 goerli = { key = "${ETHERSCAN_API_KEY}" }
