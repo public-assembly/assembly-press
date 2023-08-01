@@ -84,9 +84,9 @@ contract AP721DatabaseV1_StoreBatchTest is AP721Config {
                 adminInit,
                 NON_TRANSFERABLE
             );                
-            vm.prank(AP721_ADMIN);
-            database.storeBatch(targets, quantities, encodedTokenDataArrays);
         }
+        vm.prank(AP721_ADMIN);
+        database.storeBatch(targets, quantities, encodedTokenDataArrays);        
 
         require(AP721(payable(targets[0])).balanceOf(AP721_ADMIN) == 1, "tokens not minted to correct recipient");
         require(AP721(payable(targets[1])).balanceOf(AP721_ADMIN) == 1, "tokens not minted to correct recipient");
