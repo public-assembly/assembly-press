@@ -24,7 +24,6 @@ async function main() {
 
   for (const transaction of processedTransactions) {
     if (transaction) {
-      // console.log(`transaction: ${JSON.stringify(transaction, replacer, 2)}`);
       await prisma.transaction
         .create({
           data: {
