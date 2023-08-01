@@ -2,14 +2,11 @@ import { getEvents } from './fetch/getEvents'
 import { getBalance } from './bundlr/utils/getBalance'
 import { getTransactions } from './prisma/getTransactions'
 import { prisma } from './prisma/prismaClient'
-import {
-  Transactions,
-  Node,
-} from './interfaces/transactionInterfaces'
+import { Transactions, Node } from './interfaces/transactionInterfaces'
 import { DatabaseLog } from './types'
 import { apolloClient } from './apollo/apolloClient'
 import { NEW_TRANSACTIONS_QUERY } from './gql'
-import { schedule } from "node-cron";
+import { schedule } from 'node-cron'
 
 async function main() {
   await getBalance()
@@ -59,7 +56,8 @@ function processTransactions(transactions: Transactions) {
 
   return transactions.edges.map((edge) => {
     const eventTag = edge.node.tags.find(
-      (tag) => tag.name === `Database Events - Chain: ${process.env.CHAIN_ID} v0.1`,
+      (tag) =>
+        tag.name === `Database Events - Chain: ${process.env.CHAIN_ID} v0.1`,
     )
     if (!eventTag || !eventTypes.includes(eventTag.value)) {
       return null
@@ -217,16 +215,14 @@ export async function processCleanedLogs(cleanedLogs: DatabaseLog[]) {
   }
 }
 
-schedule("* * * * *", function () {
-  main();
-});
-
-// main()
-//   .catch((e) => {
-//     console.error('Error running main: ', e)
-//     throw e
-//   })
-//   .finally(async () => {
-//     console.log('Finished all Prisma operations, disconnecting...')
-//     await prisma.$disconnect()
-//   })
+schedule('* * * * *', function () {
+  main()
+    .catch((e) => {
+      console.error('Error running main: ', e)
+      throw e
+    })
+    .finally(async () => {
+      console.log('Finished all Prisma operations, disconnecting...')
+      await prisma.$disconnect()
+    })
+})
