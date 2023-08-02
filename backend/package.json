@@ -8,9 +8,11 @@
     "build": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
+    "prisma:push" : "prisma db push",
+    "prisma:pull": "prisma db pull",
+    "postinstall": "prisma generate",
     "lint": "rome check .",
-    "format": "rome format . --write",
-    "postinstall": "prisma generate"
+    "format": "rome format . --write"
   },
   "author": "Public Assembly @jawndiego @salieflewis",
   "license": "MIT",

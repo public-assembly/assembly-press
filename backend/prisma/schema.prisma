@@ -8,7 +8,7 @@ datasource db {
 }
 
 model AP721 {
-  ap721     String  @id
+  ap721     String @id
   sender    String
   owner     String
   logic     String
@@ -18,21 +18,11 @@ model AP721 {
 }
 
 model TokenStorage {
-  ap721   String      @id
-  tokenId TokenInfo[]
-}
-
-model TokenInfo {
-  tokenId     Int     @id @default(autoincrement())
+  ap721       String  @id
+  tokenId     BigInt
   pointer     String
-  decodedData String
-  sender      String
-  metadata    String
-  burned      Boolean
-  updatedAt   String
+  updatedAt   BigInt
   updatedBy   String
-  TokenStorage      TokenStorage? @relation(fields: [tokenStorageAp721], references: [ap721])
-  tokenStorageAp721 String?
 }
 
 model Transaction {

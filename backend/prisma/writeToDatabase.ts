@@ -8,7 +8,7 @@ async function writeToDatabase(decodedLogs: DecodedLog[]) {
       console.log(`Skipping log due to missing args: ${JSON.stringify(log)}`);
       continue;
     }
-    console.log(`Processing log with event name: ${log.eventName}`);
+    console.log(`Processing event: ${log.eventName}`);
     try {
       switch (log.eventName) {
         case 'SetupAP721': {
@@ -33,7 +33,7 @@ async function writeToDatabase(decodedLogs: DecodedLog[]) {
             where: { ap721: log.args.target },
             data: dataLogicUpdated,
           });
-          console.log('Successfully updated aP721 table for LogicUpdated.');
+          console.log('Successfully updated AP721 table for LogicUpdated.');
           break;
         }
         case 'RendererUpdated': {
@@ -44,35 +44,41 @@ async function writeToDatabase(decodedLogs: DecodedLog[]) {
             where: { ap721: log.args.target },
             data: dataRendererUpdated,
           });
-          console.log('Successfully updated aP721 table for RendererUpdated.');
+          console.log('Successfully updated AP721 table for RendererUpdated.');
           break;
         }
 
-        // case 'DataStored':
-        // case 'DataOverwritten': {
-        //   let dataTokenStorage: Prisma.TokenStorageCreateInput = {
-        //     target: log.args.target,
-        //     sender: log.args.sender,
-        //     tokenId: log.args.tokenId,
-        //     pointer: log.args.pointer,
-        //     eventType: log.eventName,
-        //   };
-        //   await prismaClient.tokenStorage.upsert({
-        //     where: {
-        //       target_sender_tokenId: {
-        //         target: log.args.target,
-        //         sender: log.args.sender,
-        //         tokenId: log.args.tokenId,
-        //       },
-        //     },
-        //     update: dataTokenStorage,
-        //     create: dataTokenStorage,
-        //   });
-        //   console.log('Successfully populated tokenStorage table.');
-        //   break;
-        // }
-        // default:
-        //   console.log(`Unknown event type: ${log.eventName}`);
+        case 'DataStored': {
+          const dataDataStored: Prisma.TokenStorageCreateInput = {
+            ap721: log.args.target,
+            tokenId: log.args.tokenId,
+            pointer: log.args.pointer,
+            updatedAt: log.blockNumber as bigint,
+            updatedBy: log.args.sender,
+          };
+          await prismaClient.tokenStorage.create({
+            data: dataDataStored,
+          });
+          console.log('Successfully populated TokenStorage table.');
+          break;
+        }
+
+        case 'DataOverwritten': {
+          const dataDataOverwritten: Prisma.TokenStorageUpdateInput = {
+            pointer: log.args.pointer,
+            updatedAt: log.blockNumber as bigint,
+            updatedBy: log.args.sender,
+          };
+          await prismaClient.tokenStorage.update({
+            where: {
+              ap721: log.args.target,
+              tokenId: log.args.tokenId,
+            },
+            data: dataDataOverwritten,
+          });
+          console.log('Successfully populated TokenStorage table.');
+          break;
+        }
       }
     } catch (e) {
       console.error(`Error processing event ${log.eventName}:`, e);
