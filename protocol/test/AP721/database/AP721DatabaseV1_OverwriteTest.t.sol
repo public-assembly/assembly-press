@@ -5,12 +5,8 @@ import {console2} from "forge-std/console2.sol";
 import {AP721Config} from "../utils/setup/AP721Config.sol";
 
 import {AP721} from "../../../src/core/token/AP721/nft/AP721.sol";
-import {AP721DatabaseV1} from "../../../src/core/token/AP721/database/AP721DatabaseV1.sol";
-import {IAP721Database} from "../../../src/core/token/AP721/interfaces/IAP721Database.sol";
-import {IAP721} from "../../../src/core/token/AP721/interfaces/IAP721.sol";
 
 import {MockLogic} from "../utils/mocks/logic/MockLogic.sol";
-import {MockLogic_OnlyAdmin} from "../utils/mocks/logic/MockLogic_OnlyAdmin.sol";
 import {MockRenderer} from "../utils/mocks/renderer/MockRenderer.sol";
 
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
@@ -42,7 +38,7 @@ contract AP721DatabaseV1_OverwriteTest is AP721Config {
         tokenDataArray[0] = tokenData;
         bytes memory encodedTokenDataArray = abi.encode(tokenDataArray);
         vm.prank(AP721_ADMIN);
-        database.store(newAP721, 1, encodedTokenDataArray);
+        database.store(newAP721, encodedTokenDataArray);
 
         // setup data to overwrite
         bytes memory overwriteData = abi.encode("Public Assembly");
@@ -77,7 +73,7 @@ contract AP721DatabaseV1_OverwriteTest is AP721Config {
         tokenDataArray[0] = tokenData;
         bytes memory encodedTokenDataArray = abi.encode(tokenDataArray);
         vm.prank(AP721_ADMIN);
-        database.store(newAP721, 1, encodedTokenDataArray);
+        database.store(newAP721, encodedTokenDataArray);
 
         // setup data to overwrite
         bytes memory overwriteData = abi.encode("Public Assembly");
@@ -112,7 +108,7 @@ contract AP721DatabaseV1_OverwriteTest is AP721Config {
         tokenDataArray[0] = tokenData;
         bytes memory encodedTokenDataArray = abi.encode(tokenDataArray);
         vm.prank(AP721_ADMIN);
-        database.store(newAP721, 1, encodedTokenDataArray);
+        database.store(newAP721, encodedTokenDataArray);
 
         // setup data to overwrite
         bytes memory overwriteData = abi.encode("Public Assembly");
@@ -167,7 +163,7 @@ contract AP721DatabaseV1_OverwriteTest is AP721Config {
         tokenDataArray[0] = tokenData;
         bytes memory encodedTokenDataArray = abi.encode(tokenDataArray);
         vm.prank(AP721_ADMIN);
-        database.store(newAP721, 1, encodedTokenDataArray);
+        database.store(newAP721, encodedTokenDataArray);
 
         // setup data to overwrite
         bytes memory overwriteData = abi.encode("Public Assembly");

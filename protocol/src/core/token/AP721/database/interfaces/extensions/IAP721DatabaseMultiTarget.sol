@@ -25,23 +25,25 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-import {IAP721Database} from "../interfaces/IAP721Database.sol";
+import {IAP721Database} from "../IAP721Database.sol";
 
-/**
- * @notice Database storage contract
- */
-contract AP721DatabaseStorageV1 {
-    /**
-     * @notice AP721 => id => Pointer to encoded data
-     * @dev The first `id` stored will be 0, which means ids trail their corresponding
-     *       tokenIds by 1
-     * @dev Can contain blank/burned storage
-     */
-    mapping(address => mapping(uint256 => address)) public tokenData;
+interface IAP721DatabaseMultiTarget is IAP721Database {
 
-    /**
-     * @notice AP721 => Settings information
-     * @dev see IAP721Database for details on Settings struct
-     */
-    mapping(address => IAP721Database.Settings) public ap721Settings;
+    ////////////////////////////////////////////////////////////
+    // FUNCTIONS
+    ////////////////////////////////////////////////////////////
+
+    /// @notice Facilitates deploy + initialization of multiple, creator-owned proxies of `AP721.sol`
+    function multiSetupAP721(
+        address[] memory initialOwners,
+        bytes[] memory databaseInits,
+        address[] memory factories,
+        bytes[] memory factoryInits
+    ) external returns (address[] memory);
+    /// @notice Store aribtrary data in database for multiple targets
+    function multiStore(address[] memory targets, bytes[] memory data) external;
+    /// @notice Overwrite data stored in database for a given token for multiple targets
+    function multiOverwrite(address[] memory targets, uint256[][] memory tokenIds, uint256[][] memory data) external;
+    /// @notice Erase data stored in database for a given token for multiple targets
+    function multiRemove(address[] memory targets, uint256[][] memory tokenIds) external;
 }

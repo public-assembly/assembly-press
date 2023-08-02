@@ -25,32 +25,47 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-interface IAP721Logic {
+interface IAP721DatabaseTypesV1 {
+
     ////////////////////////////////////////////////////////////
-    // FUNCTIONS
+    // TYPES
     ////////////////////////////////////////////////////////////
 
-    //////////////////////////////
-    // WRITE FUNCTIONS
-    //////////////////////////////
+    /**
+     * @notice Data structure used to store AP721 config in database
+     * @dev Struct breakdown. Values in parentheses are bytes.
+     *
+     * First slot: fundsRecipient (20) + royaltyBPS (2) + transferable (1) = 23 bytes
+     */
+    struct AP721Config {
+        /// @notice
+        address fundsRecipient;
+        /// @notice
+        uint16 royaltyBPS;
+        /// @notice
+        bool transferable;
+    }
 
-    /// @notice Initializes target + initial setup data in logic contract
-    function initializeWithData(address target, bytes memory initData) external;
-
-    //////////////////////////////
-    // READ FUNCTIONS
-    //////////////////////////////
-
-    /// @notice Getter for contract name
-    function name() external view returns (string memory);
-    /// @notice Checks if a certain address has store access for a given AP721
-    function getStoreAccess(address target, address sender, uint256 quantity) external view returns (bool);
-    /// @notice Checks if a certain address has overwrite access for a given AP721 + tokenId
-    function getOverwriteAccess(address target, address sender, uint256 tokeknId) external view returns (bool);
-    /// @notice Checks if a certain address has remove access for a given AP721 + tokenId
-    function getRemoveAccess(address target, address sender, uint256 tokeknId) external view returns (bool);
-    /// @notice Checks if a certain address can update the settings for a given AP721
-    function getSettingsAccess(address target, address sender) external view returns (bool);
-    /// @notice Checks if a certain address get edit contract data post data storage for a given AP721
-    function getContractDataAccess(address targetPress, address metadataCaller) external view returns (bool);
+    /**
+     * @notice Data structure used to store Press settings in database
+     * @dev Struct breakdown. Values in parentheses are bytes.
+     *
+     * First slot: storageCounter (32) = 32 bytes
+     * Second slot: logic (20) + initialized (1) = 21 bytes
+     * Third slot: renderer (20) = 20 bytes
+     * TODO: confirm that the struct takes up all 32 bytes even if the storage inside of it is less than 32
+     * Fourth slot: ap721Config (32) = 32 bytes
+     */
+    struct Settings {
+        /// @notice Keeps track of how many data slots have been filled
+        uint256 storageCounter;
+        /// @notice Address of the logic contract
+        address logic;
+        /// @notice initialized uint. 0 = not initialized, 1 = initialized
+        uint8 initialized;
+        /// @notice Address of the renderer contract
+        address renderer;
+        /// Stores config settings for AP721 contract
+        AP721Config ap721Config;
+    }
 }

@@ -25,48 +25,9 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-interface IAP721Database {
-    ////////////////////////////////////////////////////////////
-    // TYPES
-    ////////////////////////////////////////////////////////////
+import {IAP721DatabaseTypesV1} from "./IAP721DatabaseTypesV1.sol";
 
-    /**
-     * @notice Data structure used to store AP721 config in database
-     * @dev Struct breakdown. Values in parentheses are bytes.
-     *
-     * First slot: fundsRecipient (20) + royaltyBPS (2) + transferable (1) = 23 bytes
-     */
-    struct AP721Config {
-        /// @notice
-        address fundsRecipient;
-        /// @notice
-        uint16 royaltyBPS;
-        /// @notice
-        bool transferable;
-    }
-
-    /**
-     * @notice Data structure used to store Press settings in database
-     * @dev Struct breakdown. Values in parentheses are bytes.
-     *
-     * First slot: storageCounter (32) = 32 bytes
-     * Second slot: logic (20) + initialized (1) = 21 bytes
-     * Third slot: renderer (20) = 20 bytes
-     * TODO: confirm that the struct takes up all 32 bytes even if the storage inside of it is less than 32
-     * Fourth slot: ap721Config (32) = 32 bytes
-     */
-    struct Settings {
-        /// @notice Keeps track of how many data slots have been filled
-        uint256 storageCounter;
-        /// @notice Address of the logic contract
-        address logic;
-        /// @notice initialized uint. 0 = not initialized, 1 = initialized
-        uint8 initialized;
-        /// @notice Address of the renderer contract
-        address renderer;
-        /// Stores config settings for AP721 contract
-        AP721Config ap721Config;
-    }
+interface IAP721Database is IAP721DatabaseTypesV1 {
 
     ////////////////////////////////////////////////////////////
     // EVENTS
@@ -87,19 +48,15 @@ interface IAP721Database {
         address renderer,
         address factory
     );
-
+    
     /// @notice Logic has been updated
     event LogicUpdated(address indexed target, address indexed logic);
-
     /// @notice Renderer has been updated
     event RendererUpdated(address indexed target, address indexed renderer);
-
     /// @notice Data has been stored
     event DataStored(address indexed target, address indexed sender, uint256 indexed tokenId, address pointer);
-
     /// @notice Data has been overwritten
     event DataOverwritten(address indexed target, address indexed sender, uint256 indexed tokenId, address pointer);
-
     /// @notice Data has been removed
     event DataRemoved(address indexed target, address indexed sender, uint256 indexed tokenId);
 
@@ -118,19 +75,6 @@ interface IAP721Database {
     /// @notice Array input lengths don't match
     error Invalid_Input_Length();
 
-    //////////////////////////////
-    // ACCESS ERRORS
-    //////////////////////////////
-
-    /// @notice Msg.sender does not have access to call store for tatget
-    error No_Store_Access();
-    /// @notice Msg.sender does not have access to call overwrite for tatget
-    error No_Overwrite_Access();
-    /// @notice Msg.sender does not have access to call remove for tatget
-    error No_Remove_Access();
-    /// @notice Msg.sender does not have access to edit settings for tatget
-    error No_Settings_Access();
-
     ////////////////////////////////////////////////////////////
     // FUNCTIONS
     ////////////////////////////////////////////////////////////
@@ -138,31 +82,14 @@ interface IAP721Database {
     //////////////////////////////
     // WRITE FUNCTIONS
     //////////////////////////////
-
     /// @notice Facilitates deploy + initialization of a new, creator-owned proxy of `AP721.sol`
-    function setupAP721(address initialOwner, bytes memory databaseInit, address factory, bytes memory factoryInit)
-        external
-        returns (address);
+    function setupAP721(address initialOwner, bytes memory databaseInit, address factory, bytes memory factoryInit) external returns (address);
     /// @notice Store aribtrary data in database
-    function store(address target, uint256 quantity, bytes memory data) external;
+    function store(address target, bytes memory data) external;
     /// @notice Overwrite data stored in database for a given token
     function overwrite(address target, uint256[] memory tokenIds, bytes[] memory data) external;
     /// @notice Erase data stored in database for a given token
     function remove(address target, uint256[] memory tokenIds) external;
-
-    // /// @notice Facilitates deploy + initialization of multiple, creator-owned proxies of `AP721.sol`
-    // function multiSetupAP721(
-    //     address[] memory initialOwners,
-    //     bytes[] memory databaseInits,
-    //     address[] memory factories,
-    //     bytes[] memory factoryInits
-    // ) external returns (address[] memory);
-    // /// @notice Store aribtrary data in database for multiple targets
-    // function multiStore(address[] memory targets, bytes[] memory data) external;
-    // /// @notice Overwrite data stored in database for a given token for multiple targets
-    // function multiOverwrite(address[] memory targets, uint256[][] memory tokenIds, uint256[][] memory data) external;
-    // /// @notice Erase data stored in database for a given token for multiple targets
-    // function multiErase(address[] memory targets, uint256[][] memory tokenIds) external;
 
     //////////////////////////////
     // READ FUNCTIONS
@@ -174,5 +101,7 @@ interface IAP721Database {
     /// @notice Get token transferability status for a target AP721
     function getSettings(address target) external view returns (Settings memory);
     /// @notice Get token transferability status for a target AP721
-    function getTransferable(address target) external view returns (bool);
+    function getTransferability(address target) external view returns (bool);
+    /// @notice Checks value of initialized variable in ap721Settings mapping for target
+    function isInitialized(address target) external view returns (bool);    
 }

@@ -3,11 +3,11 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
 
-import {IAP721} from "../src/core/token/AP721/interfaces/IAP721.sol";
 import {AP721} from "../src/core/token/AP721/nft/AP721.sol";
 import {AP721Proxy} from "../src/core/token/AP721/nft/proxy/AP721Proxy.sol";
 import {AP721Factory} from "../src/core/token/AP721/factory/AP721Factory.sol";
 import {AP721DatabaseV1} from "../src/core/token/AP721/database/AP721DatabaseV1.sol";
+import {ExampleDatabaseV1} from "../src/strategies/example/database/ExampleDatabaseV1.sol";
 import {MockLogic} from "../test/AP721/utils/mocks/logic/MockLogic.sol";
 import {MockRenderer} from "../test/AP721/utils/mocks/renderer/MockRenderer.sol";
 
@@ -22,7 +22,7 @@ contract DeployCore is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         AP721 ap721Impl = new AP721();
-        AP721DatabaseV1 database = new AP721DatabaseV1();
+        ExampleDatabaseV1 database = new ExampleDatabaseV1();
         AP721Factory factoryImpl = new AP721Factory(address(payable(ap721Impl)), address(database));
         MockLogic mockLogic = new MockLogic(address(database));
         MockRenderer mockRenderer = new MockRenderer(address(database));

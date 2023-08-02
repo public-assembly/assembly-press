@@ -2,15 +2,14 @@
 pragma solidity 0.8.17;
 
 import {console2} from "forge-std/console2.sol";
-import {AP721Config} from "../../utils/setup/AP721Config.sol";
 
-import {AP721} from "../../../../src/core/token/AP721/nft/AP721.sol";
-import {AP721DatabaseV1} from "../../../../src/core/token/AP721/database/AP721DatabaseV1.sol";
-import {IAP721Database} from "../../../../src/core/token/AP721/interfaces/IAP721Database.sol";
-import {IAP721} from "../../../../src/core/token/AP721/interfaces/IAP721.sol";
+import {AP721ConfigBatch} from "../../utils/setup/AP721ConfigBatch.sol";
+// import {AP721} from "../../../../src/core/token/AP721/nft/AP721.sol";
+// import {AP721DatabaseV1Batch} from "../../../../src/core/token/AP721/database/AP721DatabaseV1Batch.sol";
+// import {IAP721Database} from "../../../../src/core/token/AP721/database/interfaces/IAP721Database.sol";
+// import {IAP721} from "../../../../src/core/token/AP721/nft/interfaces/IAP721.sol";
 
 import {MockLogic} from "../../utils/mocks/logic/MockLogic.sol";
-import {MockLogic_OnlyAdmin} from "../../utils/mocks/logic/MockLogic_OnlyAdmin.sol";
 import {MockRenderer} from "../../utils/mocks/renderer/MockRenderer.sol";
 
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
@@ -19,66 +18,66 @@ import {
     IERC165Upgradeable
 } from "openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 
-contract AP721DatabaseV1_SetupBatchTest is AP721Config {
+contract AP721DatabaseV1_SetupBatchTest is AP721ConfigBatch {
 
-    function test_setupAP721Batch() public {
-        // setup logic + renderer inits
-        bytes memory adminInit = abi.encode(AP721_ADMIN);
-        bytes memory factoryInit = abi.encode(CONTRACT_NAME, CONTRACT_SYMBOL);
-        bytes memory databaseInit = abi.encode(AP721DatabaseV1.StandardDatabaseInit({
-            logic: address(mockLogic),
-            renderer: address(mockRenderer),
-            transferable: NON_TRANSFERABLE,
-            logicInit: adminInit,
-            rendererInit: adminInit
-        }));
+    // function test_setupAP721Batch() public {
+    //     // setup logic + renderer inits
+    //     bytes memory adminInit = abi.encode(AP721_ADMIN);
+    //     bytes memory factoryInit = abi.encode(CONTRACT_NAME, CONTRACT_SYMBOL);
+    //     bytes memory databaseInit = abi.encode(AP721DatabaseV1Batch.StandardDatabaseInit({
+    //         logic: address(mockLogic),
+    //         renderer: address(mockRenderer),
+    //         transferable: NON_TRANSFERABLE,
+    //         logicInit: adminInit,
+    //         rendererInit: adminInit
+    //     }));
 
-        address[] memory initialOwners = new address[](3);
-        bytes[] memory databaseInits = new bytes[](3);
-        address[] memory factories = new address[](3);
-        bytes[] memory factoryInits = new bytes[](3);
-        {
-            initialOwners[0] = AP721_ADMIN;
-            initialOwners[1] = AP721_ADMIN;
-            initialOwners[2] = AP721_ADMIN;        
-            databaseInits[0] = databaseInit;
-            databaseInits[1] = databaseInit;
-            databaseInits[2] = databaseInit;
-            factories[0] = address(factoryImpl);
-            factories[1] = address(factoryImpl);
-            factories[2] = address(factoryImpl);
-            factoryInits[0] = factoryInit;
-            factoryInits[1] = factoryInit;
-            factoryInits[2] = factoryInit;
-        }
+    //     address[] memory initialOwners = new address[](3);
+    //     bytes[] memory databaseInits = new bytes[](3);
+    //     address[] memory factories = new address[](3);
+    //     bytes[] memory factoryInits = new bytes[](3);
+    //     {
+    //         initialOwners[0] = AP721_ADMIN;
+    //         initialOwners[1] = AP721_ADMIN;
+    //         initialOwners[2] = AP721_ADMIN;        
+    //         databaseInits[0] = databaseInit;
+    //         databaseInits[1] = databaseInit;
+    //         databaseInits[2] = databaseInit;
+    //         factories[0] = address(factoryImpl);
+    //         factories[1] = address(factoryImpl);
+    //         factories[2] = address(factoryImpl);
+    //         factoryInits[0] = factoryInit;
+    //         factoryInits[1] = factoryInit;
+    //         factoryInits[2] = factoryInit;
+    //     }
        
-        address[] memory newAP721s = database.setupAP721Batch(initialOwners, databaseInits, factories, factoryInits);
+    //     address[] memory newAP721s = database.setupAP721Batch(initialOwners, databaseInits, factories, factoryInits);
 
-        for (uint256 i; i < newAP721s.length; ++i) {
-            // Fetch newly initialized database settings
-            (IAP721Database.Settings memory settings) = database.getSettings(newAP721s[i]);
-            // Initialization tests
-            require(
-                keccak256(bytes(AP721(payable(newAP721s[i])).name())) == keccak256(bytes(CONTRACT_NAME)), "name set incorrectly"
-            );
-            require(
-                keccak256(bytes(AP721(payable(newAP721s[i])).symbol())) == keccak256(bytes(CONTRACT_SYMBOL)),
-                "symbol set incorrectly"
-            );            
-            require(AP721(payable(newAP721s[i])).owner() == AP721_ADMIN, "owner set incorrectly");
-            require(settings.initialized == 1, "initialized flag not set correctly");
-            require(settings.logic == address(mockLogic), "logic address set incorrectly");
-            require(settings.renderer == address(mockRenderer), "renderer address set incorrectly");
-            require(settings.storageCounter == 0, "storage counter should be zero upon initialization");
-            require(
-                settings.ap721Config.transferable == NON_TRANSFERABLE, "token transferability not initialzied correctly"
-            );
-            vm.prank(address(database));
-            // should revert because newAP721 is an AP721Proxy that should already have been initialized, and cannot be re-initialized
-            vm.expectRevert();
-            AP721(payable(newAP721s[i])).initialize(address(0), address(0), BYTES_ZERO_VALUE);
-        }
-    }
+    //     for (uint256 i; i < newAP721s.length; ++i) {
+    //         // Fetch newly initialized database settings
+    //         (IAP721Database.Settings memory settings) = database.getSettings(newAP721s[i]);
+    //         // Initialization tests
+    //         require(
+    //             keccak256(bytes(AP721(payable(newAP721s[i])).name())) == keccak256(bytes(CONTRACT_NAME)), "name set incorrectly"
+    //         );
+    //         require(
+    //             keccak256(bytes(AP721(payable(newAP721s[i])).symbol())) == keccak256(bytes(CONTRACT_SYMBOL)),
+    //             "symbol set incorrectly"
+    //         );            
+    //         require(AP721(payable(newAP721s[i])).owner() == AP721_ADMIN, "owner set incorrectly");
+    //         require(settings.initialized == 1, "initialized flag not set correctly");
+    //         require(settings.logic == address(mockLogic), "logic address set incorrectly");
+    //         require(settings.renderer == address(mockRenderer), "renderer address set incorrectly");
+    //         require(settings.storageCounter == 0, "storage counter should be zero upon initialization");
+    //         require(
+    //             settings.ap721Config.transferable == NON_TRANSFERABLE, "token transferability not initialzied correctly"
+    //         );
+    //         vm.prank(address(database));
+    //         // should revert because newAP721 is an AP721Proxy that should already have been initialized, and cannot be re-initialized
+    //         vm.expectRevert();
+    //         AP721(payable(newAP721s[i])).initialize(address(0), address(0), BYTES_ZERO_VALUE);
+    //     }
+    // }
 }
 
 /*

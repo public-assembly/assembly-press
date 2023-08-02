@@ -25,23 +25,35 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-import {IAP721Database} from "../interfaces/IAP721Database.sol";
+import {IAP721Database} from "../IAP721Database.sol";
 
-/**
- * @notice Database storage contract
- */
-contract AP721DatabaseStorageV1 {
-    /**
-     * @notice AP721 => id => Pointer to encoded data
-     * @dev The first `id` stored will be 0, which means ids trail their corresponding
-     *       tokenIds by 1
-     * @dev Can contain blank/burned storage
-     */
-    mapping(address => mapping(uint256 => address)) public tokenData;
+interface IAP721DatabaseAccess is IAP721Database {
 
-    /**
-     * @notice AP721 => Settings information
-     * @dev see IAP721Database for details on Settings struct
-     */
-    mapping(address => IAP721Database.Settings) public ap721Settings;
+    ////////////////////////////////////////////////////////////
+    // ERRORS
+    ////////////////////////////////////////////////////////////
+
+    /// @notice Msg.sender does not have access to call store for tatget
+    error No_Store_Access();
+    /// @notice Msg.sender does not have access to call overwrite for tatget
+    error No_Overwrite_Access();
+    /// @notice Msg.sender does not have access to call remove for tatget
+    error No_Remove_Access();
+    /// @notice Msg.sender does not have access to edit settings for tatget
+    error No_Settings_Access();
+
+    ////////////////////////////////////////////////////////////
+    // FUNCTIONS
+    ////////////////////////////////////////////////////////////
+
+    /// @notice Checks storage access for a given target + sender + quantity
+    function canStore(address target, address sender, uint256 quantity) external view returns (bool);
+    /// @notice Checks overwrite access for a given target + sender + tokenId
+    function canOverwrite(address target, address sender, uint256 tokenId) external view returns (bool);
+    /// @notice Checks remove access for a given target + sender + tokenId
+    function canRemove(address target, address sender, uint256 tokenId) external view returns (bool);    
+    /// @notice Checks settings access for a given target + sender
+    function canEditSettings(address target, address sender) external view returns (bool);     
 }
+
+
