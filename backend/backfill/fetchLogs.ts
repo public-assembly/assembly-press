@@ -1,17 +1,18 @@
 import { viemClient } from '../viem/client'
-import { databaseEventObjects } from '../constants'
-import { type BlockNumber } from 'viem'
+import { type BlockNumber, type Hex } from 'viem'
+import { AP721DatabaseV1Abi } from '../abi'
+import { databaseEventsArray } from '../constants'
 
 export const fetchLogs = async (
   fromBlock: BlockNumber,
   toBlock: BlockNumber,
 ) => {
   const filters = await Promise.all(
-    databaseEventObjects.map((eventObject) =>
+    databaseEventsArray.map((event) =>
       viemClient.createContractEventFilter({
-        abi: eventObject.abi,
-        address: eventObject.address,
-        eventName: eventObject.event,
+        abi: AP721DatabaseV1Abi,
+        address: process.env.DATABASE_CONTRACT as Hex,
+        eventName: event,
         fromBlock: BigInt(fromBlock),
         toBlock: BigInt(toBlock),
       }),
@@ -26,7 +27,7 @@ export const fetchLogs = async (
     viemClient.getFilterLogs({ filter: filter }).then((logs) =>
       logs.map((log) => ({
         ...log,
-        eventName: databaseEventObjects[index].event,
+        eventName: databaseEventsArray[index],
       })),
     ),
   )

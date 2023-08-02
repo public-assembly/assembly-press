@@ -18,11 +18,13 @@ model AP721 {
 }
 
 model TokenStorage {
-  ap721       String  @id
-  tokenId     BigInt
-  pointer     String
-  updatedAt   BigInt
-  updatedBy   String
+  ap721     String
+  tokenId   BigInt
+  pointer   String
+  updatedAt BigInt
+  updatedBy String
+
+  @@id([ap721, tokenId])
 }
 
 model Transaction {

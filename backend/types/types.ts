@@ -14,6 +14,14 @@ export type EventObject = {
   address: Hex
 }
 
+export type DatabaseEvent =
+  | 'SetupAP721'
+  | 'DataStored'
+  | 'DataOverwritten'
+  | 'DataRemoved'
+  | 'LogicUpdated'
+  | 'RendererUpdated'
+
 export type DecodedLog =
   | SetupAP721
   | RendererUpdated
