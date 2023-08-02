@@ -2,7 +2,7 @@ import { prismaClient } from './prismaClient';
 import { Prisma } from '@prisma/client';
 import { DecodedLog } from '../types';
 
-async function writeToDatabase(decodedLogs: DecodedLog[]) {
+export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
   for (const log of decodedLogs) {
     if (!log.args) {
       console.log(`Skipping log due to missing args: ${JSON.stringify(log)}`);
@@ -84,4 +84,4 @@ async function writeToDatabase(decodedLogs: DecodedLog[]) {
       console.error(`Error processing event ${log.eventName}:`, e);
     }
   }
-}
+};

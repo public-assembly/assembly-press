@@ -3,6 +3,7 @@ import { viemClient } from '../viem/client';
 import { fetchLogs } from '.';
 import { BlockNumber } from 'viem';
 import { decodeLogs } from '../transform/decodeLogs';
+import { writeToDatabase } from '../prisma';
 
 export async function backfillPostgres() {
   const contractCreationBlock = await getContractCreationBlock();
@@ -14,7 +15,9 @@ export async function backfillPostgres() {
     currentBlock
   );
 
-  decodeLogs(logs.flat());
+  const decodedLogs = decodeLogs(logs.flat());
+
+  // writeToDatabase(decodedLogs)
 
   // upload logs here
 }

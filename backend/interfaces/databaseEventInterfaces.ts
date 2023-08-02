@@ -43,13 +43,12 @@ export interface DataStored {
 }
 export interface DataRemoved {
   blockNumber: bigint | null;
-  eventName: 'DataOverwritten';
   args: {
     target: Hex;
     sender: Hex;
     tokenId: bigint;
-    pointer: Hex;
   };
+  eventName: 'DataRemoved';
 }
 
 export interface DataOverwritten {
