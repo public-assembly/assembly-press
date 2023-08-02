@@ -1,4 +1,4 @@
-import { DatabaseLog } from "../types"
+import { DatabaseLog } from '../types'
 
 // create metadata tags for Bundlr uploads that will help us identify our uploads later on
 export const createBundlrTags = (logs: DatabaseLog[]) => {

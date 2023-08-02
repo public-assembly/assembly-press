@@ -9,13 +9,12 @@ datasource db {
 
 model AP721 {
   ap721     String  @id
-  sender    String?
-  owner     String?
-  logic     String?
-  renderer  String?
-  factory   String?
-  createdAt BigInt?
-  target    String?
+  sender    String
+  owner     String
+  logic     String
+  renderer  String
+  factory   String
+  createdAt BigInt
 }
 
 model TokenStorage {

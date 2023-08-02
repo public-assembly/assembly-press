@@ -1,4 +1,4 @@
-import { DatabaseLog } from "../../types"
+import { DatabaseLog } from '../../types'
 
 export function convertArgs(args: object): DatabaseLog['args'] | undefined {
   const convertedArgs: Partial<DatabaseLog['args']> = {}
