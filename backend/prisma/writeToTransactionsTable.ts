@@ -1,10 +1,9 @@
-import { prismaClient } from "./prismaClient";
+import { prismaClient } from './prismaClient'
 
 // TODO: configure this function to write to the `Transactions` database
 async function writeToTransactionsDatabase() {
-
-// @ts-expect-error
-for (const transaction of processedTransactions) {
+  // @ts-expect-error
+  for (const transaction of processedTransactions) {
     if (transaction) {
       await prismaClient.transaction
         .create({
@@ -16,11 +15,11 @@ for (const transaction of processedTransactions) {
           },
         })
         .catch((e: Error) =>
-          console.error('Error upserting transaction:', e.message)
-        );
+          console.error('Error upserting transaction:', e.message),
+        )
     }
   }
 
-//   await processCleanedLogs(cleanedLogs);
-  console.log('Finished processing cleaned logs');
+  //   await processCleanedLogs(cleanedLogs);
+  console.log('Finished processing cleaned logs')
 }

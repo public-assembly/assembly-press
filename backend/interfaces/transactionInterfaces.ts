@@ -1,22 +1,22 @@
 export interface Tag {
-  name: string;
-  value: string;
+  name: string
+  value: string
 }
 
 export interface Node {
-  id: string;
-  address: string;
-  tags: Tag[];
+  id: string
+  address: string
+  tags: Tag[]
 }
 
 export interface Edge {
-  node: Node;
+  node: Node
 }
 
 export interface Transactions {
-  edges: Edge[];
+  edges: Edge[]
 }
 
 export interface GraphQLResponse {
-  transactions: Transactions;
+  transactions: Transactions
 }

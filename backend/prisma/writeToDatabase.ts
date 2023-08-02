@@ -49,34 +49,50 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
         }
 
         case 'DataStored': {
-          const dataDataStored: Prisma.TokenStorageCreateInput = {
-            ap721: log.args.target,
-            tokenId: log.args.tokenId,
-            pointer: log.args.pointer,
-            updatedAt: log.blockNumber as bigint,
-            updatedBy: log.args.sender,
-          };
-          await prismaClient.tokenStorage.create({
-            data: dataDataStored,
-          });
+          // const dataDataStored: Prisma.TokenStorageCreateInput = {
+          //   ap721: log.args.target,
+          //   tokenId: log.args.tokenId,
+          //   pointer: log.args.pointer,
+          //   updatedAt: log.blockNumber as bigint,
+          //   updatedBy: log.args.sender,
+          // };
+          // await prismaClient.tokenStorage.create({
+          //   data: dataDataStored,
+          // });
           console.log('Successfully populated TokenStorage table.');
           break;
         }
-
         case 'DataOverwritten': {
-          const dataDataOverwritten: Prisma.TokenStorageUpdateInput = {
-            pointer: log.args.pointer,
-            updatedAt: log.blockNumber as bigint,
-            updatedBy: log.args.sender,
-          };
-          await prismaClient.tokenStorage.update({
-            where: {
-              ap721: log.args.target,
-              tokenId: log.args.tokenId,
-            },
-            data: dataDataOverwritten,
-          });
-          console.log('Successfully populated TokenStorage table.');
+          // const dataDataOverwritten: Prisma.TokenStorageUpdateInput = {
+          //   pointer: log.args.pointer,
+          //   updatedAt: log.blockNumber as bigint,
+          //   updatedBy: log.args.sender,
+          // };
+          // await prismaClient.tokenStorage.update({
+          //   where: {
+          //     ap721: log.args.target,
+          //     tokenId: log.args.tokenId,
+          //   },
+          //   data: dataDataOverwritten,
+          // });
+          console.log('Successfully overwrote to TokenStorage table.');
+          break;
+        }
+        case 'DataRemoved': {
+          // const dataDataRemoved: Prisma.TokenStorageUpdateInput = {
+          //   // Sets the pointer to field to address(0)
+          //   pointer: String(0x0000000000000000000000000000000000000000),
+          //   updatedAt: log.blockNumber as bigint,
+          //   updatedBy: log.args.sender,
+          // };
+          // await prismaClient.tokenStorage.update({
+          //   where: {
+          //     ap721: log.args.target,
+          //     tokenId: log.args.tokenId,
+          //   },
+          //   data: dataDataRemoved,
+          // });
+          console.log('Successfully removed from TokenStorage table.');
           break;
         }
       }

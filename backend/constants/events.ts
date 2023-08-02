@@ -1,6 +1,6 @@
-import { Hex } from 'viem';
-import { AP721DatabaseV1Abi } from '../abi';
-import { EventObject } from '../types';
+import { Hex } from 'viem'
+import { AP721DatabaseV1Abi } from '../abi'
+import { EventObject } from '../types'
 
 export const databaseEventsArray = [
   'SetupAP721',
@@ -9,7 +9,7 @@ export const databaseEventsArray = [
   'DataRemoved',
   'LogicUpdated',
   'RendererUpdated',
-];
+]
 
 export const databaseEvents = {
   DATA_OVERWRITTEN: 'DataOverwritten',
@@ -18,7 +18,7 @@ export const databaseEvents = {
   LOGIC_UPDATED: 'LogicUpdated',
   RENDERER_UPDATED: 'RendererUpdated',
   SETUP_AP721: 'SetupAP721',
-};
+}
 
 export const databaseEventObjects: EventObject[] = [
   {
@@ -51,4 +51,4 @@ export const databaseEventObjects: EventObject[] = [
     abi: AP721DatabaseV1Abi,
     address: process.env.DATABASE_CONTRACT as Hex,
   },
-];
+]

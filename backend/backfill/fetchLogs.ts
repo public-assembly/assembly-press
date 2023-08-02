@@ -2,7 +2,10 @@ import { viemClient } from '../viem/client'
 import { databaseEventObjects } from '../constants'
 import { type BlockNumber } from 'viem'
 
-export async function fetchLogs(fromBlock: BlockNumber, toBlock: BlockNumber) {
+export const fetchLogs = async (
+  fromBlock: BlockNumber,
+  toBlock: BlockNumber,
+) => {
   const filters = await Promise.all(
     databaseEventObjects.map((eventObject) =>
       viemClient.createContractEventFilter({
@@ -19,16 +22,20 @@ export async function fetchLogs(fromBlock: BlockNumber, toBlock: BlockNumber) {
     `Filter created for blocks ${fromBlock} to ${toBlock}, getting logs...`,
   )
 
-  const logs = await Promise.all(
-    filters.map((filter, index) =>
-      viemClient.getFilterLogs({ filter: filter }).then((logs) =>
-        logs.map((log) => ({
-          ...log,
-          eventName: databaseEventObjects[index].event,
-        })),
-      ),
+  const logPromises = filters.map((filter, index) =>
+    viemClient.getFilterLogs({ filter: filter }).then((logs) =>
+      logs.map((log) => ({
+        ...log,
+        eventName: databaseEventObjects[index].event,
+      })),
     ),
   )
 
-  return logs
+  const logs = await Promise.all(logPromises)
+
+  const sortedLogs = logs
+    .flat()
+    .sort((a, b) => Number(a.blockNumber) - Number(b.blockNumber))
+
+  return sortedLogs
 }
