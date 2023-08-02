@@ -1,4 +1,2 @@
-export * from './arrays'
-export * from './getContractCreationTxn'
-export * from './getLastBlockNum'
-export * from './replacer'
+export * from './getContractCreationBlock';
+export * from './replacer';

@@ -1,7 +1,7 @@
 import { replacer } from '../utils'
 import { bundlr } from './bundlrInit'
 import { createBundlrTags } from './createBundlrTags'
-import { DatabaseLog } from "../types"
+import { DatabaseLog } from '../types'
 
 export async function uploadLogs(logs: DatabaseLog[]) {
   const tags = createBundlrTags(logs)

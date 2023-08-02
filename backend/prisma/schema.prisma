@@ -7,36 +7,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model AP721 {
+  ap721     String @id
+  sender    String
+  owner     String
+  logic     String
+  renderer  String
+  factory   String
+  createdAt BigInt
+}
+
+model TokenStorage {
+  ap721     String
+  tokenId   BigInt
+  pointer   String
+  updatedAt BigInt
+  updatedBy String
+
+  @@id([ap721, tokenId])
+}
+
 model Transaction {
   id        String @id
   address   String
   eventType String
   tags      Json
-}
-
-model PressSettings {
-  id           Int      @id @default(autoincrement())
-  ap721        String?  @unique
-  sender       String?
-  initialOwner String?
-  logic        String?
-  renderer     String?
-  factory      String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  eventType    String
-  target       String?
-}
-
-model TokenStorage {
-  id        Int      @id @default(autoincrement())
-  eventType String
-  pointer   String?
-  sender    String
-  target    String
-  tokenId   BigInt
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([target, sender, tokenId])
 }
