@@ -19,37 +19,35 @@ async function writeToDatabase(decodedLogs: DecodedLog[]) {
             logic: log.args.logic,
             renderer: log.args.renderer,
             factory: log.args.factory,
+            createdAt: log.blockNumber as bigint,
           };
           await prismaClient.aP721.create({ data: dataAP721 });
-          console.log('Successfully populated aP721 table.');
+          console.log('Successfully populated AP721 table.');
           break;
         }
-        // ** Logic Updated ** //
+        case 'LogicUpdated': {
+          const dataLogicUpdated: Prisma.AP721UpdateInput = {
+            logic: log.args.logic,
+          };
+          await prismaClient.aP721.update({
+            where: { ap721: log.args.target },
+            data: dataLogicUpdated,
+          });
+          console.log('Successfully updated aP721 table for LogicUpdated.');
+          break;
+        }
+        case 'RendererUpdated': {
+          const dataRendererUpdated: Prisma.AP721UpdateInput = {
+            renderer: log.args.renderer,
+          };
+          await prismaClient.aP721.update({
+            where: { ap721: log.args.target },
+            data: dataRendererUpdated,
+          });
+          console.log('Successfully updated aP721 table for RendererUpdated.');
+          break;
+        }
 
-        // case 'LogicUpdated': {
-        //   const dataLogicUpdated: Prisma.LogicUpdatedCreateInput = {
-        //     logic: log.args.logic,
-        //     target: log.args.target,
-        //     eventType: log.eventName,
-        //   };
-        //   await prismaClient.aP721.create({ data: dataLogicUpdated });
-        //   console.log('Successfully updated aP721 table for LogicUpdated.');
-        //   break;
-        // }
-
-        // ** Renderer Updated ** //
-
-        // case 'RendererUpdated': {
-        //   const  dataRendererUpdated: Prisma.RendererUpdatedCreateInput = {
-        //     renderer: log.args.renderer,
-        //     target: log.args.target,
-        //     eventType: log.eventName,
-        //   };
-        //   await prismaClient.aP721.create({ data: dataRendererUpdated });
-        //   console.log('Successfully updated aP721 table for RendererUpdated.');
-        //   break;
-        // }
-        
         // case 'DataStored':
         // case 'DataOverwritten': {
         //   let dataTokenStorage: Prisma.TokenStorageCreateInput = {

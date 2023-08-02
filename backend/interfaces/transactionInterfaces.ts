@@ -1,5 +1,3 @@
-import { type Log, type Hex, type Hash } from 'viem';
-
 export interface Tag {
   name: string;
   value: string;

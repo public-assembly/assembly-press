@@ -17,7 +17,7 @@ export interface RendererUpdated {
   blockNumber: bigint | null;
   args: {
     target: Hex;
-    logic: Hex;
+    renderer: Hex;
   };
   eventName: 'RendererUpdated';
 }
