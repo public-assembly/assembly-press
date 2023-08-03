@@ -25,4 +25,4 @@ export const databaseAbiEventsArray = [
   'event DataStored(address indexed target, address indexed sender, uint256 indexed tokenId, address pointer)',
   'event DataOverwritten(address indexed target, address indexed sender, uint256 indexed tokenId, address pointer)',
   'event DataRemoved(address indexed target, address indexed sender, uint256 indexed tokenId)',
-];
+]

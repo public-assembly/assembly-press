@@ -1,7 +1,9 @@
-import { getCreatedAt } from './prisma'
+import { backfillPostgres } from './backfill'
+import { blockCrawl } from './blockCrawl'
 
 async function main() {
-  getCreatedAt()
+  await backfillPostgres()
+  blockCrawl()
 }
 
 main()

@@ -1,4 +1,3 @@
-export * from './getCreatedAt'
-export * from './getLastTransaction'
+export * from './getLastBlockWithEvent'
 export * from './writeToDatabase'
 export * from './helpers'

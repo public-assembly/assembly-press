@@ -1,2 +1,2 @@
-export * from './getContractCreationBlock';
-export * from './replacer';
+export * from './getContractCreationBlock'
+export * from './replacer'
