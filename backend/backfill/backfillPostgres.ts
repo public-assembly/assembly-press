@@ -4,20 +4,32 @@ import { fetchLogs } from '.'
 import { BlockNumber } from 'viem'
 import { decodeLogs } from '../transform/decodeLogs'
 import { writeToDatabase } from '../prisma'
+import { getLastBlockWithEvent } from '../prisma'
 
-export async function backfillPostgres() {
-  const contractCreationBlock = await getContractCreationBlock()
+export const backfillPostgres = async () => {
+  const lastBlockWithEvent = await getLastBlockWithEvent()
 
   const currentBlock = await viemClient.getBlockNumber()
 
-  const sortedLogs = await fetchLogs(
-    contractCreationBlock as BlockNumber,
-    currentBlock,
-  )
+  if (lastBlockWithEvent) {
+    const sortedLogs = await fetchLogs(
+      lastBlockWithEvent as BlockNumber,
+      currentBlock,
+    )
 
-  const decodedLogs = decodeLogs(sortedLogs)
+    const decodedLogs = decodeLogs(sortedLogs)
 
-  writeToDatabase(decodedLogs)
+    writeToDatabase(decodedLogs)
+  } else {
+    const contractCreationBlock = await getContractCreationBlock()
+
+    const sortedLogs = await fetchLogs(
+      contractCreationBlock as BlockNumber,
+      currentBlock,
+    )
+
+    const decodedLogs = decodeLogs(sortedLogs)
+
+    writeToDatabase(decodedLogs)
+  }
 }
-
-backfillPostgres()

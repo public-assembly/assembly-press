@@ -17,3 +17,12 @@ export const databaseEventsObject = {
   RENDERER_UPDATED: 'RendererUpdated',
   SETUP_AP721: 'SetupAP721',
 }
+
+export const databaseAbiEventsArray = [
+  'event SetupAP721(address indexed ap721, address indexed sender, address indexed initialOwner, address logic,address renderer,address factory)',
+  'event LogicUpdated(address indexed target, address indexed logic)',
+  'event RendererUpdated(address indexed target, address indexed renderer)',
+  'event DataStored(address indexed target, address indexed sender, uint256 indexed tokenId, address pointer)',
+  'event DataOverwritten(address indexed target, address indexed sender, uint256 indexed tokenId, address pointer)',
+  'event DataRemoved(address indexed target, address indexed sender, uint256 indexed tokenId)',
+]
