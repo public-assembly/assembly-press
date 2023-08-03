@@ -13,6 +13,7 @@ export async function getCreatedAt() {
 
     // TODO: does this return need to be a number or bigint?
     return genesisEntry.createdAt
+
   } catch (error) {
     backfillPostgres()
   }

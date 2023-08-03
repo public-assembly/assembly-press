@@ -1,4 +1,4 @@
 export * from './getCreatedAt'
-export * from './getTransactions'
+export * from './getLastTransaction'
 export * from './writeToDatabase'
 export * from './helpers'
