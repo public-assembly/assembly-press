@@ -13,7 +13,7 @@ export const backfillPostgres = async () => {
 
   if (lastBlockWithEvent) {
     const sortedLogs = await fetchLogs(
-      lastBlockWithEvent as BlockNumber,
+      lastBlockWithEvent + BigInt(1),
       currentBlock,
     )
 
