@@ -38,3 +38,11 @@ model Transaction {
   ap721           AP721[]
   tokenStorage    TokenStorage[]
 }
+
+model Arweave {
+  tableName String
+  link      String  @id
+  timestamp DateTime @default(now())
+}
+
+
