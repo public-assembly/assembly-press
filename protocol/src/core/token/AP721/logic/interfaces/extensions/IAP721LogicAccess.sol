@@ -25,23 +25,22 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-import {IAP721Database} from "../interfaces/IAP721Database.sol";
+import {IAP721Logic} from "../IAP721Logic.sol";
 
-/**
- * @notice Database storage contract
- */
-contract AP721DatabaseStorageV1 {
-    /**
-     * @notice AP721 => id => Pointer to encoded data
-     * @dev The first `id` stored will be 0, which means ids trail their corresponding
-     *       tokenIds by 1
-     * @dev Can contain blank/burned storage
-     */
-    mapping(address => mapping(uint256 => address)) public tokenData;
+interface IAP721LogicAccess is IAP721Logic {
+  
+    ////////////////////////////////////////////////////////////
+    // FUNCTIONS
+    ////////////////////////////////////////////////////////////
 
-    /**
-     * @notice AP721 => Settings information
-     * @dev see IAP721Database for details on Settings struct
-     */
-    mapping(address => IAP721Database.Settings) public ap721Settings;
+    /// @notice Checks if a certain address has store access for a given AP721
+    function getStoreAccess(address target, address sender, uint256 quantity) external view returns (bool);
+    /// @notice Checks if a certain address has overwrite access for a given AP721 + tokenId
+    function getOverwriteAccess(address target, address sender, uint256 tokeknId) external view returns (bool);
+    /// @notice Checks if a certain address has remove access for a given AP721 + tokenId
+    function getRemoveAccess(address target, address sender, uint256 tokeknId) external view returns (bool);
+    /// @notice Checks if a certain address can update the settings for a given AP721
+    function getSettingsAccess(address target, address sender) external view returns (bool);
+    /// @notice Checks if a certain address get edit contract data post data storage for a given AP721
+    function getContractDataAccess(address targetPress, address metadataCaller) external view returns (bool);
 }

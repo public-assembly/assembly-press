@@ -27,11 +27,11 @@ pragma solidity 0.8.17;
 
 import {AP721DatabaseStorageV1} from "./storage/AP721DatabaseStorageV1.sol";
 import {AP721} from "../nft/AP721.sol";
-import {IAP721} from "../interfaces/IAP721.sol";
-import {IAP721Factory} from "../interfaces/IAP721Factory.sol";
-import {IAP721Database} from "../interfaces/IAP721Database.sol";
-import {IAP721Logic} from "../interfaces/IAP721Logic.sol";
-import {IAP721Renderer} from "../interfaces/IAP721Renderer.sol";
+import {IAP721} from "../nft/interfaces/IAP721.sol";
+import {IAP721Factory} from "../factory/interfaces/IAP721Factory.sol";
+import {IAP721Database} from "./interfaces/IAP721Database.sol";
+import {IAP721Logic} from "../logic/interfaces/IAP721Logic.sol";
+import {IAP721Renderer} from "../renderer/interfaces/IAP721Renderer.sol";
 
 import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.sol";
 import "sstore2/SSTORE2.sol";
@@ -44,6 +44,7 @@ import "sstore2/SSTORE2.sol";
 // TODO: add in all of the multi functions
 // TODO: confirm if this database impl needs to inherit ERC2771 to enable _msgSender() to be compatible with GSN contracts
 //       ^ think we can maybe get rid of this because we'll be using ERC4337 instead?
+// TODO: actually check if/where reentrancy guards are necessary
 
 /**
  * @title AP721DatabaseV1
@@ -54,7 +55,8 @@ import "sstore2/SSTORE2.sol";
  * @author Max Bochman
  * @author Salief Lewis
  */
-contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGuard {
+abstract contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGuard {
+
     ////////////////////////////////////////////////////////////
     // MODIFIERS
     ////////////////////////////////////////////////////////////
@@ -81,8 +83,6 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
     /**
      * @notice Facilitates setup of a new AP721Proxy in the database
      * @dev Default implementation does not include any checks on if factory is allowed
-     * @dev Default implementaton does not provide ability to set fundsRecipient or royaltyBPS
-     *      for created AP721
      * @param initialOwner User that will own the AP721Proxy upon deployment
      * @param databaseInit Data to initialize database with
      * @param factory Address of factory to use for AP721Proxy deployment
@@ -94,17 +94,13 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
         nonReentrant
         returns (address)
     {
-        // Cache msg.sender
-        address sender = msg.sender;
         // Call factory to create + initialize a new AP721Proxy
         address newAP721 = IAP721Factory(factory).create(initialOwner, factoryInit);
         // Decode database init
-        (address logic, address renderer, bool transferable, bytes memory logicInit, bytes memory rendererInit) =
-            abi.decode(databaseInit, (address, address, bool, bytes, bytes));
-        // Initialize AP721Proxy in database
-        ap721Settings[newAP721].initialized = 1;
-        // Initialize token transferability for AP721Proxy
-        ap721Settings[newAP721].ap721Config.transferable = transferable;
+        (address logic, address renderer, bool transferable, bytes memory logicInit, bytes memory rendererInit)
+            = abi.decode(databaseInit, (address, address, bool, bytes, bytes));
+        // Initializes AP721Proxy in database + sets `transferable` in ap721Config
+        _setSettings(newAP721, transferable);
         // Set + initialize logic
         _setLogic(newAP721, logic, logicInit);
         // Set + initialize renderer
@@ -112,7 +108,7 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
         // Emit setup event
         emit SetupAP721({
             ap721: newAP721,
-            sender: sender,
+            sender: msg.sender,
             initialOwner: initialOwner,
             logic: logic,
             renderer: renderer,
@@ -122,8 +118,17 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
         return newAP721;
     }
 
-    // TODO:
-    // multiSetupAP721()
+    function _setSettings(address target, bool transferable) internal virtual {
+        // Initialize AP721Proxy in database
+        ap721Settings[target].initialized = 1;
+        // Initialize token transferability for AP721Proxy
+        ap721Settings[target].ap721Config.transferable = transferable;   
+        /*
+            NOTE:
+            this is where you could also put in settings for
+            ap721Config.royaltyBPS & ap721Config.fundsRecipient
+        */     
+    }            
 
     //////////////////////////////
     // AP721 SETTINGS
@@ -136,11 +141,13 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
      * @param logic Address of logic implementation
      * @param logicInit Data to init logic with
      */
-    function setLogic(address target, address logic, bytes memory logicInit) external requireInitialized(target) {
-        // Request settings access from logic contract
-        if (!IAP721Logic(ap721Settings[target].logic).getSettingsAccess(target, msg.sender)) {
-            revert No_Settings_Access();
-        }
+    function setLogic(address target, address logic, bytes memory logicInit) external virtual requireInitialized(target) {
+        /*
+            NOTE:                
+            This is where you could put in access control to gate this function 
+            Ex: Based on your external logic contract
+        */
+
         // Update + initialize new logic contract
         _setLogic(target, logic, logicInit);
         emit LogicUpdated(target, logic);
@@ -153,7 +160,7 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
      * @param logic Address of logic implementation
      * @param logicInit Data to init logic with
      */
-    function _setLogic(address target, address logic, bytes memory logicInit) internal {
+    function _setLogic(address target, address logic, bytes memory logicInit) internal virtual {
         ap721Settings[target].logic = logic;
         IAP721Logic(logic).initializeWithData(target, logicInit);
     }
@@ -165,14 +172,13 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
      * @param renderer Address of renderer implementation
      * @param rendererInit Data to init renderer with
      */
-    function setRenderer(address target, address renderer, bytes memory rendererInit)
-        external
-        requireInitialized(target)
-    {
-        // Request settings access from renderer contract
-        if (!IAP721Logic(ap721Settings[target].logic).getSettingsAccess(target, msg.sender)) {
-            revert No_Settings_Access();
-        }
+    function setRenderer(address target, address renderer, bytes memory rendererInit) external virtual requireInitialized(target) {
+        /*
+            NOTE:        
+            This is where you could put in access control to gate this function
+            Ex: Based on your external logic contract
+        */
+
         // Update + initialize new renderer contract
         _setRenderer(target, renderer, rendererInit);
         emit RendererUpdated(target, renderer);
@@ -185,15 +191,10 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
      * @param renderer Address of renderer implementation
      * @param rendererInit Data to init renderer with
      */
-    function _setRenderer(address target, address renderer, bytes memory rendererInit) internal {
+    function _setRenderer(address target, address renderer, bytes memory rendererInit) internal virtual {
         ap721Settings[target].renderer = renderer;
         IAP721Renderer(renderer).initializeWithData(target, rendererInit);
     }
-
-    // TODO:
-    // multiSetLogic()
-    // multiSetRenderer()
-    // multiSetSettings()?
 
     //////////////////////////////
     // DATA VALIDATION
@@ -201,10 +202,11 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
 
     /**
      * @notice Internal data validation function
-     * @dev This database impl does not run any checks on the data. Any data can be stored
+     * @dev Abstract implentation of this function is a no-op
+     * @dev This is where you could add specific data validation checks
      * @param data Data to validate
      */
-    function _validateData(bytes memory data) internal view {}
+    function _validateData(bytes memory data) internal virtual view {}
 
     //////////////////////////////
     // DATA STORAGE
@@ -214,40 +216,42 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
      * @notice Facilitates token level data storage
      * @dev Stores data for a specified target address and mints storage receipts from that target to the msg.sender
      * @param target Target address to store data for
-     * @param quantity How many storage slots to fill
      * @param data Data to be stored
      */
-    function store(address target, uint256 quantity, bytes memory data) external virtual requireInitialized(target) {
+    function store(address target, bytes memory data) external virtual requireInitialized(target) {
         // Cache msg.sender
         address sender = msg.sender;
-        // Check if sender can store data in target
-        if (!IAP721Logic(ap721Settings[target].logic).getStoreAccess(target, sender, quantity)) {
-            revert No_Store_Access();
-        }
+
+        /*
+            NOTE:        
+            This is where you could put in access control to gate this function
+            Ex: Based on your external logic contract
+        */        
 
         // Decode token data
+        // NOTE: This is just one way you can both decode input data + determine storage slot/mint quantities
         bytes[] memory tokens = abi.decode(data, (bytes[]));
 
         // Store data for each token
-        for (uint256 i = 0; i < quantity; ++i) {
+        for (uint256 i = 0; i < tokens.length; ++i) {
             // Check data is valid
             _validateData(tokens[i]);
             // Cache storageCounter
             // NOTE: storageCounter trails associated tokenId by 1
             uint256 storageCounter = ap721Settings[target].storageCounter;
-            // Use sstore2 to store bytes segments
+            // Use sstore2 to store individual bytes segment
             address pointer = tokenData[target][storageCounter] = SSTORE2.write(tokens[i]);
             emit DataStored(
                 target,
                 sender,
-                storageCounter, // this trails tokenId associated with storage by 1
+                storageCounter,
                 pointer
             );
             // Increment target storageCounter after storing data
             ++ap721Settings[target].storageCounter;
         }
         // Mint tokens to sender
-        IAP721(target).mint(sender, quantity);
+        IAP721(target).mint(sender, tokens.length);
     }
 
     /**
@@ -266,6 +270,13 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
         if (tokenIds.length != data.length) {
             revert Invalid_Input_Length();
         }
+
+        /*
+            NOTE:
+            This is where you could put in access control to gate this function at the contract level
+            Ex: based on your external logic contract
+        */    
+
         // Cache msg.sender
         address sender = msg.sender;
 
@@ -274,10 +285,13 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
             if (!AP721(payable(target)).exists(tokenIds[i])) {
                 revert Token_Does_Not_Exist();
             }
-            // Check if sender can overwrite data in target for given tokenId
-            if (!IAP721Logic(ap721Settings[target].logic).getOverwriteAccess(target, sender, tokenIds[i])) {
-                revert No_Overwrite_Access();
-            }
+
+            /*
+                NOTE:
+                This is where you could put in access control to gate this function at the token level
+                Ex: based on your external logic contract
+            */    
+
             // Check data is valid
             _validateData(data[i]);
             // Cache storageCounter for tokenId
@@ -299,26 +313,30 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
         // Cache msg.sender
         address sender = msg.sender;
 
+        /*
+            NOTE:
+            This is where you could put in access control to gate this function at the contract level
+            Ex: based on your external logic contract
+        */    
+
         for (uint256 i; i < tokenIds.length; ++i) {
             // Cache storageCounter for tokenId
             uint256 storageCounter = tokenIds[i] - 1;
-            // Check if sender can overwrite data in target for given tokenId
-            if (!IAP721Logic(ap721Settings[target].logic).getRemoveAccess(target, sender, storageCounter)) {
-                revert No_Remove_Access();
-            }
+
+            /*
+                NOTE:
+                This is where you could put in access control to gate this function a the token level
+                EX: based on your external logic contract
+            */    
+
             delete tokenData[target][storageCounter];
             emit DataRemoved(target, sender, storageCounter);
         }
         // TODO: figure out emitting one event that contains array of storageCounters?
+
         // Burn tokens
         IAP721(target).burnBatch(tokenIds);
     }
-
-    // TODO:
-    // multiStore()
-    // multiOverwrite()
-    // multiRemove()
-    // multiEverything() ???
 
     ////////////////////////////////////////////////////////////
     // READ FUNCTIONS
@@ -376,7 +394,7 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
      * @dev Called by AP721 implementation to determine transferability status
      * @param target Target address
      */
-    function getTransferable(address target) external view returns (bool) {
+    function getTransferability(address target) external view returns (bool) {
         return ap721Settings[target].ap721Config.transferable;
     }
 
@@ -391,82 +409,8 @@ contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, ReentrancyGu
      */
     function isInitialized(address target) external view returns (bool initialized) {
         // Return false if target has not been initialized
-        if (ap721Settings[target].initialized == 0) {
-            return false;
-        }
-        return true;
+       return ap721Settings[target].initialized == 1 ? true : false;
     }
-
-    //////////////////////////////
-    // ACCESS CHECKS
-    //////////////////////////////
-
-    /**
-     * @notice Checks storage access for a given target + sender + quantity
-     * @param target Target to check access for
-     * @param sender Address of sender
-     * @param quantity Quantiy to check access for
-     * @return access True/false bool
-     */
-    function canStore(address target, address sender, uint256 quantity)
-        external
-        view
-        requireInitialized(target)
-        returns (bool access)
-    {
-        return IAP721Logic(ap721Settings[target].logic).getStoreAccess(target, sender, quantity);
-    }
-
-    /**
-     * @notice Checks overwrite access for a given target + sender + tokenId
-     * @param target Target to check access for
-     * @param sender Address of sender
-     * @param tokenId TokenId to check access for
-     * @return access True/false bool
-     */
-    function canOverwrite(address target, address sender, uint256 tokenId)
-        external
-        view
-        requireInitialized(target)
-        returns (bool access)
-    {
-        return IAP721Logic(ap721Settings[target].logic).getOverwriteAccess(target, sender, tokenId);
-    }
-
-    /**
-     * @notice Checks remove access for a given target + sender + tokenId
-     * @param target Target to check access for
-     * @param sender Address of sender
-     * @param tokenId TokenId to check access for
-     * @return access True/false bool
-     */
-    function canRemove(address target, address sender, uint256 tokenId)
-        external
-        view
-        requireInitialized(target)
-        returns (bool access)
-    {
-        return IAP721Logic(ap721Settings[target].logic).getRemoveAccess(target, sender, tokenId);
-    }
-
-    /**
-     * @notice Checks settings access for a given target + sender
-     * @param target Target to check access for
-     * @param sender Address of sender
-     * @return access True/false bool
-     */
-    function canEditSettings(address target, address sender)
-        external
-        view
-        requireInitialized(target)
-        returns (bool access)
-    {
-        return IAP721Logic(ap721Settings[target].logic).getSettingsAccess(target, sender);
-    }
-
-    // TODO:
-    // figure out if data storage checks need to be seperated
-    //      into token level + contract level checks
 
     //////////////////////////////
     // DATA RENDERING

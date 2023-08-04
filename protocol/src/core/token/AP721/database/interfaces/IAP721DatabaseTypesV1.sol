@@ -25,23 +25,47 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-import {IAP721Database} from "../interfaces/IAP721Database.sol";
+interface IAP721DatabaseTypesV1 {
 
-/**
- * @notice Database storage contract
- */
-contract AP721DatabaseStorageV1 {
-    /**
-     * @notice AP721 => id => Pointer to encoded data
-     * @dev The first `id` stored will be 0, which means ids trail their corresponding
-     *       tokenIds by 1
-     * @dev Can contain blank/burned storage
-     */
-    mapping(address => mapping(uint256 => address)) public tokenData;
+    ////////////////////////////////////////////////////////////
+    // TYPES
+    ////////////////////////////////////////////////////////////
 
     /**
-     * @notice AP721 => Settings information
-     * @dev see IAP721Database for details on Settings struct
+     * @notice Data structure used to store AP721 config in database
+     * @dev Struct breakdown. Values in parentheses are bytes.
+     *
+     * First slot: fundsRecipient (20) + royaltyBPS (2) + transferable (1) = 23 bytes
      */
-    mapping(address => IAP721Database.Settings) public ap721Settings;
+    struct AP721Config {
+        /// @notice
+        address fundsRecipient;
+        /// @notice
+        uint16 royaltyBPS;
+        /// @notice
+        bool transferable;
+    }
+
+    /**
+     * @notice Data structure used to store Press settings in database
+     * @dev Struct breakdown. Values in parentheses are bytes.
+     *
+     * First slot: storageCounter (32) = 32 bytes
+     * Second slot: logic (20) + initialized (1) = 21 bytes
+     * Third slot: renderer (20) = 20 bytes
+     * TODO: confirm that the struct takes up all 32 bytes even if the storage inside of it is less than 32
+     * Fourth slot: ap721Config (32) = 32 bytes
+     */
+    struct Settings {
+        /// @notice Keeps track of how many data slots have been filled
+        uint256 storageCounter;
+        /// @notice Address of the logic contract
+        address logic;
+        /// @notice initialized uint. 0 = not initialized, 1 = initialized
+        uint8 initialized;
+        /// @notice Address of the renderer contract
+        address renderer;
+        /// Stores config settings for AP721 contract
+        AP721Config ap721Config;
+    }
 }

@@ -25,23 +25,59 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
-import {IAP721Database} from "../interfaces/IAP721Database.sol";
+import {IAP721Database} from "../IAP721Database.sol";
 
-/**
- * @notice Database storage contract
- */
-contract AP721DatabaseStorageV1 {
-    /**
-     * @notice AP721 => id => Pointer to encoded data
-     * @dev The first `id` stored will be 0, which means ids trail their corresponding
-     *       tokenIds by 1
-     * @dev Can contain blank/burned storage
-     */
-    mapping(address => mapping(uint256 => address)) public tokenData;
+interface IAP721DatabaseMultiTarget is IAP721Database {
+
+    ////////////////////////////////////////////////////////////
+    // TYPES
+    ////////////////////////////////////////////////////////////
 
     /**
-     * @notice AP721 => Settings information
-     * @dev see IAP721Database for details on Settings struct
+     * @notice Data structure used to input setupAP721Batch args
      */
-    mapping(address => IAP721Database.Settings) public ap721Settings;
+    struct SetupAP721BatchArgs {
+        address initialOwner;
+        bytes databaseInit;
+        address factory;
+        bytes factoryInit;
+    }    
+
+    /**
+     * @notice Data structure used to input storeMulti args
+     */
+    struct StoreMultiArgs {
+        address target;
+        bytes data;
+    }    
+
+    /**
+     * @notice Data structure used to input overwriteMulti args
+     */
+    struct OverwriteMultiArgs {
+        address target;
+        uint256[] tokenIds;
+        bytes[] data;
+    }    
+
+    /**
+     * @notice Data structure used to input overwriteMulti args
+     */
+    struct RemoveMultiArgs {
+        address target;
+        uint256[] tokenIds;
+    }      
+
+    ////////////////////////////////////////////////////////////
+    // FUNCTIONS
+    ////////////////////////////////////////////////////////////
+
+    /// @notice Facilitates deploy + initialization of multiple, creator-owned proxies of `AP721.sol`
+    function setupAP721Batch(SetupAP721BatchArgs[] memory setupAP721BatchArgs) external returns (address[] memory);
+    /// @notice Store aribtrary data in database for multiple targets
+    function storeMulti(StoreMultiArgs[] memory storeMultiArgs) external;
+    /// @notice Overwrite data stored in database for a given token for multiple targets
+    function overwriteMulti(OverwriteMultiArgs[] memory overwriteMultiArgs) external;
+    /// @notice Erase data stored in database for a given token for multiple targets
+    function removeMulti(RemoveMultiArgs[] memory removeMultiArgs) external;
 }

@@ -25,6 +25,11 @@ pragma solidity 0.8.17;
                                                          .:^^~~^^:.
 */
 
+import {AP721StorageV1} from "./storage/AP721StorageV1.sol";
+import {IAP721} from "./interfaces/IAP721.sol";
+import {IERC5192} from "./interfaces/IERC5192.sol";
+import {IAP721Database} from "../database/interfaces/IAP721Database.sol";
+
 import {IERC721AUpgradeable} from "erc721a-upgradeable/IERC721AUpgradeable.sol";
 import {
     IERC2981Upgradeable,
@@ -34,16 +39,11 @@ import {ERC721AUpgradeable} from "erc721a-upgradeable/ERC721AUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import {AP721StorageV1} from "./storage/AP721StorageV1.sol";
-import {IAP721} from "../interfaces/IAP721.sol";
-import {IAP721Database} from "../interfaces/IAP721Database.sol";
-
 import {IOwnableUpgradeable} from "../../../utils/ownable/single/IOwnableUpgradeable.sol";
 import {OwnableUpgradeable} from "../../../utils/ownable/single/OwnableUpgradeable.sol";
 import {Version} from "../../../utils/Version.sol";
 import {FundsReceiver} from "../../../utils/FundsReceiver.sol";
 import {TransferUtils} from "../../../utils/TransferUtils.sol";
-import {IERC5192} from "../interfaces/IERC5192.sol";
 
 /// TODO: make sure that burn calls dont need additional `exists` checks
 
@@ -138,7 +138,7 @@ contract AP721 is
         uint256 firstMintedTokenId = nextMintedTokenId();
         _mintNFTs(recipient, quantity);
         // Emit locked events if contract's tokens were initialized as non-transferable
-        if (!IAP721Database(_database).getTransferable(address(this))) {
+        if (!IAP721Database(_database).getTransferability(address(this))) {
             for (uint256 i; i < quantity; ++i) {
                 emit Locked(firstMintedTokenId + i);
             }
@@ -257,7 +257,7 @@ contract AP721 is
      * @dev True => tokens are non-transferable. False => tokens are transferable
      */
     function locked(uint256 tokenId) external view returns (bool) {
-        if (!IAP721Database(_database).getTransferable(address(this))) {
+        if (!IAP721Database(_database).getTransferability(address(this))) {
             return true;
         } else {
             return false;
@@ -338,7 +338,7 @@ contract AP721 is
      * @param newImplementation proposed new upgrade implementation
      */
     function _authorizeUpgrade(address newImplementation) internal override onlyDatabase {
-        // NOTE: Currently set to be no-op
+        // NOTE: Currently set to revert if anyone besides database is triggering an upgrade
 
         // TODO: Determine if user should be able to upgrade AP721 through directly from contract
         //      or through database instead
@@ -357,7 +357,7 @@ contract AP721 is
      */
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public payable override {
         super.safeTransferFrom(from, to, tokenId, data);
-        if (!IAP721Database(_database).getTransferable(address(this))) {
+        if (!IAP721Database(_database).getTransferability(address(this))) {
             revert Non_Transferrable_Token();
         }
     }
@@ -367,7 +367,7 @@ contract AP721 is
      */
     function safeTransferFrom(address from, address to, uint256 tokenId) public payable override {
         super.safeTransferFrom(from, to, tokenId);
-        if (!IAP721Database(_database).getTransferable(address(this))) {
+        if (!IAP721Database(_database).getTransferability(address(this))) {
             revert Non_Transferrable_Token();
         }
     }
@@ -377,7 +377,7 @@ contract AP721 is
      */
     function transferFrom(address from, address to, uint256 tokenId) public payable override {
         super.transferFrom(from, to, tokenId);
-        if (!IAP721Database(_database).getTransferable(address(this))) {
+        if (!IAP721Database(_database).getTransferability(address(this))) {
             revert Non_Transferrable_Token();
         }
     }
@@ -387,7 +387,7 @@ contract AP721 is
      */
     function approve(address approved, uint256 tokenId) public payable override {
         super.approve(approved, tokenId);
-        if (!IAP721Database(_database).getTransferable(address(this))) {
+        if (!IAP721Database(_database).getTransferability(address(this))) {
             revert Non_Transferrable_Token();
         }
     }
@@ -397,7 +397,7 @@ contract AP721 is
      */
     function setApprovalForAll(address operator, bool approved) public override {
         super.setApprovalForAll(operator, approved);
-        if (!IAP721Database(_database).getTransferable(address(this))) {
+        if (!IAP721Database(_database).getTransferability(address(this))) {
             revert Non_Transferrable_Token();
         }
     }
