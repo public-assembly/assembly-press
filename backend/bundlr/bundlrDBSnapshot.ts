@@ -6,6 +6,11 @@ import { getTableData } from "../prisma/getTables";
 export const uploadTableDataToBundlr = async () => {
   const tableData = await getTableData();
 
+  if (tableData === null) {
+    console.log("Tables are empty. Stopping the script for today.")
+    return null; 
+  }
+
   // transaction tags
   const transactionTags = createBundlrTags("transaction");
   const tokenStorageTags = createBundlrTags("tokenStorage");
