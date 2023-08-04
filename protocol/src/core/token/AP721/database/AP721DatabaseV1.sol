@@ -409,7 +409,7 @@ abstract contract AP721DatabaseV1 is AP721DatabaseStorageV1, IAP721Database, Ree
      */
     function isInitialized(address target) external view returns (bool initialized) {
         // Return false if target has not been initialized
-        ap721Settings[target].initialized == 0 ? false : true;
+       return ap721Settings[target].initialized == 1 ? true : false;
     }
 
     //////////////////////////////

@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import {IAP721Logic} from "../../../../../../src/core/token/AP721/logic/interfaces/IAP721Logic.sol";
 import {DatabaseGuard} from "../../../../../../src/core/utils/DatabaseGuard.sol";
 
-contract MockLogic is IAP721Logic, DatabaseGuard {
+contract MockLogicAccess is IAP721Logic, DatabaseGuard {
     constructor(address _databaseImpl) DatabaseGuard(_databaseImpl) {}
 
     function initializeWithData(address target, bytes memory initData) external onlyDatabase {}

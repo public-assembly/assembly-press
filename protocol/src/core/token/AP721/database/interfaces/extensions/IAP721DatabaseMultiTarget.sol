@@ -30,20 +30,54 @@ import {IAP721Database} from "../IAP721Database.sol";
 interface IAP721DatabaseMultiTarget is IAP721Database {
 
     ////////////////////////////////////////////////////////////
+    // TYPES
+    ////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Data structure used to input setupAP721Batch args
+     */
+    struct SetupAP721BatchArgs {
+        address initialOwner;
+        bytes databaseInit;
+        address factory;
+        bytes factoryInit;
+    }    
+
+    /**
+     * @notice Data structure used to input storeMulti args
+     */
+    struct StoreMultiArgs {
+        address target;
+        bytes data;
+    }    
+
+    /**
+     * @notice Data structure used to input overwriteMulti args
+     */
+    struct OverwriteMultiArgs {
+        address target;
+        uint256[] tokenIds;
+        bytes[] data;
+    }    
+
+    /**
+     * @notice Data structure used to input overwriteMulti args
+     */
+    struct RemoveMultiArgs {
+        address target;
+        uint256[] tokenIds;
+    }      
+
+    ////////////////////////////////////////////////////////////
     // FUNCTIONS
     ////////////////////////////////////////////////////////////
 
     /// @notice Facilitates deploy + initialization of multiple, creator-owned proxies of `AP721.sol`
-    function multiSetupAP721(
-        address[] memory initialOwners,
-        bytes[] memory databaseInits,
-        address[] memory factories,
-        bytes[] memory factoryInits
-    ) external returns (address[] memory);
+    function setupAP721Batch(SetupAP721BatchArgs[] memory setupAP721BatchArgs) external returns (address[] memory);
     /// @notice Store aribtrary data in database for multiple targets
-    function multiStore(address[] memory targets, bytes[] memory data) external;
+    function storeMulti(StoreMultiArgs[] memory storeMultiArgs) external;
     /// @notice Overwrite data stored in database for a given token for multiple targets
-    function multiOverwrite(address[] memory targets, uint256[][] memory tokenIds, uint256[][] memory data) external;
+    function overwriteMulti(OverwriteMultiArgs[] memory overwriteMultiArgs) external;
     /// @notice Erase data stored in database for a given token for multiple targets
-    function multiRemove(address[] memory targets, uint256[][] memory tokenIds) external;
+    function removeMulti(RemoveMultiArgs[] memory removeMultiArgs) external;
 }

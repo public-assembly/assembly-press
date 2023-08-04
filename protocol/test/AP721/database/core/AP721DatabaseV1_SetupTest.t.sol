@@ -2,13 +2,13 @@
 pragma solidity 0.8.17;
 
 import {console2} from "forge-std/console2.sol";
-import {AP721Config} from "../utils/setup/AP721Config.sol";
+import {AP721Config} from "../../utils/setup/AP721Config.sol";
 
-import {AP721} from "../../../src/core/token/AP721/nft/AP721.sol";
-import {IAP721Database} from "../../../src/core/token/AP721/database/interfaces/IAP721Database.sol";
+import {AP721} from "../../../../src/core/token/AP721/nft/AP721.sol";
+import {IAP721Database} from "../../../../src/core/token/AP721/database/interfaces/IAP721Database.sol";
 
-import {MockLogic} from "../utils/mocks/logic/MockLogic.sol";
-import {MockRenderer} from "../utils/mocks/renderer/MockRenderer.sol";
+import {MockLogic} from "../../utils/mocks/logic/MockLogic.sol";
+import {MockRenderer} from "../../utils/mocks/renderer/MockRenderer.sol";
 
 import {IERC721} from "openzeppelin-contracts/interfaces/IERC721.sol";
 import {
