@@ -6,7 +6,7 @@ import { DecodedLog } from '../types'
 export function decodeLogs(logs: Log[]): DecodedLog[] {
   const decodedLogs = logs.map((log) => {
     const decodedLog = decodeEventLog({ ...log, abi: AP721DatabaseV1Abi })
-    return { ...decodedLog, blockNumber: log.blockNumber }
+    return { ...decodedLog, transactionHash: log.transactionHash, blockNumber: log.blockNumber }
   })
 
   return decodedLogs
