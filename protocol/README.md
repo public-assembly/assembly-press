@@ -1,8 +1,5 @@
 ## Protocol Developmenet Status
-ERC721 - First draft complete \
-ERC1155 - In-progress \
-Curation - First draft complete \
-Archive - In-progress
+ERC721 - First draft complete
 
 ## Protocol Local Development
 
@@ -16,7 +13,7 @@ Clone the repo and navigate to the directory. Install the project's dependencies
 $ forge install
 ```
 
-Configure the environment variables necesary to run the test suite. `SEPOLIA_RPC_URL`, `MAINNET_RPC_URL`, and `GOERLI_RPC_URL` should be supplied.
+Configure the environment variables necesary to run the test suite. `RPC_URL`, `PRIVATE_KEY`, and `ETHERSCAN_KEY` should be supplied. DOUBLE CHECK git.ignore is ignoring .env at root level of assembly-press monorepo !!!
 
 Next, run the test suite with the following command:
 ```
