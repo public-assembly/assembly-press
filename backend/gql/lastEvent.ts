@@ -2,9 +2,9 @@ import gql from 'graphql-tag'
 
 // query to get the details of the last event with a given name
 export const LAST_EVENT_QUERY = gql`
-  query LastEvent($owner: String!) {
+  query LastEvent($fundingAddress: String!) {
     transactions(
-      owners: [$owner]
+      owners: [$fundingAddress]
       tags: [
         { name: "Content-Type", values: ["application/json"] }
         {

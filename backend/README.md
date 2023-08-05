@@ -33,9 +33,9 @@ PRIVATE_KEY='' (for funding Bundlr)
 ALCHEMY_KEY=''
 ETHERSCAN_API_KEY=''
 
-#### You can change `OWNER` to any address and the script will be able to populate the event tables, but not the Transaction table. Refer to `prisma.schema` to see Transaction table and other Event tables. Notice that Bundlr will only keep track of the transactions that were funded by the address corresponding to the private key you provided.
+#### You can change `FUNDING_ADDRESS` to any address and the script will be able to populate the event tables, but not the Transaction table. Refer to `prisma.schema` to see Transaction table and other Event tables. Notice that Bundlr will only keep track of the transactions that were funded by the address corresponding to the private key you provided.
 
-OWNER='' 
+FUNDING_ADDRESS='' 
 
 #### Address of the contract you want to track. We're currently using `ERC721_PRESS_FACTORY`. In theory you can use any address but you will have to adjust the event information and ABI accordingly.
 CONTRACT_ADDRESS=''
@@ -87,7 +87,7 @@ Here is a brief overview of the important files and their functions:
 
 - `replacer.ts`: a helper function that converts any bigint values to strings when working with JSONs
 
-- `newTransaction.ts`: a GraphQL query for returning a set of event tags made by a given owner
+- `newTransaction.ts`: a GraphQL query for returning a set of event tags made by a given FUNDING_ADDRESS
 
 - `types.ts`: defines the `EventObject` type
 
