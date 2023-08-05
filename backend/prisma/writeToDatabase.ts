@@ -86,7 +86,7 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
                 },
               },
             },
-          }        
+          }
           await prismaClient.tokenStorage.create({
             data: dataDataStored,
           })
@@ -114,7 +114,7 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
                   eventType: log.eventName,
                 },
               },
-            },    
+            },
           }
           await prismaClient.tokenStorage.update({
             where: whereDataOverwritten,

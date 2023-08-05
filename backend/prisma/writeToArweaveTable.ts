@@ -1,13 +1,14 @@
 import { UploadResponse } from '@bundlr-network/client/build/cjs/common/types'
 import { prismaClient } from './prismaClient'
 import { Prisma } from '@prisma/client'
-export const saveLinksToArweaveTable = async (
+
+export const writeToArweaveTable = async (
   tableName: string,
   uploadResult: UploadResponse,
 ) => {
   console.log(tableName, uploadResult)
   console.log(
-    `saveLinksToArweaveTable called with tableName: ${tableName} and uploadResult: ${JSON.stringify(
+    `writeToArweaveTable called with tableName: ${tableName} and uploadResult: ${JSON.stringify(
       uploadResult,
     )}`,
   )
