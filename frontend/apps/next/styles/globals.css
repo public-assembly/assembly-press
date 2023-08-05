@@ -1,10 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import "./theme.css";
+@import './theme.css';
 
-html {
-  background-color: #1c1d20;
+/* Create a rule to use with ConnectKit's `customTheme` prop */
+@font-face {
+  font-family: 'Satoshi';
+  src: url('../fonts/Satoshi-Regular.woff2') format('woff2');
 }
 
 /* Set the padding, margin, and text color properties for both the html and body elements */
@@ -37,7 +39,7 @@ main {
 .raw-displayer > code,
 .raw-displayer > code > pre,
 .markdown-wrapper > code {
-  font-family: "SFMono-Regular", Consolas, Liberation Mono, Menlo, monospace !important;
+  font-family: 'SFMono-Regular', Consolas, Liberation Mono, Menlo, monospace !important;
   line-height: 1.25;
   font-size: 12px;
 }

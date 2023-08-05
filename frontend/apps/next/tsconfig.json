@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
@@ -20,21 +16,11 @@
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "@/components/*": [
-        "components/*"
+      "@/components/*": ["components/*"],
+      "@/base/*": ["components/base/*"],
+      "@/utils/*": [
+        "utils/*"
       ],
-      "@/context/*": [
-        "context/*"
-      ],
-      "@/hooks/*": [
-        "hooks/*"
-      ],
-      "@/lib/*": [
-        "lib/*"
-      ],
-      "@/docs/*": [
-        "docs/*"
-      ]
     },
     "allowSyntheticDefaultImports": true,
     "plugins": [
@@ -51,7 +37,5 @@
     "**/*.md",
     ".next/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }
