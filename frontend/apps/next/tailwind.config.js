@@ -10,11 +10,17 @@ module.exports = {
     extend: {
       colors: {
         'eerie-black': '#1C1D20',
-        'maximum-green-yellow': '#CDF15E',
+        'dark-gray': '#A7A8A9',
+        arsenic: '#3F4144',
+        platinum: '#E4E4E4',
+        'raisin-black': '#1F2124',
+        'dark-gunmental': '#232528',
+        'picton-blue': '#4BA5F5',
       },
       fontFamily: {
-        sans: ['var(--font-ibm-plex-mono)'],
+        sans: ['var(--font-satoshi)'],
+        mono: ['var(--font-space-mono)'],
       },
     },
   },
-}
+};

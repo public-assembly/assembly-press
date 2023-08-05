@@ -1,29 +1,66 @@
-import '../styles/globals.css'
-import { Providers } from './providers'
-import { Metadata } from 'next'
-import { IBM_Plex_Mono } from 'next/font/google'
+import '../styles/globals.css';
+import { Providers } from './providers';
+import { Metadata } from 'next';
+import { Space_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 
-const ibm_plex_mono = IBM_Plex_Mono({
+const space_mono = Space_Mono({
+  variable: '--font-space-mono',
+  style: ['normal'],
+  weight: ['400', '700'],
   subsets: ['latin'],
-  display: 'swap',
-  weight: ['500'],
-  variable: '--font-ibm-plex-mono',
 })
 
+const satoshi = localFont({
+  variable: '--font-satoshi',
+  src: [
+    {
+      path: '../fonts/Satoshi-Regular.woff2',
+      weight: '400',
+      style: 'regular',
+    },
+    {
+      path: '../fonts/Satoshi-Italic.woff2',
+      weight: '400',
+      style: 'italic',
+    },
+    {
+      path: '../fonts/Satoshi-Medium.woff2',
+      weight: '500',
+      style: 'medium',
+    },
+    {
+      path: '../fonts/Satoshi-MediumItalic.woff2',
+      weight: '500',
+      style: 'italic',
+    },
+    {
+      path: '../fonts/Satoshi-Bold.woff2',
+      weight: '700',
+      style: 'bold',
+    },
+    {
+      path: '../fonts/Satoshi-BoldItalic.woff2',
+      weight: '700',
+      style: 'italic',
+    },
+  ],
+});
+
 export const metadata: Metadata = {
-  title: 'Public Assembly - Assemble Package',
-}
+  title: 'Assembly Press | Demo',
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={ibm_plex_mono.className}>
+    <html lang='en' className={`${satoshi.variable} ${space_mono.variable} bg-raisin-black`}>
       <body>
         <Providers>{children}</Providers>
       </body>
     </html>
-  )
+  );
 }

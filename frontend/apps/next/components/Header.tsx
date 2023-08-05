@@ -1,11 +1,11 @@
 import { Navigation } from './Navigation';
-import { ConnectKitButton } from 'connectkit';
+import { Connect } from './Connect';
 
 export function Header() {
   return (
-    <header className='flex w-full items-center justify-between px-8 lg:sticky'>
+    <header className='flex w-full items-center justify-between'>
       <Navigation />
-      <ConnectKitButton />
+      <Connect />
     </header>
   );
 }
