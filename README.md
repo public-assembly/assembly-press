@@ -6,8 +6,8 @@ Please see the local development instructions in the README.md within the folder
 
 ### SKIP TO
 
-[⛓️] - [Protocol](https://github.com/public-assembly/assembly-press/tree/main/protocol)
+[⛓️] [Protocol](https://github.com/public-assembly/assembly-press/tree/main/protocol)
 
 [🌐] [Backend](https://github.com/public-assembly/assembly-press/tree/main/backend)
 
-🤝 [Frontend](https://github.com/public-assembly/assembly-press/tree/main/frontend)
+[🤝] [Frontend](https://github.com/public-assembly/assembly-press/tree/main/frontend)
