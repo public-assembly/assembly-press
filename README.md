@@ -1,3 +1,5 @@
+![Slide 16_9 - 1](https://github.com/public-assembly/assembly-press/assets/93691906/b55de3d8-8c34-49b3-ac8c-01577cb7dbce)
+
 ## Assembly Press (WIP)
 
 ### DESCRIPTION
