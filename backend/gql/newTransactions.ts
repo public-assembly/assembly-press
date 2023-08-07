@@ -1,9 +1,9 @@
 import gql from 'graphql-tag'
 
 export const NEW_TRANSACTIONS_QUERY = gql`
-  query NewTransactions($owner: String!) {
+  query NewTransactions($fundingAddress: String!) {
     transactions(
-      owners: [$owner]
+      owners: [$fundingAddress]
       tags: [
         { name: "Content-Type", values: ["application/json"] }
         {

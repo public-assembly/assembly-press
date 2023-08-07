@@ -1,10 +1,10 @@
 import { parseAbiItem, type Hex } from 'viem'
-import { decodeLogs } from './transform/decodeLogs'
-import { viemClient } from './viem/client'
-import { databaseAbiEventsArray } from './constants/events'
-import { writeToDatabase } from './prisma'
+import { decodeLogs } from '../transform/decodeLogs'
+import { viemClient } from '../viem/client'
+import { databaseAbiEventsArray } from '../constants/events'
+import { writeToDatabase } from '../prisma'
 
-export const blockCrawl = () => {
+export const watchDatabaseEvents = () => {
   databaseAbiEventsArray.forEach((event: string) => {
     const parsedEvent = parseAbiItem([event])
     viemClient.watchEvent({
