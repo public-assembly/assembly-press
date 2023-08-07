@@ -13,6 +13,8 @@ module.exports = {
         'dark-gray': '#A7A8A9',
         arsenic: '#3F4144',
         platinum: '#E4E4E4',
+        malachite: '#04CD49',
+        heliotrope: '#D458FB',
         'raisin-black': '#1F2124',
         'dark-gunmental': '#232528',
         'picton-blue': '#4BA5F5',

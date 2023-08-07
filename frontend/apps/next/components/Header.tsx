@@ -1,3 +1,5 @@
+'use client'
+
 import { Navigation } from './Navigation';
 import { Connect } from './Connect';
 

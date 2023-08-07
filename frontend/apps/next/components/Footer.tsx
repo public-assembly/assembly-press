@@ -1,3 +1,5 @@
+'use client'
+
 import { links } from 'utils/links';
 import { BodySmall } from '@/base/Typography';
 

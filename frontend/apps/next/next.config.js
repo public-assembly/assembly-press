@@ -1,9 +1,7 @@
-const withMDX = require('@next/mdx')()
-
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
   reactStrictMode: true,
   transpilePackages: ['ap-hooks'],
   webpack: (config) => {
@@ -11,9 +9,6 @@ const nextConfig = {
     config.externals.push('pino-pretty', 'lokijs', 'encoding')
     return config
   },
-  experimental: {
-    mdxRs: true,
-  },
 }
 
-module.exports = withMDX(nextConfig)
+module.exports = nextConfig
