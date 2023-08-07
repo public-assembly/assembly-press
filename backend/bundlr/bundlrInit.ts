@@ -7,6 +7,6 @@ export const bundlr = new Bundlr(
   'ethereum',
   process.env.PRIVATE_KEY,
   {
-    providerUrl: `${process.env.ALCHEMY_ENDPOINT}/v2/${process.env.ALCHEMY_KEY}`,
+    providerUrl: `${process.env.ALCHEMY_SEPOLIA_ENDPOINT}/v2/${process.env.ALCHEMY_KEY}`,
   },
 )

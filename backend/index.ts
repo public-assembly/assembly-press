@@ -1,9 +1,9 @@
 import { backfillPostgres } from './backfill'
-import { blockCrawl } from './blockCrawl'
+import { watchDatabaseEvents } from './watch/watchDatabaseEvents'
 
 async function main() {
   await backfillPostgres()
-  blockCrawl()
+  watchDatabaseEvents()
 }
 
 main()

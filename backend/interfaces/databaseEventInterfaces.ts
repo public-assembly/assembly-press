@@ -1,6 +1,7 @@
 import { type Hex } from 'viem'
 
 export interface SetupAP721 {
+  transactionHash: Hex | null
   blockNumber: bigint | null
   eventName: 'SetupAP721'
   args: {
@@ -14,6 +15,7 @@ export interface SetupAP721 {
 }
 
 export interface RendererUpdated {
+  transactionHash: Hex | null
   blockNumber: bigint | null
   args: {
     target: Hex
@@ -23,6 +25,7 @@ export interface RendererUpdated {
 }
 
 export interface LogicUpdated {
+  transactionHash: Hex | null
   blockNumber: bigint | null
   args: {
     target: Hex
@@ -32,6 +35,7 @@ export interface LogicUpdated {
 }
 
 export interface DataStored {
+  transactionHash: Hex | null
   blockNumber: bigint | null
   args: {
     target: Hex
@@ -42,6 +46,7 @@ export interface DataStored {
   eventName: 'DataStored'
 }
 export interface DataRemoved {
+  transactionHash: Hex | null
   blockNumber: bigint | null
   args: {
     target: Hex
@@ -52,6 +57,7 @@ export interface DataRemoved {
 }
 
 export interface DataOverwritten {
+  transactionHash: Hex | null
   blockNumber: bigint | null
   args: {
     target: Hex

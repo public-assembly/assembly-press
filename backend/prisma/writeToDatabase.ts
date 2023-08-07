@@ -15,6 +15,16 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
             renderer: log.args.renderer,
             factory: log.args.factory,
             createdAt: log.blockNumber as bigint,
+            Transaction: {
+              connectOrCreate: {
+                where: { transactionHash: log.transactionHash as string },
+                create: {
+                  transactionHash: log.transactionHash as string,
+                  createdAt: log.blockNumber as bigint,
+                  eventType: log.eventName,
+                },
+              },
+            },
           }
           await prismaClient.aP721.create({ data: dataAP721 })
           break
@@ -22,6 +32,16 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
         case 'LogicUpdated': {
           const dataLogicUpdated: Prisma.AP721UpdateInput = {
             logic: log.args.logic,
+            Transaction: {
+              connectOrCreate: {
+                where: { transactionHash: log.transactionHash as string },
+                create: {
+                  transactionHash: log.transactionHash as string,
+                  createdAt: log.blockNumber as bigint,
+                  eventType: log.eventName,
+                },
+              },
+            },
           }
           await prismaClient.aP721.update({
             where: { ap721: log.args.target },
@@ -32,6 +52,16 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
         case 'RendererUpdated': {
           const dataRendererUpdated: Prisma.AP721UpdateInput = {
             renderer: log.args.renderer,
+            Transaction: {
+              connectOrCreate: {
+                where: { transactionHash: log.transactionHash as string },
+                create: {
+                  transactionHash: log.transactionHash as string,
+                  createdAt: log.blockNumber as bigint,
+                  eventType: log.eventName,
+                },
+              },
+            },
           }
           await prismaClient.aP721.update({
             where: { ap721: log.args.target },
@@ -46,6 +76,16 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
             pointer: log.args.pointer,
             updatedAt: log.blockNumber as bigint,
             updatedBy: log.args.sender,
+            Transaction: {
+              connectOrCreate: {
+                where: { transactionHash: log.transactionHash as string },
+                create: {
+                  transactionHash: log.transactionHash as string,
+                  createdAt: log.blockNumber as bigint,
+                  eventType: log.eventName,
+                },
+              },
+            },
           }
           await prismaClient.tokenStorage.create({
             data: dataDataStored,
@@ -65,6 +105,16 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
             pointer: log.args.pointer,
             updatedAt: log.blockNumber as bigint,
             updatedBy: log.args.sender,
+            Transaction: {
+              connectOrCreate: {
+                where: { transactionHash: log.transactionHash as string },
+                create: {
+                  transactionHash: log.transactionHash as string,
+                  createdAt: log.blockNumber as bigint,
+                  eventType: log.eventName,
+                },
+              },
+            },
           }
           await prismaClient.tokenStorage.update({
             where: whereDataOverwritten,
@@ -85,6 +135,16 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
             pointer: String(0x0000000000000000000000000000000000000000),
             updatedAt: log.blockNumber as bigint,
             updatedBy: log.args.sender,
+            Transaction: {
+              connectOrCreate: {
+                where: { transactionHash: log.transactionHash as string },
+                create: {
+                  transactionHash: log.transactionHash as string,
+                  createdAt: log.blockNumber as bigint,
+                  eventType: log.eventName,
+                },
+              },
+            },
           }
           await prismaClient.tokenStorage.update({
             where: whereDataRemoved,

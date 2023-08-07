@@ -8,28 +8,39 @@ datasource db {
 }
 
 model AP721 {
-  ap721     String @id
-  sender    String
-  owner     String
-  logic     String
-  renderer  String
-  factory   String
-  createdAt BigInt
+  ap721           String      @id
+  sender          String
+  owner           String
+  logic           String
+  renderer        String
+  factory         String
+  createdAt       BigInt
+  transactionHash String
+  Transaction     Transaction @relation(fields: [transactionHash], references: [transactionHash])
 }
 
 model TokenStorage {
-  ap721     String
-  tokenId   BigInt
-  pointer   String
-  updatedAt BigInt
-  updatedBy String
+  ap721           String
+  tokenId         BigInt
+  pointer         String
+  updatedAt       BigInt
+  updatedBy       String
+  transactionHash String
+  Transaction     Transaction @relation(fields: [transactionHash], references: [transactionHash])
 
   @@id([ap721, tokenId])
 }
 
 model Transaction {
-  id        String @id
-  address   String
-  eventType String
-  tags      Json
+  transactionHash String         @id
+  eventType       String
+  createdAt       BigInt
+  ap721           AP721[]
+  tokenStorage    TokenStorage[]
+}
+
+model Arweave {
+  tableName String
+  link      String   @id
+  timestamp DateTime @default(now())
 }

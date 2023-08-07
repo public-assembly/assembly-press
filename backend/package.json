@@ -8,7 +8,7 @@
     "build": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
-    "prisma:push" : "prisma db push",
+    "prisma:push": "prisma db push",
     "prisma:pull": "prisma db pull",
     "postinstall": "prisma generate",
     "lint": "rome check .",
@@ -28,9 +28,11 @@
     "dotenv": "^16.1.4",
     "graphql": "^16.7.1",
     "graphql-tag": "^2.12.6",
+    "node-cron": "^3.0.2",
     "viem": "^1.4.1"
   },
   "devDependencies": {
+    "@types/node-cron": "^3.0.8",
     "prisma": "^5.1.0",
     "rome": "^12.1.3",
     "ts-node": "^10.9.1",
