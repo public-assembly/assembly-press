@@ -35,11 +35,11 @@ ETHERSCAN_API_KEY=''
 
 #### You can change `FUNDING_ADDRESS` to any address and the script will be able to populate the event tables, but not the Transaction table. Refer to `prisma.schema` to see Transaction table and other Event tables. Notice that Bundlr will only keep track of the transactions that were funded by the address corresponding to the private key you provided.
 
-FUNDING_ADDRESS='' 
+FUNDING_ADDRESS=''
 
 #### Address of the contract you want to track. We're currently using `ERC721_PRESS_FACTORY`. In theory you can use any address but you will have to adjust the event information and ABI accordingly.
-CONTRACT_ADDRESS=''
 
+CONTRACT_ADDRESS=''
 
 5. Setup your database url in the following format:
 
@@ -57,38 +57,58 @@ to start indexer and check for events related from the given addresses:
 
 some useful prisma commands:
 
-`npx prisma migrate dev --name init`
-`npx prisma migrate deploy`
-`npx prisma generate`
+`pnpm prisma migrate dev --name init`
+`pnpm prisma migrate deploy`
+`pnpm prisma generate`
 
 ## Files
 
 Here is a brief overview of the important files and their functions:
 
-- `processAndUpload.ts`: this is the main script of the application. It connects to a wallet, fetches the account balance, retrieves events, and processes new events from the Assembly Press protocol, and finally stores the results in a database via Prisma. It shapes the data according to each event type and creates or updates records in the database. If a record exists, it updates it, otherwise, it creates a new one.
-
-- `bundlrInit.ts` : initializes a Bundlr client
-
-- `bundlrAction.ts`: handles Bundlr related actions: initializing Bundlr and Apollo client, creating metadata for Bundlr uploads, uploading logs to Arweave, fetching the last block from the last event in a transaction hash ID, and uploading log objects.
-
-- `schema.prisma`: contains the database schema for the Prisma client. It describes the `User` and `Transaction` models.
-
-- `fetchEvents.ts`: fetches logs for specific events occurring in Ethereum smart contracts, such as `CREATE_PRESS` and `DATA_STORED`, using viem. It retrieves the logs within a certain block range and uploads the logs to Arweave.
-
-- `getEvents.ts`: fetches events from Ethereum. It uses a list of event objects, each with its respective ABI and address, to fetch logs from the Ethereum blockchain. It first retrieves the current block number and the last block where an event was found. It then fetches logs in chunks of 10,000 blocks (adjustable), starting from the last block where an event was found to the current block. If no logs are found, it returns an empty JSON object. If logs are found, they are added to an array of all logs, converted to a JSON string, and then uploaded to Arweave.
-
-- `client.ts` : instantiates a viem client
+- `addresses.ts`: contains a set of predefined addresses
 
 - `apolloClient.ts` : instantiates an Apollo client
 
+- `backfillPostgrest.ts`: function retrieves the last block with an event and the current block number. Depending on whether an event has previously occurred, it fetches logs starting either from the block after the last event or from the contract's creation block, decodes these logs, and then writes the decoded logs to the database.
+
+- `bundlrInit.ts` : initializes a Bundlr client
+
+- `bundlrUpload.ts` : the script takes a "snapshot" of three database tables (transaction, tokenstorage, and AP721) and uploads to arweave . This upload operation is scheduled daily at 12:00 EST using node-cron.
+
+- `createBundlrTags.ts`: creates tags (name, value) so we can query bundlr for all events. passes custom chain and event info set in .env
+
+- `decodeLogs.ts`: takes in an array of Ethereum logs and, using the ABI for the AP721DatabaseV1 smart contract, decodes them into a chosen format.
+
 - `events.ts`: contains a set of predefined events that the application might use or trigger
 
-- `addresses.ts`: contains a set of predefined addresses
+- `fetchLogs.ts`: given a range of blocks, generates filters for specific database events and retrieves the corresponding logs from the Viem client. It then sorts these logs based on block numbers and returns the sorted logs.
+
+- `getBalance.ts`: gets FUNDING_ADDRESS balance.
+
+- `getContractCreationBlock.ts`: fetches the contract creation transaction from Etherscan and then uses the viemClient to retrieve the block number of that transaction. This block number indicates when the contract was created on Optimism and servers as the starting point for `backfillPostgre.ts`.
+
+- `getLastBlockWithEvents.ts`: retrieves the most recent events from the aP721 and tokenStorage tables using the Prisma client. It returns the latest event's timestamp by comparing the createdAt of the aP721 table and the updatedAt of the tokenStorage table. If there are no events in the aP721 table, it logs a message and ends execution.
+
+- `getTableData.ts`: function fetches data from three tables (transaction, tokenStorage, and AP721) using the Prisma client. If all the tables are empty, it returns null; otherwise, it returns an object containing data from the three tables.
+
+- `index.ts`: ( in root folder ) initiates backfill and starts watching live blocks for events.
+
+- `lastEvent.ts`: fetch details of the last event for a given funding address. The query filters transactions owned by the provided address and tags specific to the environment's chain ID and various database events, then orders the results in descending order to get the most recent event.
+
+- `newTransaction`: query crafted to retrieve transaction details associated with a given funding address. The query selects transactions owned by the input address and filters them by specific tags relevant to the environment's chain ID and various database events. The results are ordered in ascending order.
 
 - `replacer.ts`: a helper function that converts any bigint values to strings when working with JSONs
 
-- `newTransaction.ts`: a GraphQL query for returning a set of event tags made by a given FUNDING_ADDRESS
-
-- `types.ts`: defines the `EventObject` type
-
 - `transactionInterfaces.ts` : defines the `Transaction` interface among others
+
+- `types.ts`: defines the `EventObject`, `DatabaseEvents`, `DecodedLogs` and `AdditionalProperties`
+
+- `uploadTableDataToBundlr.ts`: fetches table data, checks if it's empty, and then processes and uploads three different sets of data (Transaction, Token Storage, AP721) to Arweave by calculating the size and cost of each data upload, funding the Bundlr node accordingly, and then making the actual upload, finally logging the Arweave URLs for verification.
+
+- `watchDatabaseEvents.ts`: sets up event listeners for specified database ABI events. When one of these events is detected using the viemClient, the module decodes the logs and writes the decoded information to a database using Prisma.
+
+- `Viemclient.ts` : instantiates a viem client
+
+- `writeToArweaveTable.ts`: saves Arweave upload results to the database based on the specified table name (transaction, tokenStorage, or AP721). If an unrecognized table name is encountered, it throws an error.
+
+- `writeToDatabase.ts`: processes an array of decoded logs. Based on the event name in each log (SetupAP721, LogicUpdated, RendererUpdated, DataStored, DataOverwritten, or DataRemoved), it constructs the relevant database input and either creates or updates database records using Prisma. If an error is encountered while processing any log, the function logs the error and moves on to the next log.
