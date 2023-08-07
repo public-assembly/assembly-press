@@ -11,7 +11,7 @@ Ensure you have Node.js installed. If not, download and install it from the offi
 1. Clone the repo:
 
 ```
-git clone [https://github.com/public-assembly/dreamweaver.git]
+git clone [https://github.com/public-assembly/assembly-press.git]
 ```
 
 2. Navigate into the repository:
@@ -29,7 +29,6 @@ pnpm install
 4. Setup your environment variables by creating a `.env` file at the root of your project. Refer to the `env.example` file for guidance on configuring environment variables.
 
 PRIVATE_KEY='' (for funding Bundlr)
-
 ALCHEMY_KEY=''
 ETHERSCAN_API_KEY=''
 
