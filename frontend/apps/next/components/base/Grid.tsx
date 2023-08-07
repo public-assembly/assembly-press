@@ -6,7 +6,7 @@ type GridProps = PropsWithChildren<{
 }>
 
 export function Grid({ className, children }: GridProps) {
-  return <div className={clsx('grid ', className)}>{children}</div>
+  return <div className={clsx('grid', className)}>{children}</div>
 }
 
 Grid.displayName = 'Grid'

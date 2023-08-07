@@ -1,0 +1,8 @@
+query RecentTransactions {
+    Transaction(limit: 10, order_by: {createdAt: desc}) {
+      createdAt
+      eventType
+      transactionHash
+    }
+  }
+  

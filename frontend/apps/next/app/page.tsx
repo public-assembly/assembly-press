@@ -1,7 +1,7 @@
-'use client';
-
-import { VStack } from '@/components/base';
-import { Header, Footer, ButtonGrid } from '../components';
+import { VStack } from '@/components/base/Stack';
+import { Header } from '../components/Header';
+import { Footer } from '../components/Footer';
+import { TransactionsTable } from '@/components/server';
 
 export default function Page() {
   return (
@@ -11,9 +11,10 @@ export default function Page() {
         style={{
           minHeight: 'calc(100vh - 400px)',
         }}
-        className='px-8 mt-24'
+        className='mt-32'
       >
         {/* <ButtonGrid /> */}
+        <TransactionsTable />
       </section>
       <Footer />
     </VStack>
