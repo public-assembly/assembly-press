@@ -3,7 +3,7 @@ import { uploadTableDataToBundlr } from "./uploadTableDataToBundlr";
 import { writeToArweaveTable } from "../prisma/writeToArweaveTable";
 import cron from "node-cron";
 
-async function main() {
+async function bundlrUpload() {
   await getBalance();
 
   const uploadData = await uploadTableDataToBundlr();
@@ -14,7 +14,6 @@ async function main() {
 
   const { transactionUpload, tokenStorageUpload, AP721Upload } = uploadData;
 
-  console.log("uploadTableDataToBundlr done");
   await writeToArweaveTable("transaction", transactionUpload);
   console.log("saveLinksToArweaveTable for transaction done");
   await writeToArweaveTable("tokenStorage", tokenStorageUpload);
@@ -25,8 +24,8 @@ async function main() {
 cron.schedule(
   "0 0 * * *",
   () => {
-    console.log("dumping at 12:00 at America/New_York timezone");
-    main();
+    console.log("Uploading data to Arweave at 12:00 EST");
+    bundlrUpload();
   },
   {
     scheduled: true,
