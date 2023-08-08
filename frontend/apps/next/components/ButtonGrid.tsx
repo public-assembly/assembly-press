@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from './Button';
 import {
   useSetupAP721,
@@ -8,6 +10,9 @@ import {
 } from '@public-assembly/ap-hooks';
 import { Hash, Hex, encodeAbiParameters, parseAbiParameters } from 'viem';
 import { useAccount } from 'wagmi';
+import { Debug, Grid } from './base';
+import { DescriptiveButton } from './DescriptiveButton';
+import { OpenInNewWindowIcon, Pencil2Icon } from '@radix-ui/react-icons';
 
 const databaseImpl: Hex = '0xFE16d7a18A1c00e8f07Ca11A1d29e69A69d67d7b';
 const factoryImpl: Hex = '0x506615B90099d2d7031B34f455A5803F5Cae68Cb';
@@ -16,7 +21,11 @@ const rendererImpl: Hex = '0x92964176f59080c5785fAAB8318B32638ec37970';
 const emptyInit: Hex = '0x';
 const existingAP721: Hex = '0x2F2882485D87D21230e9369ED73aDdbE4671c0BF';
 
-export const ButtonGrid = () => {
+type ButtonGridProps = {
+  className?: string;
+};
+
+export const ButtonGrid = ({ className }: ButtonGridProps) => {
   const { address, isConnected } = useAccount();
 
   /* SetupAP721 Hook */
@@ -39,7 +48,6 @@ export const ButtonGrid = () => {
   });
 
   /* SetLogic Hook */
-
   const { setLogic, setLogicLoading, setLogicSuccess } = useSetLogic({
     database: databaseImpl,
     target: existingAP721,
@@ -48,7 +56,6 @@ export const ButtonGrid = () => {
   });
 
   /* SetRenderer Hook */
-
   const { setRenderer, setRendererLoading, setRendererSuccess } =
     useSetRenderer({
       database: databaseImpl,
@@ -58,7 +65,6 @@ export const ButtonGrid = () => {
     });
 
   /* Store Hook */
-
   const encodedString: Hash = encodeAbiParameters(
     parseAbiParameters('string'),
     ['Lifeworld']
@@ -77,7 +83,6 @@ export const ButtonGrid = () => {
   });
 
   /* Overwrite Hook */
-
   const encodedString2: Hash = encodeAbiParameters(
     parseAbiParameters('string'),
     ['River']
@@ -93,28 +98,23 @@ export const ButtonGrid = () => {
   });
 
   return (
-    <div className='grid grid-cols-1 gap-4'>
-      <Button
-        text={'SetupAP721'}
+    <Grid className='grid-cols-2 gap-4'>
+      <DescriptiveButton
+        label={'Setup AP721'}
+        description={'Lorem ipsum dolor sit amet consectetur nullam vehicula ipsum.'}
+        icon={<OpenInNewWindowIcon className='text-picton-blue' />}
         callback={setupAP721}
         callbackLoading={setupAP721Loading}
       />
-      <Button
-        text={'SetLogic'}
-        callback={setLogic}
-        callbackLoading={setLogicLoading}
+      <DescriptiveButton
+        label={'Store Data'}
+        description={
+          'Lacus vestibulum sed arcu non odio euismod lacinia at quis.'
+        }
+        icon={<Pencil2Icon className='text-picton-blue' />}
+        callback={store}
+        callbackLoading={storeLoading}
       />
-      <Button
-        text={'SetRenderer'}
-        callback={setRenderer}
-        callbackLoading={setRendererLoading}
-      />
-      <Button text={'Store'} callback={store} callbackLoading={storeLoading} />
-      <Button
-        text={'Overwrite'}
-        callback={overwrite}
-        callbackLoading={overwriteLoading}
-      />
-    </div>
+    </Grid>
   );
 };

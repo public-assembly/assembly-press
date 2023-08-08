@@ -1,7 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import './theme.css';
+
+:root {
+  --header-height: 120px;
+  --footer-height: 60px;
+}
 
 /* Create a rule to use with ConnectKit's `customTheme` prop */
 @font-face {

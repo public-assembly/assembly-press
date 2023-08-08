@@ -2,7 +2,7 @@ import {
   recentTransactions,
   type Transaction,
 } from 'gql/requests/recentTransactions';
-import { Caption, Flex, Grid, BodySmall } from '../base';
+import { Caption, Flex, Grid, BodySmall, Debug } from '../base';
 import { cn } from '@/utils/cn';
 
 type TransactionFieldProps = {
@@ -22,6 +22,10 @@ type EventTypeProps = {
 
 type TransactionComponentProps = {
   transaction: Transaction;
+  className?: string;
+};
+
+type TransactionsTableProps = {
   className?: string;
 };
 
@@ -67,11 +71,13 @@ const TransactionComponent = ({
   </Grid>
 );
 
-export const TransactionsTable = async () => {
+export const TransactionsTable = async ({
+  className,
+}: TransactionsTableProps) => {
   const Transaction = await recentTransactions();
 
   return (
-    <Flex className='flex-col w-1/2'>
+    <Flex className='flex-col'>
       {Transaction.map((transaction) => (
         <TransactionComponent
           key={transaction.transactionHash}
