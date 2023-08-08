@@ -6,18 +6,18 @@ Assembly Press is a full-stack framework for developing onchain applications. It
 
 Please see the local development instructions in the README.md within the folder for each section. Everything you see here is under active development – use code at your own risk.
 
-### SKIP TO
-
-⛓️ [Protocol](https://github.com/public-assembly/assembly-press/tree/main/protocol)\
-🌐 [Backend](https://github.com/public-assembly/assembly-press/tree/main/backend)\
-🤝 [Frontend](https://github.com/public-assembly/assembly-press/tree/main/frontend)
-
 ### WHAT YOU CAN DO WITH THIS
 
 Some examples of things you can build on this framework include:
 - Profile based social applications
 - Namespace registries 
 - Archiving tools
+
+### SKIP TO
+
+⛓️ [Protocol](https://github.com/public-assembly/assembly-press/tree/main/protocol)\
+🌐 [Backend](https://github.com/public-assembly/assembly-press/tree/main/backend)\
+🤝 [Frontend](https://github.com/public-assembly/assembly-press/tree/main/frontend)
 
 ## CONTRIBUTIONS
 
