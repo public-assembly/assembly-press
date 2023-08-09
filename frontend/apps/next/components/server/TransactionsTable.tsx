@@ -2,7 +2,7 @@ import {
   recentTransactions,
   type Transaction,
 } from 'gql/requests/recentTransactions';
-import { Caption, Flex, Grid, BodySmall, Debug } from '../base';
+import { Caption, Flex, Grid, Debug, BodySmall, CaptionLarge } from '../base';
 import { cn } from '@/utils/cn';
 
 type TransactionFieldProps = {
@@ -49,9 +49,9 @@ const EventType = ({ value, className }: EventTypeProps) => (
 );
 
 const TransactionField = ({ value, className }: TransactionFieldProps) => (
-  <Caption className='text-platinum'>
+  <CaptionLarge className='text-platinum'>
     <p>{value.toString()}</p>
-  </Caption>
+  </CaptionLarge>
 );
 
 const TransactionHash = ({ value, className }: TransactionHashProps) => (
@@ -66,8 +66,12 @@ const TransactionComponent = ({
 }: TransactionComponentProps) => (
   <Grid className='grid-cols-3 items-center my-2'>
     <EventType value={transaction.eventType} />
-    <TransactionField value={transaction.createdAt} />
-    <TransactionHash value={transaction.transactionHash.slice(0, 10)} />
+    <Flex className='justify-center'>
+      <TransactionField value={transaction.createdAt} />
+    </Flex>
+    <Flex className='justify-end'>
+      <TransactionHash value={transaction.transactionHash.slice(0, 10)} />
+    </Flex>
   </Grid>
 );
 
@@ -77,7 +81,17 @@ export const TransactionsTable = async ({
   const Transaction = await recentTransactions();
 
   return (
-    <Flex className='flex-col'>
+    <Flex className='flex-col w-full content-between border border-arsenic rounded-xl px-6 py-3'>
+      {/* Table Column Labels */}
+      {/* <Grid className='grid-cols-3 items-center my-2'>
+        <BodySmall className='text-platinum'>Event Name</BodySmall>
+        <Flex className='justify-center'>
+          <BodySmall className='text-platinum'>Block Number</BodySmall>
+        </Flex>
+        <Flex className='justify-end'>
+          <BodySmall className='text-platinum'>Transaction Hash</BodySmall>
+        </Flex>
+      </Grid> */}
       {Transaction.map((transaction) => (
         <TransactionComponent
           key={transaction.transactionHash}
