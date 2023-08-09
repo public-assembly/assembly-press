@@ -68,3 +68,11 @@ export function Caption({ children, className }: TypographyProps) {
   )
 }
 
+export function CaptionLarge({ children, className }: TypographyProps) {
+  return (
+    <p className={cn('text-sm font-normal font-mono', className)}>
+      {children}
+    </p>
+  )
+}
+

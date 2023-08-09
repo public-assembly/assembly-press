@@ -1,13 +1,15 @@
-'use client'
+'use client';
 
 import { links } from 'utils/links';
 import { BodySmall } from '@/base/Typography';
 
 export function Footer() {
   return (
-    <footer className='flex items-center justify-between py-8 mt-auto'>
+    <footer className='flex items-center justify-between py-8 mt-auto sticky bottom-0 bg-raisin-black'>
       {/* Built by Public Assembly */}
-      <BodySmall className='text-dark-gray'>Built by Public Assembly</BodySmall>
+      <BodySmall className='text-dark-gray'>
+        Built by Public Assembly
+      </BodySmall>
       {/* Right corner links */}
       <div className='flex gap-x-6'>
         {links.map((link) => (
