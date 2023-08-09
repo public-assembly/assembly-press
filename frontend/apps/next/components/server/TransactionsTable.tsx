@@ -129,3 +129,5 @@ export const TransactionsTable = ({ className }: TransactionsTableProps) => {
     </Flex>
   );
 };
+
+
