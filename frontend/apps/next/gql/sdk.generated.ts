@@ -336,7 +336,6 @@ export enum Order_By {
   /** in descending order, nulls last */
   DescNullsLast = 'desc_nulls_last'
 }
-
 export type Query_Root = {
   __typename?: 'query_root';
   /** fetch data from the table: "AP721" */
@@ -356,7 +355,6 @@ export type Query_Root = {
   /** fetch data from the table: "Transaction" using primary key columns */
   Transaction_by_pk?: Maybe<Transaction>;
 };
-
 
 export type Query_RootAp721Args = {
   distinct_on?: InputMaybe<Array<Ap721_Select_Column>>;
@@ -542,7 +540,6 @@ export type Timestamp_Comparison_Exp = {
 
 export type RecentTransactionsQueryVariables = Exact<{ [key: string]: never; }>;
 
-
 export type RecentTransactionsQuery = { __typename?: 'query_root', Transaction: Array<{ __typename?: 'Transaction', createdAt: any, eventType: string, transactionHash: string }> };
 
 
@@ -556,16 +553,62 @@ export const RecentTransactionsDocument = gql`
 }
     `;
 
-export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string) => Promise<T>;
-
-
-const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType) => action();
-
+export type RecentArweaveTransactionsQuery = {
+      __typename?: 'query_root';
+      Arweave: Array<{
+        tableName: string;
+        link: string;
+      }>;
+    };
+    
+export const RecentArweaveTransactionsDocument = gql`
+      query RecentArweaveTransactions {
+        Arweave(limit: 3, order_by: { timestamp: asc }) {
+          tableName
+          link
+        }
+      }
+    `;
+    
+export type SdkFunctionWrapper = <T>(
+      action: (requestHeaders?: Record<string, string>) => Promise<T>,
+      operationName: string,
+      operationType?: string
+    ) => Promise<T>;
+    
+    const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType) => action();
+    
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
-  return {
-    RecentTransactions(variables?: RecentTransactionsQueryVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<RecentTransactionsQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<RecentTransactionsQuery>(RecentTransactionsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'RecentTransactions', 'query');
+      return {
+        RecentTransactions(
+          variables?: RecentTransactionsQueryVariables,
+          requestHeaders?: GraphQLClientRequestHeaders
+        ): Promise<RecentTransactionsQuery> {
+          return withWrapper((wrappedRequestHeaders) =>
+            client.request<RecentTransactionsQuery>(
+              RecentTransactionsDocument,
+              variables,
+              { ...requestHeaders, ...wrappedRequestHeaders }
+            ),
+            'RecentTransactions',
+            'query'
+          );
+        },
+    
+        RecentArweaveTransactions(
+          requestHeaders?: GraphQLClientRequestHeaders
+        ): Promise<RecentArweaveTransactionsQuery> {
+          return withWrapper((wrappedRequestHeaders) =>
+            client.request<RecentArweaveTransactionsQuery>(
+              RecentArweaveTransactionsDocument,
+              undefined, // No variables for this query
+              { ...requestHeaders, ...wrappedRequestHeaders }
+            ),
+            'RecentArweaveTransactions',
+            'query'
+          );
+        },
+      };
     }
-  };
-}
+    
 export type Sdk = ReturnType<typeof getSdk>;

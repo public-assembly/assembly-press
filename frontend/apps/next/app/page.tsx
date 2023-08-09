@@ -3,6 +3,7 @@ import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { ButtonGrid } from '../components/ButtonGrid';
 import { TransactionsTable } from '@/components/server';
+import { ArweaveBox } from '@/components/arweave';
 import { FetchPlayground } from '@/components/server/FetchPlayground';
 
 export default function Page() {
@@ -15,11 +16,13 @@ export default function Page() {
           <ButtonGrid className='col-start-1 col-end-2 row-start-1 row-end-2' />
           {/* Code Snippets */}
           <div className='col-start-2 col-end-3 row-start-1 row-end-2'>
+          <div className='border border-arsenic w-full h-full rounded-xl'>
             <div className='border border-arsenic w-full h-full rounded-xl'>
               {}
             </div>
           </div>
           <TransactionsTable className='col-start-1 col-end-2 row-start-2 row-end-3' />
+          <ArweaveBox className='border border-arsenic w-full h-full rounded-xl' />
         </Grid>
         {/* <FetchPlayground /> */}
       </main>

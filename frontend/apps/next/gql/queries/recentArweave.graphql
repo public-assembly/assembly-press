@@ -1,0 +1,6 @@
+query RecentArweaveTransactions {
+  Arweave(limit: 3, order_by: {timestamp: asc}) {
+    tableName
+    link
+  }
+}
