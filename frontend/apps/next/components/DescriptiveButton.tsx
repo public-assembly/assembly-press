@@ -22,7 +22,7 @@ export const DescriptiveButton = ({
         <BodySmall className='text-dark-gray'>{description}</BodySmall>
       </VStack>
       <IconButton
-        className='border-[1px] border-arsenic rounded-[4px]'
+        className='border-[1px] hover:bg-gray-600 border-arsenic rounded-[4px]'
         callback={callback}
         disabled={callbackLoading}
         icon={
