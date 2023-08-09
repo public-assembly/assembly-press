@@ -42,7 +42,7 @@ const EventType = ({ transactions, className }: EventTypeProps) => (
         : transactions === 'LogicUpdated' || transactions === 'RendererUpdated'
         ? 'border-malachite'
         : 'border-picton-blue',
-      'uppercase border rounded-[2px] px-2 py-[2px] justify-center items-center w-fit'
+      'border rounded-[2px] px-2 py-[2px] justify-center items-center w-[150px]'
     )}
   >
     <Caption className='text-platinum'>
