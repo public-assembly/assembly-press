@@ -100,21 +100,49 @@ export const ButtonGrid = ({ className }: ButtonGridProps) => {
   return (
     <Grid className='grid-cols-2 gap-4'>
       <DescriptiveButton
-        label={'Setup AP721'}
-        description={'Lorem ipsum dolor sit amet consectetur nullam vehicula ipsum.'}
-        icon={<OpenInNewWindowIcon className='text-picton-blue' />}
+        label={'setupAP721'}
+        description={'Deploy + configure an ERC721 contract which represents a row in the database'}
+        // icon={<OpenInNewWindowIcon className='text-picton-blue' />}
+        icon={<Pencil2Icon className='text-picton-blue' />}
         callback={setupAP721}
         callbackLoading={setupAP721Loading}
       />
       <DescriptiveButton
-        label={'Store Data'}
+        label={'store'}
         description={
-          'Lacus vestibulum sed arcu non odio euismod lacinia at quis.'
+          'Store generic data in the database and mint a storage receipt'
         }
         icon={<Pencil2Icon className='text-picton-blue' />}
         callback={store}
         callbackLoading={storeLoading}
       />
+      <DescriptiveButton
+        label={'overwrite'}
+        description={
+          'Overwrite data associated with existing token'
+        }
+        icon={<Pencil2Icon className='text-picton-blue' />}
+        callback={overwrite}
+        callbackLoading={overwriteLoading}
+      />   
+      <DescriptiveButton
+        label={'setLogic'}
+        description={
+          'Update logic contract associated with given row'
+        }
+        icon={<Pencil2Icon className='text-picton-blue' />}
+        callback={setLogic}
+        callbackLoading={setLogicLoading}
+      />              
+      <DescriptiveButton
+        label={'setRenderer'}
+        description={
+          'Update renderer contract associated with given row'
+        }
+        icon={<Pencil2Icon className='text-picton-blue' />}
+        callback={setRenderer}
+        callbackLoading={setRendererLoading}
+      />          
     </Grid>
   );
 };
