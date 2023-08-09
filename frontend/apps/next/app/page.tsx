@@ -3,6 +3,7 @@ import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { ButtonGrid } from '../components/ButtonGrid';
 import { TransactionsTable } from '@/components/server';
+import { ArweaveBox } from '@/components/arweave';
 
 export default function Page() {
   // Visit `styles/globals.css` for hardcoded section sizes
@@ -17,6 +18,7 @@ export default function Page() {
             <div className='border border-arsenic w-full h-full rounded-xl'>{}</div>
           </div>
           <TransactionsTable className='col-start-1 col-end-2 row-start-2 row-end-3' />
+          <ArweaveBox className='border border-arsenic w-full h-full rounded-xl' />
         </Grid>
       </main>
       <Footer />
