@@ -10,7 +10,7 @@ export interface Transaction {
 export const recentTransactions = async (): Promise<
   Transaction[] | undefined
 > => {
-  const { Transaction } = await sdk.RecentTransactions()
+  const { Transaction: transactions } = await sdk.RecentTransactions()
 
-  return Transaction
+  return transactions
 }

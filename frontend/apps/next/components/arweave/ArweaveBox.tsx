@@ -1,5 +1,6 @@
 import { recentArweaveTransactions, Arweave } from 'gql/requests/recentArweave';
-import { Caption, Flex, Grid, BodySmall } from '../base';
+import { CaptionLarge, Caption, Flex, Grid, BodySmall } from '../base';
+import Link from 'next/link';
 
 type ArweaveFieldProps = {
   value: Arweave['tableName'] | Arweave['link'];
@@ -7,22 +8,22 @@ type ArweaveFieldProps = {
 };
 
 const TableNameField = ({ value }: ArweaveFieldProps) => (
-  <Caption className='text-platinum'>
+  <Caption className='text-platinum uppercase'>
     <p>{value.toString()}</p>
   </Caption>
 );
 
 const LinkField = ({ value }: ArweaveFieldProps) => (
-  <Flex className='px-2 py-[2px] bg-dark-gunmetal rounded-[18px] border border-arsenic justify-center items-center w-fit'>
-    <a 
-      href={value.toString()} 
-      target="_blank" 
-      rel="noopener noreferrer" 
-      className='text-dark-gray hover:underline whitespace-nowrap' 
-    >
-      <BodySmall>{value.toString()}</BodySmall>
-    </a>
-  </Flex>
+  <Link
+    href={value.toString()}
+    target='_blank'
+    rel='noopener noreferrer'
+    className='flex px-2 py-[2px] bg-dark-gunmetal rounded-[18px] border border-arsenic justify-center items-center w-fit hover:border-dark-gray '
+  >
+    <BodySmall className='text-dark-gray whitespace-nowrap'>
+      {value.toString()}
+    </BodySmall>
+  </Link>
 );
 
 type ArweaveComponentProps = {
@@ -44,7 +45,7 @@ type ArweaveBoxProps = {
 export const ArweaveBox = async ({ className }: ArweaveBoxProps) => {
   const arweaveData = await recentArweaveTransactions();
 
-  if (!arweaveData) return null; 
+  if (!arweaveData) return null;
 
   return (
     <Flex className='flex-col'>
