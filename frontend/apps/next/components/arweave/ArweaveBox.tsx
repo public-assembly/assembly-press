@@ -1,5 +1,6 @@
 import { recentArweaveTransactions, Arweave } from 'gql/requests/recentArweave';
 import { Caption, Flex, Grid, BodySmall } from '../base';
+import Link from 'next/link';
 
 type ArweaveFieldProps = {
   value: Arweave['tableName'] | Arweave['link'];
