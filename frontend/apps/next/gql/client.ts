@@ -1,7 +1,7 @@
 import { GraphQLClient } from 'graphql-request'
 import { getSdk } from './sdk.generated'
 
-const client = new GraphQLClient('https://ap-op-goerli.hasura.app/v1/graphql', {
+const client = new GraphQLClient('https://striking-possum-76.hasura.app/v1/graphql', {
   headers: {
     'Content-Type': 'application/json',
   },

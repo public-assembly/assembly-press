@@ -1,0 +1,8 @@
+query RecentRawTransactions {
+    RawTransaction(limit: 8, order_by: {createdAt: desc}) {
+      createdAt
+      eventType
+      transactionHash
+    }
+  }
+  

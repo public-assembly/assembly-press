@@ -2,7 +2,7 @@ import { Grid, VStack, Stack } from '@/components/base';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { ButtonGrid } from '../components/ButtonGrid';
-import { TransactionsTable } from '@/components/server';
+import { RawTransactionsTable } from '@/components/server';
 import { ArweaveBox } from '@/components/arweave';
 
 export default function Page() {
@@ -20,8 +20,11 @@ export default function Page() {
             </div>
           </div>
           
-          <TransactionsTable className='col-span-1 sm:col-start-1 sm:col-end-2' />
-          <ArweaveBox className='col-span-1 max-w-screen-sm border border-arsenic w-full h-full rounded-xl' />
+          <RawTransactionsTable className='col-span-1 sm:col-start-1 sm:col-end-2' />
+
+          <ArweaveBox className='col-span-1 border border-arsenic w-full h-full rounded-xl overflow-hidden' />
+
+
         </Grid>
       </main>
       <Footer />

@@ -251,32 +251,32 @@ export type TokenStorage_Stream_Cursor_Value_Input = {
 };
 
 /** columns and relationships of "Transaction" */
-export type Transaction = {
-  __typename?: 'Transaction';
+export type RawTransaction = {
+  __typename?: 'rawTransaction';
   createdAt: Scalars['bigint']['output'];
   eventType: Scalars['String']['output'];
   transactionHash: Scalars['String']['output'];
 };
 
 /** Boolean expression to filter rows from the table "Transaction". All fields are combined with a logical 'AND'. */
-export type Transaction_Bool_Exp = {
-  _and?: InputMaybe<Array<Transaction_Bool_Exp>>;
-  _not?: InputMaybe<Transaction_Bool_Exp>;
-  _or?: InputMaybe<Array<Transaction_Bool_Exp>>;
+export type RawTransaction_Bool_Exp = {
+  _and?: InputMaybe<Array<RawTransaction_Bool_Exp>>;
+  _not?: InputMaybe<RawTransaction_Bool_Exp>;
+  _or?: InputMaybe<Array<RawTransaction_Bool_Exp>>;
   createdAt?: InputMaybe<Bigint_Comparison_Exp>;
   eventType?: InputMaybe<String_Comparison_Exp>;
   transactionHash?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** Ordering options when selecting data from "Transaction". */
-export type Transaction_Order_By = {
+export type RawTransaction_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   eventType?: InputMaybe<Order_By>;
   transactionHash?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "Transaction" */
-export enum Transaction_Select_Column {
+export enum RawTransaction_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -286,15 +286,15 @@ export enum Transaction_Select_Column {
 }
 
 /** Streaming cursor of the table "Transaction" */
-export type Transaction_Stream_Cursor_Input = {
+export type RawTransaction_Stream_Cursor_Input = {
   /** Stream column input with initial value */
-  initial_value: Transaction_Stream_Cursor_Value_Input;
+  initial_value: RawTransaction_Stream_Cursor_Value_Input;
   /** cursor ordering */
   ordering?: InputMaybe<Cursor_Ordering>;
 };
 
 /** Initial value of the column from where the streaming should start */
-export type Transaction_Stream_Cursor_Value_Input = {
+export type RawTransaction_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['bigint']['input']>;
   eventType?: InputMaybe<Scalars['String']['input']>;
   transactionHash?: InputMaybe<Scalars['String']['input']>;
@@ -351,9 +351,9 @@ export type Query_Root = {
   /** fetch data from the table: "TokenStorage" using primary key columns */
   TokenStorage_by_pk?: Maybe<TokenStorage>;
   /** fetch data from the table: "Transaction" */
-  Transaction: Array<Transaction>;
+  RawTransaction: Array<RawTransaction>;
   /** fetch data from the table: "Transaction" using primary key columns */
-  Transaction_by_pk?: Maybe<Transaction>;
+  RawTransaction_by_pk?: Maybe<RawTransaction>;
 };
 
 export type Query_RootAp721Args = {
@@ -399,16 +399,16 @@ export type Query_RootTokenStorage_By_PkArgs = {
 };
 
 
-export type Query_RootTransactionArgs = {
-  distinct_on?: InputMaybe<Array<Transaction_Select_Column>>;
+export type Query_RootRawTransactionArgs = {
+  distinct_on?: InputMaybe<Array<RawTransaction_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
-  order_by?: InputMaybe<Array<Transaction_Order_By>>;
-  where?: InputMaybe<Transaction_Bool_Exp>;
+  order_by?: InputMaybe<Array<RawTransaction_Order_By>>;
+  where?: InputMaybe<RawTransaction_Bool_Exp>;
 };
 
 
-export type Query_RootTransaction_By_PkArgs = {
+export type Query_RootRawTransaction_By_PkArgs = {
   transactionHash: Scalars['String']['input'];
 };
 
@@ -433,11 +433,11 @@ export type Subscription_Root = {
   /** fetch data from the table in a streaming manner: "TokenStorage" */
   TokenStorage_stream: Array<TokenStorage>;
   /** fetch data from the table: "Transaction" */
-  Transaction: Array<Transaction>;
+  RawTransaction: Array<RawTransaction>;
   /** fetch data from the table: "Transaction" using primary key columns */
-  Transaction_by_pk?: Maybe<Transaction>;
+  RawTransaction_by_pk?: Maybe<RawTransaction>;
   /** fetch data from the table in a streaming manner: "Transaction" */
-  Transaction_stream: Array<Transaction>;
+  RawTransaction_stream: Array<RawTransaction>;
 };
 
 
@@ -505,24 +505,24 @@ export type Subscription_RootTokenStorage_StreamArgs = {
 };
 
 
-export type Subscription_RootTransactionArgs = {
-  distinct_on?: InputMaybe<Array<Transaction_Select_Column>>;
+export type Subscription_RootRawTransactionArgs = {
+  distinct_on?: InputMaybe<Array<RawTransaction_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
-  order_by?: InputMaybe<Array<Transaction_Order_By>>;
-  where?: InputMaybe<Transaction_Bool_Exp>;
+  order_by?: InputMaybe<Array<RawTransaction_Order_By>>;
+  where?: InputMaybe<RawTransaction_Bool_Exp>;
 };
 
 
-export type Subscription_RootTransaction_By_PkArgs = {
+export type Subscription_RootRawTransaction_By_PkArgs = {
   transactionHash: Scalars['String']['input'];
 };
 
 
-export type Subscription_RootTransaction_StreamArgs = {
+export type Subscription_RootRawTransaction_StreamArgs = {
   batch_size: Scalars['Int']['input'];
-  cursor: Array<InputMaybe<Transaction_Stream_Cursor_Input>>;
-  where?: InputMaybe<Transaction_Bool_Exp>;
+  cursor: Array<InputMaybe<RawTransaction_Stream_Cursor_Input>>;
+  where?: InputMaybe<RawTransaction_Bool_Exp>;
 };
 
 /** Boolean expression to compare columns of type "timestamp". All fields are combined with logical 'AND'. */
@@ -538,14 +538,14 @@ export type Timestamp_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['timestamp']['input']>>;
 };
 
-export type RecentTransactionsQueryVariables = Exact<{ [key: string]: never; }>;
+export type RecentRawTransactionsQueryVariables = Exact<{ [key: string]: never; }>;
 
-export type RecentTransactionsQuery = { __typename?: 'query_root', Transaction: Array<{ __typename?: 'Transaction', createdAt: any, eventType: string, transactionHash: string }> };
+export type RecentRawTransactionsQuery = { __typename?: 'query_root', RawTransaction: Array<{ __typename?: 'rawTransaction', createdAt: any, eventType: string, transactionHash: string }> };
 
 
-export const RecentTransactionsDocument = gql`
-    query RecentTransactions {
-  Transaction(limit: 10, order_by: {createdAt: desc}) {
+export const RecentRawTransactionsDocument = gql`
+    query RecentRawTransactions {
+  RawTransaction(limit: 10, order_by: {createdAt: desc}) {
     createdAt
     eventType
     transactionHash
@@ -563,7 +563,7 @@ export type RecentArweaveTransactionsQuery = {
     
 export const RecentArweaveTransactionsDocument = gql`
       query RecentArweaveTransactions {
-        Arweave(limit: 3, order_by: { timestamp: asc }) {
+        Arweave(limit: 3, order_by: { timestamp: desc }) {
           tableName
           link
         }
@@ -580,17 +580,17 @@ export type SdkFunctionWrapper = <T>(
     
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
       return {
-        RecentTransactions(
-          variables?: RecentTransactionsQueryVariables,
+        RecentRawTransactions(
+          variables?: RecentRawTransactionsQueryVariables,
           requestHeaders?: GraphQLClientRequestHeaders
-        ): Promise<RecentTransactionsQuery> {
+        ): Promise<RecentRawTransactionsQuery> {
           return withWrapper((wrappedRequestHeaders) =>
-            client.request<RecentTransactionsQuery>(
-              RecentTransactionsDocument,
+            client.request<RecentRawTransactionsQuery>(
+              RecentRawTransactionsDocument,
               variables,
               { ...requestHeaders, ...wrappedRequestHeaders }
             ),
-            'RecentTransactions',
+            'RecentRawTransactions',
             'query'
           );
         },
