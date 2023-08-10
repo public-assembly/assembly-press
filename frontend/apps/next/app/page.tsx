@@ -1,30 +1,45 @@
-import { Grid, VStack, Stack } from '@/components/base';
+import { Grid, VStack, Stack, Flex } from '@/components/base';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { ButtonGrid } from '../components/ButtonGrid';
+
+import { CodeViewer } from '@/components/codeViewer/CodeViewer';
+import { FunctioNav } from '@/components/FunctionNav';
 import { RawTransactionsTable } from '@/components/server';
 import { ArweaveBox } from '@/components/arweave';
 
 export default function Page() {
+  // Visit `styles/globals.css` for hardcoded section sizes
+
   return (
     <VStack className='min-h-screen px-4 sm:px-8'>
       <Header />
       <main>
-        <Grid className='grid-cols-1 sm:grid-cols-2 gap-4'>
-          <ButtonGrid className='col-span-1 sm:col-start-1 sm:col-end-2' />
-          
-          {/* Code Snippets */}
-          <div className='col-span-1 sm:col-start-2 sm:col-end-3'>
-            <div className='border border-arsenic w-full h-full rounded-xl'>
-              {}
-            </div>
-          </div>
-          
-          <RawTransactionsTable className='col-span-1 sm:col-start-1 sm:col-end-2' />
-
-          <ArweaveBox className='col-span-1 border border-arsenic w-full h-full rounded-xl overflow-hidden' />
-
-
+        <Flex className='justify-center border border-arsenic w-full h-full rounded-xl mb-4'>
+          <FunctioNav />
+        </Flex>
+        <Grid className='grid-rows-2 grid-cols-4 gap-4'>
+          {/* row 1 */}
+            <div className='row-start-1 row-end-2 col-start-1 col-end-4 flex gap-4'>
+              {/* {"row 1 col 1 pt 1"} */}
+              <div className='border border-arsenic w-6/12 h-full rounded-xl'>
+                <CodeViewer language={'typescript'} />
+              </div>
+              {/* {"row 1 col 1 pt 2"} */}
+              <div className='border border-arsenic w-6/12 h-full rounded-xl'>
+                <CodeViewer language={'solidity'} />
+              </div>              
+            </div>          
+            {/* {row 1 col 2} */}
+            <div className='col-start-4 col-end-5 row-start-1 row-end-2'>
+              <div className='border border-arsenic w-full h-full rounded-xl'>
+              {"row 1 col 2"}
+              </div>
+            </div>            
+          {/* row 2 */}
+          {/* {row 2 col 1} */}
+          <RawTransactionsTable className='' />
+          {/* {row 2 col 2} */}
+          <ArweaveBox className='row-start-2 row-end-3 col-start-4 col-end-5  border border-arsenic w-full h-full rounded-xl' />
         </Grid>
       </main>
       <Footer />

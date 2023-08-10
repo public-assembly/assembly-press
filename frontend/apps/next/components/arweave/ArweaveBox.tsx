@@ -13,16 +13,16 @@ const TableNameField = ({ value }: ArweaveFieldProps) => (
 );
 
 const LinkField = ({ value }: ArweaveFieldProps) => (
-  <Flex className='px-2 py-[2px] bg-dark-gunmetal rounded-[18px] border border-arsenic justify-center items-center w-fit'>
-    <a 
-      href={value.toString()} 
-      target="_blank" 
-      rel="noopener noreferrer" 
-      className='text-dark-gray hover:underline whitespace-nowrap' 
-    >
-      <BodySmall>{value.toString()}</BodySmall>
-    </a>
-  </Flex>
+  <Link
+    href={value.toString()}
+    target='_blank'
+    rel='noopener noreferrer'
+    className='flex px-2 py-[2px] bg-dark-gunmetal rounded-[18px] border border-arsenic justify-center items-center w-fit hover:border-dark-gray '
+  >
+    <BodySmall className='text-dark-gray whitespace-nowrap'>
+      {value.slice(0,25).toString() + "..."}
+    </BodySmall>
+  </Link>
 );
 
 type ArweaveComponentProps = {
@@ -46,7 +46,7 @@ export const ArweaveBox = async ({ className }: ArweaveBoxProps) => {
   if (!arweaveData) return null; 
 
   return (
-    <Flex className='flex-col'>
+    <Flex className='flex-col  border border-arsenic rounded-xl'>
       {arweaveData.map((arweave) => (
         <ArweaveComponent key={arweave.link} arweave={arweave} />
       ))}
