@@ -1,6 +1,7 @@
 'use client';
 
 import { ConnectKitProvider } from 'connectkit';
+import { FunctionSelectProvider } from 'context/FunctionSelectProvider';
 import * as React from 'react';
 import { WagmiConfig } from 'wagmi';
 import { config } from '../wagmiConfig';
@@ -16,7 +17,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           '--ck-border-radius': 12,
         }}
       >
-        {mounted && children}
+        <FunctionSelectProvider>
+          {mounted && children}
+        </FunctionSelectProvider>
       </ConnectKitProvider>
     </WagmiConfig>
   );
