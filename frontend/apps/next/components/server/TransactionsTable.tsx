@@ -85,11 +85,9 @@ const TransactionComponent = ({
 
 const TransactionsTableSkeleton = ({ className }: TransactionsTableProps) => {
   return (
-    <div className='col-start-1 col-end-2 row-start-2 row-end-3'>
-      <div className='border border-arsenic w-full h-full rounded-xl animate-pulse'>
-        {}
+      <div className='row-start-2 row-end-3 col-start-1 col-end-4 border border-arsenic w-full h-full rounded-xl animate-pulse'>
+        {"col 1 row 2"}
       </div>
-    </div>
   );
 };
 
@@ -109,7 +107,7 @@ export const TransactionsTable = ({ className }: TransactionsTableProps) => {
 
   if (!transactions) return <TransactionsTableSkeleton />;
   return (
-    <Flex className='flex-col w-full content-between border border-arsenic rounded-xl px-6 py-3'>
+    <Flex className='row-start-2 row-end-3 col-start-1 col-end-4 flex-col w-full content-between border border-arsenic rounded-xl px-6 py-3'>
       {/* Table Column Labels */}
       {/* <Grid className='grid-cols-3 items-center my-2'>
         <BodySmall className='text-platinum'>Event Name</BodySmall>
