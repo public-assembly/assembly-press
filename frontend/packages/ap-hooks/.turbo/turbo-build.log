@@ -10,10 +10,10 @@ CLI Target: node16
 ESM Build start
 CJS Build start
 ESM dist/index.mjs 15.94 KB
-ESM ⚡️ Build success in 12ms
+ESM ⚡️ Build success in 9ms
 CJS dist/index.js 16.69 KB
-CJS ⚡️ Build success in 12ms
+CJS ⚡️ Build success in 9ms
 DTS Build start
-DTS ⚡️ Build success in 1159ms
+DTS ⚡️ Build success in 1172ms
 DTS dist/index.d.mts 1.89 KB
 DTS dist/index.d.ts  1.89 KB

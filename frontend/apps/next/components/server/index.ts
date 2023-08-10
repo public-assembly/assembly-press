@@ -1,1 +1,1 @@
-export * from './TransactionsTable'
+export * from './RawTransactionsTable'

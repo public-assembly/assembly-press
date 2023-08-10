@@ -1,11 +1,32 @@
 
-> assembly-press-demo@0.0.1 build /Users/salieflewis/Desktop/public/assembly-press/frontend/apps/next
+> assembly-press-demo@0.0.0 build /Users/lreyes/Desktop/Github/assembly-press/frontend/apps/next
 > next build
-
-- info Loaded env from /Users/salieflewis/Desktop/public/assembly-press/frontend/apps/next/.env
-- warn You have enabled experimental feature (mdxRs) in next.config.js.
-- warn Experimental features are not covered by semver, and may cause unexpected or broken application behavior. Use at your own risk.
 
 - info Creating an optimized production build...
 - info Compiled successfully
 - info Linting and checking validity of types...
+- info Collecting page data...
+- info Generating static pages (0/3)
+- info Generating static pages (3/3)
+- info Finalizing page optimization...
+
+Route (app)                                Size     First Load JS
+─ ○ /                                      34.3 kB         528 kB
++ First Load JS shared by all              493 kB
+  ├ chunks/689-af52b10100d11559.js         268 kB
+  ├ chunks/69-21cd142ee641c23d.js          25.8 kB
+  ├ chunks/7e1d1916-809030569bd2e095.js    146 kB
+  ├ chunks/f516b164-869324fd039b7625.js    50.5 kB
+  ├ chunks/main-app-8e6ee2f680c269c4.js    221 B
+  └ chunks/webpack-4fe50a1799b727e3.js     2.04 kB
+
+Route (pages)                              Size     First Load JS
+─ ○ /404                                   183 B          76.1 kB
++ First Load JS shared by all              76 kB
+  ├ chunks/framework-5914f800e5c1bf38.js   45.1 kB
+  ├ chunks/main-114ff838987c381a.js        28.7 kB
+  ├ chunks/pages/_app-6176bd5061739ffd.js  198 B
+  └ chunks/webpack-4fe50a1799b727e3.js     2.04 kB
+
+○  (Static)  automatically rendered as static HTML (uses no initial props)
+

@@ -1,16 +1,17 @@
 import { Grid, VStack, Stack, Flex } from '@/components/base';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
+
 import { CodeViewer } from '@/components/codeViewer/CodeViewer';
 import { FunctioNav } from '@/components/FunctionNav';
-import { TransactionsTable } from '@/components/server';
+import { RawTransactionsTable } from '@/components/server';
 import { ArweaveBox } from '@/components/arweave';
 
 export default function Page() {
   // Visit `styles/globals.css` for hardcoded section sizes
 
   return (
-    <VStack className='min-h-screen px-8'>
+    <VStack className='min-h-screen px-4 sm:px-8'>
       <Header />
       <main>
         <Flex className='justify-center border border-arsenic w-full h-full rounded-xl mb-4'>
@@ -36,7 +37,7 @@ export default function Page() {
             </div>            
           {/* row 2 */}
           {/* {row 2 col 1} */}
-          <TransactionsTable className='' />
+          <RawTransactionsTable className='' />
           {/* {row 2 col 2} */}
           <ArweaveBox className='row-start-2 row-end-3 col-start-4 col-end-5  border border-arsenic w-full h-full rounded-xl' />
         </Grid>

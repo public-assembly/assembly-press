@@ -1,8 +1,0 @@
-query RecentTransactions {
-    Transaction(limit: 8, order_by: {createdAt: desc}) {
-      createdAt
-      eventType
-      transactionHash
-    }
-  }
-  

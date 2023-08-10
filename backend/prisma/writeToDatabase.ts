@@ -15,7 +15,7 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
             renderer: log.args.renderer,
             factory: log.args.factory,
             createdAt: log.blockNumber as bigint,
-            Transaction: {
+            rawTransaction: {
               connectOrCreate: {
                 where: { transactionHash: log.transactionHash as string },
                 create: {
@@ -32,7 +32,7 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
         case 'LogicUpdated': {
           const dataLogicUpdated: Prisma.AP721UpdateInput = {
             logic: log.args.logic,
-            Transaction: {
+            rawTransaction: {
               connectOrCreate: {
                 where: { transactionHash: log.transactionHash as string },
                 create: {
@@ -52,7 +52,7 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
         case 'RendererUpdated': {
           const dataRendererUpdated: Prisma.AP721UpdateInput = {
             renderer: log.args.renderer,
-            Transaction: {
+            rawTransaction: {
               connectOrCreate: {
                 where: { transactionHash: log.transactionHash as string },
                 create: {
@@ -76,7 +76,7 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
             pointer: log.args.pointer,
             updatedAt: log.blockNumber as bigint,
             updatedBy: log.args.sender,
-            Transaction: {
+            rawTransaction: {
               connectOrCreate: {
                 where: { transactionHash: log.transactionHash as string },
                 create: {
@@ -105,7 +105,7 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
             pointer: log.args.pointer,
             updatedAt: log.blockNumber as bigint,
             updatedBy: log.args.sender,
-            Transaction: {
+            rawTransaction: {
               connectOrCreate: {
                 where: { transactionHash: log.transactionHash as string },
                 create: {
@@ -135,7 +135,7 @@ export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
             pointer: String(0x0000000000000000000000000000000000000000),
             updatedAt: log.blockNumber as bigint,
             updatedBy: log.args.sender,
-            Transaction: {
+            rawTransaction: {
               connectOrCreate: {
                 where: { transactionHash: log.transactionHash as string },
                 create: {
