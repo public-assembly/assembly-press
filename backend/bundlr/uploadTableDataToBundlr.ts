@@ -20,24 +20,24 @@ export const uploadTableDataToBundlr = async () => {
    * 5. Fund the Bundlr node with the appropriate amount
    * 6. Upload the data to Arweave and return the transaction id
    **/
-  const transactionTags = createBundlrTags('transaction')
+  const rawTransactionTags = createBundlrTags('rawTransaction')
 
-  const transactionDataStr = JSON.stringify(
-    tableData.transactionData,
+  const rawTransactionDataStr = JSON.stringify(
+    tableData.rawTransactionData,
     replacer,
     2,
   )
-  const transactionDataSize = Buffer.byteLength(transactionDataStr, 'utf8')
+  const rawTransactionDataSize = Buffer.byteLength(rawTransactionDataStr, 'utf8')
 
-  const transactionPrice = await bundlr.getPrice(transactionDataSize)
+  const rawTransactionPrice = await bundlr.getPrice(rawTransactionDataSize)
 
-  await bundlr.fund(transactionPrice)
+  await bundlr.fund(rawTransactionPrice)
 
-  const transactionUpload = await bundlr.upload(transactionDataStr, {
-    tags: transactionTags,
+  const rawTransactionUpload = await bundlr.upload(rawTransactionDataStr, {
+    tags: rawTransactionTags,
   })
   console.log(
-    `Transaction data --> Uploaded to https://arweave.net/${transactionUpload.id}`,
+    `Transaction data --> Uploaded to https://arweave.net/${rawTransactionUpload.id}`,
   )
 
   /**
@@ -98,5 +98,5 @@ export const uploadTableDataToBundlr = async () => {
     `AP721 data --> Uploaded to https://arweave.net/${AP721Upload.id}`,
   )
 
-  return { transactionUpload, tokenStorageUpload, AP721Upload }
+  return { rawTransactionUpload, tokenStorageUpload, AP721Upload }
 }
