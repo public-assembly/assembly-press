@@ -14,7 +14,7 @@ export default function Page() {
     <VStack className='min-h-screen px-4 sm:px-8'>
       <Header />
       <main>
-        <Flex className='justify-center border border-arsenic w-full h-full rounded-xl mb-4'>
+        <Flex className='w-full justify-center mb-6'>
           <FunctioNav />
         </Flex>
         <Grid className='grid-rows-2 grid-cols-4 gap-4'>
