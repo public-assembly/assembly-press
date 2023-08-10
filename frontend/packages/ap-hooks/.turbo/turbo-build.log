@@ -9,11 +9,11 @@ CLI Using tsup config: /Users/lreyes/Desktop/Github/assembly-press/frontend/pack
 CLI Target: node16
 ESM Build start
 CJS Build start
-ESM dist/index.mjs 15.94 KB
-ESM ⚡️ Build success in 12ms
 CJS dist/index.js 16.69 KB
-CJS ⚡️ Build success in 12ms
+CJS ⚡️ Build success in 10ms
+ESM dist/index.mjs 15.94 KB
+ESM ⚡️ Build success in 10ms
 DTS Build start
-DTS ⚡️ Build success in 1221ms
+DTS ⚡️ Build success in 1633ms
 DTS dist/index.d.mts 1.89 KB
 DTS dist/index.d.ts  1.89 KB
