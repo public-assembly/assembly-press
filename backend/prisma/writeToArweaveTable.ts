@@ -15,7 +15,7 @@ export const writeToArweaveTable = async (
   const link = `https://arweave.net/${uploadResult.id}`
   try {
     switch (tableName) {
-      case 'transaction': {
+      case 'rawTransaction': {
         const dataTransaction: Prisma.ArweaveCreateInput = {
           tableName: tableName,
           link: link,

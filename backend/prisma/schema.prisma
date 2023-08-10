@@ -8,7 +8,7 @@ datasource db {
 }
 
 model AP721 {
-  ap721           String      @id
+  ap721           String         @id
   sender          String
   owner           String
   logic           String
@@ -16,22 +16,22 @@ model AP721 {
   factory         String
   createdAt       BigInt
   transactionHash String
-  Transaction     Transaction @relation(fields: [transactionHash], references: [transactionHash])
+  rawTransaction  RawTransaction @relation(fields: [transactionHash], references: [transactionHash])
 }
 
 model TokenStorage {
   ap721           String
-  tokenId         BigInt
   pointer         String
+  tokenId         BigInt
+  transactionHash String
   updatedAt       BigInt
   updatedBy       String
-  transactionHash String
-  Transaction     Transaction @relation(fields: [transactionHash], references: [transactionHash])
+  rawTransaction  RawTransaction @relation(fields: [transactionHash], references: [transactionHash])
 
   @@id([ap721, tokenId])
 }
 
-model Transaction {
+model RawTransaction {
   transactionHash String         @id
   eventType       String
   createdAt       BigInt
