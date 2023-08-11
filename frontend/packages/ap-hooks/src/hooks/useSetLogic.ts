@@ -12,6 +12,7 @@ interface SetLogicProps {
   target: Hex
   logic: Hex
   logicInit: Hash
+  prepareTxn: boolean
 }
 
 export function useSetLogic({
@@ -19,6 +20,7 @@ export function useSetLogic({
   target,
   logic,
   logicInit,
+  prepareTxn
 }: SetLogicProps) {
   const { config } = usePrepareContractWrite({
     address: database,
@@ -26,6 +28,7 @@ export function useSetLogic({
     functionName: 'setLogic',
     args: [target, logic, logicInit],
     chainId: optimismGoerli.id,
+    enabled: prepareTxn
   })
 
   const { data: setLogicData, write: setLogic } = useContractWrite(config)

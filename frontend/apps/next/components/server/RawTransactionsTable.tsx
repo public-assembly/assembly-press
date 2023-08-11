@@ -43,7 +43,7 @@ const EventType = ({ rawTransactions, className }: EventTypeProps) => (
         : rawTransactions === 'LogicUpdated' || rawTransactions === 'RendererUpdated'
         ? 'border-malachite'
         : 'border-picton-blue',
-      'border rounded-[2px] px-2 py-[2px] justify-center items-center w-[150px]'
+      'uppercase border rounded-[2px] px-2 py-[2px] justify-center items-center w-fit'
     )}
   >
     <Caption className='text-platinum'>
@@ -62,9 +62,11 @@ const RawTransactionField = ({
 );
 
 const TransactionHash = ({ rawTransactions, className }: RawTransactionHashProps) => (
-  <Flex className='px-2 py-[2px] bg-dark-gunmetal rounded-[18px] border border-arsenic justify-center items-center w-fit'>
-    <BodySmall className='text-dark-gray'>{rawTransactions.toString()}</BodySmall>
-  </Flex>
+  <a href={`https://goerli-optimism.etherscan.io/tx/${rawTransactions}`}>  
+    <Flex className='hover:border-dark-gray  px-2 py-[2px] bg-dark-gunmetal rounded-[18px] border border-arsenic justify-center items-center w-fit'>
+      <BodySmall className='text-dark-gray'>{rawTransactions.toString().slice(0, 10)}</BodySmall>
+    </Flex>
+  </a>  
 );
 
 const RawTransactionComponent = ({
@@ -78,7 +80,7 @@ const RawTransactionComponent = ({
     </Flex>
     <Flex className='justify-end'>
       <TransactionHash
-        rawTransactions={rawTransactions.transactionHash.slice(0, 10)}
+        rawTransactions={rawTransactions.transactionHash}
       />
     </Flex>
   </Grid>
@@ -86,7 +88,7 @@ const RawTransactionComponent = ({
 
 const RawTransactionsTableSkeleton = ({ className }: RawTransactionsTableProps) => {
   return (
-    <div className='col-start-1 col-end-2 row-start-2 row-end-3'>
+    <div className='col-start-1 col-end-5 row-start-2 row-end-3'>
       <div className='border border-arsenic w-full h-full rounded-xl animate-pulse'>
         {}
       </div>
@@ -110,10 +112,10 @@ export const RawTransactionsTable = ({ className }: RawTransactionsTableProps) =
 
   if (!rawTransactions) return <RawTransactionsTableSkeleton />;
   return (
-    <Flex className='flex-col w-full content-between border border-arsenic rounded-xl px-6 py-3'>
-      <CaptionLarge className='text-platinum mb-4 align-left'>Transaction</CaptionLarge> 
+    <Flex className='row-start-2 row-end-3 col-start-1 col-end-6 flex-col w-full content-between border border-arsenic rounded-xl px-6 py-3'>
+      <CaptionLarge className='text-platinum mb-4 align-left'>Database</CaptionLarge> 
       {/* Table Column Labels */}
-      {/* <Grid className='grid-cols-3 items-center my-2'>
+      <Grid className='grid-cols-3 items-center my-2'>
         <BodySmall className='text-platinum'>Event Name</BodySmall>
         <Flex className='justify-center'>
           <BodySmall className='text-platinum'>Block Number</BodySmall>
@@ -121,7 +123,7 @@ export const RawTransactionsTable = ({ className }: RawTransactionsTableProps) =
         <Flex className='justify-end'>
           <BodySmall className='text-platinum'>Transaction Hash</BodySmall>
         </Flex>
-      </Grid> */}
+      </Grid>
       {rawTransactions.map((rawTransactions) => (
         <RawTransactionComponent
           key={rawTransactions.transactionHash}

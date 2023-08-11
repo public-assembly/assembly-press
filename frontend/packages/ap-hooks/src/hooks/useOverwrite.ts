@@ -12,6 +12,7 @@ interface OverwriteProps {
   target: Hex
   tokenIds: bigint[]
   data: Hash[]
+  prepareTxn: boolean
 }
 
 export function useOverwrite({
@@ -19,6 +20,7 @@ export function useOverwrite({
   target,
   tokenIds,
   data,
+  prepareTxn
 }: OverwriteProps) {
   const { config } = usePrepareContractWrite({
     address: database,
@@ -26,6 +28,7 @@ export function useOverwrite({
     functionName: 'overwrite',
     args: [target, tokenIds, data],
     chainId: optimismGoerli.id,
+    enabled: prepareTxn
   })
 
   const { data: overwriteData, write: overwrite } = useContractWrite(config)

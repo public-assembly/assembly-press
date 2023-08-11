@@ -47,8 +47,8 @@ export const ArweaveBox = async ({ className }: ArweaveBoxProps) => {
   if (!arweaveData) return null; 
 
   return (
-    <Flex className='flex-col w-full content-between border border-arsenic rounded-xl px-6 py-3'>
-         <CaptionLarge className='text-platinum mb-4 align-left'>Arweave</CaptionLarge> 
+    <Flex className='row-start-2 row-end-3 col-start-6 col-end-9 flex-col w-full content-between border border-arsenic rounded-xl px-6 py-3'>
+         <CaptionLarge className='text-platinum mb-4 align-left'>Arweave Backups</CaptionLarge> 
       {arweaveData.map((arweave) => (
         <ArweaveComponent key={arweave.link} arweave={arweave} />
       ))}

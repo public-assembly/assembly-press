@@ -3,6 +3,7 @@
 import Editor from 'react-simple-code-editor';
 import { useFunctionSelect } from 'context/FunctionSelectProvider';
 import { highlight, languages } from 'prismjs';
+import 'prismjs/themes/prism.css';
 import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-solidity';
 
@@ -39,7 +40,7 @@ export const CodeViewer = ({ language }: CodeViewerProps) => {
 
   return (
 <div>
-<Flex className='flex-col w-full content-between border border-arsenic rounded-xl px-6 py-3'>
+<Flex className='flex-col w-full content-between  px-6 pt-3'>
   <CaptionLarge className='text-platinum mb-4 align-left'>{headerName}</CaptionLarge> 
     
     <Editor
@@ -49,11 +50,11 @@ export const CodeViewer = ({ language }: CodeViewerProps) => {
         highlight={code => highlight(code, languages[language], language)}        
         padding={10}
         style={{
-          height: "400px",
+          height: "425px",
           overflow: "auto",
-        fontFamily: '"Fira code", "Fira Mono", monospace',
-        fontSize: 12,
-        color: "#fff"
+          fontFamily: '"Fira code", "Fira Mono", monospace',
+          fontSize: 12,
+          color: "#fff"
         }}
     />
     </Flex>
