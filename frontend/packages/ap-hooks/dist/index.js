@@ -443,19 +443,21 @@ var AP721DatabaseV1Abi = [
 
 // src/hooks/useStore.ts
 var import_chains = require("wagmi/chains");
-function useStore({ database, target, quantity, data }) {
+function useStore({ database, target, quantity, data, prepareTxn }) {
   const { config } = (0, import_wagmi.usePrepareContractWrite)({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "store",
     args: [target, quantity, data],
-    chainId: import_chains.optimismGoerli.id
+    chainId: import_chains.optimismGoerli.id,
+    enabled: prepareTxn
   });
   const { data: storeData, write: store } = (0, import_wagmi.useContractWrite)(config);
   const { isLoading: storeLoading, isSuccess: storeSuccess } = (0, import_wagmi.useWaitForTransaction)({
     hash: storeData == null ? void 0 : storeData.hash
   });
   return {
+    // config,
     store,
     storeLoading,
     storeSuccess
@@ -469,20 +471,23 @@ function useOverwrite({
   database,
   target,
   tokenIds,
-  data
+  data,
+  prepareTxn
 }) {
   const { config } = (0, import_wagmi2.usePrepareContractWrite)({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "overwrite",
     args: [target, tokenIds, data],
-    chainId: import_chains2.optimismGoerli.id
+    chainId: import_chains2.optimismGoerli.id,
+    enabled: prepareTxn
   });
   const { data: overwriteData, write: overwrite } = (0, import_wagmi2.useContractWrite)(config);
   const { isLoading: overwriteLoading, isSuccess: overwriteSuccess } = (0, import_wagmi2.useWaitForTransaction)({
     hash: overwriteData == null ? void 0 : overwriteData.hash
   });
   return {
+    // config,
     overwrite,
     overwriteLoading,
     overwriteSuccess
@@ -492,19 +497,21 @@ function useOverwrite({
 // src/hooks/useRemove.ts
 var import_wagmi3 = require("wagmi");
 var import_chains3 = require("wagmi/chains");
-function useRemove({ database, target, tokenIds }) {
+function useRemove({ database, target, tokenIds, prepareTxn }) {
   const { config } = (0, import_wagmi3.usePrepareContractWrite)({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "remove",
     args: [target, tokenIds],
-    chainId: import_chains3.optimismGoerli.id
+    chainId: import_chains3.optimismGoerli.id,
+    enabled: prepareTxn
   });
   const { data: removeData, write: remove } = (0, import_wagmi3.useContractWrite)(config);
   const { isLoading: removeLoading, isSuccess: removeSuccess } = (0, import_wagmi3.useWaitForTransaction)({
     hash: removeData == null ? void 0 : removeData.hash
   });
   return {
+    // config,
     remove,
     removeLoading,
     removeSuccess
@@ -518,20 +525,23 @@ function useSetLogic({
   database,
   target,
   logic,
-  logicInit
+  logicInit,
+  prepareTxn
 }) {
   const { config } = (0, import_wagmi4.usePrepareContractWrite)({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "setLogic",
     args: [target, logic, logicInit],
-    chainId: import_chains4.optimismGoerli.id
+    chainId: import_chains4.optimismGoerli.id,
+    enabled: prepareTxn
   });
   const { data: setLogicData, write: setLogic } = (0, import_wagmi4.useContractWrite)(config);
   const { isLoading: setLogicLoading, isSuccess: setLogicSuccess } = (0, import_wagmi4.useWaitForTransaction)({
     hash: setLogicData == null ? void 0 : setLogicData.hash
   });
   return {
+    // config,
     setLogic,
     setLogicLoading,
     setLogicSuccess
@@ -545,20 +555,23 @@ function useSetRenderer({
   database,
   target,
   renderer,
-  rendererInit
+  rendererInit,
+  prepareTxn
 }) {
   const { config } = (0, import_wagmi5.usePrepareContractWrite)({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "setRenderer",
     args: [target, renderer, rendererInit],
-    chainId: import_chains5.optimismGoerli.id
+    chainId: import_chains5.optimismGoerli.id,
+    enabled: prepareTxn
   });
   const { data: setRendererData, write: setRenderer } = (0, import_wagmi5.useContractWrite)(config);
   const { isLoading: setRendererLoading, isSuccess: setRendererSuccess } = (0, import_wagmi5.useWaitForTransaction)({
     hash: setRendererData == null ? void 0 : setRendererData.hash
   });
   return {
+    // config,
     setRenderer,
     setRendererLoading,
     setRendererSuccess
@@ -573,20 +586,23 @@ function useSetupAP721({
   initialOwner,
   databaseInit,
   factory,
-  factoryInit
+  factoryInit,
+  prepareTxn
 }) {
   const { config } = (0, import_wagmi6.usePrepareContractWrite)({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "setupAP721",
     args: [initialOwner, databaseInit, factory, factoryInit],
-    chainId: import_chains6.optimismGoerli.id
+    chainId: import_chains6.optimismGoerli.id,
+    enabled: prepareTxn
   });
   const { data: setupAP721Data, write: setupAP721 } = (0, import_wagmi6.useContractWrite)(config);
   const { isLoading: setupAP721Loading, isSuccess: setupAP721Success } = (0, import_wagmi6.useWaitForTransaction)({
     hash: setupAP721Data == null ? void 0 : setupAP721Data.hash
   });
   return {
+    // config,
     setupAP721,
     setupAP721Loading,
     setupAP721Success

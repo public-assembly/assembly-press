@@ -21,5 +21,3 @@ export async function bundlrUpload() {
   await writeToArweaveTable("AP721", AP721Upload);
   console.log("saveLinksToArweaveTable for AP721 done");
 }
-
-bundlrUpload();

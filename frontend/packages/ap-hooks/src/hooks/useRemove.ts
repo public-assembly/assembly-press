@@ -11,15 +11,17 @@ interface RemoveProps {
   database: Hex
   target: Hex
   tokenIds: bigint[]
+  prepareTxn: boolean
 }
 
-export function useRemove({ database, target, tokenIds }: RemoveProps) {
+export function useRemove({ database, target, tokenIds, prepareTxn }: RemoveProps) {
   const { config } = usePrepareContractWrite({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: 'remove',
     args: [target, tokenIds],
     chainId: optimismGoerli.id,
+    enabled: prepareTxn
   })
 
   const { data: removeData, write: remove } = useContractWrite(config)
@@ -30,6 +32,7 @@ export function useRemove({ database, target, tokenIds }: RemoveProps) {
     })
 
   return {
+    // config,
     remove,
     removeLoading,
     removeSuccess,

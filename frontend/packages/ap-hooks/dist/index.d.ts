@@ -5,8 +5,9 @@ interface StoreProps {
     target: Hex;
     quantity: bigint;
     data: Hash;
+    prepareTxn: boolean;
 }
-declare function useStore({ database, target, quantity, data }: StoreProps): {
+declare function useStore({ database, target, quantity, data, prepareTxn }: StoreProps): {
     store: (() => void) | undefined;
     storeLoading: boolean;
     storeSuccess: boolean;
@@ -17,8 +18,9 @@ interface OverwriteProps {
     target: Hex;
     tokenIds: bigint[];
     data: Hash[];
+    prepareTxn: boolean;
 }
-declare function useOverwrite({ database, target, tokenIds, data, }: OverwriteProps): {
+declare function useOverwrite({ database, target, tokenIds, data, prepareTxn }: OverwriteProps): {
     overwrite: (() => void) | undefined;
     overwriteLoading: boolean;
     overwriteSuccess: boolean;
@@ -28,8 +30,9 @@ interface RemoveProps {
     database: Hex;
     target: Hex;
     tokenIds: bigint[];
+    prepareTxn: boolean;
 }
-declare function useRemove({ database, target, tokenIds }: RemoveProps): {
+declare function useRemove({ database, target, tokenIds, prepareTxn }: RemoveProps): {
     remove: (() => void) | undefined;
     removeLoading: boolean;
     removeSuccess: boolean;
@@ -40,8 +43,9 @@ interface SetLogicProps {
     target: Hex;
     logic: Hex;
     logicInit: Hash;
+    prepareTxn: boolean;
 }
-declare function useSetLogic({ database, target, logic, logicInit, }: SetLogicProps): {
+declare function useSetLogic({ database, target, logic, logicInit, prepareTxn }: SetLogicProps): {
     setLogic: (() => void) | undefined;
     setLogicLoading: boolean;
     setLogicSuccess: boolean;
@@ -52,8 +56,9 @@ interface SetRendererProps {
     target: Hex;
     renderer: Hex;
     rendererInit: Hash;
+    prepareTxn: boolean;
 }
-declare function useSetRenderer({ database, target, renderer, rendererInit, }: SetRendererProps): {
+declare function useSetRenderer({ database, target, renderer, rendererInit, prepareTxn }: SetRendererProps): {
     setRenderer: (() => void) | undefined;
     setRendererLoading: boolean;
     setRendererSuccess: boolean;
@@ -65,8 +70,9 @@ interface SetupAP721Props {
     databaseInit: Hash;
     factory: Hex;
     factoryInit: Hash;
+    prepareTxn: boolean;
 }
-declare function useSetupAP721({ database, initialOwner, databaseInit, factory, factoryInit, }: SetupAP721Props): {
+declare function useSetupAP721({ database, initialOwner, databaseInit, factory, factoryInit, prepareTxn }: SetupAP721Props): {
     setupAP721: (() => void) | undefined;
     setupAP721Loading: boolean;
     setupAP721Success: boolean;

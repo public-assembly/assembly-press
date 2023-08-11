@@ -26,123 +26,124 @@ type ButtonGridProps = {
 };
 
 export const ButtonGrid = ({ className }: ButtonGridProps) => {
-  const { address, isConnected } = useAccount();
+  // const { address, isConnected } = useAccount();
 
-  /* SetupAP721 Hook */
-  const databaseInitInput: Hash = encodeAbiParameters(
-    parseAbiParameters('address, address, bool, bytes, bytes'),
-    [logicImpl, rendererImpl, false, emptyInit, emptyInit]
-  );
+  // /* SetupAP721 Hook */
+  // const databaseInitInput: Hash = encodeAbiParameters(
+  //   parseAbiParameters('address, address, bool, bytes, bytes'),
+  //   [logicImpl, rendererImpl, false, emptyInit, emptyInit]
+  // );
 
-  const factoryInitInput: Hash = encodeAbiParameters(
-    parseAbiParameters('string, string'),
-    ['AssemblyPress', 'AP'] // name + symbol
-  );
+  // const factoryInitInput: Hash = encodeAbiParameters(
+  //   parseAbiParameters('string, string'),
+  //   ['AssemblyPress', 'AP'] // name + symbol
+  // );
 
-  const { setupAP721, setupAP721Loading, setupAP721Success } = useSetupAP721({
-    database: databaseImpl,
-    databaseInit: databaseInitInput,
-    initialOwner: address,
-    factory: factoryImpl,
-    factoryInit: factoryInitInput,
-  });
+  // const { setupAP721, setupAP721Loading, setupAP721Success } = useSetupAP721({
+  //   database: databaseImpl,
+  //   databaseInit: databaseInitInput,
+  //   initialOwner: address,
+  //   factory: factoryImpl,
+  //   factoryInit: factoryInitInput,
+  //   prepareTxn: true
+  // });
 
-  /* SetLogic Hook */
-  const { setLogic, setLogicLoading, setLogicSuccess } = useSetLogic({
-    database: databaseImpl,
-    target: existingAP721,
-    logic: logicImpl,
-    logicInit: emptyInit,
-  });
+  // /* SetLogic Hook */
+  // const { setLogic, setLogicLoading, setLogicSuccess } = useSetLogic({
+  //   database: databaseImpl,
+  //   target: existingAP721,
+  //   logic: logicImpl,
+  //   logicInit: emptyInit,
+  // });
 
-  /* SetRenderer Hook */
-  const { setRenderer, setRendererLoading, setRendererSuccess } =
-    useSetRenderer({
-      database: databaseImpl,
-      target: existingAP721,
-      renderer: rendererImpl,
-      rendererInit: emptyInit,
-    });
+  // /* SetRenderer Hook */
+  // const { setRenderer, setRendererLoading, setRendererSuccess } =
+  //   useSetRenderer({
+  //     database: databaseImpl,
+  //     target: existingAP721,
+  //     renderer: rendererImpl,
+  //     rendererInit: emptyInit,
+  //   });
 
-  /* Store Hook */
-  const encodedString: Hash = encodeAbiParameters(
-    parseAbiParameters('string'),
-    ['Lifeworld']
-  );
+  // /* Store Hook */
+  // const encodedString: Hash = encodeAbiParameters(
+  //   parseAbiParameters('string'),
+  //   ['Lifeworld']
+  // );
 
-  const encodedBytesArray: Hash = encodeAbiParameters(
-    parseAbiParameters('bytes[]'),
-    [[encodedString]]
-  );
+  // const encodedBytesArray: Hash = encodeAbiParameters(
+  //   parseAbiParameters('bytes[]'),
+  //   [[encodedString]]
+  // );
 
-  const { store, storeLoading, storeSuccess } = useStore({
-    database: databaseImpl,
-    target: existingAP721,
-    quantity: BigInt(1),
-    data: encodedBytesArray,
-  });
+  // const { store, storeLoading, storeSuccess } = useStore({
+  //   database: databaseImpl,
+  //   target: existingAP721,
+  //   quantity: BigInt(1),
+  //   data: encodedBytesArray,
+  // });
 
-  /* Overwrite Hook */
-  const encodedString2: Hash = encodeAbiParameters(
-    parseAbiParameters('string'),
-    ['River']
-  );
+  // /* Overwrite Hook */
+  // const encodedString2: Hash = encodeAbiParameters(
+  //   parseAbiParameters('string'),
+  //   ['River']
+  // );
 
-  const arrayOfBytes: Hash[] = [encodedString2];
+  // const arrayOfBytes: Hash[] = [encodedString2];
 
-  const { overwrite, overwriteLoading, overwriteSuccess } = useOverwrite({
-    database: databaseImpl,
-    target: existingAP721,
-    tokenIds: [BigInt(1)],
-    data: arrayOfBytes,
-  });
+  // const { overwrite, overwriteLoading, overwriteSuccess } = useOverwrite({
+  //   database: databaseImpl,
+  //   target: existingAP721,
+  //   tokenIds: [BigInt(1)],
+  //   data: arrayOfBytes,
+  // });
 
-  return (
-    <Grid className='grid-cols-2 gap-4'>
-      <DescriptiveButton
-        label={'setupAP721'}
-        description={'Deploy + configure an ERC721 contract which represents a row in the database'}
-        // icon={<OpenInNewWindowIcon className='text-picton-blue' />}
-        icon={<Pencil2Icon className='text-picton-blue' />}
-        callback={setupAP721}
-        callbackLoading={setupAP721Loading}
-      />
-      <DescriptiveButton
-        label={'store'}
-        description={
-          'Store generic data in the database and mint a storage receipt'
-        }
-        icon={<Pencil2Icon className='text-picton-blue' />}
-        callback={store}
-        callbackLoading={storeLoading}
-      />
-      <DescriptiveButton
-        label={'overwrite'}
-        description={
-          'Overwrite data associated with existing token'
-        }
-        icon={<Pencil2Icon className='text-picton-blue' />}
-        callback={overwrite}
-        callbackLoading={overwriteLoading}
-      />   
-      <DescriptiveButton
-        label={'setLogic'}
-        description={
-          'Update logic contract associated with given row'
-        }
-        icon={<Pencil2Icon className='text-picton-blue' />}
-        callback={setLogic}
-        callbackLoading={setLogicLoading}
-      />              
-      <DescriptiveButton
-        label={'setRenderer'}
-        description={
-          'Update renderer contract associated with given row'
-        }
-        icon={<Pencil2Icon className='text-picton-blue' />}
-        callback={setRenderer}
-        callbackLoading={setRendererLoading}
-      />          
-    </Grid>
-  );
+  // return (
+  //   <Grid className='grid-cols-2 gap-4'>
+  //     <DescriptiveButton
+  //       label={'setupAP721'}
+  //       description={'Deploy + configure an ERC721 contract which represents a row in the database'}
+  //       // icon={<OpenInNewWindowIcon className='text-picton-blue' />}
+  //       icon={<Pencil2Icon className='text-picton-blue' />}
+  //       callback={setupAP721}
+  //       callbackLoading={setupAP721Loading}
+  //     />
+  //     <DescriptiveButton
+  //       label={'store'}
+  //       description={
+  //         'Store generic data in the database and mint a storage receipt'
+  //       }
+  //       icon={<Pencil2Icon className='text-picton-blue' />}
+  //       callback={store}
+  //       callbackLoading={storeLoading}
+  //     />
+  //     <DescriptiveButton
+  //       label={'overwrite'}
+  //       description={
+  //         'Overwrite data associated with existing token'
+  //       }
+  //       icon={<Pencil2Icon className='text-picton-blue' />}
+  //       callback={overwrite}
+  //       callbackLoading={overwriteLoading}
+  //     />   
+  //     <DescriptiveButton
+  //       label={'setLogic'}
+  //       description={
+  //         'Update logic contract associated with given row'
+  //       }
+  //       icon={<Pencil2Icon className='text-picton-blue' />}
+  //       callback={setLogic}
+  //       callbackLoading={setLogicLoading}
+  //     />              
+  //     <DescriptiveButton
+  //       label={'setRenderer'}
+  //       description={
+  //         'Update renderer contract associated with given row'
+  //       }
+  //       icon={<Pencil2Icon className='text-picton-blue' />}
+  //       callback={setRenderer}
+  //       callbackLoading={setRendererLoading}
+  //     />          
+  //   </Grid>
+  // );
 };

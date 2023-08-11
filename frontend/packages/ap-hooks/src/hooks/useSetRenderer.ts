@@ -12,6 +12,7 @@ interface SetRendererProps {
   target: Hex
   renderer: Hex
   rendererInit: Hash
+  prepareTxn: boolean
 }
 
 export function useSetRenderer({
@@ -19,6 +20,7 @@ export function useSetRenderer({
   target,
   renderer,
   rendererInit,
+  prepareTxn
 }: SetRendererProps) {
   const { config } = usePrepareContractWrite({
     address: database,
@@ -26,6 +28,7 @@ export function useSetRenderer({
     functionName: 'setRenderer',
     args: [target, renderer, rendererInit],
     chainId: optimismGoerli.id,
+    enabled: prepareTxn
   })
 
   const { data: setRendererData, write: setRenderer } = useContractWrite(config)
@@ -36,6 +39,7 @@ export function useSetRenderer({
     })
 
   return {
+    // config,
     setRenderer,
     setRendererLoading,
     setRendererSuccess,

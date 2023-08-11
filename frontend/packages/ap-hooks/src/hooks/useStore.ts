@@ -12,15 +12,17 @@ interface StoreProps {
   target: Hex
   quantity: bigint
   data: Hash
+  prepareTxn: boolean
 }
 
-export function useStore({ database, target, quantity, data }: StoreProps) {
+export function useStore({ database, target, quantity, data, prepareTxn }: StoreProps) {
   const { config } = usePrepareContractWrite({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: 'store',
     args: [target, quantity, data],
     chainId: optimismGoerli.id,
+    enabled: prepareTxn
   })
 
   const { data: storeData, write: store } = useContractWrite(config)
@@ -31,6 +33,7 @@ export function useStore({ database, target, quantity, data }: StoreProps) {
     })
 
   return {
+    // config,
     store,
     storeLoading,
     storeSuccess,
