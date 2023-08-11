@@ -39,6 +39,7 @@ export function useOverwrite({
     })
 
   return {
+    // config,
     overwrite,
     overwriteLoading,
     overwriteSuccess,

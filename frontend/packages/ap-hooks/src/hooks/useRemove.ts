@@ -32,6 +32,7 @@ export function useRemove({ database, target, tokenIds, prepareTxn }: RemoveProp
     })
 
   return {
+    // config,
     remove,
     removeLoading,
     removeSuccess,

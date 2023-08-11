@@ -39,6 +39,7 @@ export function useSetRenderer({
     })
 
   return {
+    // config,
     setRenderer,
     setRendererLoading,
     setRendererSuccess,

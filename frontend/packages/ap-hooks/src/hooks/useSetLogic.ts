@@ -39,6 +39,7 @@ export function useSetLogic({
     })
 
   return {
+    // config,
     setLogic,
     setLogicLoading,
     setLogicSuccess,

@@ -1,8 +1,9 @@
 import { Grid, VStack, Stack, Flex } from '@/components/base';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { CodeViewer } from '@/components/codeViewer/CodeViewer';
 import { FunctioNav } from '@/components/FunctionNav';
+import { CodeViewer } from '@/components/codeViewer/CodeViewer';
+import { TxnSubmitter } from '@/components/txnSubmitter/TxnSubmitter';
 import { RawTransactionsTable } from '@/components/server';
 import { ArweaveBox } from '@/components/arweave';
 
@@ -28,7 +29,7 @@ export default function Page() {
           </div>          
           <div className='col-start-7 col-end-9 row-start-1 row-end-2'>
             <div className='bg-[#16171A] text-white border border-arsenic w-full h-full rounded-xl'>
-            {"row 1 col 2"}
+            <TxnSubmitter />
             </div>
           </div>            
           {/* Row 2 */}

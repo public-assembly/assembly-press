@@ -417,19 +417,21 @@ var AP721DatabaseV1Abi = [
 
 // src/hooks/useStore.ts
 import { optimismGoerli } from "wagmi/chains";
-function useStore({ database, target, quantity, data }) {
+function useStore({ database, target, quantity, data, prepareTxn }) {
   const { config } = usePrepareContractWrite({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "store",
     args: [target, quantity, data],
-    chainId: optimismGoerli.id
+    chainId: optimismGoerli.id,
+    enabled: prepareTxn
   });
   const { data: storeData, write: store } = useContractWrite(config);
   const { isLoading: storeLoading, isSuccess: storeSuccess } = useWaitForTransaction({
     hash: storeData == null ? void 0 : storeData.hash
   });
   return {
+    // config,
     store,
     storeLoading,
     storeSuccess
@@ -447,20 +449,23 @@ function useOverwrite({
   database,
   target,
   tokenIds,
-  data
+  data,
+  prepareTxn
 }) {
   const { config } = usePrepareContractWrite2({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "overwrite",
     args: [target, tokenIds, data],
-    chainId: optimismGoerli2.id
+    chainId: optimismGoerli2.id,
+    enabled: prepareTxn
   });
   const { data: overwriteData, write: overwrite } = useContractWrite2(config);
   const { isLoading: overwriteLoading, isSuccess: overwriteSuccess } = useWaitForTransaction2({
     hash: overwriteData == null ? void 0 : overwriteData.hash
   });
   return {
+    // config,
     overwrite,
     overwriteLoading,
     overwriteSuccess
@@ -474,19 +479,21 @@ import {
   useWaitForTransaction as useWaitForTransaction3
 } from "wagmi";
 import { optimismGoerli as optimismGoerli3 } from "wagmi/chains";
-function useRemove({ database, target, tokenIds }) {
+function useRemove({ database, target, tokenIds, prepareTxn }) {
   const { config } = usePrepareContractWrite3({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "remove",
     args: [target, tokenIds],
-    chainId: optimismGoerli3.id
+    chainId: optimismGoerli3.id,
+    enabled: prepareTxn
   });
   const { data: removeData, write: remove } = useContractWrite3(config);
   const { isLoading: removeLoading, isSuccess: removeSuccess } = useWaitForTransaction3({
     hash: removeData == null ? void 0 : removeData.hash
   });
   return {
+    // config,
     remove,
     removeLoading,
     removeSuccess
@@ -504,20 +511,23 @@ function useSetLogic({
   database,
   target,
   logic,
-  logicInit
+  logicInit,
+  prepareTxn
 }) {
   const { config } = usePrepareContractWrite4({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "setLogic",
     args: [target, logic, logicInit],
-    chainId: optimismGoerli4.id
+    chainId: optimismGoerli4.id,
+    enabled: prepareTxn
   });
   const { data: setLogicData, write: setLogic } = useContractWrite4(config);
   const { isLoading: setLogicLoading, isSuccess: setLogicSuccess } = useWaitForTransaction4({
     hash: setLogicData == null ? void 0 : setLogicData.hash
   });
   return {
+    // config,
     setLogic,
     setLogicLoading,
     setLogicSuccess
@@ -535,20 +545,23 @@ function useSetRenderer({
   database,
   target,
   renderer,
-  rendererInit
+  rendererInit,
+  prepareTxn
 }) {
   const { config } = usePrepareContractWrite5({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "setRenderer",
     args: [target, renderer, rendererInit],
-    chainId: optimismGoerli5.id
+    chainId: optimismGoerli5.id,
+    enabled: prepareTxn
   });
   const { data: setRendererData, write: setRenderer } = useContractWrite5(config);
   const { isLoading: setRendererLoading, isSuccess: setRendererSuccess } = useWaitForTransaction5({
     hash: setRendererData == null ? void 0 : setRendererData.hash
   });
   return {
+    // config,
     setRenderer,
     setRendererLoading,
     setRendererSuccess
@@ -567,20 +580,23 @@ function useSetupAP721({
   initialOwner,
   databaseInit,
   factory,
-  factoryInit
+  factoryInit,
+  prepareTxn
 }) {
   const { config } = usePrepareContractWrite6({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "setupAP721",
     args: [initialOwner, databaseInit, factory, factoryInit],
-    chainId: optimismGoerli6.id
+    chainId: optimismGoerli6.id,
+    enabled: prepareTxn
   });
   const { data: setupAP721Data, write: setupAP721 } = useContractWrite6(config);
   const { isLoading: setupAP721Loading, isSuccess: setupAP721Success } = useWaitForTransaction6({
     hash: setupAP721Data == null ? void 0 : setupAP721Data.hash
   });
   return {
+    // config,
     setupAP721,
     setupAP721Loading,
     setupAP721Success
