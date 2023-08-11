@@ -7,6 +7,7 @@ import {
 import { useEffect, useState } from 'react';
 import { Caption, Flex, Grid, Debug, BodySmall, CaptionLarge } from '../base';
 import { cn } from '@/utils/cn';
+import { camelToSpaced } from '@/utils/wordSpacer';
 
 type RawTransactionFieldProps = {
   rawTransactions:
@@ -46,7 +47,7 @@ const EventType = ({ rawTransactions, className }: EventTypeProps) => (
     )}
   >
     <Caption className='text-platinum'>
-      <p>{rawTransactions.toString()}</p>
+      <p>{camelToSpaced(rawTransactions.toString())}</p>
     </Caption>
   </Flex>
 );
@@ -110,6 +111,7 @@ export const RawTransactionsTable = ({ className }: RawTransactionsTableProps) =
   if (!rawTransactions) return <RawTransactionsTableSkeleton />;
   return (
     <Flex className='flex-col w-full content-between border border-arsenic rounded-xl px-6 py-3'>
+      <CaptionLarge className='text-platinum mb-4 align-left'>Transaction</CaptionLarge> 
       {/* Table Column Labels */}
       {/* <Grid className='grid-cols-3 items-center my-2'>
         <BodySmall className='text-platinum'>Event Name</BodySmall>

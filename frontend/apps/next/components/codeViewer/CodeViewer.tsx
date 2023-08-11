@@ -13,6 +13,7 @@ import {
     storeSnippets,
     overwriteSnippets,
 } from '@/components/codeViewer/content/codeblocks';
+import { Flex,CaptionLarge } from '../base';
 
 type CodeViewerProps = {
   language: string;
@@ -34,8 +35,13 @@ export const CodeViewer = ({ language }: CodeViewerProps) => {
     
    // Find the correct snippet object using the selector, then get the language-specific snippet
    const code = snippetsMap[selector]?.[language];
+   const headerName = language === 'solidity' ? 'Protocol' : (language === 'typescript' ? 'Frontend' : '');
 
   return (
+<div>
+<Flex className='flex-col w-full content-between border border-arsenic rounded-xl px-6 py-3'>
+  <CaptionLarge className='text-platinum mb-4 align-left'>{headerName}</CaptionLarge> 
+    
     <Editor
         value={code}
         onValueChange={null}    
@@ -50,5 +56,7 @@ export const CodeViewer = ({ language }: CodeViewerProps) => {
         color: "#fff"
         }}
     />
+    </Flex>
+    </div>
   );
 };
