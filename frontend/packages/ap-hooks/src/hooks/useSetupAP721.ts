@@ -45,7 +45,7 @@ export function useSetupAP721({
   factory,
   factoryInit,
   prepareTxn,
-}: SetupAP721Props) {
+}: SetupAP721Props): SetupAP721Return {
   const { config: setupAP721Config } = usePrepareContractWrite({
     address: database,
     abi: AP721DatabaseV1Abi,

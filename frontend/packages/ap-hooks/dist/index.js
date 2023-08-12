@@ -558,7 +558,7 @@ function useSetRenderer({
   rendererInit,
   prepareTxn
 }) {
-  const { config } = (0, import_wagmi5.usePrepareContractWrite)({
+  const { config: setRendererConfig } = (0, import_wagmi5.usePrepareContractWrite)({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "setRenderer",
@@ -566,12 +566,12 @@ function useSetRenderer({
     chainId: import_chains5.optimismGoerli.id,
     enabled: prepareTxn
   });
-  const { data: setRendererData, write: setRenderer } = (0, import_wagmi5.useContractWrite)(config);
+  const { data: setRendererData, write: setRenderer } = (0, import_wagmi5.useContractWrite)(setRendererConfig);
   const { isLoading: setRendererLoading, isSuccess: setRendererSuccess } = (0, import_wagmi5.useWaitForTransaction)({
     hash: setRendererData == null ? void 0 : setRendererData.hash
   });
   return {
-    // setRendererConfig: config,
+    setRendererConfig,
     setRenderer,
     setRendererLoading,
     setRendererSuccess

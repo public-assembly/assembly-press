@@ -6,6 +6,7 @@ import {
 import { AP721DatabaseV1Abi } from '../contracts'
 import { optimismGoerli } from 'wagmi/chains'
 import { Hex, Hash } from 'viem'
+import { PrepareWriteContractResult } from 'wagmi/actions'
 
 interface SetRendererProps {
   database: Hex
@@ -15,23 +16,31 @@ interface SetRendererProps {
   prepareTxn: boolean
 }
 
+interface SetupAP721Return {
+  setRendererConfig: PrepareWriteContractResult
+  setRenderer: (() => void) | undefined
+  setRendererLoading: boolean
+  setRendererSuccess: boolean
+}
+
 export function useSetRenderer({
   database,
   target,
   renderer,
   rendererInit,
-  prepareTxn
-}: SetRendererProps) {
-  const { config } = usePrepareContractWrite({
+  prepareTxn,
+}: SetRendererProps): SetupAP721Return {
+  const { config: setRendererConfig } = usePrepareContractWrite({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: 'setRenderer',
     args: [target, renderer, rendererInit],
     chainId: optimismGoerli.id,
-    enabled: prepareTxn
+    enabled: prepareTxn,
   })
 
-  const { data: setRendererData, write: setRenderer } = useContractWrite(config)
+  const { data: setRendererData, write: setRenderer } =
+    useContractWrite(setRendererConfig)
 
   const { isLoading: setRendererLoading, isSuccess: setRendererSuccess } =
     useWaitForTransaction({
@@ -39,7 +48,7 @@ export function useSetRenderer({
     })
 
   return {
-    // setRendererConfig: config,
+    setRendererConfig,
     setRenderer,
     setRendererLoading,
     setRendererSuccess,

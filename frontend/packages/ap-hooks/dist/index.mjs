@@ -548,7 +548,7 @@ function useSetRenderer({
   rendererInit,
   prepareTxn
 }) {
-  const { config } = usePrepareContractWrite5({
+  const { config: setRendererConfig } = usePrepareContractWrite5({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "setRenderer",
@@ -556,12 +556,12 @@ function useSetRenderer({
     chainId: optimismGoerli5.id,
     enabled: prepareTxn
   });
-  const { data: setRendererData, write: setRenderer } = useContractWrite5(config);
+  const { data: setRendererData, write: setRenderer } = useContractWrite5(setRendererConfig);
   const { isLoading: setRendererLoading, isSuccess: setRendererSuccess } = useWaitForTransaction5({
     hash: setRendererData == null ? void 0 : setRendererData.hash
   });
   return {
-    // setRendererConfig: config,
+    setRendererConfig,
     setRenderer,
     setRendererLoading,
     setRendererSuccess
