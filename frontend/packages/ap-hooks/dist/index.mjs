@@ -561,7 +561,7 @@ function useSetRenderer({
     hash: setRendererData == null ? void 0 : setRendererData.hash
   });
   return {
-    // config,
+    // setRendererConfig: config,
     setRenderer,
     setRendererLoading,
     setRendererSuccess
@@ -583,7 +583,7 @@ function useSetupAP721({
   factoryInit,
   prepareTxn
 }) {
-  const { config } = usePrepareContractWrite6({
+  const { config: setupAP721Config } = usePrepareContractWrite6({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "setupAP721",
@@ -591,12 +591,12 @@ function useSetupAP721({
     chainId: optimismGoerli6.id,
     enabled: prepareTxn
   });
-  const { data: setupAP721Data, write: setupAP721 } = useContractWrite6(config);
+  const { data: setupAP721Data, write: setupAP721 } = useContractWrite6(setupAP721Config);
   const { isLoading: setupAP721Loading, isSuccess: setupAP721Success } = useWaitForTransaction6({
     hash: setupAP721Data == null ? void 0 : setupAP721Data.hash
   });
   return {
-    // config,
+    setupAP721Config,
     setupAP721,
     setupAP721Loading,
     setupAP721Success

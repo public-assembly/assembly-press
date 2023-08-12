@@ -571,7 +571,7 @@ function useSetRenderer({
     hash: setRendererData == null ? void 0 : setRendererData.hash
   });
   return {
-    // config,
+    // setRendererConfig: config,
     setRenderer,
     setRendererLoading,
     setRendererSuccess
@@ -589,7 +589,7 @@ function useSetupAP721({
   factoryInit,
   prepareTxn
 }) {
-  const { config } = (0, import_wagmi6.usePrepareContractWrite)({
+  const { config: setupAP721Config } = (0, import_wagmi6.usePrepareContractWrite)({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "setupAP721",
@@ -597,12 +597,12 @@ function useSetupAP721({
     chainId: import_chains6.optimismGoerli.id,
     enabled: prepareTxn
   });
-  const { data: setupAP721Data, write: setupAP721 } = (0, import_wagmi6.useContractWrite)(config);
+  const { data: setupAP721Data, write: setupAP721 } = (0, import_wagmi6.useContractWrite)(setupAP721Config);
   const { isLoading: setupAP721Loading, isSuccess: setupAP721Success } = (0, import_wagmi6.useWaitForTransaction)({
     hash: setupAP721Data == null ? void 0 : setupAP721Data.hash
   });
   return {
-    // config,
+    setupAP721Config,
     setupAP721,
     setupAP721Loading,
     setupAP721Success
