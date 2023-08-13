@@ -3,10 +3,10 @@ import {
   useContractWrite,
   useWaitForTransaction,
 } from 'wagmi'
-import { AP721DatabaseV1Abi } from '../contracts'
+import { PrepareWriteContractResult } from 'wagmi/actions'
 import { optimismGoerli } from 'wagmi/chains'
 import { Hex, Hash } from 'viem'
-import { PrepareWriteContractResult } from 'wagmi/actions'
+import { AP721DatabaseV1Abi } from '../contracts'
 
 interface SetRendererProps {
   database: Hex
@@ -16,7 +16,7 @@ interface SetRendererProps {
   prepareTxn: boolean
 }
 
-interface SetupAP721Return {
+interface SetRendererReturn {
   setRendererConfig: PrepareWriteContractResult
   setRenderer: (() => void) | undefined
   setRendererLoading: boolean
@@ -29,7 +29,7 @@ export function useSetRenderer({
   renderer,
   rendererInit,
   prepareTxn,
-}: SetRendererProps): SetupAP721Return {
+}: SetRendererProps): SetRendererReturn {
   const { config: setRendererConfig } = usePrepareContractWrite({
     address: database,
     abi: AP721DatabaseV1Abi,

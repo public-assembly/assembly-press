@@ -3,9 +3,10 @@ import {
   useContractWrite,
   useWaitForTransaction,
 } from 'wagmi'
-import { AP721DatabaseV1Abi } from '../contracts'
+import { PrepareWriteContractResult } from 'wagmi/actions'
 import { optimismGoerli } from 'wagmi/chains'
 import { Hex, Hash } from 'viem'
+import { AP721DatabaseV1Abi } from '../contracts'
 
 interface RemoveProps {
   database: Hex
@@ -14,8 +15,15 @@ interface RemoveProps {
   prepareTxn: boolean
 }
 
-export function useRemove({ database, target, tokenIds, prepareTxn }: RemoveProps) {
-  const { config } = usePrepareContractWrite({
+interface RemoveReturn {
+  removeConfig: PrepareWriteContractResult
+  remove: (() => void) | undefined
+  removeLoading: boolean
+  removeSuccess: boolean
+}
+
+export function useRemove({ database, target, tokenIds, prepareTxn }: RemoveProps): RemoveReturn {
+  const { config: removeConfig } = usePrepareContractWrite({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: 'remove',
@@ -24,7 +32,7 @@ export function useRemove({ database, target, tokenIds, prepareTxn }: RemoveProp
     enabled: prepareTxn
   })
 
-  const { data: removeData, write: remove } = useContractWrite(config)
+  const { data: removeData, write: remove } = useContractWrite(removeConfig)
 
   const { isLoading: removeLoading, isSuccess: removeSuccess } =
     useWaitForTransaction({
@@ -32,7 +40,7 @@ export function useRemove({ database, target, tokenIds, prepareTxn }: RemoveProp
     })
 
   return {
-    // config,
+    removeConfig,
     remove,
     removeLoading,
     removeSuccess,

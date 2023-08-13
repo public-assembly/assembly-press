@@ -32,6 +32,7 @@ module.exports = __toCommonJS(src_exports);
 
 // src/hooks/useStore.ts
 var import_wagmi = require("wagmi");
+var import_chains = require("wagmi/chains");
 
 // src/contracts/AP721DatabaseV1Abi.ts
 var AP721DatabaseV1Abi = [
@@ -442,9 +443,8 @@ var AP721DatabaseV1Abi = [
 ];
 
 // src/hooks/useStore.ts
-var import_chains = require("wagmi/chains");
 function useStore({ database, target, quantity, data, prepareTxn }) {
-  const { config } = (0, import_wagmi.usePrepareContractWrite)({
+  const { config: storeConfig } = (0, import_wagmi.usePrepareContractWrite)({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "store",
@@ -452,12 +452,12 @@ function useStore({ database, target, quantity, data, prepareTxn }) {
     chainId: import_chains.optimismGoerli.id,
     enabled: prepareTxn
   });
-  const { data: storeData, write: store } = (0, import_wagmi.useContractWrite)(config);
+  const { data: storeData, write: store } = (0, import_wagmi.useContractWrite)(storeConfig);
   const { isLoading: storeLoading, isSuccess: storeSuccess } = (0, import_wagmi.useWaitForTransaction)({
     hash: storeData == null ? void 0 : storeData.hash
   });
   return {
-    // config,
+    storeConfig,
     store,
     storeLoading,
     storeSuccess
@@ -474,7 +474,7 @@ function useOverwrite({
   data,
   prepareTxn
 }) {
-  const { config } = (0, import_wagmi2.usePrepareContractWrite)({
+  const { config: overwriteConfig } = (0, import_wagmi2.usePrepareContractWrite)({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "overwrite",
@@ -482,12 +482,12 @@ function useOverwrite({
     chainId: import_chains2.optimismGoerli.id,
     enabled: prepareTxn
   });
-  const { data: overwriteData, write: overwrite } = (0, import_wagmi2.useContractWrite)(config);
+  const { data: overwriteData, write: overwrite } = (0, import_wagmi2.useContractWrite)(overwriteConfig);
   const { isLoading: overwriteLoading, isSuccess: overwriteSuccess } = (0, import_wagmi2.useWaitForTransaction)({
     hash: overwriteData == null ? void 0 : overwriteData.hash
   });
   return {
-    // config,
+    overwriteConfig,
     overwrite,
     overwriteLoading,
     overwriteSuccess
@@ -498,7 +498,7 @@ function useOverwrite({
 var import_wagmi3 = require("wagmi");
 var import_chains3 = require("wagmi/chains");
 function useRemove({ database, target, tokenIds, prepareTxn }) {
-  const { config } = (0, import_wagmi3.usePrepareContractWrite)({
+  const { config: removeConfig } = (0, import_wagmi3.usePrepareContractWrite)({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "remove",
@@ -506,12 +506,12 @@ function useRemove({ database, target, tokenIds, prepareTxn }) {
     chainId: import_chains3.optimismGoerli.id,
     enabled: prepareTxn
   });
-  const { data: removeData, write: remove } = (0, import_wagmi3.useContractWrite)(config);
+  const { data: removeData, write: remove } = (0, import_wagmi3.useContractWrite)(removeConfig);
   const { isLoading: removeLoading, isSuccess: removeSuccess } = (0, import_wagmi3.useWaitForTransaction)({
     hash: removeData == null ? void 0 : removeData.hash
   });
   return {
-    // config,
+    removeConfig,
     remove,
     removeLoading,
     removeSuccess
@@ -528,7 +528,7 @@ function useSetLogic({
   logicInit,
   prepareTxn
 }) {
-  const { config } = (0, import_wagmi4.usePrepareContractWrite)({
+  const { config: setLogicConfig } = (0, import_wagmi4.usePrepareContractWrite)({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: "setLogic",
@@ -536,12 +536,12 @@ function useSetLogic({
     chainId: import_chains4.optimismGoerli.id,
     enabled: prepareTxn
   });
-  const { data: setLogicData, write: setLogic } = (0, import_wagmi4.useContractWrite)(config);
+  const { data: setLogicData, write: setLogic } = (0, import_wagmi4.useContractWrite)(setLogicConfig);
   const { isLoading: setLogicLoading, isSuccess: setLogicSuccess } = (0, import_wagmi4.useWaitForTransaction)({
     hash: setLogicData == null ? void 0 : setLogicData.hash
   });
   return {
-    // config,
+    setLogicConfig,
     setLogic,
     setLogicLoading,
     setLogicSuccess

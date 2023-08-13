@@ -1,7 +1,8 @@
 
-> assembly-press-demo@0.0.0 build /Users/maximbochman/Desktop/code/ap-demo-uiwork-230811/frontend/apps/next
+> assembly-press-demo@0.0.0 build /Users/maximbochman/Desktop/code/ap-demo-230814/frontend/apps/next
 > next build
 
+- info Loaded env from /Users/maximbochman/Desktop/code/ap-demo-230814/frontend/apps/next/.env
 - info Creating an optimized production build...
 - info Compiled successfully
 - info Linting and checking validity of types...
@@ -11,14 +12,14 @@
 - info Finalizing page optimization...
 
 Route (app)                                Size     First Load JS
-─ ○ /                                      46.5 kB         540 kB
+─ ○ /                                      46.7 kB         540 kB
 + First Load JS shared by all              493 kB
   ├ chunks/689-af52b10100d11559.js         268 kB
   ├ chunks/69-21cd142ee641c23d.js          25.8 kB
   ├ chunks/7e1d1916-809030569bd2e095.js    146 kB
   ├ chunks/f516b164-869324fd039b7625.js    50.5 kB
-  ├ chunks/main-app-1a09b528483622be.js    221 B
-  └ chunks/webpack-a3c96e159c9051eb.js     2.06 kB
+  ├ chunks/main-app-a2f606333626b599.js    221 B
+  └ chunks/webpack-58fd4b087de79774.js     2.06 kB
 
 Route (pages)                              Size     First Load JS
 ─ ○ /404                                   183 B          76.2 kB
@@ -26,7 +27,7 @@ Route (pages)                              Size     First Load JS
   ├ chunks/framework-5914f800e5c1bf38.js   45.1 kB
   ├ chunks/main-114ff838987c381a.js        28.7 kB
   ├ chunks/pages/_app-6176bd5061739ffd.js  198 B
-  └ chunks/webpack-a3c96e159c9051eb.js     2.06 kB
+  └ chunks/webpack-58fd4b087de79774.js     2.06 kB
 
 ○  (Static)  automatically rendered as static HTML (uses no initial props)
 
