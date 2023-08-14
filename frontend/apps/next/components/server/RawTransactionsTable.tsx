@@ -74,7 +74,7 @@ const RawTransactionComponent = ({
   className,
 }: RawTransactionComponentProps) => (
   <Grid className='grid-cols-3 items-center my-2'>
-    <EventType rawTransactions={rawTransactions.eventType} />
+    <EventType className='justify-center sm:flex-row' rawTransactions={rawTransactions.eventType} />
     <Flex className='justify-center'>
       <RawTransactionField rawTransactions={rawTransactions.createdAt} />
     </Flex>

@@ -17,25 +17,34 @@ export default function Page() {
         <Flex className='w-full justify-center mb-6'>
           <FunctioNav />
         </Flex>
-        <Grid className='grid-rows-2 grid-cols-8 gap-4'>
-          {/* Row 1 */}
-          <div className='row-start-1 row-end-2 col-start-1 col-end-7 flex gap-4'>
-            <div className='bg-[#16171A] border border-arsenic w-6/12 h-full rounded-xl'>
+        <div className='flex flex-col lg:flex-row gap-4'>
+          <div className='flex flex-col lg:flex-row gap-4 mb-4 w-full'>
+            {/* Code Viewers */}
+            <div className='bg-[#16171A] border border-arsenic w-full lg:w-1/2 rounded-xl mb-4 lg:mb-0'>
               <CodeViewer language={'typescript'} />
             </div>
-            <div className='bg-[#16171A]  border border-arsenic w-6/12 h-full rounded-xl'>
+            <div className='bg-[#16171A] border border-arsenic w-full lg:w-1/2 rounded-xl'>
               <CodeViewer language={'solidity'} />
             </div>              
-          </div>          
-          <div className='col-start-7 col-end-9 row-start-1 row-end-2'>
-            <div className='bg-[#16171A] text-white border border-arsenic w-full h-full rounded-xl'>
+          </div>
+
+          {/* Transaction Submitter */}
+          <div className='bg-[#16171A] text-white border border-arsenic w-full lg:w-1/4 rounded-xl mb-4'>
             <TxnSubmitter />
-            </div>
-          </div>            
-          {/* Row 2 */}
-          <RawTransactionsTable className='' />
-          <ArweaveBox className='border border-arsenic w-full h-full rounded-xl' />
-        </Grid>
+          </div>
+        </div>
+
+        <div className='flex flex-col lg:flex-row gap-4'>
+          {/* Raw Transactions Table */}
+          <div className='w-full lg:w-3/4'>
+            <RawTransactionsTable />
+          </div>
+
+          {/* Arweave Box */}
+          <div className='w-1/2 h-1/2 p-2' >
+          <ArweaveBox className='max-w-screen-sm rounded-xl'/>
+          </div>
+        </div>
       </main>
       <Footer />
     </VStack>    
