@@ -1,5 +1,7 @@
 ## Protocol Developmenet Status
-ERC721 - First draft complete
+ERC721 Architecture - First draft complete
+
+Note: an older [branch](https://github.com/public-assembly/assembly-press/tree/0xTranqui/Full-Rewrite-230615) with a slightly different design was further along, and offers helpful insight into how we are thinking of `logic` + `renderer` contracts, as well as the role of `strategies`
 
 ## Protocol Local Development
 
