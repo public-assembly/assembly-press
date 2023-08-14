@@ -29,6 +29,15 @@ export const TxnSubmitter = () => {
   // Get prepareTxn value for hooks
   const user = address ? true : false;
 
+  // function for determing what message to show in "From" UI
+  const fromText = () => {
+    if (user) {
+      return shortenAddress(address)
+    } else {
+      return "N/A"
+    }
+  }
+
   /* SetupAP721 Hook */
   const databaseInitInput: Hash = encodeAbiParameters(
     parseAbiParameters('address, address, bool, bytes, bytes'),
@@ -40,7 +49,7 @@ export const TxnSubmitter = () => {
     ['AssemblyPress', 'AP'] // name + symbol
   );  
 
-  const { setupAP721, setupAP721Loading, setupAP721Success } = useSetupAP721({
+  const { setupAP721Config, setupAP721, setupAP721Loading, setupAP721Success } = useSetupAP721({
     database: databaseImpl,
     databaseInit: databaseInitInput,
     initialOwner: address,
@@ -52,7 +61,7 @@ export const TxnSubmitter = () => {
 //   console.log("setupAP721config", setupAP721Config)
 
   /* SetLogic Hook */
-  const { setLogic, setLogicLoading, setLogicSuccess } = useSetLogic({
+  const { setLogicConfig, setLogic, setLogicLoading, setLogicSuccess } = useSetLogic({
     database: databaseImpl,
     target: existingAP721,
     logic: logicImpl,
@@ -61,7 +70,7 @@ export const TxnSubmitter = () => {
   });
 
   /* SetRenderer Hook */
-  const { setRenderer, setRendererLoading, setRendererSuccess } =
+  const { setRendererConfig, setRenderer, setRendererLoading, setRendererSuccess } =
     useSetRenderer({
       database: databaseImpl,
       target: existingAP721,
@@ -81,7 +90,7 @@ export const TxnSubmitter = () => {
     [[encodedString]]
   );
 
-  const { store, storeLoading, storeSuccess } = useStore({
+  const { storeConfig, store, storeLoading, storeSuccess } = useStore({
     database: databaseImpl,
     target: existingAP721,
     quantity: BigInt(1),
@@ -97,7 +106,7 @@ export const TxnSubmitter = () => {
 
   const arrayOfBytes: Hash[] = [encodedString2];
 
-  const { overwrite, overwriteLoading, overwriteSuccess } = useOverwrite({
+  const { overwriteConfig, overwrite, overwriteLoading, overwriteSuccess } = useOverwrite({
     database: databaseImpl,
     target: existingAP721,
     tokenIds: [BigInt(1)],
@@ -105,39 +114,56 @@ export const TxnSubmitter = () => {
     prepareTxn: user
   });  
 
-    const handleTxn = () => {
-        switch(selector) {
-            case 0:
-                console.log("running setupAP721")
-                setupAP721?.()
-                break
-            case 1:
-                console.log("running setLogic")
-                setLogic?.()
-                break
-            case 2:
-                console.log("running setRenderer")
-                setRenderer?.()                
-                break
-            case 3:
-                console.log("running store")        
-                store?.()                        
-                break
-            case 4:
-                console.log("running overwrite")            
-                overwrite?.()                    
-                break
-        }
-    };
+  const handleTxn = () => {
+      switch(selector) {
+          case 0:
+              console.log("running setupAP721")
+              setupAP721?.()
+              break
+          case 1:
+              console.log("running setLogic")
+              setLogic?.()
+              break
+          case 2:
+              console.log("running setRenderer")
+              setRenderer?.()                
+              break
+          case 3:
+              console.log("running store")        
+              store?.()                        
+              break
+          case 4:
+              console.log("running overwrite")            
+              overwrite?.()                    
+              break
+      }
+  };
 
-    // Map selector values to corresponding snippets
-    const functionNameMap = {
-        0: "setupAP721",
-        1: "setLogic",
-        2: "setRenderer",
-        3: "store",
-        4: "overwrite"
-    };
+  // Map selector values to corresponding snippets
+  const functionNameMap = {
+      0: "setupAP721",
+      1: "setLogic",
+      2: "setRenderer",
+      3: "store",
+      4: "overwrite"
+  };
+
+  const functionConfigMap = {
+    0: setupAP721Config,
+    1: setLogicConfig,
+    2: setRendererConfig,
+    3: storeConfig,
+    4: overwriteConfig
+  };    
+
+  // function for determing what message to show in "From" UI
+  const argsText = () => {
+    if (functionConfigMap?.[selector]?.request?.args) {
+      return functionConfigMap?.[selector]?.request?.args.join(',\n')
+    } else {
+      return "*** connect wallet to see args ***"
+    }
+  }  
 
     // const functionLoadingMap = {
     //     0: setupAP721Loading,
@@ -153,27 +179,15 @@ export const TxnSubmitter = () => {
     //     return functionLoadingMap?.[selector]
     // }
 
-    // const functionConfigMap = {
-    //     0: setupAP721Config,
-    //     1: setLogicConfig,
-    //     2: setRenderer,
-    //     3: storeConfig,
-    //     4: overwriteConfig
-    // };    
-
-    // const parsedActiveArgs = () => {
-    //     return functionConfigMap?.[selector].request?.args
-    // }
-
   return (
-    <Flex className="flex-col justify-between h-full w-full  px-6 py-3">
+    <Flex className="flex-col justify-between h-full w-full   px-6 py-3">
         <div className="flex flex-wrap gap-y-4 mb-10">
-            <div className="flex w-full">{`From: ${shortenAddress(address)}`}</div>
-            <div className="flex w-full">{`To: ${shortenAddress(databaseImpl)}`}</div>
+            <div className="flex w-full">From:&nbsp;<span className="text-[#858585]">{fromText()}</span></div>
+            <div className="flex w-full">To:&nbsp;<span className="text-[#858585]">{shortenAddress(databaseImpl)}</span></div>
         </div>
         <div className="flex flex-wrap gap-y-2">
             <div className="flex w-full">{"Args:"}</div>
-            <div className="p-2 flex w-full h-[200px] bg-[#232528] text-[#A7A8A9] overflow-y-auto">{"[placholder]: should be filled with prepConfig from active function"}</div>
+            <div className="border-white p-2 flex-col  w-full h-[200px] bg-[#232528] text-[#A7A8A9] overflow-y-auto whitespace-pre-wrap break-all">{argsText()}</div>
         </div>    
         <Button text={"Submit Txn"} callback={handleTxn} callbackLoading={false} />
     </Flex>

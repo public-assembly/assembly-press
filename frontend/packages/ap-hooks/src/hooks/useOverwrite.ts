@@ -3,9 +3,10 @@ import {
   useContractWrite,
   useWaitForTransaction,
 } from 'wagmi'
-import { AP721DatabaseV1Abi } from '../contracts'
+import { PrepareWriteContractResult } from 'wagmi/actions'
 import { optimismGoerli } from 'wagmi/chains'
 import { Hex, Hash } from 'viem'
+import { AP721DatabaseV1Abi } from '../contracts'
 
 interface OverwriteProps {
   database: Hex
@@ -15,14 +16,21 @@ interface OverwriteProps {
   prepareTxn: boolean
 }
 
+interface OverwriteReturn {
+  overwriteConfig: PrepareWriteContractResult
+  overwrite: (() => void) | undefined
+  overwriteLoading: boolean
+  overwriteSuccess: boolean
+}
+
 export function useOverwrite({
   database,
   target,
   tokenIds,
   data,
   prepareTxn
-}: OverwriteProps) {
-  const { config } = usePrepareContractWrite({
+}: OverwriteProps): OverwriteReturn {
+  const { config: overwriteConfig } = usePrepareContractWrite({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: 'overwrite',
@@ -31,7 +39,7 @@ export function useOverwrite({
     enabled: prepareTxn
   })
 
-  const { data: overwriteData, write: overwrite } = useContractWrite(config)
+  const { data: overwriteData, write: overwrite } = useContractWrite(overwriteConfig)
 
   const { isLoading: overwriteLoading, isSuccess: overwriteSuccess } =
     useWaitForTransaction({
@@ -39,7 +47,7 @@ export function useOverwrite({
     })
 
   return {
-    // config,
+    overwriteConfig,
     overwrite,
     overwriteLoading,
     overwriteSuccess,

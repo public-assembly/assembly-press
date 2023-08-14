@@ -3,9 +3,10 @@ import {
   useContractWrite,
   useWaitForTransaction,
 } from 'wagmi'
-import { AP721DatabaseV1Abi } from '../contracts'
+import { PrepareWriteContractResult } from 'wagmi/actions'
 import { optimismGoerli } from 'wagmi/chains'
 import { Hex, Hash } from 'viem'
+import { AP721DatabaseV1Abi } from '../contracts'
 
 interface SetLogicProps {
   database: Hex
@@ -15,14 +16,21 @@ interface SetLogicProps {
   prepareTxn: boolean
 }
 
+interface SetLogicReturn {
+  setLogicConfig: PrepareWriteContractResult
+  setLogic: (() => void) | undefined
+  setLogicLoading: boolean
+  setLogicSuccess: boolean
+}
+
 export function useSetLogic({
   database,
   target,
   logic,
   logicInit,
   prepareTxn
-}: SetLogicProps) {
-  const { config } = usePrepareContractWrite({
+}: SetLogicProps): SetLogicReturn {
+  const { config: setLogicConfig } = usePrepareContractWrite({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: 'setLogic',
@@ -31,7 +39,7 @@ export function useSetLogic({
     enabled: prepareTxn
   })
 
-  const { data: setLogicData, write: setLogic } = useContractWrite(config)
+  const { data: setLogicData, write: setLogic } = useContractWrite(setLogicConfig)
 
   const { isLoading: setLogicLoading, isSuccess: setLogicSuccess } =
     useWaitForTransaction({
@@ -39,7 +47,7 @@ export function useSetLogic({
     })
 
   return {
-    // config,
+    setLogicConfig,
     setLogic,
     setLogicLoading,
     setLogicSuccess,

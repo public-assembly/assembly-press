@@ -3,9 +3,10 @@ import {
   useContractWrite,
   useWaitForTransaction,
 } from 'wagmi'
-import { AP721DatabaseV1Abi } from '../contracts'
+import { PrepareWriteContractResult } from 'wagmi/actions'
 import { optimismGoerli } from 'wagmi/chains'
 import { Hex, Hash } from 'viem'
+import { AP721DatabaseV1Abi } from '../contracts'
 
 interface StoreProps {
   database: Hex
@@ -15,8 +16,15 @@ interface StoreProps {
   prepareTxn: boolean
 }
 
-export function useStore({ database, target, quantity, data, prepareTxn }: StoreProps) {
-  const { config } = usePrepareContractWrite({
+interface StoreReturn {
+  storeConfig: PrepareWriteContractResult
+  store: (() => void) | undefined
+  storeLoading: boolean
+  storeSuccess: boolean
+}
+
+export function useStore({ database, target, quantity, data, prepareTxn }: StoreProps): StoreReturn {
+  const { config: storeConfig } = usePrepareContractWrite({
     address: database,
     abi: AP721DatabaseV1Abi,
     functionName: 'store',
@@ -25,7 +33,7 @@ export function useStore({ database, target, quantity, data, prepareTxn }: Store
     enabled: prepareTxn
   })
 
-  const { data: storeData, write: store } = useContractWrite(config)
+  const { data: storeData, write: store } = useContractWrite(storeConfig)
 
   const { isLoading: storeLoading, isSuccess: storeSuccess } =
     useWaitForTransaction({
@@ -33,7 +41,7 @@ export function useStore({ database, target, quantity, data, prepareTxn }: Store
     })
 
   return {
-    // config,
+    storeConfig,
     store,
     storeLoading,
     storeSuccess,
