@@ -15,7 +15,7 @@ export const Button: FC<ButtonProps> = ({
   return (
     <button
       type='button'
-      className='bg-[#42464D] rounded-md w-full py-4 px-4 rounded hover:bg-[#5d6169]'
+      className='bg-arsenic rounded-md w-full py-4 px-4 hover:bg-black-coral text-platinum'
       onClick={!callbackLoading ? callback : undefined}
       disabled={callbackLoading}
     >

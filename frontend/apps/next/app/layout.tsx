@@ -58,7 +58,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang='en' className={`${satoshi.variable} ${space_mono.variable} bg-raisin-black`}>
-      <body>
+      <body className='px-8'>
         <Providers>{children}</Providers>
       </body>
     </html>

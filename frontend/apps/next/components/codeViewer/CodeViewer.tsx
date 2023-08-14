@@ -7,57 +7,50 @@ import 'prismjs/themes/prism.css';
 import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-solidity';
 
-import { 
-    setupAP721Snippets,
-    setLogicSnippets,
-    setRendererSnippets,
-    storeSnippets,
-    overwriteSnippets,
+import {
+  setupAP721Snippets,
+  setLogicSnippets,
+  setRendererSnippets,
+  storeSnippets,
+  overwriteSnippets,
 } from '@/components/codeViewer/content/codeblocks';
-import { Flex,CaptionLarge } from '../base';
 
 type CodeViewerProps = {
   language: string;
 };
 
 export const CodeViewer = ({ language }: CodeViewerProps) => {
+  // Get current selector from global contexta
+  const { selector } = useFunctionSelect();
 
-    // Get current selector from global contexta
-    const {selector} = useFunctionSelect()
+  // Map selector values to corresponding snippets
+  const snippetsMap = {
+    0: setupAP721Snippets,
+    1: setLogicSnippets,
+    2: setRendererSnippets,
+    3: storeSnippets,
+    4: overwriteSnippets,
+  };
 
-    // Map selector values to corresponding snippets
-    const snippetsMap = {
-        0: setupAP721Snippets,
-        1: setLogicSnippets,
-        2: setRendererSnippets,
-        3: storeSnippets,
-        4: overwriteSnippets,
-    };
-    
-   // Find the correct snippet object using the selector, then get the language-specific snippet
-   const code = snippetsMap[selector]?.[language];
-   const headerName = language === 'solidity' ? 'Protocol' : (language === 'typescript' ? 'Frontend' : '');
+  // Find the correct snippet object using the selector, then get the language-specific snippet
+  const code = snippetsMap[selector]?.[language];
 
   return (
-<div>
-<Flex className='flex-col w-full content-between  px-6 pt-3'>
-  <CaptionLarge className='text-platinum mb-4 align-left'>{headerName}</CaptionLarge> 
-    
-    <Editor
+    <>
+      <Editor
         value={code}
-        onValueChange={null}    
-        readOnly    
-        highlight={code => highlight(code, languages[language], language)}        
-        padding={10}
+        onValueChange={null}
+        readOnly
+        highlight={(code) => highlight(code, languages[language], language)}
+        padding={16}
         style={{
-          height: "425px",
-          overflow: "auto",
+          overflow: 'auto',
           fontFamily: '"Fira code", "Fira Mono", monospace',
-          fontSize: 12,
-          color: "#fff"
+          fontSize: 13,
+          color: '#E4E4E4',
+          height: '432px',
         }}
-    />
-    </Flex>
-    </div>
+      />
+    </>
   );
 };

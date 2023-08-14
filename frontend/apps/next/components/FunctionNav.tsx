@@ -27,7 +27,7 @@ const GridItem = ({ functionName, selectorIndex }: GridItemProps) => {
   );
 };
 
-export const FunctioNav = () => {
+export const FunctionNav = () => {
   return (
     <Flex className='justify-between gap-x-2 rounded-full bg-eerie-black w-fit'>
       <GridItem functionName={'setupAP721'} selectorIndex={0} />

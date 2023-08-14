@@ -1,25 +1,27 @@
-"use client";
+'use client';
 
-import { useFunctionSelect } from "context/FunctionSelectProvider";
-import { Flex, CaptionLarge } from "../base";
+import { useFunctionSelect } from 'context/FunctionSelectProvider';
+import { Flex, CaptionLarge, BodySmall, BodyExtraSmall } from '../base';
 import {
   useSetupAP721,
   useSetLogic,
   useSetRenderer,
   useStore,
   useOverwrite,
-} from "@public-assembly/ap-hooks";
-import { useAccount } from "wagmi";
-import { Hash, Hex, encodeAbiParameters, parseAbiParameters } from "viem";
-import { Button } from "../Button";
-import { shortenAddress } from "@/utils/shortenAddress";
-
-const databaseImpl: Hex = "0xFE16d7a18A1c00e8f07Ca11A1d29e69A69d67d7b";
-const factoryImpl: Hex = "0x506615B90099d2d7031B34f455A5803F5Cae68Cb";
-const logicImpl: Hex = "0x9c9FA39424F755F2a82eE01cb6a91212F300f55d";
-const rendererImpl: Hex = "0x92964176f59080c5785fAAB8318B32638ec37970";
-const emptyInit: Hex = "0x";
-const existingAP721: Hex = "0x2F2882485D87D21230e9369ED73aDdbE4671c0BF";
+} from '@public-assembly/ap-hooks';
+import { useAccount } from 'wagmi';
+import { Hash, encodeAbiParameters, parseAbiParameters } from 'viem';
+import { Button } from '../Button';
+import { ArrowRightIcon } from '@radix-ui/react-icons';
+import { shortenAddress } from '@/utils/shortenAddress';
+import {
+  databaseImpl,
+  logicImpl,
+  rendererImpl,
+  emptyInit,
+  factoryImpl,
+  existingAP721,
+} from 'app/constants';
 
 export const TxnSubmitter = () => {
   // Get current selector from global context
@@ -29,14 +31,14 @@ export const TxnSubmitter = () => {
   // Get prepareTxn value for hooks
   const user = address ? true : false;
 
-  // function for determing what message to show in "From" UI
+  // function for determining what message to show for `from`
   const fromText = () => {
     if (user) {
-      return shortenAddress(address)
+      return shortenAddress(address);
     } else {
-      return "N/A"
+      return 'n/a';
     }
-  }
+  };
 
   /* SetupAP721 Hook */
   const databaseInitInput: Hash = encodeAbiParameters(
@@ -47,37 +49,41 @@ export const TxnSubmitter = () => {
   const factoryInitInput: Hash = encodeAbiParameters(
     parseAbiParameters('string, string'),
     ['AssemblyPress', 'AP'] // name + symbol
-  );  
+  );
 
-  const { setupAP721Config, setupAP721, setupAP721Loading, setupAP721Success } = useSetupAP721({
-    database: databaseImpl,
-    databaseInit: databaseInitInput,
-    initialOwner: address,
-    factory: factoryImpl,
-    factoryInit: factoryInitInput,
-    prepareTxn: user
-  });
-
-//   console.log("setupAP721config", setupAP721Config)
+  const { setupAP721Config, setupAP721, setupAP721Loading, setupAP721Success } =
+    useSetupAP721({
+      database: databaseImpl,
+      databaseInit: databaseInitInput,
+      initialOwner: address,
+      factory: factoryImpl,
+      factoryInit: factoryInitInput,
+      prepareTxn: user,
+    });
 
   /* SetLogic Hook */
-  const { setLogicConfig, setLogic, setLogicLoading, setLogicSuccess } = useSetLogic({
-    database: databaseImpl,
-    target: existingAP721,
-    logic: logicImpl,
-    logicInit: emptyInit,
-    prepareTxn: user
-  });
-
-  /* SetRenderer Hook */
-  const { setRendererConfig, setRenderer, setRendererLoading, setRendererSuccess } =
-    useSetRenderer({
+  const { setLogicConfig, setLogic, setLogicLoading, setLogicSuccess } =
+    useSetLogic({
       database: databaseImpl,
       target: existingAP721,
-      renderer: rendererImpl,
-      rendererInit: emptyInit,
-      prepareTxn: user
+      logic: logicImpl,
+      logicInit: emptyInit,
+      prepareTxn: user,
     });
+
+  /* SetRenderer Hook */
+  const {
+    setRendererConfig,
+    setRenderer,
+    setRendererLoading,
+    setRendererSuccess,
+  } = useSetRenderer({
+    database: databaseImpl,
+    target: existingAP721,
+    renderer: rendererImpl,
+    rendererInit: emptyInit,
+    prepareTxn: user,
+  });
 
   /* Store Hook */
   const encodedString: Hash = encodeAbiParameters(
@@ -95,7 +101,7 @@ export const TxnSubmitter = () => {
     target: existingAP721,
     quantity: BigInt(1),
     data: encodedBytesArray,
-    prepareTxn: user
+    prepareTxn: user,
   });
 
   /* Overwrite Hook */
@@ -106,46 +112,38 @@ export const TxnSubmitter = () => {
 
   const arrayOfBytes: Hash[] = [encodedString2];
 
-  const { overwriteConfig, overwrite, overwriteLoading, overwriteSuccess } = useOverwrite({
-    database: databaseImpl,
-    target: existingAP721,
-    tokenIds: [BigInt(1)],
-    data: arrayOfBytes,
-    prepareTxn: user
-  });  
+  const { overwriteConfig, overwrite, overwriteLoading, overwriteSuccess } =
+    useOverwrite({
+      database: databaseImpl,
+      target: existingAP721,
+      tokenIds: [BigInt(1)],
+      data: arrayOfBytes,
+      prepareTxn: user,
+    });
 
   const handleTxn = () => {
-      switch(selector) {
-          case 0:
-              console.log("running setupAP721")
-              setupAP721?.()
-              break
-          case 1:
-              console.log("running setLogic")
-              setLogic?.()
-              break
-          case 2:
-              console.log("running setRenderer")
-              setRenderer?.()                
-              break
-          case 3:
-              console.log("running store")        
-              store?.()                        
-              break
-          case 4:
-              console.log("running overwrite")            
-              overwrite?.()                    
-              break
-      }
-  };
-
-  // Map selector values to corresponding snippets
-  const functionNameMap = {
-      0: "setupAP721",
-      1: "setLogic",
-      2: "setRenderer",
-      3: "store",
-      4: "overwrite"
+    switch (selector) {
+      case 0:
+        console.log('running setupAP721');
+        setupAP721?.();
+        break;
+      case 1:
+        console.log('running setLogic');
+        setLogic?.();
+        break;
+      case 2:
+        console.log('running setRenderer');
+        setRenderer?.();
+        break;
+      case 3:
+        console.log('running store');
+        store?.();
+        break;
+      case 4:
+        console.log('running overwrite');
+        overwrite?.();
+        break;
+    }
   };
 
   const functionConfigMap = {
@@ -153,44 +151,76 @@ export const TxnSubmitter = () => {
     1: setLogicConfig,
     2: setRendererConfig,
     3: storeConfig,
-    4: overwriteConfig
-  };    
+    4: overwriteConfig,
+  };
 
-  // function for determing what message to show in "From" UI
+  // function for determing what message to show for `from`
   const argsText = () => {
     if (functionConfigMap?.[selector]?.request?.args) {
-      return functionConfigMap?.[selector]?.request?.args.join(',\n')
+      return functionConfigMap?.[selector]?.request?.args.join(',\n');
     } else {
-      return "*** connect wallet to see args ***"
+      return 'Connect your wallet to see these arguments';
     }
-  }  
+  };
 
-    // const functionLoadingMap = {
-    //     0: setupAP721Loading,
-    //     1: setLogicLoading,
-    //     2: setRendererLoading,
-    //     3: storeLoading,
-    //     4: overwriteLoading
-    // };    
+  // Map selector values to corresponding snippets
+  // const functionNameMap = {
+  //   0: 'setupAP721',
+  //   1: 'setLogic',
+  //   2: 'setRenderer',
+  //   3: 'store',
+  //   4: 'overwrite',
+  // };
 
-    // const activeFunctionLoading = () => {
-    //     console.log("selector: ", selector)
-    //     console.log("loading?: ", functionLoadingMap?.[selector])
-    //     return functionLoadingMap?.[selector]
-    // }
+  // const functionLoadingMap = {
+  //     0: setupAP721Loading,
+  //     1: setLogicLoading,
+  //     2: setRendererLoading,
+  //     3: storeLoading,
+  //     4: overwriteLoading
+  // };
+
+  // const activeFunctionLoading = () => {
+  //     console.log("selector: ", selector)
+  //     console.log("loading?: ", functionLoadingMap?.[selector])
+  //     return functionLoadingMap?.[selector]
+  // }
 
   return (
-    <Flex className="flex-col justify-between h-full w-full   px-6 py-3">
-        <div className="flex flex-wrap gap-y-4 mb-10">
-            <div className="flex w-full">From:&nbsp;<span className="text-[#858585]">{fromText()}</span></div>
-            <div className="flex w-full">To:&nbsp;<span className="text-[#858585]">{shortenAddress(databaseImpl)}</span></div>
-        </div>
-        <div className="flex flex-wrap gap-y-2">
-            <div className="flex w-full">{"Args:"}</div>
-            <div className="border-white p-2 flex-col  w-full h-[200px] bg-[#232528] text-[#A7A8A9] overflow-y-auto whitespace-pre-wrap break-all">{argsText()}</div>
-        </div>    
-        <Button text={"Submit Txn"} callback={handleTxn} callbackLoading={false} />
+    <Flex className='flex-col justify-between p-4 gap-8 h-[432px]'>
+      {/* From --> To */}
+      <div className='flex flex-wrap justify-between items-center '>
+        <a href={`https://goerli-optimism.etherscan.io/address/${address}`}>
+          <Flex className='hover:border-dark-gray  px-2 py-[2px] bg-dark-gunmetal rounded-[18px] border border-arsenic justify-center items-center w-fit'>
+            {/* From:&nbsp; */}
+            <BodySmall className='text-dark-gray'>{fromText()}</BodySmall>
+          </Flex>
+        </a>
+        <ArrowRightIcon />
+        <a
+          href={`https://goerli-optimism.etherscan.io/address/${databaseImpl}`}
+        >
+          <Flex className='hover:border-dark-gray  px-2 py-[2px] bg-dark-gunmetal rounded-[18px] border border-arsenic justify-center items-center w-fit'>
+            {/* To:&nbsp; */}
+            <BodySmall className='text-dark-gray'>
+              {shortenAddress(databaseImpl)}
+            </BodySmall>
+          </Flex>
+        </a>
+      </div>
+      {/* Args */}
+      <div className='flex flex-wrap gap-y-2'>
+        <BodySmall className='text-platinum'>Args:</BodySmall>
+        <BodySmall className='border-white p-2 flex-col h-[180px] w-full bg-[#232528] text-dark-gray overflow-y-auto whitespace-pre-wrap break-all rounded'>
+          {argsText()}
+        </BodySmall>
+      </div>
+      {/* Submit */}
+      <Button
+        text={'Submit Transaction'}
+        callback={handleTxn}
+        callbackLoading={false}
+      />
     </Flex>
-  )
+  );
 };
-
