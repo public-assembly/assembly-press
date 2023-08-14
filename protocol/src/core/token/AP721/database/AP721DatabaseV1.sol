@@ -38,13 +38,10 @@ import "sstore2/SSTORE2.sol";
 
 // TODO: should there be a way to store contract level data as well? not just token data?
 //      Ex: should things like a contractURI be stored in renderer contracts or in the database?
-//      Does this mean that all the store functions need need access checks split out into:
-//          canStoreTokenData + canStoreContractData? --- unclear
+//      May mean that all the store functions need need access checks split out into:
+//          canStoreTokenData + canStoreContractData
 // TODO: should `readAllData` call return a tokenId alongside the bytes values returned for each slot?
-// TODO: add in all of the multi functions
-// TODO: confirm if this database impl needs to inherit ERC2771 to enable _msgSender() to be compatible with GSN contracts
-//       ^ think we can maybe get rid of this because we'll be using ERC4337 instead?
-// TODO: actually check if/where reentrancy guards are necessary
+// TODO: confirm where reentrancy guards are necessary
 
 /**
  * @title AP721DatabaseV1
