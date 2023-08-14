@@ -1,35 +1,19 @@
 
-> @public-assembly/ap-hooks@0.0.1 build /Users/salieflewis/Desktop/public/assembly-press/frontend/packages/ap-hooks
+> @public-assembly/ap-hooks@0.0.1 build /Users/maximbochman/Desktop/code/ap-demo-230814/frontend/packages/ap-hooks
 > tsup src/index.ts --format esm,cjs --dts --external react
 
 CLI Building entry: src/index.ts
 CLI Using tsconfig: tsconfig.json
 CLI tsup v7.1.0
-CLI Using tsup config: /Users/salieflewis/Desktop/public/assembly-press/frontend/packages/ap-hooks/tsup.config.ts
+CLI Using tsup config: /Users/maximbochman/Desktop/code/ap-demo-230814/frontend/packages/ap-hooks/tsup.config.ts
 CLI Target: node16
 ESM Build start
 CJS Build start
-ESM dist/index.mjs 16.28 KB
-ESM ⚡️ Build success in 12ms
-CJS dist/index.js 17.04 KB
-CJS ⚡️ Build success in 12ms
+CJS dist/index.js 17.18 KB
+CJS ⚡️ Build success in 11ms
+ESM dist/index.mjs 16.42 KB
+ESM ⚡️ Build success in 11ms
 DTS Build start
-src/hooks/useSetupAP721.ts(19,17): error TS2742: The inferred type of 'useSetupAP721' cannot be named without a reference to '.pnpm/@wagmi+core@1.3.8_react@18.2.0_typescript@5.1.6_viem@1.4.1/node_modules/@wagmi/core'. This is likely not portable. A type annotation is necessary.
-
-Error: error occured in dts build
-    at Worker.<anonymous> (/Users/salieflewis/Desktop/public/assembly-press/frontend/node_modules/.pnpm/tsup@7.1.0_typescript@5.1.6/node_modules/tsup/dist/index.js:2279:26)
-    at Worker.emit (node:events:512:28)
-    at MessagePort.<anonymous> (node:internal/worker:263:53)
-    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:778:20)
-    at exports.emitMessage (node:internal/per_context/messageport:23:28)
-DTS Build error
-RollupError: Failed to compile. Check the logs above.
-    at error (/Users/salieflewis/Desktop/public/assembly-press/frontend/node_modules/.pnpm/rollup@3.26.3/node_modules/rollup/dist/shared/rollup.js:349:30)
-    at Object.error (/Users/salieflewis/Desktop/public/assembly-press/frontend/node_modules/.pnpm/rollup@3.26.3/node_modules/rollup/dist/shared/rollup.js:1715:20)
-    at Object.error (/Users/salieflewis/Desktop/public/assembly-press/frontend/node_modules/.pnpm/rollup@3.26.3/node_modules/rollup/dist/shared/rollup.js:25418:42)
-    at generateDtsFromTs (/Users/salieflewis/Desktop/public/assembly-press/frontend/node_modules/.pnpm/tsup@7.1.0_typescript@5.1.6/node_modules/tsup/dist/rollup.js:7500:22)
-    at /Users/salieflewis/Desktop/public/assembly-press/frontend/node_modules/.pnpm/tsup@7.1.0_typescript@5.1.6/node_modules/tsup/dist/rollup.js:7507:59
-    at _nullishCoalesce (/Users/salieflewis/Desktop/public/assembly-press/frontend/node_modules/.pnpm/tsup@7.1.0_typescript@5.1.6/node_modules/tsup/dist/rollup.js:1:198)
-    at Object.transform (/Users/salieflewis/Desktop/public/assembly-press/frontend/node_modules/.pnpm/tsup@7.1.0_typescript@5.1.6/node_modules/tsup/dist/rollup.js:7507:18)
-    at /Users/salieflewis/Desktop/public/assembly-press/frontend/node_modules/.pnpm/rollup@3.26.3/node_modules/rollup/dist/shared/rollup.js:1908:40
- ELIFECYCLE  Command failed with exit code 1.
+DTS ⚡️ Build success in 1404ms
+DTS dist/index.d.mts 2.68 KB
+DTS dist/index.d.ts  2.68 KB

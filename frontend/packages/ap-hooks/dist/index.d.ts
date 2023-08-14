@@ -1,5 +1,5 @@
-import { Hex, Hash } from 'viem';
 import { PrepareWriteContractResult } from 'wagmi/actions';
+import { Hex, Hash } from 'viem';
 
 interface StoreProps {
     database: Hex;
@@ -8,11 +8,13 @@ interface StoreProps {
     data: Hash;
     prepareTxn: boolean;
 }
-declare function useStore({ database, target, quantity, data, prepareTxn }: StoreProps): {
+interface StoreReturn {
+    storeConfig: PrepareWriteContractResult;
     store: (() => void) | undefined;
     storeLoading: boolean;
     storeSuccess: boolean;
-};
+}
+declare function useStore({ database, target, quantity, data, prepareTxn }: StoreProps): StoreReturn;
 
 interface OverwriteProps {
     database: Hex;
@@ -21,11 +23,13 @@ interface OverwriteProps {
     data: Hash[];
     prepareTxn: boolean;
 }
-declare function useOverwrite({ database, target, tokenIds, data, prepareTxn }: OverwriteProps): {
+interface OverwriteReturn {
+    overwriteConfig: PrepareWriteContractResult;
     overwrite: (() => void) | undefined;
     overwriteLoading: boolean;
     overwriteSuccess: boolean;
-};
+}
+declare function useOverwrite({ database, target, tokenIds, data, prepareTxn }: OverwriteProps): OverwriteReturn;
 
 interface RemoveProps {
     database: Hex;
@@ -33,11 +37,13 @@ interface RemoveProps {
     tokenIds: bigint[];
     prepareTxn: boolean;
 }
-declare function useRemove({ database, target, tokenIds, prepareTxn }: RemoveProps): {
+interface RemoveReturn {
+    removeConfig: PrepareWriteContractResult;
     remove: (() => void) | undefined;
     removeLoading: boolean;
     removeSuccess: boolean;
-};
+}
+declare function useRemove({ database, target, tokenIds, prepareTxn }: RemoveProps): RemoveReturn;
 
 interface SetLogicProps {
     database: Hex;
@@ -46,11 +52,13 @@ interface SetLogicProps {
     logicInit: Hash;
     prepareTxn: boolean;
 }
-declare function useSetLogic({ database, target, logic, logicInit, prepareTxn }: SetLogicProps): {
+interface SetLogicReturn {
+    setLogicConfig: PrepareWriteContractResult;
     setLogic: (() => void) | undefined;
     setLogicLoading: boolean;
     setLogicSuccess: boolean;
-};
+}
+declare function useSetLogic({ database, target, logic, logicInit, prepareTxn }: SetLogicProps): SetLogicReturn;
 
 interface SetRendererProps {
     database: Hex;
@@ -59,13 +67,13 @@ interface SetRendererProps {
     rendererInit: Hash;
     prepareTxn: boolean;
 }
-interface SetupAP721Return$1 {
+interface SetRendererReturn {
     setRendererConfig: PrepareWriteContractResult;
     setRenderer: (() => void) | undefined;
     setRendererLoading: boolean;
     setRendererSuccess: boolean;
 }
-declare function useSetRenderer({ database, target, renderer, rendererInit, prepareTxn, }: SetRendererProps): SetupAP721Return$1;
+declare function useSetRenderer({ database, target, renderer, rendererInit, prepareTxn, }: SetRendererProps): SetRendererReturn;
 
 interface SetupAP721Props {
     database: Hex;
@@ -81,7 +89,6 @@ interface SetupAP721Return {
     setupAP721Loading: boolean;
     setupAP721Success: boolean;
 }
-
 declare function useSetupAP721({ database, initialOwner, databaseInit, factory, factoryInit, prepareTxn, }: SetupAP721Props): SetupAP721Return;
 
 export { useOverwrite, useRemove, useSetLogic, useSetRenderer, useSetupAP721, useStore };

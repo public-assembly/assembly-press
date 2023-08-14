@@ -3,11 +3,10 @@ import {
   useContractWrite,
   useWaitForTransaction,
 } from 'wagmi'
-// import { PrepareWriteContractResult }from 'wagmi'
-import { UsePrepareContractWriteConfig } from 'wagmi'
-import { AP721DatabaseV1Abi } from '../contracts'
+import { PrepareWriteContractResult } from 'wagmi/actions'
 import { optimismGoerli } from 'wagmi/chains'
 import { Hex, Hash } from 'viem'
+import { AP721DatabaseV1Abi } from '../contracts'
 
 interface SetupAP721Props {
   database: Hex
@@ -24,19 +23,6 @@ interface SetupAP721Return {
   setupAP721Loading: boolean
   setupAP721Success: boolean
 }
-
-import {
-  prepareWriteContract,
-  writeContract,
-  PrepareWriteContractResult,
-} from 'wagmi/actions'
-
-// const { request } = await prepareWriteContract({
-//   address: '0xecb504d39723b0be0e3a9aa33d646642d1051ee1',
-//   abi: wagmigotchiABI,
-//   functionName: 'feed',
-// })
-// const { hash } = await writeContract(request)
 
 export function useSetupAP721({
   database,
