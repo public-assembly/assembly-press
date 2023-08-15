@@ -1,7 +1,7 @@
 'use client';
 
 import { useFunctionSelect } from 'context/FunctionSelectProvider';
-import { Flex, CaptionLarge, BodySmall, BodyExtraSmall } from '../base';
+import { Flex, CaptionLarge, BodySmall, BodyExtraSmall } from './base';
 import {
   useSetupAP721,
   useSetLogic,
@@ -11,7 +11,7 @@ import {
 } from '@public-assembly/ap-hooks';
 import { useAccount } from 'wagmi';
 import { Hash, encodeAbiParameters, parseAbiParameters } from 'viem';
-import { Button } from '../Button';
+import { Button } from './Button';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { shortenAddress } from '@/utils/shortenAddress';
 import {

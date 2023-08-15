@@ -3,9 +3,9 @@ import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { FunctionNav } from '@/components/FunctionNav';
 import { CodeViewer } from '@/components/codeViewer/CodeViewer';
-import { TxnSubmitter } from '@/components/txnSubmitter/TxnSubmitter';
+import { TxnSubmitter } from '@/components/TxnSubmitter';
 import { RawTransactionsTable } from '@/components/RawTransactionsTable';
-import { ArweaveBox } from '@/components/arweave';
+import { ArweaveBox } from '@/components/ArweaveBox';
 
 export default function Page() {
   /* Visit `styles/globals.css` for hardcoded section sizes */
