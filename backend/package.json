@@ -29,7 +29,7 @@
     "graphql": "^16.7.1",
     "graphql-tag": "^2.12.6",
     "node-cron": "^3.0.2",
-    "viem": "^1.4.1"
+    "viem": "^1.6.0"
   },
   "devDependencies": {
     "@types/node-cron": "^3.0.8",
