@@ -5,7 +5,7 @@ import {
   type RawTransaction,
 } from 'gql/requests/recentRawTransactions';
 import { useEffect, useState } from 'react';
-import { Caption, Flex, Grid, Debug, BodySmall, CaptionLarge } from './base';
+import { Caption, Flex, Grid, BodySmall, CaptionLarge } from './base';
 import { cn } from '@/utils/cn';
 import { camelToSpaced } from '@/utils/wordSpacer';
 
@@ -80,7 +80,7 @@ const RawTransactionComponent = ({
   className,
 }: RawTransactionComponentProps) => (
   <Grid className='grid-cols-3 items-center my-2'>
-    <EventType className='justify-center sm:flex-row' rawTransactions={rawTransactions.eventType} />
+    <EventType rawTransactions={rawTransactions.eventType} />
     <Flex className='justify-center'>
       <RawTransactionField rawTransactions={rawTransactions.createdAt} />
     </Flex>
