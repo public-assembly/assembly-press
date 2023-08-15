@@ -12,7 +12,6 @@ export const setupAP721Snippets = {
           abi: AP721DatabaseV1Abi,
           functionName: 'setupAP721',
           args: [initialOwner, databaseInit, factory, factoryInit],
-          chainId: optimismGoerli.id,
         })
       
         const { data: setupAP721Data, write: setupAP721 } = useContractWrite(config)

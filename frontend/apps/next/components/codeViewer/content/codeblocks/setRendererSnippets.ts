@@ -11,7 +11,6 @@ export const setRendererSnippets = {
           abi: AP721DatabaseV1Abi,
           functionName: 'setRenderer',
           args: [target, renderer, rendererInit],
-          chainId: optimismGoerli.id,
         })
       
         const { data: setRendererData, write: setRenderer } = useContractWrite(config)
