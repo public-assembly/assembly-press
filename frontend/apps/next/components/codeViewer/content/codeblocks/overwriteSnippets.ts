@@ -45,6 +45,5 @@ export const overwriteSnippets = {
             address newPointer = tokenData[target][storageCounter] = SSTORE2.write(data[i]);
             emit DataOverwritten(target, sender, storageCounter, newPointer);
         }
-        // TODO: figure out emitting one event that contains array of storageCounters + newPointers?
     }`,
 };
