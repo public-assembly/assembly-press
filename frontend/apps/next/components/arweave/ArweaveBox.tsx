@@ -21,7 +21,8 @@ const LinkField = ({ value }: ArweaveFieldProps) => (
     className='flex px-2 py-[2px] bg-dark-gunmetal rounded-[18px] border border-arsenic justify-center items-center w-fit hover:border-dark-gray '
   >
     <BodySmall className='text-dark-gray whitespace-nowrap'>
-      {value.slice(0,36).toString() + "..."}
+      {/* rome-ignore lint: */}
+      {value.slice(0, 36).toString() + '...'}
     </BodySmall>
   </Link>
 );
@@ -44,11 +45,10 @@ type ArweaveBoxProps = {
 export const ArweaveBox = async ({ className }: ArweaveBoxProps) => {
   const arweaveData = await recentArweaveTransactions();
 
-  if (!arweaveData) return null; 
+  if (!arweaveData) return null;
 
   return (
     <Flex className='row-start-2 row-end-3 col-start-6 col-end-9 flex-col w-full content-between border border-arsenic rounded-xl px-6 py-3'>
-         <CaptionLarge className='text-platinum mb-4 align-left'>Arweave Backups</CaptionLarge> 
       {arweaveData.map((arweave) => (
         <ArweaveComponent key={arweave.link} arweave={arweave} />
       ))}

@@ -15,6 +15,7 @@ module.exports = {
         platinum: '#E4E4E4',
         malachite: '#04CD49',
         heliotrope: '#D458FB',
+        'black-coral' : '#5D6169',
         'raisin-black': '#1F2124',
         'dark-gunmental': '#232528',
         'picton-blue': '#4BA5F5',

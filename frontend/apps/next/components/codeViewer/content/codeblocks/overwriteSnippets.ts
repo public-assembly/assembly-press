@@ -1,11 +1,7 @@
 export const overwriteSnippets = {
-    typescript:
-    `export function useOverwrite({
-        database,
-        target,
-        tokenIds,
-        data,
-      }: OverwriteProps) {
+  typescript:
+    // rome-ignore format:
+    `export function useOverwrite({ database, target, tokenIds, data }) {
         const { config } = usePrepareContractWrite({
           address: database,
           abi: AP721DatabaseV1Abi,
@@ -27,8 +23,7 @@ export const overwriteSnippets = {
           overwriteSuccess,
         }
     }`,
-    solidity:
-    `function overwrite(address target, uint256[] memory tokenIds, bytes[] memory data)
+  solidity: `function overwrite(address target, uint256[] memory tokenIds, bytes[] memory data)
         external
         override(AP721DatabaseV1, IAP721Database)
         requireInitialized(target)
@@ -54,5 +49,5 @@ export const overwriteSnippets = {
             emit DataOverwritten(target, sender, storageCounter, newPointer);
         }
         // TODO: figure out emitting one event that contains array of storageCounters + newPointers?
-    }`  
+    }`,
 }

@@ -1,43 +1,70 @@
-import { Grid, VStack, Stack, Flex } from '@/components/base';
+import { Grid, VStack, Stack, Flex, BodyLarge } from '@/components/base';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { FunctioNav } from '@/components/FunctionNav';
+import { FunctionNav } from '@/components/FunctionNav';
 import { CodeViewer } from '@/components/codeViewer/CodeViewer';
 import { TxnSubmitter } from '@/components/txnSubmitter/TxnSubmitter';
-import { RawTransactionsTable } from '@/components/server';
+import { RawTransactionsTable } from '@/components/RawTransactionsTable';
 import { ArweaveBox } from '@/components/arweave';
 
 export default function Page() {
-  {/* Visit `styles/globals.css` for hardcoded section sizes */}
-
+  {
+    /* Visit `styles/globals.css` for hardcoded section sizes */
+  }
   return (
-    <VStack className='px-4 sm:px-8'>
+    <>
       <Header />
       <main>
-        <Flex className='w-full justify-center mb-6'>
-          <FunctioNav />
+        <Flex className='w-full justify-center pb-16'>
+          <FunctionNav />
         </Flex>
-        <Grid className='grid-rows-2 grid-cols-8 gap-4'>
+        <Grid className='grid-cols-5 grid-rows-2 gap-4'>
           {/* Row 1 */}
-          <div className='row-start-1 row-end-2 col-start-1 col-end-7 flex gap-4'>
-            <div className='bg-[#16171A] border border-arsenic w-6/12 h-full rounded-xl'>
+          {/* Protocol */}
+          <div className='row-start-1 row-end-2 col-start-1 col-end-3'>
+            <BodyLarge className='text-platinum mb-4 align-left'>
+              Protocol
+            </BodyLarge>
+            <div className='bg-[#16171A] border border-arsenic rounded-xl'>
+              <CodeViewer language={'solidity'} />
+            </div>
+          </div>
+          {/* Frontend */}
+          <div className='row-start-1 row-end-2 col-start-3 col-end-5'>
+            <BodyLarge className='text-platinum mb-4 align-left'>
+              Frontend
+            </BodyLarge>
+            <div className='bg-[#16171A] border border-arsenic rounded-xl '>
               <CodeViewer language={'typescript'} />
             </div>
-            <div className='bg-[#16171A]  border border-arsenic w-6/12 h-full rounded-xl'>
-              <CodeViewer language={'solidity'} />
-            </div>              
-          </div>          
-          <div className='col-start-7 col-end-9 row-start-1 row-end-2'>
-            <div className='bg-[#16171A] text-white border border-arsenic w-full h-full rounded-xl'>
-            <TxnSubmitter />
+          </div>
+          {/* Transaction Submitter */}
+          <div className='col-start-5 col-end-6 row-start-1 row-end-2'>
+            <BodyLarge className='text-platinum mb-4 align-left'>
+              Transaction Submitter
+            </BodyLarge>
+            <div className='bg-[#16171A] text-white border border-arsenic rounded-xl'>
+              <TxnSubmitter />
             </div>
-          </div>            
+          </div>
           {/* Row 2 */}
-          <RawTransactionsTable className='' />
-          <ArweaveBox className='border border-arsenic w-full h-full rounded-xl' />
+          {/* Database */}
+          <div className='col-start-1 col-end-4 row-start-2 row-end-3'>
+            <BodyLarge className='text-platinum mb-4 align-left'>
+              Database
+            </BodyLarge>
+            <RawTransactionsTable />
+          </div>
+          {/* Arweave Backups */}
+          <div className='col-start-4 col-end-6 row-start-2 row-end-3'>
+            <BodyLarge className='text-platinum mb-4 align-left'>
+              Arweave Backups
+            </BodyLarge>
+            <ArweaveBox className='border border-arsenic w-full rounded-xl' />
+          </div>
         </Grid>
       </main>
       <Footer />
-    </VStack>    
-  )
+    </>
+  );
 }
