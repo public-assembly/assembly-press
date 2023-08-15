@@ -6,7 +6,6 @@ export const storeSnippets = {
           abi: AP721DatabaseV1Abi,
           functionName: 'store',
           args: [target, quantity, data],
-          chainId: optimismGoerli.id,
         })
       
         const { data: storeData, write: store } = useContractWrite(config)

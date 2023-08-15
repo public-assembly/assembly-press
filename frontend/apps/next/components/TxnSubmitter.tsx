@@ -159,7 +159,7 @@ export const TxnSubmitter = () => {
     if (functionConfigMap?.[selector]?.request?.args) {
       return functionConfigMap?.[selector]?.request?.args.join(',\n');
     } else {
-      return 'Connect your wallet to see these arguments';
+      return 'Connect your wallet';
     }
   };
 

@@ -3,7 +3,7 @@
 import Editor from 'react-simple-code-editor';
 import { useFunctionSelect } from 'context/FunctionSelectProvider';
 import { highlight, languages } from 'prismjs';
-import 'prismjs/themes/prism.css';
+import 'prismjs/themes/prism-solarizedlight.css';
 import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-solidity';
 
@@ -50,6 +50,7 @@ export const CodeViewer = ({ language }: CodeViewerProps) => {
           color: '#E4E4E4',
           height: '432px',
         }}
+        textareaClassName='focus:outline-none'
       />
     </>
   );

@@ -1,13 +1,10 @@
 export const overwriteSnippets = {
-  typescript:
-    // rome-ignore format:
-    `export function useOverwrite({ database, target, tokenIds, data }) {
+  typescript: `export function useOverwrite({ database, target, tokenIds, data }) {
         const { config } = usePrepareContractWrite({
           address: database,
           abi: AP721DatabaseV1Abi,
           functionName: 'overwrite',
           args: [target, tokenIds, data],
-          chainId: optimismGoerli.id,
         })
       
         const { data: overwriteData, write: overwrite } = useContractWrite(config)
@@ -50,4 +47,4 @@ export const overwriteSnippets = {
         }
         // TODO: figure out emitting one event that contains array of storageCounters + newPointers?
     }`,
-}
+};

@@ -11,7 +11,6 @@ export const setLogicSnippets = {
         abi: AP721DatabaseV1Abi,
         functionName: 'setLogic',
         args: [target, logic, logicInit],
-        chainId: optimismGoerli.id,
         })
     
         const { data: setLogicData, write: setLogic } = useContractWrite(config)
