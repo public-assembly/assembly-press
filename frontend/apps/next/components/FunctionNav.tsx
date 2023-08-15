@@ -3,13 +3,22 @@
 import { useFunctionSelect } from 'context/FunctionSelectProvider';
 import { BodySmall, Flex } from './base';
 import { cn } from '../utils';
+import { useState } from 'react';
+import IconButton from './base/IconButton';
+import { ArrowLeftIcon, ArrowRightIcon } from '@radix-ui/react-icons';
+import { useIsMobile } from 'hooks';
 
 interface GridItemProps {
-  functionName: string;
+  functionName?: string;
   selectorIndex: number;
+  className?: string;
 }
 
-const GridItem = ({ functionName, selectorIndex }: GridItemProps) => {
+const GridItem = ({
+  className,
+  functionName,
+  selectorIndex,
+}: GridItemProps) => {
   const { selector, setSelector } = useFunctionSelect();
   return (
     <button
@@ -19,7 +28,8 @@ const GridItem = ({ functionName, selectorIndex }: GridItemProps) => {
         selector === selectorIndex
           ? 'text-platinum bg-arsenic rounded-full'
           : ' text-dark-gray',
-        'px-4 py-3 w-28'
+        'px-4 py-3 w-28',
+        className
       )}
     >
       <BodySmall>{functionName}</BodySmall>
@@ -28,6 +38,54 @@ const GridItem = ({ functionName, selectorIndex }: GridItemProps) => {
 };
 
 export const FunctionNav = () => {
+  const { isMobile } = useIsMobile();
+  const [index, setIndex] = useState<number>(0);
+  const { selector, setSelector } = useFunctionSelect();
+
+  const functionNameMap = {
+    0: 'setupAP721',
+    1: 'setLogic',
+    2: 'setRenderer',
+    3: 'store',
+    4: 'overwrite',
+  };
+
+  const increment = () => {
+    if (index < 4) {
+      setIndex(index + 1);
+      setSelector(index + 1);
+    }
+  };
+
+  const decrement = () => {
+    if (index >= 1) {
+      setIndex(index - 1);
+      setSelector(index - 1);
+    }
+  };
+
+  if (isMobile) {
+    return (
+      <Flex className='items-center gap-x-3'>
+        <IconButton
+          className={cn(index === 0 ? 'text-arsenic' : ' text-dark-gray')}
+          icon={<ArrowLeftIcon />}
+          callback={decrement}
+        />
+        <GridItem
+          className='rounded-full bg-eerie-black w-28 text-platinum'
+          functionName={functionNameMap[index]}
+          selectorIndex={index}
+        />
+        <IconButton
+          className={cn(index === 4 ? 'text-arsenic' : ' text-dark-gray')}
+          icon={<ArrowRightIcon />}
+          callback={increment}
+        />
+      </Flex>
+    );
+  }
+
   return (
     <Flex className='justify-between gap-x-2 rounded-full bg-eerie-black w-fit'>
       <GridItem functionName={'setupAP721'} selectorIndex={0} />
@@ -37,4 +95,5 @@ export const FunctionNav = () => {
       <GridItem functionName={'overwrite'} selectorIndex={4} />
     </Flex>
   );
+  // }
 };
