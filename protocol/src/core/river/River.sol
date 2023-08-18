@@ -66,7 +66,7 @@ contract River is IRiver, Ownable, ReentrancyGuard {
     // SINGLE CHANNEL INTERACTIONS
     //////////////////////////////      
 
-    /* ~~~ Channel Level Interactions ~~~ */
+    /* ~~~ Channel Data Interactions ~~~ */
 
     function updateChannelData(address channel, bytes memory data) nonReentrant external payable {
         if (!channelRegistry[channel]) revert Invalid_Channel();
@@ -74,7 +74,7 @@ contract River is IRiver, Ownable, ReentrancyGuard {
         emit ChannelDataUpdated(msg.sender, channel, pointer);
     }         
 
-    /* ~~~ Token Level Interactions ~~~ */
+    /* ~~~ Token Data Interactions ~~~ */
 
     function storeTokenData(address channel, bytes memory data) nonReentrant external payable {
         if (!channelRegistry[channel]) revert Invalid_Channel();
@@ -98,7 +98,7 @@ contract River is IRiver, Ownable, ReentrancyGuard {
     // MULTI CHANNEL INTERACTIONS
     //////////////////////////////    
 
-    /* ~~~ Channel Level Interactions ~~~ */
+    /* ~~~ Channel Data Interactions ~~~ */
 
     function updateChannelDataMulti(address[] memory channels, bytes[] memory datas) nonReentrant external payable {
         if (channels.length != datas.length) revert Input_Length_Mistmatch();
@@ -109,7 +109,7 @@ contract River is IRiver, Ownable, ReentrancyGuard {
         }    
     }      
 
-    /* ~~~ Token Level Interactions ~~~ */    
+    /* ~~~ Token Data Interactions ~~~ */    
 
     function storeTokenDataMulti(address[] memory channels, bytes[] memory datas) nonReentrant external payable {
         if (channels.length != datas.length) revert Input_Length_Mistmatch();
