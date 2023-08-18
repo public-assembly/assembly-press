@@ -77,7 +77,7 @@ contract River is ReentrancyGuard {
     /// @notice Error when trying to target a channel that is not registered
     error Invalid_Channel();    
     /// @notice Error when inputting arrays with non matching length
-    error Input_Length_Mistmatch();
+    error Input_Length_Mismatch();
 
     //////////////////////////////////////////////////
     // FUNCTIONS
@@ -88,9 +88,9 @@ contract River is ReentrancyGuard {
     //////////////////////////////    
 
     function registerBranches(address[] memory branches, bool[] memory statuses) external {
-        if (branches.length != statuses.length) revert Input_Length_Mistmatch();
+        if (branches.length != statuses.length) revert Input_Length_Mismatch();
         for (uint256 i; i < branches.length; ++i) {
-            branchRegistry[branches[i]] = statuses[i]
+            branchRegistry[branches[i]] = statuses[i];
         }        
         emit BranchRegistered(msg.sender, branches, statuses);
     }
@@ -107,11 +107,11 @@ contract River is ReentrancyGuard {
         return channel;
     }
 
-    function branchBatch(address[] memory branchImpls, bytes[] memory branchInits) nonReentrant external payable returns (address[]) {
-        if (branchImpls.length != branchInits.length) revert Input_Length_Mistmatch();   
+    function branchBatch(address[] memory branchImpls, bytes[] memory branchInits) nonReentrant external payable returns (address[] memory) {
+        if (branchImpls.length != branchInits.length) revert Input_Length_Mismatch();   
         address[] memory channels = new address[](branchImpls.length);
         for (uint256 i; i < branchImpls.length; ++i) {
-            if (!branchRegistry[branchImps[il]) revert Invalid_Branch();
+            if (!branchRegistry[branchImpls[i]]) revert Invalid_Branch();
             address channel = IBranch(branchImpls[i]).createChannel(branchInits[i]);
             channelRegistry[channel] = true;
             emit ChannelRegistered(msg.sender, branchImpls[i], channel);
@@ -171,7 +171,7 @@ contract River is ReentrancyGuard {
     /* ~~~ Token Level Interactions ~~~ */    
 
     function storeTokenDataMulti(address[] memory channels, bytes[] memory datas) nonReentrant external payable {
-        if (channels.length != datas.length) revert Input_Length_Mistmatch();
+        if (channels.length != datas.length) revert Input_Length_Mismatch();
         for (uint256 i; i < channels.length; ++i) {
             if (!channelRegistry[channels[i]]) revert Invalid_Channel();
             (uint256[] memory tokenIds, address[] memory pointers) = IChannel(channels[i]).storeTokenData(msg.sender, datas[i]);
@@ -180,7 +180,7 @@ contract River is ReentrancyGuard {
     }
 
     function overwriteTokenDataMulti(address[] memory channels, bytes[] memory datas) nonReentrant external {
-        if (channels.length != datas.length) revert Input_Length_Mistmatch();
+        if (channels.length != datas.length) revert Input_Length_Mismatch();
         for (uint256 i; i < channels.length; ++i) {
             if (!channelRegistry[channels[i]]) revert Invalid_Channel();
             (uint256[] memory tokenIds, address[] memory pointers) = IChannel(channels[i]).overwriteTokenData(msg.sender, datas[i]);
@@ -189,7 +189,7 @@ contract River is ReentrancyGuard {
     }    
 
     function removeTokenDataMulti(address[] memory channels, bytes[] memory datas) nonReentrant external {
-        if (channels.length != datas.length) revert Input_Length_Mistmatch();
+        if (channels.length != datas.length) revert Input_Length_Mismatch();
         for (uint256 i; i < channels.length; ++i) {
             if (!channelRegistry[channels[i]]) revert Invalid_Channel();
             (uint256[] memory tokenIds) = IChannel(channels[i]).removeTokenData(msg.sender, datas[i]);
@@ -200,7 +200,7 @@ contract River is ReentrancyGuard {
     /* ~~~ Channel Level Interactions ~~~ */
 
     function storeChannelDataMulti(address[] memory channels, bytes[] memory datas) nonReentrant external payable {
-        if (channels.length != datas.length) revert Input_Length_Mistmatch();
+        if (channels.length != datas.length) revert Input_Length_Mismatch();
         for (uint256 i; i < channels.length; ++i) {
             if (!channelRegistry[channels[i]]) revert Invalid_Channel();
             (address pointer) = IChannel(channels[i]).storeChannelData(msg.sender, datas[i]);
@@ -209,7 +209,7 @@ contract River is ReentrancyGuard {
     }
 
     function overwriteChannelDataMulti(address[] memory channels, bytes[] memory datas) nonReentrant external {
-        if (channels.length != datas.length) revert Input_Length_Mistmatch();
+        if (channels.length != datas.length) revert Input_Length_Mismatch();
         for (uint256 i; i < channels.length; ++i) {
             if (!channelRegistry[channels[i]]) revert Invalid_Channel();
             (address pointer) = IChannel(channels[i]).overwriteChannelData(msg.sender, datas[i]);
@@ -218,7 +218,7 @@ contract River is ReentrancyGuard {
     }    
 
     function removeChannelDataMulti(address[] memory channels, bytes[] memory datas) nonReentrant external {
-        if (channels.length != datas.length) revert Input_Length_Mistmatch();
+        if (channels.length != datas.length) revert Input_Length_Mismatch();
         for (uint256 i; i < channels.length; ++i) {
             if (!channelRegistry[channels[i]]) revert Invalid_Channel();
             IChannel(channels[i]).removeChannelData(msg.sender, datas[i]);
