@@ -6,26 +6,11 @@ pragma solidity 0.8.19;
 import {IBranch} from "./interfaces/IBranch.sol";
 import {Channel} from "../channel/Channel.sol";
 import {ChannelProxy} from "../channel/proxy/ChannelProxy.sol";
-import {IChannelTypesV1} from "../channel/types/IChannelTypesV1.sol";
 
 /**
  * @title Branch
  */
 contract Branch is IBranch {
-    //////////////////////////////////////////////////
-    // TYPES
-    //////////////////////////////////////////////////    
-    
-    struct Inputs {
-        string channelName; 
-        address initialOwner;
-        address feeRouterImpl;
-        address logic;
-        bytes logicInit;
-        address renderer;
-        bytes rendererInit;
-        IChannelTypesV1.AdvancedSettings advancedSettings;
-    }
 
     //////////////////////////////////////////////////
     // STORAGE
@@ -33,13 +18,6 @@ contract Branch is IBranch {
     
     address public river;
     address public channel;
-
-    //////////////////////////////////////////////////
-    // ERRORS
-    //////////////////////////////////////////////////    
-
-    /// @notice Error when msg.sender is not the stored database impl
-    error Sender_Not_River();    
 
     //////////////////////////////////////////////////
     // CONSTRUCTOR

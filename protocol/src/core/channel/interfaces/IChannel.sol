@@ -42,11 +42,8 @@ interface IChannel {
     function overwriteTokenData(address sender, bytes memory data) external returns (uint256[] memory, address[] memory);
     function removeTokenData(address sender, bytes memory data) external returns (uint256[] memory);
 
-    function storeChannelData(address channel, bytes memory data) external payable returns (address);
-    function overwriteChannelData(address channel, bytes memory data) external returns (address);
-    function removeChannelData(address channel, bytes memory data) external;
-
-
+    function updateChannelData(address channel, bytes memory data) external payable returns (address);
+    
     // /// @notice Batch-mint tokens to a designated recipient
     // function mint(address recipient, uint256 quantity) external;
     // /// @notice Burn specific tokenId. Reduces totalSupply

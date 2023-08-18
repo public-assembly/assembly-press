@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 import {IChannelTypesV1} from "../types/IChannelTypesV1.sol";
 
 // TODO: Check if missing UUPS storage gap?
+// TODO: Also just do more research + get feedback on storage layout in general
 
 contract ChannelStorageV1 {
 

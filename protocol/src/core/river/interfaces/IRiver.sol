@@ -36,20 +36,11 @@ interface IRiver {
         address channel,
         uint256[] tokenIds
     );       
-    event ChannelDataStored(
+    event ChannelDataUpdated(
         address sender,
         address channel,
-        address pointers
+        address pointer
     );
-    event ChannelDataOverwritten(
-        address sender,
-        address channel,
-        address pointers
-    );    
-    event ChannelDataRemoved(
-        address sender,
-        address channel
-    );   
 
     //////////////////////////////////////////////////
     // ERRORS

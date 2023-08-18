@@ -66,6 +66,14 @@ contract River is IRiver, Ownable, ReentrancyGuard {
     // SINGLE CHANNEL INTERACTIONS
     //////////////////////////////      
 
+    /* ~~~ Channel Level Interactions ~~~ */
+
+    function updateChannelData(address channel, bytes memory data) nonReentrant external payable {
+        if (!channelRegistry[channel]) revert Invalid_Channel();
+        (address pointer) = IChannel(channel).updateChannelData(msg.sender, data);
+        emit ChannelDataUpdated(msg.sender, channel, pointer);
+    }         
+
     /* ~~~ Token Level Interactions ~~~ */
 
     function storeTokenData(address channel, bytes memory data) nonReentrant external payable {
@@ -86,29 +94,20 @@ contract River is IRiver, Ownable, ReentrancyGuard {
         emit TokenDataRemoved(msg.sender, channel, tokenIds);
     }    
 
-    /* ~~~ Channel Level Interactions ~~~ */
-
-    function storeChannelData(address channel, bytes memory data) nonReentrant external payable {
-        if (!channelRegistry[channel]) revert Invalid_Channel();
-        (address pointer) = IChannel(channel).storeChannelData(msg.sender, data);
-        emit ChannelDataStored(msg.sender, channel, pointer);
-    }
-
-    function overwriteChannelData(address channel, bytes memory data) nonReentrant external {
-        if (!channelRegistry[channel]) revert Invalid_Channel();
-        (address pointer) = IChannel(channel).overwriteChannelData(msg.sender, data);
-        emit ChannelDataOverwritten(msg.sender, channel, pointer);
-    }    
-
-    function removeChannelData(address channel, bytes memory data) nonReentrant external {
-        if (!channelRegistry[channel]) revert Invalid_Channel();
-        IChannel(channel).removeChannelData(msg.sender, data);
-        emit ChannelDataRemoved(msg.sender, channel);
-    }        
-
     //////////////////////////////
     // MULTI CHANNEL INTERACTIONS
     //////////////////////////////    
+
+    /* ~~~ Channel Level Interactions ~~~ */
+
+    function updateChannelDataMulti(address[] memory channels, bytes[] memory datas) nonReentrant external payable {
+        if (channels.length != datas.length) revert Input_Length_Mistmatch();
+        for (uint256 i; i < channels.length; ++i) {
+            if (!channelRegistry[channels[i]]) revert Invalid_Channel();
+            (address pointer) = IChannel(channels[i]).updateChannelData(msg.sender, datas[i]);
+            emit ChannelDataUpdated(msg.sender, channels[i], pointer);
+        }    
+    }      
 
     /* ~~~ Token Level Interactions ~~~ */    
 
@@ -138,33 +137,4 @@ contract River is IRiver, Ownable, ReentrancyGuard {
             emit TokenDataRemoved(msg.sender, channels[i], tokenIds);
         }    
     }        
-
-    /* ~~~ Channel Level Interactions ~~~ */
-
-    function storeChannelDataMulti(address[] memory channels, bytes[] memory datas) nonReentrant external payable {
-        if (channels.length != datas.length) revert Input_Length_Mistmatch();
-        for (uint256 i; i < channels.length; ++i) {
-            if (!channelRegistry[channels[i]]) revert Invalid_Channel();
-            (address pointer) = IChannel(channels[i]).storeChannelData(msg.sender, datas[i]);
-            emit ChannelDataStored(msg.sender, channels[i], pointer);
-        }    
-    }
-
-    function overwriteChannelDataMulti(address[] memory channels, bytes[] memory datas) nonReentrant external {
-        if (channels.length != datas.length) revert Input_Length_Mistmatch();
-        for (uint256 i; i < channels.length; ++i) {
-            if (!channelRegistry[channels[i]]) revert Invalid_Channel();
-            (address pointer) = IChannel(channels[i]).overwriteChannelData(msg.sender, datas[i]);
-            emit ChannelDataOverwritten(msg.sender, channels[i], pointer);
-        }    
-    }    
-
-    function removeChannelDataMulti(address[] memory channels, bytes[] memory datas) nonReentrant external {
-        if (channels.length != datas.length) revert Input_Length_Mistmatch();
-        for (uint256 i; i < channels.length; ++i) {
-            if (!channelRegistry[channels[i]]) revert Invalid_Channel();
-            IChannel(channels[i]).removeChannelData(msg.sender, datas[i]);
-            emit ChannelDataRemoved(msg.sender, channels[i]);
-        }    
-    }         
 }

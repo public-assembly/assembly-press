@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 /* woah */
+
 import {ERC1155Upgradeable} from "openzeppelin-contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -86,34 +87,25 @@ contract Channel is
     // CHANNEL LEVEL
     //////////////////////////////       
 
-    function storeChannelData(address sender, bytes memory data) external payable returns (address) {
+    function updateChannelData(address sender, bytes memory data) external payable returns (address) {
         if (msg.sender != river) revert Sender_Not_River();        
         /* 
             Could put logic check here for sender
         */        
-        (bytes memory dataToStore) = abi.decode(data, (bytes));
-        channelData = SSTORE2.write(dataToStore);
-        return channelData;
+        (bytes memory dataToStore) = abi.decode(data, (bytes));        
+        if (dataToStore.length == 0) {
+            delete channelData;
+            return channelData;
+        } else {
+            /* 
+                Could put fee logic here, for when people are storing data
+                Could even check if channel data is zero or not 
+                Otherwise maybe best to make this function non payable
+            */      
+            channelData = SSTORE2.write(dataToStore);
+            return channelData;
+        }
     }    
-
-    function overwriteChannelData(address sender, bytes memory data) external returns (address) {
-        if (msg.sender != river) revert Sender_Not_River();        
-        /* 
-            Could put logic check here for sender
-        */        
-        (bytes memory dataToStore) = abi.decode(data, (bytes));
-        channelData = SSTORE2.write(dataToStore);
-        return channelData;
-    }      
-
-    function removeChannelData(address sender, bytes memory data) external {
-        if (msg.sender != river) revert Sender_Not_River();        
-        /* 
-            Could put logic check here for sender
-        */        
-        (bytes memory dataToStore) = abi.decode(data, (bytes));
-        delete channelData;
-    }        
 
     //////////////////////////////
     // TOKEN LEVEL
