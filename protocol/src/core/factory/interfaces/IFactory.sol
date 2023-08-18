@@ -3,23 +3,23 @@ pragma solidity 0.8.19;
 
 /* woah */
 
-import {IChannelTypesV1} from "../../channel/types/IChannelTypesV1.sol";
+import {IPressTypesV1} from "../../press/types/IPressTypesV1.sol";
 
-interface IBranch {
+interface IFactory {
 
     //////////////////////////////////////////////////
     // TYPES
     //////////////////////////////////////////////////    
     
     struct Inputs {
-        string channelName; 
+        string pressName; 
         address initialOwner;
         address feeRouterImpl;
         address logic;
         bytes logicInit;
         address renderer;
         bytes rendererInit;
-        IChannelTypesV1.AdvancedSettings advancedSettings;
+        IPressTypesV1.AdvancedSettings advancedSettings;
     }
 
     //////////////////////////////////////////////////
@@ -27,12 +27,12 @@ interface IBranch {
     //////////////////////////////////////////////////    
 
     /// @notice Error when msg.sender is not the stored database impl
-    error Sender_Not_River();    
+    error Sender_Not_Router();    
 
     //////////////////////////////////////////////////
     // FUNCTIONS
     //////////////////////////////////////////////////       
 
-    /// @notice Deploys and initializes new channel
-    function createChannel(address sender, bytes memory init) external returns (address);
+    /// @notice Deploys and initializes new press
+    function createPress(address sender, bytes memory init) external returns (address);
 }

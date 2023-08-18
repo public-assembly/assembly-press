@@ -4,29 +4,29 @@ pragma solidity 0.8.19;
 import {Test} from "forge-std/Test.sol";
 import {console2} from "forge-std/console2.sol";
 
-import {River} from "../src/core/river/River.sol";
-import {Branch} from "../src/core/branch/Branch.sol";
-import {IBranch} from "../src/core/branch/interfaces/IBranch.sol";
-import {Channel} from "../src/core/channel/Channel.sol";
-import {ChannelProxy} from "../src/core/channel/proxy/ChannelProxy.sol";
-import {IChannel} from "../src/core/channel/interfaces/IChannel.sol";
-import {IChannelTypesV1} from "../src/core/channel/types/IChannelTypesV1.sol";
+import {Router} from "../src/core/router/Router.sol";
+import {Factory} from "../src/core/factory/Factory.sol";
+import {IFactory} from "../src/core/factory/interfaces/IFactory.sol";
+import {Press} from "../src/core/press/Press.sol";
+import {PressProxy} from "../src/core/press/proxy/PressProxy.sol";
+import {IPress} from "../src/core/press/interfaces/IPress.sol";
+import {IPressTypesV1} from "../src/core/press/types/IPressTypesV1.sol";
 // import {FeeRouter} from "../../../../src/core/FeeRouter.sol";
 import {MockLogic} from "./mocks/logic/MockLogic.sol";
 import {MockRenderer} from "./mocks/renderer/MockRenderer.sol";
 
-contract RiverTest is Test {
+contract RouterTest is Test {
 
     // TYPES
     struct Inputs {
-        string channelName; 
+        string pressName; 
         address initialOwner;
         address feeRouterImpl;
         address logic;
         bytes logicInit;
         address renderer;
         bytes rendererInit;
-        IChannelTypesV1.AdvancedSettings advancedSettings;
+        IPressTypesV1.AdvancedSettings advancedSettings;
     }    
 
     struct Listing {
@@ -37,9 +37,9 @@ contract RiverTest is Test {
     }    
 
     // PUBLIC TEST VARIABLES
-    River river;
-    Branch branch;
-    Channel channel;
+    Router router;
+    Factory factory;
+    Press press;
     MockLogic logic;
     MockRenderer renderer;
     address feeRouter;
@@ -47,29 +47,29 @@ contract RiverTest is Test {
 
     // Set up called before each test
     function setUp() public virtual {
-        river = new River();
-        channel = new Channel();
-        branch = new Branch(address(river), address(channel));
+        router = new Router();
+        press = new Press();
+        factory = new Factory(address(router), address(press));
         logic = new MockLogic();
         renderer = new MockRenderer();
         
-        address[] memory branchToRegister = new address[](1);
-        branchToRegister[0] = address(branch);
+        address[] memory factoryToRegister = new address[](1);
+        factoryToRegister[0] = address(factory);
         bool[] memory statusToRegister = new bool[](1);
         statusToRegister[0] = true;        
-        river.registerBranches(branchToRegister, statusToRegister);
+        router.registerFactories(factoryToRegister, statusToRegister);
     }  
 
-    function test_branch() public {
+    function test_factory() public {
 
-        IChannelTypesV1.AdvancedSettings memory settings = IChannelTypesV1.AdvancedSettings({
+        IPressTypesV1.AdvancedSettings memory settings = IPressTypesV1.AdvancedSettings({
             fundsRecipient: admin,
             royaltyBPS: 0,
             transferable: false, // non transferable tokens
             fungible: false // non fungible tokens
         });
         Inputs memory inputs = Inputs({
-            channelName: "First Channel",
+            pressName: "First Press",
             initialOwner: admin,
             feeRouterImpl: feeRouter,
             logic: address(logic),
@@ -81,16 +81,16 @@ contract RiverTest is Test {
         bytes memory encodedInputs = abi.encode(inputs);
 
         vm.prank(admin);
-        address newChannel = river.branch(address(branch), encodedInputs); 
-        require(river.channelRegistry(newChannel) == true, "channel not registered correctly");
+        address newPress = router.setup(address(factory), encodedInputs); 
+        require(router.pressRegistry(newPress) == true, "press not registered correctly");
         vm.prank(admin);
-        // should revert because branch isnt registered
-        vm.expectRevert(abi.encodeWithSignature("Invalid_Branch()"));
-        river.branch(address(0x123), encodedInputs);
+        // should revert because factory isnt registered
+        vm.expectRevert(abi.encodeWithSignature("Invalid_Factory()"));
+        router.setup(address(0x123), encodedInputs);
     }
 
     function test_storeTokenData() public {
-        Channel activeChannel = Channel(payable(createGenericChannel()));
+        Press activePress = Press(payable(createGenericPress()));
 
         bytes[] memory bytesArray = new bytes[](1);
         // bytesArray[0] = abi.encode("ipfsURI/");
@@ -104,28 +104,28 @@ contract RiverTest is Test {
         // (, uint256 fees) = feeRouter.getFees(address(0), 1);
         // vm.deal(owner, 1 ether);
         vm.prank(admin);
-        river.storeTokenData(address(activeChannel), encodedBytesArray);
+        router.storeTokenData(address(activePress), encodedBytesArray);
 
         vm.prank(admin);
-        // should revert because channel doesnt exist
-        vm.expectRevert(abi.encodeWithSignature("Invalid_Channel()"));
-        river.storeTokenData(address(0x123), encodedBytesArray);
+        // should revert because press doesnt exist
+        vm.expectRevert(abi.encodeWithSignature("Invalid_Press()"));
+        router.storeTokenData(address(0x123), encodedBytesArray);
         
         vm.prank(admin);
-        // should revert because cant call channel directly if not river
-        vm.expectRevert(abi.encodeWithSignature("Sender_Not_River()"));
-        activeChannel.storeTokenData(admin, encodedBytesArray);
+        // should revert because cant call press directly if not router
+        vm.expectRevert(abi.encodeWithSignature("Sender_Not_Router()"));
+        activePress.storeTokenData(admin, encodedBytesArray);
     }
 
-    function createGenericChannel() public returns (address) {
-        IChannelTypesV1.AdvancedSettings memory settings = IChannelTypesV1.AdvancedSettings({
+    function createGenericPress() public returns (address) {
+        IPressTypesV1.AdvancedSettings memory settings = IPressTypesV1.AdvancedSettings({
             fundsRecipient: admin,
             royaltyBPS: 0,
             transferable: false, // non transferable tokens
             fungible: false // non fungible tokens
         });
         Inputs memory inputs = Inputs({
-            channelName: "First Channel",
+            pressName: "First Press",
             initialOwner: admin,
             feeRouterImpl: feeRouter,
             logic: address(logic),
@@ -135,6 +135,6 @@ contract RiverTest is Test {
             advancedSettings: settings
         });        
         bytes memory encodedInputs = abi.encode(inputs);     
-        return river.branch(address(branch), encodedInputs);   
+        return router.setup(address(factory), encodedInputs);   
     }
 }

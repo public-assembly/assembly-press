@@ -10,22 +10,22 @@ import {Initializable} from "openzeppelin-contracts-upgradeable/proxy/utils/Init
 import {OwnableUpgradeable} from "../../utils/ownable/single/OwnableUpgradeable.sol";
 import {Version} from "../../utils/Version.sol";
 
-import {IChannel} from "./interfaces/IChannel.sol";
-import {IChannelTypesV1} from "./types/IChannelTypesV1.sol";
-import {ChannelStorageV1} from "./storage/ChannelStorageV1.sol";
+import {IPress} from "./interfaces/IPress.sol";
+import {IPressTypesV1} from "./types/IPressTypesV1.sol";
+import {PressStorageV1} from "./storage/PressStorageV1.sol";
 import {ILogic} from "./logic/ILogic.sol";
 import {IRenderer} from "./renderer/IRenderer.sol";
 
 import "sstore2/SSTORE2.sol";
 
 /**
- * @title Channel
+ * @title Press
  */
-contract Channel is
+contract Press is
     ERC1155Upgradeable,
-    IChannelTypesV1,
-    IChannel,
-    ChannelStorageV1,
+    IPressTypesV1,
+    IPress,
+    PressStorageV1,
     Version(1),
     UUPSUpgradeable,
     ReentrancyGuardUpgradeable,
@@ -37,12 +37,12 @@ contract Channel is
     ////////////////////////////////////////////////////////////
 
     /**
-    * @notice Initializes a new, creator-owned proxy of Channel.sol
+    * @notice Initializes a new, creator-owned proxy of Press.sol
     */
     function initialize(
-        string memory channelName, 
+        string memory pressName, 
         address initialOwner,
-        address riverImpl,
+        address routerImpl,
         address feeRouterImpl,
         address logic,
         bytes memory logicInit,
@@ -63,12 +63,12 @@ contract Channel is
         __UUPSUpgradeable_init();   
 
         // Set things
-        river = riverImpl;
+        router = routerImpl;
         feeRouter = feeRouterImpl;
-        name = channelName;
+        name = pressName;
         // symbol = contractSymbol;
 
-        // Set channel storage
+        // Set press storage
         ++settings.counter; // this acts as an initialization check since will be 0 before init
         settings.logic = logic;
         settings.renderer = renderer;
@@ -84,26 +84,26 @@ contract Channel is
     ////////////////////////////////////////////////////////////      
 
     //////////////////////////////
-    // CHANNEL LEVEL
+    // PRESS LEVEL
     //////////////////////////////       
 
-    function updateChannelData(address sender, bytes memory data) external payable returns (address) {
-        if (msg.sender != river) revert Sender_Not_River();        
+    function updatePressData(address sender, bytes memory data) external payable returns (address) {
+        if (msg.sender != router) revert Sender_Not_Router();        
         /* 
             Could put logic check here for sender
         */        
         (bytes memory dataToStore) = abi.decode(data, (bytes));        
         if (dataToStore.length == 0) {
-            delete channelData;
-            return channelData;
+            delete pressData;
+            return pressData;
         } else {
             /* 
                 Could put fee logic here, for when people are storing data
-                Could even check if channel data is zero or not 
+                Could even check if press data is zero or not 
                 Otherwise maybe best to make this function non payable
             */      
-            channelData = SSTORE2.write(dataToStore);
-            return channelData;
+            pressData = SSTORE2.write(dataToStore);
+            return pressData;
         }
     }    
 
@@ -113,7 +113,7 @@ contract Channel is
 
     // TODO: confirm in tests that _mintBatch triggers a transfer single event when tokenIds array only has one element
     function storeTokenData(address sender, bytes memory data) external payable returns (uint256[] memory, address[] memory) {
-        if (msg.sender != river) revert Sender_Not_River();        
+        if (msg.sender != router) revert Sender_Not_Router();        
         (bytes[] memory tokens) = abi.decode(data, (bytes[]));
         // Initialize memory variables
         uint256 quantity = tokens.length;
@@ -132,7 +132,7 @@ contract Channel is
     }
 
     function overwriteTokenData(address sender, bytes memory data) external returns (uint256[] memory, address[] memory) {
-        if (msg.sender != river) revert Sender_Not_River();
+        if (msg.sender != router) revert Sender_Not_Router();
         (uint256[] memory tokenIds, bytes[] memory datas) = abi.decode(data, (uint256[], bytes[]));
         if (tokenIds.length != datas.length) revert Input_Length_Mistmatch();
         // Initialize memory variables
@@ -150,7 +150,7 @@ contract Channel is
     // TODO: consider adding in ability to decode tokenId burn quantities as well, unique to 1155
     // TODO: confirm in tests that _burnBatch triggers a transfer single event when tokenIds array only has one element
     function removeTokenData(address sender, bytes memory data) external returns (uint256[] memory) {
-        if (msg.sender != river) revert Sender_Not_River();
+        if (msg.sender != router) revert Sender_Not_Router();
         (uint256[] memory tokenIds) = abi.decode(data, (uint256[]));
         for (uint256 i; i < tokenIds.length; ++i) {            
             /* 

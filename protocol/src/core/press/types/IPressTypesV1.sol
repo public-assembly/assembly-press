@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-interface IChannelTypesV1 {
+interface IPressTypesV1 {
     struct AdvancedSettings {
         /// @notice        
         address fundsRecipient;
@@ -20,7 +20,7 @@ interface IChannelTypesV1 {
         address logic;
         /// @notice Address of the renderer contract
         address renderer;
-        /// Stores advanced settings for channel
+        /// Stores advanced settings for press
         AdvancedSettings advancedSettings;        
     }    
 }

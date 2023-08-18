@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import {IRenderer} from "../../../src/core/channel/renderer/IRenderer.sol";
+import {IRenderer} from "../../../src/core/press/renderer/IRenderer.sol";
 
 contract MockRenderer is IRenderer {
 

@@ -3,15 +3,15 @@ pragma solidity 0.8.19;
 
 /* woah */
 
-import {IChannelTypesV1} from "../types/IChannelTypesV1.sol";
+import {IPressTypesV1} from "../types/IPressTypesV1.sol";
 
-interface IChannel {
+interface IPress {
     ////////////////////////////////////////////////////////////
     // ERRORS
     ////////////////////////////////////////////////////////////
 
     /// @notice Error when msg.sender is not the stored database impl
-    error Sender_Not_River();
+    error Sender_Not_Router();
     /// @notice Error when inputting arrays with non matching length
     error Input_Length_Mistmatch();    
     // /// @notice Error when attempting to transfer non-transferrable token
@@ -25,24 +25,24 @@ interface IChannel {
     // WRITE FUNCTIONS
     //////////////////////////////
 
-    /// @notice Initializes a ChannelProxy
+    /// @notice Initializes a PressProxy
     function initialize(        
-        string memory channelName, 
+        string memory pressName, 
         address initialOwner,
-        address riverImpl,
+        address routerImpl,
         address feeRouterImpl,
         address logic,
         bytes memory logicInit,
         address renderer,
         bytes memory rendererInit,
-        IChannelTypesV1.AdvancedSettings memory advancedSettings
+        IPressTypesV1.AdvancedSettings memory advancedSettings
     ) external;
 
     function storeTokenData(address sender, bytes memory data) external payable returns (uint256[] memory, address[] memory);
     function overwriteTokenData(address sender, bytes memory data) external returns (uint256[] memory, address[] memory);
     function removeTokenData(address sender, bytes memory data) external returns (uint256[] memory);
 
-    function updateChannelData(address channel, bytes memory data) external payable returns (address);
+    function updatePressData(address press, bytes memory data) external payable returns (address);
     
     // /// @notice Batch-mint tokens to a designated recipient
     // function mint(address recipient, uint256 quantity) external;

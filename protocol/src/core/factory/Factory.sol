@@ -3,52 +3,52 @@ pragma solidity 0.8.19;
 
 /* woah */
 
-import {IBranch} from "./interfaces/IBranch.sol";
-import {Channel} from "../channel/Channel.sol";
-import {ChannelProxy} from "../channel/proxy/ChannelProxy.sol";
+import {IFactory} from "./interfaces/IFactory.sol";
+import {Press} from "../press/Press.sol";
+import {PressProxy} from "../press/proxy/PressProxy.sol";
 
 /**
- * @title Branch
+ * @title Factory
  */
-contract Branch is IBranch {
+contract Factory is IFactory {
 
     //////////////////////////////////////////////////
     // STORAGE
     //////////////////////////////////////////////////
     
-    address public river;
-    address public channel;
+    address public router;
+    address public press;
 
     //////////////////////////////////////////////////
     // CONSTRUCTOR
     //////////////////////////////////////////////////    
 
-    constructor(address riverImpl, address channelImpl) {
-        river = riverImpl;
-        channel = channelImpl;
+    constructor(address routerImpl, address pressImpl) {
+        router = routerImpl;
+        press = pressImpl;
     }
 
     //////////////////////////////////////////////////
     // FUNCTIONS
     //////////////////////////////////////////////////  
 
-    // dont think this needs a reentrancy guard, since a callback to the Branch mid createChannel
-    //      execution cant do anyting malicious? only function is to create another new channel?
-    function createChannel(address sender, bytes memory init) external returns (address) {        
-        if (msg.sender != river) revert Sender_Not_River();
+    // dont think this needs a reentrancy guard, since a callback to the Factory mid createPress
+    //      execution cant do anyting malicious? only function is to create another new press?
+    function createPress(address sender, bytes memory init) external returns (address) {        
+        if (msg.sender != router) revert Sender_Not_Router();
         /* 
-            Could put branch logic check here for sender access
+            Could put factory logic check here for sender access
             Could also take out sender from being an input, but seems nice to have
         */        
         // Decode init data
         (Inputs memory inputs) = abi.decode(init, (Inputs));
         // Configure ownership details in proxy constructor
-        ChannelProxy newChannel = new ChannelProxy(channel, "");
+        PressProxy newPress = new PressProxy(press, "");
         // Initialize AP721Proxy
-        Channel(payable(address(newChannel))).initialize({
-            channelName: inputs.channelName,
+        Press(payable(address(newPress))).initialize({
+            pressName: inputs.pressName,
             initialOwner: inputs.initialOwner,
-            riverImpl: river, // input comes from local storage not decode
+            routerImpl: router, // input comes from local storage not decode
             feeRouterImpl: inputs.feeRouterImpl,
             logic: inputs.logic,
             logicInit: inputs.logicInit,
@@ -56,6 +56,6 @@ contract Branch is IBranch {
             rendererInit: inputs.rendererInit,
             advancedSettings: inputs.advancedSettings
         });
-        return address(newChannel);
+        return address(newPress);
     }
 }

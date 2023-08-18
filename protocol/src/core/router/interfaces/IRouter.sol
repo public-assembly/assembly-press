@@ -3,42 +3,42 @@ pragma solidity 0.8.19;
 
 /* woah */
 
-interface IRiver {
+interface IRouter {
 
     //////////////////////////////////////////////////
     // EVENTS
     //////////////////////////////////////////////////        
 
-    event BranchRegistered(
+    event FactoryRegistered(
         address sender,
-        address[] branches,
+        address[] factories,
         bool[] statuses
     );
-    event ChannelRegistered(
+    event PressRegistered(
         address sender,
-        address branch,
-        address newChannel
+        address factory,
+        address newPress
     );
     event TokenDataStored(
         address sender,
-        address channel,
+        address press,
         uint256[] tokenIds,
         address[] pointers
     );
     event TokenDataOverwritten(
         address sender,
-        address channel,
+        address press,
         uint256[] tokenIds,
         address[] pointers
     );    
     event TokenDataRemoved(
         address sender,
-        address channel,
+        address press,
         uint256[] tokenIds
     );       
-    event ChannelDataUpdated(
+    event PressDataUpdated(
         address sender,
-        address channel,
+        address press,
         address pointer
     );
 
@@ -46,10 +46,10 @@ interface IRiver {
     // ERRORS
     //////////////////////////////////////////////////    
 
-    /// @notice Error when trying to use a branch that is not registered
-    error Invalid_Branch();
-    /// @notice Error when trying to target a channel that is not registered
-    error Invalid_Channel();    
+    /// @notice Error when trying to use a factory that is not registered
+    error Invalid_Factory();
+    /// @notice Error when trying to target a press that is not registered
+    error Invalid_Press();    
     /// @notice Error when inputting arrays with non matching length
     error Input_Length_Mistmatch();
 
