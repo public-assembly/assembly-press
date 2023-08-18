@@ -14,7 +14,7 @@ import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
     - This could be a hyperstructure if we remove the branch registry
     - Applications can filter for events from channels created from their specific branch implemnetations
     - Branch implementations can be fully perimissioned without blocking anyone from
-    creating their own branches
+    writing their own branches to create the channels they wants
 */
 
 /**
