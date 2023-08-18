@@ -3,14 +3,16 @@ pragma solidity 0.8.19;
 
 /* woah */
 
+import {IRiver} from "./interfaces/IRiver.sol";
 import {IChannel} from "../channel/interfaces/IChannel.sol";
 import {IBranch} from "../branch/interfaces/IBranch.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.sol";
+import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
 /**
  * @title River
  */
-contract River is ReentrancyGuard {
+contract River is IRiver, Ownable, ReentrancyGuard {
 
     //////////////////////////////////////////////////
     // STORAGE
@@ -20,66 +22,6 @@ contract River is ReentrancyGuard {
     mapping(address => bool) public channelRegistry;
 
     //////////////////////////////////////////////////
-    // EVENT
-    //////////////////////////////////////////////////        
-
-    event BranchRegistered(
-        address sender,
-        address[] branches,
-        bool[] statuses
-    );
-
-    event ChannelRegistered(
-        address sender,
-        address branch,
-        address newChannel
-    );
-
-    event TokenDataStored(
-        address sender,
-        address channel,
-        uint256[] tokenIds,
-        address[] pointers
-    );
-    event TokenDataOverwritten(
-        address sender,
-        address channel,
-        uint256[] tokenIds,
-        address[] pointers
-    );    
-    event TokenDataRemoved(
-        address sender,
-        address channel,
-        uint256[] tokenIds
-    );       
-
-    event ChannelDataStored(
-        address sender,
-        address channel,
-        address pointers
-    );
-    event ChannelDataOverwritten(
-        address sender,
-        address channel,
-        address pointers
-    );    
-    event ChannelDataRemoved(
-        address sender,
-        address channel
-    );           
-
-    //////////////////////////////////////////////////
-    // ERRORS
-    //////////////////////////////////////////////////    
-
-    /// @notice Error when trying to use a branch that is not registered
-    error Invalid_Branch();
-    /// @notice Error when trying to target a channel that is not registered
-    error Invalid_Channel();    
-    /// @notice Error when inputting arrays with non matching length
-    error Input_Length_Mistmatch();
-
-    //////////////////////////////////////////////////
     // FUNCTIONS
     //////////////////////////////////////////////////  
 
@@ -87,10 +29,10 @@ contract River is ReentrancyGuard {
     // ADMIN
     //////////////////////////////    
 
-    function registerBranches(address[] memory branches, bool[] memory statuses) external {
+    function registerBranches(address[] memory branches, bool[] memory statuses) onlyOwner external {
         if (branches.length != statuses.length) revert Input_Length_Mistmatch();
         for (uint256 i; i < branches.length; ++i) {
-            branchRegistry[branches[i]] = statuses[i]
+            branchRegistry[branches[i]] = statuses[i];
         }        
         emit BranchRegistered(msg.sender, branches, statuses);
     }
@@ -107,11 +49,11 @@ contract River is ReentrancyGuard {
         return channel;
     }
 
-    function branchBatch(address[] memory branchImpls, bytes[] memory branchInits) nonReentrant external payable returns (address[]) {
+    function branchBatch(address[] memory branchImpls, bytes[] memory branchInits) nonReentrant external payable returns (address[] memory) {
         if (branchImpls.length != branchInits.length) revert Input_Length_Mistmatch();   
         address[] memory channels = new address[](branchImpls.length);
         for (uint256 i; i < branchImpls.length; ++i) {
-            if (!branchRegistry[branchImps[il]) revert Invalid_Branch();
+            if (!branchRegistry[branchImpls[i]]) revert Invalid_Branch();
             address channel = IBranch(branchImpls[i]).createChannel(branchInits[i]);
             channelRegistry[channel] = true;
             emit ChannelRegistered(msg.sender, branchImpls[i], channel);

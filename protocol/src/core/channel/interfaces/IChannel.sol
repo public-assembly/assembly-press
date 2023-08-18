@@ -12,6 +12,8 @@ interface IChannel {
 
     /// @notice Error when msg.sender is not the stored database impl
     error Sender_Not_River();
+    /// @notice Error when inputting arrays with non matching length
+    error Input_Length_Mistmatch();    
     // /// @notice Error when attempting to transfer non-transferrable token
     // error Non_Transferrable_Token();
 
@@ -35,7 +37,15 @@ interface IChannel {
         bytes memory rendererInit,
         IChannelTypesV1.AdvancedSettings memory advancedSettings
     ) external;
-    function store(address sender, bytes memory data) external payable returns (uint256[] memory, address[] memory);
+
+    function storeTokenData(address sender, bytes memory data) external payable returns (uint256[] memory, address[] memory);
+    function overwriteTokenData(address sender, bytes memory data) external returns (uint256[] memory, address[] memory);
+    function removeTokenData(address sender, bytes memory data) external returns (uint256[] memory);
+
+    function storeChannelData(address channel, bytes memory data) external payable returns (address);
+    function overwriteChannelData(address channel, bytes memory data) external returns (address);
+    function removeChannelData(address channel, bytes memory data) external;
+
 
     // /// @notice Batch-mint tokens to a designated recipient
     // function mint(address recipient, uint256 quantity) external;

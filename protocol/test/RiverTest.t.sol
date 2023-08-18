@@ -55,7 +55,9 @@ contract RiverTest is Test {
         
         address[] memory branchToRegister = new address[](1);
         branchToRegister[0] = address(branch);
-        river.registerBranches(branchToRegister);
+        bool[] memory statusToRegister = new bool[](1);
+        statusToRegister[0] = true;        
+        river.registerBranches(branchToRegister, statusToRegister);
     }  
 
     function test_branch() public {
@@ -87,7 +89,7 @@ contract RiverTest is Test {
         river.branch(address(0x123), encodedInputs);
     }
 
-    function test_store() public {
+    function test_storeTokenData() public {
         Channel activeChannel = Channel(payable(createGenericChannel()));
 
         bytes[] memory bytesArray = new bytes[](1);
@@ -102,17 +104,17 @@ contract RiverTest is Test {
         // (, uint256 fees) = feeRouter.getFees(address(0), 1);
         // vm.deal(owner, 1 ether);
         vm.prank(admin);
-        river.store(address(activeChannel), encodedBytesArray);
+        river.storeTokenData(address(activeChannel), encodedBytesArray);
 
         vm.prank(admin);
         // should revert because channel doesnt exist
         vm.expectRevert(abi.encodeWithSignature("Invalid_Channel()"));
-        river.store(address(0x123), encodedBytesArray);
+        river.storeTokenData(address(0x123), encodedBytesArray);
         
         vm.prank(admin);
         // should revert because cant call channel directly if not river
         vm.expectRevert(abi.encodeWithSignature("Sender_Not_River()"));
-        activeChannel.store(admin, encodedBytesArray);
+        activeChannel.storeTokenData(admin, encodedBytesArray);
     }
 
     function createGenericChannel() public returns (address) {
