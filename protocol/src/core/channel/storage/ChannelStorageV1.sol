@@ -16,7 +16,7 @@ contract ChannelStorageV1 {
     address public river;
     IChannelTypesV1.Settings public settings;
     address public feeRouter;
-    mapping(uint256 => address) fundsRecipientOverrides;
+    mapping(uint256 => address) public fundsRecipientOverrides;
     string public name;
 
     ////////////////////////////////////////////////////////////

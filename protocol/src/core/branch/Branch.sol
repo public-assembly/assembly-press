@@ -3,17 +3,15 @@ pragma solidity 0.8.19;
 
 /* woah */
 
+import {IBranch} from "./interfaces/IBranch.sol";
 import {Channel} from "../channel/Channel.sol";
 import {ChannelProxy} from "../channel/proxy/ChannelProxy.sol";
 import {IChannelTypesV1} from "../channel/types/IChannelTypesV1.sol";
-import {IBranch} from "./interfaces/IBranch.sol";
-import {Version} from "../../utils/Version.sol";
-import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.sol";
 
 /**
  * @title Branch
  */
-contract Branch is IBranch, Version(1), ReentrancyGuard {
+contract Branch is IBranch {
     //////////////////////////////////////////////////
     // TYPES
     //////////////////////////////////////////////////    
@@ -55,7 +53,10 @@ contract Branch is IBranch, Version(1), ReentrancyGuard {
     //////////////////////////////////////////////////
     // FUNCTIONS
     //////////////////////////////////////////////////  
-    function createChannel(bytes memory init) nonReentrant external returns (address) {        
+
+    // dont think this needs a reentrancy guard, since a callback to the Branch mid createChannel
+    //      execution cant do anyting malicious? only function is to create another new channel?
+    function createChannel(bytes memory init) external returns (address) {        
         if (msg.sender != river) revert Sender_Not_River();
         // Decode init data
         (Inputs memory inputs) = abi.decode(init, (Inputs));
