@@ -9,6 +9,14 @@ import {IBranch} from "../branch/interfaces/IBranch.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.sol";
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
+/*
+    NOTE:
+    - This could be a hyperstructure if we remove the branch registry
+    - Applications can filter for events from channels created from their specific branch implemnetations
+    - Branch implementations can be fully perimissioned without blocking anyone from
+    creating their own branches
+*/
+
 /**
  * @title River
  */
@@ -54,7 +62,7 @@ contract River is IRiver, Ownable, ReentrancyGuard {
         address[] memory channels = new address[](branchImpls.length);
         for (uint256 i; i < branchImpls.length; ++i) {
             if (!branchRegistry[branchImpls[i]]) revert Invalid_Branch();
-            address channel = IBranch(branchImpls[i]).createChannel(branchInits[i]);
+            address channel = IBranch(branchImpls[i]).createChannel(msg.sender, branchInits[i]);
             channelRegistry[channel] = true;
             emit ChannelRegistered(msg.sender, branchImpls[i], channel);
             channels[i] = channel;
