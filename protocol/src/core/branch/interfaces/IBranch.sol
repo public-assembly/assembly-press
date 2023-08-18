@@ -34,5 +34,5 @@ interface IBranch {
     //////////////////////////////////////////////////       
 
     /// @notice Deploys and initializes new channel
-    function createChannel(bytes memory init) external returns (address);
+    function createChannel(address sender, bytes memory init) external returns (address);
 }

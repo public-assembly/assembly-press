@@ -43,7 +43,7 @@ contract River is IRiver, Ownable, ReentrancyGuard {
 
     function branch(address branchImpl, bytes memory branchInit) nonReentrant external payable returns (address) {
         if (!branchRegistry[branchImpl]) revert Invalid_Branch();
-        address channel = IBranch(branchImpl).createChannel(branchInit);
+        address channel = IBranch(branchImpl).createChannel(msg.sender, branchInit);
         channelRegistry[channel] = true;
         emit ChannelRegistered(msg.sender, branchImpl, channel);
         return channel;

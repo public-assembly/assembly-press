@@ -34,8 +34,12 @@ contract Branch is IBranch {
 
     // dont think this needs a reentrancy guard, since a callback to the Branch mid createChannel
     //      execution cant do anyting malicious? only function is to create another new channel?
-    function createChannel(bytes memory init) external returns (address) {        
+    function createChannel(address sender, bytes memory init) external returns (address) {        
         if (msg.sender != river) revert Sender_Not_River();
+        /* 
+            Could put branch logic check here for sender access
+            Could also take out sender from being an input, but seems nice to have
+        */        
         // Decode init data
         (Inputs memory inputs) = abi.decode(init, (Inputs));
         // Configure ownership details in proxy constructor
