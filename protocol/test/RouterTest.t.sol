@@ -133,9 +133,11 @@ contract RouterTest is Test {
         Inputs memory inputs = Inputs({
             pressName: "First Press",
             initialOwner: admin,
-            logic: address(logic),
+            // logic: address(logic),
+            logic: 0x5F068686D7D00b299499aF2BA05F921bEfAfB205,
             logicInit: new bytes(0),
-            renderer: address(renderer),
+            // renderer: address(renderer),
+            renderer: 0x63114AC2550Eb8C4673E5FeA4B1624989Aa730Fb,
             rendererInit: new bytes(0),
             advancedSettings: settings
         });        

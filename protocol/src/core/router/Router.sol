@@ -111,40 +111,40 @@ contract Router is IRouter, Ownable, ReentrancyGuard {
 
     /* ~~~ Press Data Interactions ~~~ */
 
-    function updatePressDataMulti(address[] memory presses, bytes[] memory datas) nonReentrant external payable {
-        if (presses.length != datas.length) revert Input_Length_Mistmatch();
+    function updatePressDataMulti(address[] memory presses, bytes[] memory datas, uint256[] memory values) nonReentrant external payable {
+        if (presses.length != datas.length && presses.length != values.length) revert Input_Length_Mistmatch();
         for (uint256 i; i < presses.length; ++i) {
             if (!pressRegistry[presses[i]]) revert Invalid_Press();
-            (address pointer) = IPress(presses[i]).updatePressData(msg.sender, datas[i]);
+            (address pointer) = IPress(presses[i]).updatePressData{value: values[i]}(msg.sender, datas[i]);
             emit PressDataUpdated(msg.sender, presses[i], pointer);
         }    
     }      
 
     /* ~~~ Token Data Interactions ~~~ */    
 
-    function storeTokenDataMulti(address[] memory presses, bytes[] memory datas) nonReentrant external payable {
-        if (presses.length != datas.length) revert Input_Length_Mistmatch();
+    function storeTokenDataMulti(address[] memory presses, bytes[] memory datas, uint256[] memory values) nonReentrant external payable {
+        if (presses.length != datas.length && presses.length != values.length) revert Input_Length_Mistmatch();
         for (uint256 i; i < presses.length; ++i) {
             if (!pressRegistry[presses[i]]) revert Invalid_Press();
-            (uint256[] memory tokenIds, address[] memory pointers) = IPress(presses[i]).storeTokenData(msg.sender, datas[i]);
+            (uint256[] memory tokenIds, address[] memory pointers) = IPress(presses[i]).storeTokenData{value: values[i]}(msg.sender, datas[i]);
             emit TokenDataStored(msg.sender, presses[i], tokenIds, pointers);
         }    
     }
 
-    function overwriteTokenDataMulti(address[] memory presses, bytes[] memory datas) nonReentrant external payable {
-        if (presses.length != datas.length) revert Input_Length_Mistmatch();
+    function overwriteTokenDataMulti(address[] memory presses, bytes[] memory datas, uint256[] memory values) nonReentrant external payable {
+        if (presses.length != datas.length && presses.length != values.length) revert Input_Length_Mistmatch();
         for (uint256 i; i < presses.length; ++i) {
             if (!pressRegistry[presses[i]]) revert Invalid_Press();
-            (uint256[] memory tokenIds, address[] memory pointers) = IPress(presses[i]).overwriteTokenData(msg.sender, datas[i]);
+            (uint256[] memory tokenIds, address[] memory pointers) = IPress(presses[i]).overwriteTokenData{value: values[i]}(msg.sender, datas[i]);
             emit TokenDataOverwritten(msg.sender, presses[i], tokenIds, pointers);
         }    
     }    
 
-    function removeTokenDataMulti(address[] memory presses, bytes[] memory datas) nonReentrant external payable {
-        if (presses.length != datas.length) revert Input_Length_Mistmatch();
+    function removeTokenDataMulti(address[] memory presses, bytes[] memory datas, uint256[] memory values) nonReentrant external payable {
+        if (presses.length != datas.length && presses.length != values.length) revert Input_Length_Mistmatch();
         for (uint256 i; i < presses.length; ++i) {
             if (!pressRegistry[presses[i]]) revert Invalid_Press();
-            (uint256[] memory tokenIds) = IPress(presses[i]).removeTokenData(msg.sender, datas[i]);
+            (uint256[] memory tokenIds) = IPress(presses[i]).removeTokenData{value: values[i]}(msg.sender, datas[i]);
             emit TokenDataRemoved(msg.sender, presses[i], tokenIds);
         }    
     }        
