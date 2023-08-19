@@ -11,7 +11,6 @@ import {Press} from "../src/core/press/Press.sol";
 import {PressProxy} from "../src/core/press/proxy/PressProxy.sol";
 import {IPress} from "../src/core/press/interfaces/IPress.sol";
 import {IPressTypesV1} from "../src/core/press/types/IPressTypesV1.sol";
-// import {FeeRouter} from "../../../../src/core/FeeRouter.sol";
 import {MockLogic} from "./mocks/logic/MockLogic.sol";
 import {MockRenderer} from "./mocks/renderer/MockRenderer.sol";
 
@@ -21,7 +20,6 @@ contract RouterTest is Test {
     struct Inputs {
         string pressName; 
         address initialOwner;
-        address feeRouterImpl;
         address logic;
         bytes logicInit;
         address renderer;
@@ -40,15 +38,16 @@ contract RouterTest is Test {
     Router router;
     Factory factory;
     Press press;
+    address feeRecipient = address(0x999);
+    uint256 fee = 0.0005 ether;    
     MockLogic logic;
     MockRenderer renderer;
-    address feeRouter;
     address admin = address(0x123);
 
     // Set up called before each test
     function setUp() public virtual {
         router = new Router();
-        press = new Press();
+        press = new Press(feeRecipient, fee);
         factory = new Factory(address(router), address(press));
         logic = new MockLogic();
         renderer = new MockRenderer();
@@ -71,7 +70,6 @@ contract RouterTest is Test {
         Inputs memory inputs = Inputs({
             pressName: "First Press",
             initialOwner: admin,
-            feeRouterImpl: feeRouter,
             logic: address(logic),
             logicInit: new bytes(0),
             renderer: address(renderer),
@@ -89,7 +87,7 @@ contract RouterTest is Test {
         router.setup(address(0x123), encodedInputs);
     }
 
-    function test_storeTokenData() public {
+    function test_storeTokenData() public payable {
         Press activePress = Press(payable(createGenericPress()));
 
         bytes[] memory bytesArray = new bytes[](1);
@@ -101,10 +99,18 @@ contract RouterTest is Test {
             hasTokenId: true
         }));
         bytes memory encodedBytesArray = abi.encode(bytesArray);      
-        // (, uint256 fees) = feeRouter.getFees(address(0), 1);
-        // vm.deal(owner, 1 ether);
+
+        uint256 fees = activePress.getFees(bytesArray.length);
+        vm.deal(admin, 1 ether);
         vm.prank(admin);
-        router.storeTokenData(address(activePress), encodedBytesArray);
+        router.storeTokenData{value: fees}(address(activePress), encodedBytesArray);        
+        require(admin.balance == 1 ether - fees, "fees not correct");
+        require(feeRecipient.balance == fees, "fees not correct");
+
+        vm.prank(admin);
+        // should revert because no msg.value sent for fees
+        vm.expectRevert(abi.encodeWithSignature("Incorrect_Msg_Value()"));
+        router.storeTokenData(address(activePress), encodedBytesArray);        
 
         vm.prank(admin);
         // should revert because press doesnt exist
@@ -127,7 +133,6 @@ contract RouterTest is Test {
         Inputs memory inputs = Inputs({
             pressName: "First Press",
             initialOwner: admin,
-            feeRouterImpl: feeRouter,
             logic: address(logic),
             logicInit: new bytes(0),
             renderer: address(renderer),

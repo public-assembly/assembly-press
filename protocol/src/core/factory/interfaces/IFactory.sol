@@ -14,7 +14,6 @@ interface IFactory {
     struct Inputs {
         string pressName; 
         address initialOwner;
-        address feeRouterImpl;
         address logic;
         bytes logicInit;
         address renderer;

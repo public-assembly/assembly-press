@@ -79,7 +79,7 @@ contract Router is IRouter, Ownable, ReentrancyGuard {
 
     function updatePressData(address press, bytes memory data) nonReentrant external payable {
         if (!pressRegistry[press]) revert Invalid_Press();
-        (address pointer) = IPress(press).updatePressData(msg.sender, data);
+        (address pointer) = IPress(press).updatePressData{value: msg.value}(msg.sender, data);
         emit PressDataUpdated(msg.sender, press, pointer);
     }         
 
@@ -87,25 +87,27 @@ contract Router is IRouter, Ownable, ReentrancyGuard {
 
     function storeTokenData(address press, bytes memory data) nonReentrant external payable {
         if (!pressRegistry[press]) revert Invalid_Press();
-        (uint256[] memory tokenIds, address[] memory pointers) = IPress(press).storeTokenData(msg.sender, data);
+        (uint256[] memory tokenIds, address[] memory pointers) = IPress(press).storeTokenData{value: msg.value}(msg.sender, data);
         emit TokenDataStored(msg.sender, press, tokenIds, pointers);
     }
 
-    function overwriteTokenData(address press, bytes memory data) nonReentrant external {
+    function overwriteTokenData(address press, bytes memory data) nonReentrant external payable {
         if (!pressRegistry[press]) revert Invalid_Press();
-        (uint256[] memory tokenIds, address[] memory pointers) = IPress(press).overwriteTokenData(msg.sender, data);
+        (uint256[] memory tokenIds, address[] memory pointers) = IPress(press).overwriteTokenData{value: msg.value}(msg.sender, data);
         emit TokenDataOverwritten(msg.sender, press, tokenIds, pointers);
     }    
 
-    function removeTokenData(address press, bytes memory data) nonReentrant external {
+    function removeTokenData(address press, bytes memory data) nonReentrant external payable {
         if (!pressRegistry[press]) revert Invalid_Press();
-        (uint256[] memory tokenIds) = IPress(press).removeTokenData(msg.sender, data);
+        (uint256[] memory tokenIds) = IPress(press).removeTokenData{value: msg.value}(msg.sender, data);
         emit TokenDataRemoved(msg.sender, press, tokenIds);
     }    
 
     //////////////////////////////
     // MULTI PRESS INTERACTIONS
     //////////////////////////////    
+
+    // NOTE: These functions dont work now since arent passing value to the forwarding contracts
 
     /* ~~~ Press Data Interactions ~~~ */
 
@@ -129,7 +131,7 @@ contract Router is IRouter, Ownable, ReentrancyGuard {
         }    
     }
 
-    function overwriteTokenDataMulti(address[] memory presses, bytes[] memory datas) nonReentrant external {
+    function overwriteTokenDataMulti(address[] memory presses, bytes[] memory datas) nonReentrant external payable {
         if (presses.length != datas.length) revert Input_Length_Mistmatch();
         for (uint256 i; i < presses.length; ++i) {
             if (!pressRegistry[presses[i]]) revert Invalid_Press();
@@ -138,7 +140,7 @@ contract Router is IRouter, Ownable, ReentrancyGuard {
         }    
     }    
 
-    function removeTokenDataMulti(address[] memory presses, bytes[] memory datas) nonReentrant external {
+    function removeTokenDataMulti(address[] memory presses, bytes[] memory datas) nonReentrant external payable {
         if (presses.length != datas.length) revert Input_Length_Mistmatch();
         for (uint256 i; i < presses.length; ++i) {
             if (!pressRegistry[presses[i]]) revert Invalid_Press();

@@ -49,7 +49,6 @@ contract Factory is IFactory {
             pressName: inputs.pressName,
             initialOwner: inputs.initialOwner,
             routerImpl: router, // input comes from local storage not decode
-            feeRouterImpl: inputs.feeRouterImpl,
             logic: inputs.logic,
             logicInit: inputs.logicInit,
             renderer: inputs.renderer,

@@ -31,7 +31,6 @@ contract PressStorageV1 {
     
     address public router;
     string public name;
-    address public feeRouter;        
     IPressTypesV1.Settings public settings;
     mapping(uint256 => address) public fundsRecipientOverrides;
 }

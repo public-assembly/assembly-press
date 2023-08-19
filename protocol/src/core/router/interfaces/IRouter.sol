@@ -52,5 +52,4 @@ interface IRouter {
     error Invalid_Press();    
     /// @notice Error when inputting arrays with non matching length
     error Input_Length_Mistmatch();
-
 }

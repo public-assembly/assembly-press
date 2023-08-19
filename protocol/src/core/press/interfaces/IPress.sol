@@ -35,7 +35,8 @@ interface IPress {
     error Non_Fungible_Token();    
     /// @notice Error when attempting to transfer non-transferable token
     error Non_Transferable_Token();
-
+    /// @notice Error when attempting to withdraw eth balance from Press
+    error ETHWithdrawFailed(address recipient, uint256 amount);
 
     ////////////////////////////////////////////////////////////
     // FUNCTIONS
@@ -50,7 +51,6 @@ interface IPress {
         string memory pressName, 
         address initialOwner,
         address routerImpl,
-        address feeRouterImpl,
         address logic,
         bytes memory logicInit,
         address renderer,
@@ -60,8 +60,8 @@ interface IPress {
 
     function updatePressData(address press, bytes memory data) external payable returns (address);
     function storeTokenData(address sender, bytes memory data) external payable returns (uint256[] memory, address[] memory);
-    function overwriteTokenData(address sender, bytes memory data) external returns (uint256[] memory, address[] memory);
-    function removeTokenData(address sender, bytes memory data) external returns (uint256[] memory);
+    function overwriteTokenData(address sender, bytes memory data) external payable returns (uint256[] memory, address[] memory);
+    function removeTokenData(address sender, bytes memory data) external payable returns (uint256[] memory);
 
 
     function collect(address recipient, uint256 tokenId, uint256 quantity) external payable;
