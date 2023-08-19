@@ -6,10 +6,10 @@ pragma solidity 0.8.19;
 /// @author Zora Labs
 library TransferUtils {
     /// @dev Gas limit to send funds
-    uint256 internal constant _FUNDS_SEND_LOW_GAS_LIMIT = 110_000;
+    uint256 internal constant FUNDS_SEND_LOW_GAS_LIMIT = 110_000;
 
     // @dev Gas limit to send funds – usable for splits, can use with withdraws
-    uint256 internal constant _FUNDS_SEND_NORMAL_GAS_LIMIT = 310_000;
+    uint256 internal constant FUNDS_SEND_NORMAL_GAS_LIMIT = 310_000;
 
     /// @notice Sends ETH to a recipient, making conservative estimates to not run out of gas
     /// @param recipient The address to send ETH to

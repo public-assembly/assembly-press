@@ -9,12 +9,14 @@ import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/proxy/utils/UU
 import {Initializable} from "openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "../../utils/ownable/single/OwnableUpgradeable.sol";
 import {Version} from "../../utils/Version.sol";
+import {FundsReceiver} from "../../utils/FundsReceiver.sol";
 
 import {IPress} from "./interfaces/IPress.sol";
 import {IPressTypesV1} from "./types/IPressTypesV1.sol";
 import {PressStorageV1} from "./storage/PressStorageV1.sol";
 import {ILogic} from "./logic/ILogic.sol";
 import {IRenderer} from "./renderer/IRenderer.sol";
+import {TransferUtils} from "../../utils/TransferUtils.sol";
 
 import "sstore2/SSTORE2.sol";
 
@@ -27,6 +29,7 @@ contract Press is
     IPress,
     PressStorageV1,
     Version(1),
+    FundsReceiver,
     UUPSUpgradeable,
     ReentrancyGuardUpgradeable,
     OwnableUpgradeable
@@ -163,6 +166,77 @@ contract Press is
     }      
 
     ////////////////////////////////////////////////////////////
+    // COLLECT
+    ////////////////////////////////////////////////////////////    
+    
+    /*
+        TODO:
+        Confirm that we dont need to include an _exists(tokenId) check
+    */
+
+    //////////////////////////////
+    // EXTERNAL
+    //////////////////////////////           
+
+    function collect(address recipient, uint256 tokenId, uint256 quantity) external payable nonReentrant {
+        // Check that token type can be collected
+        if (!settings.advancedSettings.fungible) revert Non_Fungible_Token();
+        // Cache msg.sender
+        address sender = msg.sender;
+        // Get collect access and price from logic contract. Will revert if no access or msg.value is incorrect
+        uint256 price = _getAccessAndPrice(sender, recipient, tokenId, quantity);
+        // Process mint
+        _mint(recipient, tokenId, quantity, new bytes(0));
+        // Process funds redirect to override address if necesssary
+        _handleFundsRecipientOverride(tokenId, price);
+        // Emit Collected event
+        emit Collected(sender, recipient, tokenId, quantity, price);
+    }
+
+    function collectBatch(address recipient, uint256[] memory tokenIds, uint256[] memory quantities) external payable nonReentrant {
+        // Check that token type can be collected
+        if (!settings.advancedSettings.fungible) revert Non_Fungible_Token();
+        // Cache msg.sender
+        address sender = msg.sender;        
+        // Check for input length
+        if (tokenIds.length != quantities.length) revert Input_Length_Mistmatch();
+        // Process collect requests
+        for (uint256 i; i < tokenIds.length; ++i) {
+            // Get collect access and price from logic contract. Will revert if no access or msg.value is incorrect
+            uint256 price = _getAccessAndPrice(sender, recipient, tokenIds[i], quantities[i]);
+            // Process mint
+            _mint(recipient, tokenIds[i], quantities[i], new bytes(0));
+            // Process funds redirect to override address if necesssary
+            _handleFundsRecipientOverride(tokenIds[i], price);
+            // Emit Collected event
+            emit Collected(sender, recipient, tokenIds[i], quantities[i], price);            
+        }
+    }    
+
+    //////////////////////////////
+    // INTERNAL
+    //////////////////////////////               
+
+    function _getAccessAndPrice(address sender, address recipient, uint256 tokenId, uint256 quantity) internal returns (uint256) {
+        (bool access, uint256 price) = ILogic(settings.logic).collectRequest(sender, recipient, tokenId, quantity);
+        if (!access) revert No_Collect_Access();
+        if (msg.value != price) revert Incorrect_Msg_Value();
+        return price;
+    }
+
+    // TODO: consider adding an event to this for funds tracking?
+    function _handleFundsRecipientOverride(uint256 tokenId, uint256 price) internal {
+        address recipientOverride = fundsRecipientOverrides[tokenId];
+        if (recipientOverride != address(0)) {
+            TransferUtils.safeSendETH(
+                recipientOverride, 
+                price, 
+                TransferUtils.FUNDS_SEND_LOW_GAS_LIMIT
+            );
+        }
+    }    
+
+    ////////////////////////////////////////////////////////////
     // INTERNAL
     ////////////////////////////////////////////////////////////  
 
@@ -194,4 +268,23 @@ contract Press is
         }
         return arrayOfOnes;
     } 
+
+    //////////////////////////////
+    // OVERRIDES
+    //////////////////////////////         
+
+    /**
+     * @dev See {ERC1155Upgradeable-_update}.
+     */
+    function _update(address from, address to, uint256[] memory ids, uint256[] memory values) internal override(ERC1155Upgradeable) virtual {
+        // Revert if function call is not a mint or burn
+        if (!settings.advancedSettings.transferable) {
+            if (from != address(0) || to != address(0)) revert Non_Transferable_Token();   
+        }
+        super._update(from, to, ids, values); // Call the original implementation
+    }    
+
+
+
+
 }

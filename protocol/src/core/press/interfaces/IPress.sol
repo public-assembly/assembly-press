@@ -6,6 +6,19 @@ pragma solidity 0.8.19;
 import {IPressTypesV1} from "../types/IPressTypesV1.sol";
 
 interface IPress {
+
+    ////////////////////////////////////////////////////////////
+    // EVENTS
+    ////////////////////////////////////////////////////////////
+
+    event Collected(
+        address sender,
+        address recipient,
+        uint256 tokenId,
+        uint256 quantity,
+        uint256 msgValue
+    );
+
     ////////////////////////////////////////////////////////////
     // ERRORS
     ////////////////////////////////////////////////////////////
@@ -14,8 +27,15 @@ interface IPress {
     error Sender_Not_Router();
     /// @notice Error when inputting arrays with non matching length
     error Input_Length_Mistmatch();    
-    // /// @notice Error when attempting to transfer non-transferrable token
-    // error Non_Transferrable_Token();
+    /// @notice
+    error No_Collect_Access();
+    /// @notice
+    error Incorrect_Msg_Value();
+    /// @notice Error when attempting to create copies of non-fungible token
+    error Non_Fungible_Token();    
+    /// @notice Error when attempting to transfer non-transferable token
+    error Non_Transferable_Token();
+
 
     ////////////////////////////////////////////////////////////
     // FUNCTIONS
@@ -38,11 +58,16 @@ interface IPress {
         IPressTypesV1.AdvancedSettings memory advancedSettings
     ) external;
 
+    function updatePressData(address press, bytes memory data) external payable returns (address);
     function storeTokenData(address sender, bytes memory data) external payable returns (uint256[] memory, address[] memory);
     function overwriteTokenData(address sender, bytes memory data) external returns (uint256[] memory, address[] memory);
     function removeTokenData(address sender, bytes memory data) external returns (uint256[] memory);
 
-    function updatePressData(address press, bytes memory data) external payable returns (address);
+
+    function collect(address recipient, uint256 tokenId, uint256 quantity) external payable;
+    function collectBatch(address recipient, uint256[] memory tokenIds, uint256[] memory quantities) external payable;
+
+    function isTransferable(uint256 tokenId) external returns (bool);
     
     // /// @notice Batch-mint tokens to a designated recipient
     // function mint(address recipient, uint256 quantity) external;

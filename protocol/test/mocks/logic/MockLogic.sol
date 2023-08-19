@@ -11,4 +11,7 @@ contract MockLogic is ILogic {
     function initializeWithData(bytes memory initData) external {
         isInitialized[msg.sender] = true;
     }
+
+    function collectRequest(address sender, address recipient, uint256 tokenId, uint256 quantity) external returns (bool, uint256)
+        {}
 }
