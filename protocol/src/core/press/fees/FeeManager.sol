@@ -20,7 +20,7 @@ contract FeeManager {
     constructor (address _feeRecipient, uint256 _fee) {
         feeRecipient = _feeRecipient;
         fee = _fee;
-        if (_feeRecipient == address(0) && _fee > 0) {
+        if (_feeRecipient == address(0)) {
             revert Cannot_Set_Recipient_To_Zero_Address();
         }        
     }
