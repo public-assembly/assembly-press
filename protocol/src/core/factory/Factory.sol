@@ -17,15 +17,15 @@ contract Factory is IFactory {
     //////////////////////////////////////////////////
     
     address public router;
-    address public press;
+    address public pressImpl;
 
     //////////////////////////////////////////////////
     // CONSTRUCTOR
     //////////////////////////////////////////////////    
 
-    constructor(address routerImpl, address pressImpl) {
-        router = routerImpl;
-        press = pressImpl;
+    constructor(address _router, address _pressImpl) {
+        router = _router;
+        pressImpl = _pressImpl;
     }
 
     //////////////////////////////////////////////////
@@ -43,12 +43,12 @@ contract Factory is IFactory {
         // Decode init data
         (Inputs memory inputs) = abi.decode(init, (Inputs));
         // Configure ownership details in proxy constructor
-        PressProxy newPress = new PressProxy(press, "");
+        PressProxy newPress = new PressProxy(pressImpl, "");
         // Initialize AP721Proxy
         Press(payable(address(newPress))).initialize({
             pressName: inputs.pressName,
             initialOwner: inputs.initialOwner,
-            routerImpl: router, // input comes from local storage not decode
+            router: router, // input comes from local storage not decode
             logic: inputs.logic,
             logicInit: inputs.logicInit,
             renderer: inputs.renderer,
