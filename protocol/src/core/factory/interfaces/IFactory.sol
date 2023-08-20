@@ -25,7 +25,7 @@ interface IFactory {
     // ERRORS
     //////////////////////////////////////////////////    
 
-    /// @notice Error when msg.sender is not the stored database impl
+    /// @notice Error when msg.sender is not the router
     error Sender_Not_Router();    
 
     //////////////////////////////////////////////////
