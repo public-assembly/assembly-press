@@ -145,7 +145,7 @@ contract Press is
     function overwriteTokenData(address sender, bytes memory data) external payable returns (uint256[] memory, address[] memory) {
         if (msg.sender != router) revert Sender_Not_Router();
         (uint256[] memory tokenIds, bytes[] memory datas) = abi.decode(data, (uint256[], bytes[]));
-        if (tokenIds.length != datas.length) revert Input_Length_Mistmatch();
+        if (tokenIds.length != datas.length) revert Input_Length_Mismatch();
         // Initialize memory variables
         uint256 quantity = tokenIds.length;
         address[] memory pointers = new address[](quantity);        
@@ -209,7 +209,7 @@ contract Press is
         // Cache msg.sender
         address sender = msg.sender;        
         // Check for input length
-        if (tokenIds.length != quantities.length) revert Input_Length_Mistmatch();
+        if (tokenIds.length != quantities.length) revert Input_Length_Mismatch();
         // Process collect requests
         for (uint256 i; i < tokenIds.length; ++i) {
             // Get collect access and price from logic contract. Will revert if no access or msg.value is incorrect

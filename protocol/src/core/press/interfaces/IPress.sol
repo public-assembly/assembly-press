@@ -26,7 +26,7 @@ interface IPress {
     /// @notice Error when msg.sender is not the stored database impl
     error Sender_Not_Router();
     /// @notice Error when inputting arrays with non matching length
-    error Input_Length_Mistmatch();    
+    error Input_Length_Mismatch();    
     /// @notice
     error No_Collect_Access();
     /// @notice

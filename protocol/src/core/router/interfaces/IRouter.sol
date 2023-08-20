@@ -51,5 +51,5 @@ interface IRouter {
     /// @notice Error when trying to target a press that is not registered
     error Invalid_Press();    
     /// @notice Error when inputting arrays with non matching length
-    error Input_Length_Mistmatch();
+    error Input_Length_Mismatch();
 }
