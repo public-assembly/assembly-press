@@ -1,7 +1,7 @@
-import { type Hex } from 'viem';
+import { type Hex, type Hash } from 'viem';
 
 export interface FactoryRegistered {
-  transactionHash: Hex | null;
+  transactionHash: Hash | null;
   blockNumber: bigint | null;
   args: {
     sender: Hex;
@@ -11,9 +11,8 @@ export interface FactoryRegistered {
   eventName: 'FactoryRegistered';
 }
 export interface PressRegistered {
-  transactionHash: Hex | null;
+  transactionHash: Hash | null;
   blockNumber: bigint | null;
-
   args: {
     sender: Hex;
     factory: Hex;
@@ -23,7 +22,7 @@ export interface PressRegistered {
 }
 
 export interface TokenDataStored {
-  transactionHash: Hex | null;
+  transactionHash: Hash | null;
   blockNumber: bigint | null;
   args: {
     sender: Hex;
@@ -35,7 +34,7 @@ export interface TokenDataStored {
 }
 
 export interface TokenDataOverwritten {
-  transactionHash: Hex | null;
+  transactionHash: Hash | null;
   blockNumber: bigint | null;
   args: {
     sender: Hex;
@@ -47,7 +46,7 @@ export interface TokenDataOverwritten {
 }
 
 export interface TokenDataRemoved {
-  transactionHash: Hex | null;
+  transactionHash: Hash | null;
   blockNumber: bigint | null;
   args: {
     sender: Hex;
@@ -58,7 +57,7 @@ export interface TokenDataRemoved {
 }
 
 export interface PressDataUpdated {
-  transactionHash: Hex | null;
+  transactionHash: Hash | null;
   blockNumber: bigint | null;
   args: {
     sender: Hex;

@@ -1,11 +1,11 @@
 import { backfillPostgres } from './backfill'
-import { watchDatabaseEvents } from './watch/watchDatabaseEvents'
+import { watchRouterEvents } from './watch/watchRouterEvents'
 import {bundlrUpload} from './bundlr/bundlrUpload'
 import cron from "node-cron";
 
 async function main() {
-  await backfillPostgres()
-  watchDatabaseEvents()
+  // await backfillPostgres()
+  watchRouterEvents()
   
 }
 main()

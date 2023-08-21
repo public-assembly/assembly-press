@@ -4,13 +4,15 @@ import { viemClient } from '../viem/client'
 import { routerAbiEventsArray } from '../constants'
 import { writeToDatabase } from '../prisma'
 
-export const watchDatabaseEvents = () => {
+export const watchRouterEvents = () => {
     const parsedEvent = parseAbi(routerAbiEventsArray)
+    console.log('Watching router events...')
     viemClient.watchEvent({
       address: process.env.ROUTER_ADDRESS as Hex,
       events: parsedEvent,
       onLogs: (logs) => {
-        writeToDatabase(decodeLogs(logs))
+        console.log(decodeLogs(logs))
+        // writeToDatabase(decodeLogs(logs))
       }
     })
   }
