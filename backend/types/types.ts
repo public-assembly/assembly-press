@@ -1,11 +1,6 @@
 import { type Abi, type Hex, type Log } from 'viem'
 import {
-  SetupAP721,
-  RendererUpdated,
-  LogicUpdated,
-  DataStored,
-  DataRemoved,
-  DataOverwritten,
+  FactoryRegistered, PressRegistered, TokenDataStored, TokenDataOverwritten, TokenDataRemoved, PressDataUpdated
 } from '../interfaces'
 
 export type EventObject = {
@@ -14,39 +9,39 @@ export type EventObject = {
   address: Hex
 }
 
-export type DatabaseEvent =
-  | 'SetupAP721'
-  | 'DataStored'
-  | 'DataOverwritten'
-  | 'DataRemoved'
-  | 'LogicUpdated'
-  | 'RendererUpdated'
+export type RouterEvent =
+  | 'FactoryRegistered'
+  | 'PressRegistered'
+  | 'TokenDataStored'
+  | 'TokenDataOverwritten'
+  | 'TokenDataRemoved'
+  | 'PressDataUpdated'
 
 export type DecodedLog =
-  | SetupAP721
-  | RendererUpdated
-  | LogicUpdated
-  | DataStored
-  | DataRemoved
-  | DataOverwritten
+  | FactoryRegistered
+  | PressRegistered
+  | TokenDataStored
+  | TokenDataOverwritten
+  | TokenDataRemoved
+  | PressDataUpdated
 
-type AdditionalProperties = {
-  args?: {
-    ap721?: string
-    sender?: string
-    initialOwner?: string
-    logic?: string
-    renderer?: string
-    factory?: string
-    target?: string
-    tokenId?: bigint
-    pointer?: string
-  }
-  eventName: string
-}
+// type AdditionalProperties = {
+//   args?: {
+//     router?: string
+//     sender?: string
+//     initialOwner?: string
+//     logic?: string
+//     renderer?: string
+//     factory?: string
+//     target?: string
+//     tokenId?: bigint
+//     pointer?: string
+//   }
+//   eventName: string
+// }
 
-export type DatabaseLog = Omit<
-  Log,
-  'transactionIndex' | 'removed' | 'logIndex'
-> &
-  AdditionalProperties
+// export type DatabaseLog = Omit<
+//   Log,
+//   'transactionIndex' | 'removed' | 'logIndex'
+// > &
+//   AdditionalProperties
