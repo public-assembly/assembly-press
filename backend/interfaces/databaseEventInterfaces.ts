@@ -1,69 +1,69 @@
-import { type Hex } from 'viem'
+import { type Hex } from 'viem';
 
-export interface SetupAP721 {
-  transactionHash: Hex | null
-  blockNumber: bigint | null
-  eventName: 'SetupAP721'
+export interface FactoryRegistered {
+  transactionHash: Hex | null;
+  blockNumber: bigint | null;
   args: {
-    ap721: Hex
-    sender: Hex
-    initialOwner: Hex
-    logic: Hex
-    renderer: Hex
-    factory: Hex
-  }
+    sender: Hex;
+    factories: Hex[];
+    statuses: boolean[];
+  };
+  eventName: 'FactoryRegistered';
+}
+export interface PressRegistered {
+  transactionHash: Hex | null;
+  blockNumber: bigint | null;
+
+  args: {
+    sender: Hex;
+    factory: Hex;
+    newPress: Hex;
+  };
+  eventName: 'PressRegistered';
 }
 
-export interface RendererUpdated {
-  transactionHash: Hex | null
-  blockNumber: bigint | null
+export interface TokenDataStored {
+  transactionHash: Hex | null;
+  blockNumber: bigint | null;
   args: {
-    target: Hex
-    renderer: Hex
-  }
-  eventName: 'RendererUpdated'
+    sender: Hex;
+    press: Hex;
+    tokenIds: bigint[];
+    pointers: Hex[];
+  };
+  eventName: 'TokenDataStored';
 }
 
-export interface LogicUpdated {
-  transactionHash: Hex | null
-  blockNumber: bigint | null
+export interface TokenDataOverwritten {
+  transactionHash: Hex | null;
+  blockNumber: bigint | null;
   args: {
-    target: Hex
-    logic: Hex
-  }
-  eventName: 'LogicUpdated'
+    sender: Hex;
+    press: Hex;
+    tokenIds: bigint[];
+    pointers: Hex[];
+  };
+  eventName: 'TokenDataOverwritten';
 }
 
-export interface DataStored {
-  transactionHash: Hex | null
-  blockNumber: bigint | null
+export interface TokenDataRemoved {
+  transactionHash: Hex | null;
+  blockNumber: bigint | null;
   args: {
-    target: Hex
-    sender: Hex
-    tokenId: bigint
-    pointer: Hex
-  }
-  eventName: 'DataStored'
-}
-export interface DataRemoved {
-  transactionHash: Hex | null
-  blockNumber: bigint | null
-  args: {
-    target: Hex
-    sender: Hex
-    tokenId: bigint
-  }
-  eventName: 'DataRemoved'
+    sender: Hex;
+    press: Hex;
+    tokenIds: bigint[];
+  };
+  eventName: 'TokenDataRemoved';
 }
 
-export interface DataOverwritten {
-  transactionHash: Hex | null
-  blockNumber: bigint | null
+export interface PressDataUpdated {
+  transactionHash: Hex | null;
+  blockNumber: bigint | null;
   args: {
-    target: Hex
-    sender: Hex
-    tokenId: bigint
-    pointer: Hex
-  }
-  eventName: 'DataOverwritten'
+    sender: Hex;
+    press: Hex;
+    pointer: Hex;
+  };
+  eventName: 'PressDataUpdated';
 }
