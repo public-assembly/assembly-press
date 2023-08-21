@@ -1,8 +1,8 @@
 import { prismaClient } from './prismaClient'
 import { Prisma } from '@prisma/client'
-import { DecodedLog } from '../types'
+import { DecodedRouterEvent } from '../transform/decodeLogs'
 
-export const writeToDatabase = async (decodedLogs: DecodedLog[]) => {
+export const writeToDatabase = async (decodedLogs: DecodedRouterEvent[]) => {
   for (const log of decodedLogs) {
     try {
       switch (log.eventName) {
