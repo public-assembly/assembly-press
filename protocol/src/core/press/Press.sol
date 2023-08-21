@@ -52,7 +52,7 @@ contract Press is
     function initialize(
         string memory pressName, 
         address initialOwner,
-        address router,
+        address routerAddr,
         address logic,
         bytes memory logicInit,
         address renderer,
@@ -72,7 +72,7 @@ contract Press is
         __UUPSUpgradeable_init();   
 
         // Set things
-        router = router;
+        router = routerAddr;
         name = pressName;
         // symbol = contractSymbol;
 

@@ -48,7 +48,7 @@ contract Factory is IFactory {
         Press(payable(address(newPress))).initialize({
             pressName: inputs.pressName,
             initialOwner: inputs.initialOwner,
-            router: router, // input comes from local storage not decode
+            routerAddr: router, // input comes from local storage not decode
             logic: inputs.logic,
             logicInit: inputs.logicInit,
             renderer: inputs.renderer,
