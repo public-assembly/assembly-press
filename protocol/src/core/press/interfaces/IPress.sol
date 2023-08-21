@@ -50,7 +50,7 @@ interface IPress {
     function initialize(        
         string memory pressName, 
         address initialOwner,
-        address routerImpl,
+        address router,
         address logic,
         bytes memory logicInit,
         address renderer,
