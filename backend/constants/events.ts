@@ -1,4 +1,10 @@
-import { RouterEvent } from '../types';
+type RouterEvent =
+  | 'FactoryRegistered'
+  | 'PressRegistered'
+  | 'TokenDataStored'
+  | 'TokenDataOverwritten'
+  | 'TokenDataRemoved'
+  | 'PressDataUpdated';
 
 export const routerEventsArray: RouterEvent[] = [
   'FactoryRegistered',
