@@ -1,51 +1,21 @@
 
-> assembly-press-demo@0.0.0 build /Users/maximbochman/Desktop/code/they-dont-want-me/frontend/apps/next
+> assembly-press-demo@0.0.0 build /Users/salieflewis/Desktop/public/assembly-press/frontend/apps/next
 > next build
 
+- info Loaded env from /Users/salieflewis/Desktop/public/assembly-press/frontend/apps/next/.env
 - info Creating an optimized production build...
-- warn Compiled with warnings
-
-./components/TxnSubmitter.tsx
-Attempted import error: 'useSetupAP721' is not exported from '@public-assembly/ap-hooks' (imported as 'useSetupAP721').
-
-Import trace for requested module:
-./components/TxnSubmitter.tsx
-
-./components/TxnSubmitter.tsx
-Attempted import error: 'useSetLogic' is not exported from '@public-assembly/ap-hooks' (imported as 'useSetLogic').
-
-Import trace for requested module:
-./components/TxnSubmitter.tsx
-
-./components/TxnSubmitter.tsx
-Attempted import error: 'useSetRenderer' is not exported from '@public-assembly/ap-hooks' (imported as 'useSetRenderer').
-
-Import trace for requested module:
-./components/TxnSubmitter.tsx
-
-./components/TxnSubmitter.tsx
-Attempted import error: 'useStore' is not exported from '@public-assembly/ap-hooks' (imported as 'useStore').
-
-Import trace for requested module:
-./components/TxnSubmitter.tsx
-
-./components/TxnSubmitter.tsx
-Attempted import error: 'useOverwrite' is not exported from '@public-assembly/ap-hooks' (imported as 'useOverwrite').
-
-Import trace for requested module:
-./components/TxnSubmitter.tsx
-
+- info Compiled successfully
 - info Linting and checking validity of types...
 Failed to compile.
 
-./components/TxnSubmitter.tsx:6:3
-Type error: Module '"@public-assembly/ap-hooks"' has no exported member 'useSetupAP721'.
+./app/layout.tsx:3:10
+Type error: Module '"next"' has no exported member 'Metadata'. Did you mean to use 'import Metadata from "next"' instead?
 
-[0m [90m 4 | [39m[36mimport[39m { [33mFlex[39m[33m,[39m [33mCaptionLarge[39m[33m,[39m [33mBodySmall[39m[33m,[39m [33mBodyExtraSmall[39m } [36mfrom[39m [32m'./base'[39m[33m;[39m[0m
-[0m [90m 5 | [39m[36mimport[39m {[0m
-[0m[31m[1m>[22m[39m[90m 6 | [39m  useSetupAP721[33m,[39m[0m
-[0m [90m   | [39m  [31m[1m^[22m[39m[0m
-[0m [90m 7 | [39m  useSetLogic[33m,[39m[0m
-[0m [90m 8 | [39m  useSetRenderer[33m,[39m[0m
-[0m [90m 9 | [39m  useStore[33m,[39m[0m
+[0m [90m 1 | [39m[36mimport[39m [32m'../styles/globals.css'[39m[33m;[39m[0m
+[0m [90m 2 | [39m[36mimport[39m { [33mProviders[39m } [36mfrom[39m [32m'./providers'[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 3 | [39m[36mimport[39m { [33mMetadata[39m } [36mfrom[39m [32m'next'[39m[33m;[39m[0m
+[0m [90m   | [39m         [31m[1m^[22m[39m[0m
+[0m [90m 4 | [39m[36mimport[39m { [33mSpace_Mono[39m } [36mfrom[39m [32m'next/font/google'[39m[33m;[39m[0m
+[0m [90m 5 | [39m[36mimport[39m localFont [36mfrom[39m [32m'next/font/local'[39m[33m;[39m[0m
+[0m [90m 6 | [39m[0m
  ELIFECYCLE  Command failed with exit code 1.

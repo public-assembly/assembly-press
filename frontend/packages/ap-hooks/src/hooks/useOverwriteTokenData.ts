@@ -2,12 +2,12 @@ import {
   usePrepareContractWrite,
   useContractWrite,
   useWaitForTransaction,
-} from "wagmi";
-import { PrepareWriteContractResult } from "wagmi/actions";
-import { optimismGoerli } from "wagmi/chains";
-import { Hex, Hash } from "viem";
-import { routerAbi } from "../contracts/abi";
-import { router } from "../contracts/constants";
+} from 'wagmi';
+import { PrepareWriteContractResult } from 'wagmi/actions';
+import { optimismGoerli } from 'wagmi/chains';
+import { Hex, Hash } from 'viem';
+import { routerAbi } from '../contracts/abi';
+import { router } from '../contracts/constants';
 
 interface OverwriteTokenDataProps {
   press: Hex;
@@ -30,19 +30,23 @@ export function useOverwriteTokenData({
   const { config: overwriteTokenDataConfig } = usePrepareContractWrite({
     address: router,
     abi: routerAbi,
-    functionName: "overwriteTokenData",
+    functionName: 'overwriteTokenData',
     args: [press, data],
-    chainId: optimismGoerli.id,
-    value: BigInt(0), // maybe this 500000000000000
-    enabled: prepareTxn
+    // chainId: optimismGoerli.id,
+    // BigInt(0)
+    value: BigInt(500000000000000),
+    enabled: prepareTxn,
   });
 
-  const { data: overwriteTokenDataData, write: overwriteTokenData } = useContractWrite(overwriteTokenDataConfig);
+  const { data: overwriteTokenDataData, write: overwriteTokenData } =
+    useContractWrite(overwriteTokenDataConfig);
 
-  const { isLoading: overwriteTokenDataLoading, isSuccess: overwriteTokenDataSuccess } =
-    useWaitForTransaction({
-      hash: overwriteTokenDataData?.hash,
-    });
+  const {
+    isLoading: overwriteTokenDataLoading,
+    isSuccess: overwriteTokenDataSuccess,
+  } = useWaitForTransaction({
+    hash: overwriteTokenDataData?.hash,
+  });
 
   return {
     overwriteTokenDataConfig,

@@ -8,11 +8,10 @@ import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-solidity';
 
 import {
-  setupAP721Snippets,
-  setLogicSnippets,
-  setRendererSnippets,
-  storeSnippets,
-  overwriteSnippets,
+  setupSnippets,
+  storeTokenDataSnippets,
+  overwriteTokenDataSnippets,
+  updatePressDataSnippets,
 } from '@/components/codeViewer/content/codeblocks';
 
 type CodeViewerProps = {
@@ -25,11 +24,10 @@ export const CodeViewer = ({ language }: CodeViewerProps) => {
 
   // Map selector values to corresponding snippets
   const snippetsMap = {
-    0: setupAP721Snippets,
-    1: setLogicSnippets,
-    2: setRendererSnippets,
-    3: storeSnippets,
-    4: overwriteSnippets,
+    0: setupSnippets,
+    1: storeTokenDataSnippets,
+    2: overwriteTokenDataSnippets,
+    3: updatePressDataSnippets,
   };
 
   // Find the correct snippet object using the selector, then get the language-specific snippet

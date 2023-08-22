@@ -28,7 +28,7 @@ const GridItem = ({
         selector === selectorIndex
           ? 'text-platinum bg-arsenic rounded-full'
           : ' text-dark-gray',
-        'px-4 py-3 w-28',
+        'px-4 py-3 w-fit min-w-[140px]',
         className
       )}
     >
@@ -43,15 +43,14 @@ export const FunctionNav = () => {
   const { selector, setSelector } = useFunctionSelect();
 
   const functionNameMap = {
-    0: 'setupAP721',
-    1: 'setLogic',
-    2: 'setRenderer',
-    3: 'store',
-    4: 'overwrite',
+    0: 'setup',
+    1: 'storeTokenData',
+    2: 'overwriteTokenData',
+    3: 'updatePressData',
   };
 
   const increment = () => {
-    if (index < 4) {
+    if (index < 3) {
       setIndex(index + 1);
       setSelector(index + 1);
     }
@@ -73,12 +72,12 @@ export const FunctionNav = () => {
           callback={decrement}
         />
         <GridItem
-          className='rounded-full bg-eerie-black w-28 text-platinum'
+          className='rounded-full bg-eerie-black w-fit min-w-[140px] text-platinum'
           functionName={functionNameMap[index]}
           selectorIndex={index}
         />
         <IconButton
-          className={cn(index === 4 ? 'text-arsenic' : ' text-dark-gray')}
+          className={cn(index === 3 ? 'text-arsenic' : ' text-dark-gray')}
           icon={<ArrowRightIcon />}
           callback={increment}
         />
@@ -88,11 +87,10 @@ export const FunctionNav = () => {
 
   return (
     <Flex className='justify-between gap-x-2 rounded-full bg-eerie-black w-fit'>
-      <GridItem functionName={'setupAP721'} selectorIndex={0} />
-      <GridItem functionName={'setLogic'} selectorIndex={1} />
-      <GridItem functionName={'setRenderer'} selectorIndex={2} />
-      <GridItem functionName={'store'} selectorIndex={3} />
-      <GridItem functionName={'overwrite'} selectorIndex={4} />
+      <GridItem functionName={'setup'} selectorIndex={0} />
+      <GridItem functionName={'storeTokenData'} selectorIndex={1} />
+      <GridItem functionName={'overwriteTokenData'} selectorIndex={2} />
+      <GridItem functionName={'updatePressData'} selectorIndex={3} />
     </Flex>
   );
   // }
