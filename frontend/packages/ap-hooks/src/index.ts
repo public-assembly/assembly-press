@@ -1,17 +1,11 @@
 import {
-  useStore,
-  useOverwrite,
-  useRemove,
-  useSetLogic,
-  useSetRenderer,
-  useSetupAP721,
+  useSetup,
+  useStoreTokenData,
+  useOverwriteTokenData
 } from './hooks'
 
 export {
-  useStore,
-  useOverwrite,
-  useRemove,
-  useSetLogic,
-  useSetRenderer,
-  useSetupAP721,
+  useSetup,
+  useStoreTokenData,
+  useOverwriteTokenData
 }

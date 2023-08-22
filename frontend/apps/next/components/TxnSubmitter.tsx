@@ -3,33 +3,40 @@
 import { useFunctionSelect } from 'context/FunctionSelectProvider';
 import { Flex, CaptionLarge, BodySmall, BodyExtraSmall } from './base';
 import {
-  useSetupAP721,
-  useSetLogic,
-  useSetRenderer,
-  useStore,
-  useOverwrite,
+  useSetup,
+  useStoreTokenData,
+  useOverwriteTokenData,
 } from '@public-assembly/ap-hooks';
 import { useAccount } from 'wagmi';
-import { Hash, encodeAbiParameters, parseAbiParameters } from 'viem';
+import {
+  Hash,
+  Hex,
+  encodeAbiParameters,
+  parseAbiParameters,
+  zeroAddress,
+} from 'viem';
 import { Button } from './Button';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { shortenAddress } from '@/utils/shortenAddress';
+import { useModal } from 'connectkit';
 import {
-  databaseImpl,
+  router,
   logicImpl,
   rendererImpl,
   emptyInit,
   factoryImpl,
-  existingAP721,
+  deployedPress,
 } from 'app/constants';
 
 export const TxnSubmitter = () => {
   // Get current selector from global context
   const { selector } = useFunctionSelect();
   // Get address of current authd user
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   // Get prepareTxn value for hooks
   const user = address ? true : false;
+  // Show/dismiss connectkit modal
+  const { setOpen } = useModal();
 
   // function for determining what message to show for `from`
   const fromText = () => {
@@ -40,52 +47,32 @@ export const TxnSubmitter = () => {
     }
   };
 
-  /* SetupAP721 Hook */
-  const databaseInitInput: Hash = encodeAbiParameters(
-    parseAbiParameters('address, address, bool, bytes, bytes'),
-    [logicImpl, rendererImpl, false, emptyInit, emptyInit]
+  /* setup Hook */
+  const factoryInit: Hash = encodeAbiParameters(
+    parseAbiParameters(
+      'string, address, address, address, bytes, address, bytes, (address, uint16, bool, bool)'
+    ),
+    [
+      'Public Assembly', // pressName
+      address ? address : zeroAddress, // initialOwner
+      router, // router
+      logicImpl, // logic
+      emptyInit, // logicInit
+      rendererImpl, // renderer
+      emptyInit, // rendererInit
+      [zeroAddress, 0, false, false], // advancedSettings
+    ]
   );
 
-  const factoryInitInput: Hash = encodeAbiParameters(
-    parseAbiParameters('string, string'),
-    ['AssemblyPress', 'AP'] // name + symbol
-  );
-
-  const { setupAP721Config, setupAP721, setupAP721Loading, setupAP721Success } =
-    useSetupAP721({
-      database: databaseImpl,
-      databaseInit: databaseInitInput,
-      initialOwner: address,
-      factory: factoryImpl,
-      factoryInit: factoryInitInput,
-      prepareTxn: user,
-    });
-
-  /* SetLogic Hook */
-  const { setLogicConfig, setLogic, setLogicLoading, setLogicSuccess } =
-    useSetLogic({
-      database: databaseImpl,
-      target: existingAP721,
-      logic: logicImpl,
-      logicInit: emptyInit,
-      prepareTxn: user,
-    });
-
-  /* SetRenderer Hook */
-  const {
-    setRendererConfig,
-    setRenderer,
-    setRendererLoading,
-    setRendererSuccess,
-  } = useSetRenderer({
-    database: databaseImpl,
-    target: existingAP721,
-    renderer: rendererImpl,
-    rendererInit: emptyInit,
+  const { setupConfig, setup, setupLoading, setupSuccess } = useSetup({
+    factory: factoryImpl,
+    // factoryInit: factoryInit,
+    factoryInit:
+      '0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000001230000000000000000000000005f068686d7d00b299499af2ba05f921befafb205000000000000000000000000000000000000000000000000000000000000018000000000000000000000000063114ac2550eb8c4673e5fea4b1624989aa730fb00000000000000000000000000000000000000000000000000000000000001a00000000000000000000000000000000000000000000000000000000000000123000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b466972737420507265737300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
     prepareTxn: user,
   });
 
-  /* Store Hook */
+  /* storeTokenData Hook */
   const encodedString: Hash = encodeAbiParameters(
     parseAbiParameters('string'),
     ['Lifeworld']
@@ -96,62 +83,70 @@ export const TxnSubmitter = () => {
     [[encodedString]]
   );
 
-  const { storeConfig, store, storeLoading, storeSuccess } = useStore({
-    database: databaseImpl,
-    target: existingAP721,
-    quantity: BigInt(1),
+  const {
+    storeTokenDataConfig,
+    storeTokenData,
+    storeTokenDataLoading,
+    storeTokenDataSuccess,
+  } = useStoreTokenData({
+    press: deployedPress,
     data: encodedBytesArray,
     prepareTxn: user,
   });
 
-  /* Overwrite Hook */
-  const encodedString2: Hash = encodeAbiParameters(
+  /* overwriteTokenData Hook */
+  const encodedStringTwo: Hash = encodeAbiParameters(
     parseAbiParameters('string'),
     ['River']
   );
 
-  const arrayOfBytes: Hash[] = [encodedString2];
+  const encodedBytesArrayTwo: Hash = encodeAbiParameters(
+    parseAbiParameters('bytes[]'),
+    [[encodedStringTwo]]
+  );
 
-  const { overwriteConfig, overwrite, overwriteLoading, overwriteSuccess } =
-    useOverwrite({
-      database: databaseImpl,
-      target: existingAP721,
-      tokenIds: [BigInt(1)],
-      data: arrayOfBytes,
-      prepareTxn: user,
-    });
+  const {
+    overwriteTokenDataConfig,
+    overwriteTokenData,
+    overwriteTokenDataLoading,
+    overwriteTokenDataSuccess,
+  } = useOverwriteTokenData({
+    press: deployedPress,
+    data: encodedBytesArrayTwo,
+    prepareTxn: user,
+  });
+
+  console.log(overwriteTokenDataConfig)
 
   const handleTxn = () => {
+    if (!isConnected) {
+      setOpen(true);
+    }
     switch (selector) {
       case 0:
-        console.log('running setupAP721');
-        setupAP721?.();
+        console.log('running setup');
+        setup?.();
         break;
       case 1:
-        console.log('running setLogic');
-        setLogic?.();
+        console.log('running storeTokenData');
+        storeTokenData?.();
         break;
       case 2:
-        console.log('running setRenderer');
-        setRenderer?.();
+        console.log('running overwriteTokenData');
+        overwriteTokenData?.();
         break;
-      case 3:
-        console.log('running store');
-        store?.();
-        break;
-      case 4:
-        console.log('running overwrite');
-        overwrite?.();
-        break;
+      // case 3:
+      //   console.log('running updatePressData');
+      //   updatePressData?.();
+      //   break;
     }
   };
 
   const functionConfigMap = {
-    0: setupAP721Config,
-    1: setLogicConfig,
-    2: setRendererConfig,
-    3: storeConfig,
-    4: overwriteConfig,
+    0: setupConfig,
+    1: storeTokenDataConfig,
+    2: overwriteTokenDataConfig,
+    // 3: updatePressDataConfig,
   };
 
   // function for determing what message to show for `from`
@@ -162,29 +157,6 @@ export const TxnSubmitter = () => {
       return 'Connect your wallet';
     }
   };
-
-  // Map selector values to corresponding snippets
-  // const functionNameMap = {
-  //   0: 'setupAP721',
-  //   1: 'setLogic',
-  //   2: 'setRenderer',
-  //   3: 'store',
-  //   4: 'overwrite',
-  // };
-
-  // const functionLoadingMap = {
-  //     0: setupAP721Loading,
-  //     1: setLogicLoading,
-  //     2: setRendererLoading,
-  //     3: storeLoading,
-  //     4: overwriteLoading
-  // };
-
-  // const activeFunctionLoading = () => {
-  //     console.log("selector: ", selector)
-  //     console.log("loading?: ", functionLoadingMap?.[selector])
-  //     return functionLoadingMap?.[selector]
-  // }
 
   return (
     <Flex className='flex-col justify-between p-4 gap-8 h-[432px]'>
@@ -197,13 +169,11 @@ export const TxnSubmitter = () => {
           </Flex>
         </a>
         <ArrowRightIcon />
-        <a
-          href={`https://goerli-optimism.etherscan.io/address/${databaseImpl}`}
-        >
+        <a href={`https://goerli-optimism.etherscan.io/address/${router}`}>
           <Flex className='hover:border-dark-gray  px-2 py-[2px] bg-dark-gunmetal rounded-[18px] border border-arsenic justify-center items-center w-fit'>
             {/* To:&nbsp; */}
             <BodySmall className='text-dark-gray'>
-              {shortenAddress(databaseImpl)}
+              {shortenAddress(router)}
             </BodySmall>
           </Flex>
         </a>
