@@ -7,20 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model AP721 {
-  ap721           String         @id
-  sender          String
-  owner           String
-  logic           String
-  renderer        String
-  factory         String
-  createdAt       BigInt
-  transactionHash String
-  rawTransaction  RawTransaction @relation(fields: [transactionHash], references: [transactionHash])
-}
-
 model TokenStorage {
-  ap721           String
+  press           String
   pointer         String
   tokenId         BigInt
   transactionHash String
@@ -28,14 +16,14 @@ model TokenStorage {
   updatedBy       String
   rawTransaction  RawTransaction @relation(fields: [transactionHash], references: [transactionHash])
 
-  @@id([ap721, tokenId])
+  @@id([press, tokenId])
 }
 
 model RawTransaction {
   transactionHash String         @id
   eventType       String
   createdAt       BigInt
-  ap721           AP721[]
+  Press           Press[]
   tokenStorage    TokenStorage[]
 }
 
@@ -43,4 +31,20 @@ model Arweave {
   tableName String
   link      String   @id
   timestamp DateTime @default(now())
+}
+
+model Press {
+  press          String @id
+  sender         String
+  factory        String
+  owner          String
+  logic          String
+  renderer       String
+  fundsRecipient String
+  royaltyBPS     BigInt
+  transferable   Boolean
+  fungible       Boolean
+  createdAt       BigInt
+  transactionHash String
+  RawTransaction  RawTransaction @relation(fields: [transactionHash], references: [transactionHash])
 }
