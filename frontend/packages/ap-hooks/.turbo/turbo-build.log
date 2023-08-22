@@ -1,19 +1,19 @@
 
-> @public-assembly/ap-hooks@0.0.1 build /Users/salieflewis/Desktop/public/assembly-press/frontend/packages/ap-hooks
+> @public-assembly/ap-hooks@0.0.1 build /Users/lreyes/Desktop/Github/assembly-press/frontend/packages/ap-hooks
 > tsup src/index.ts --format esm,cjs --dts --external react
 
 CLI Building entry: src/index.ts
 CLI Using tsconfig: tsconfig.json
 CLI tsup v7.1.0
-CLI Using tsup config: /Users/salieflewis/Desktop/public/assembly-press/frontend/packages/ap-hooks/tsup.config.ts
+CLI Using tsup config: /Users/lreyes/Desktop/Github/assembly-press/frontend/packages/ap-hooks/tsup.config.ts
 CLI Target: node16
 ESM Build start
 CJS Build start
-CJS dist/index.js 12.03 KB
-CJS ⚡️ Build success in 20ms
 ESM dist/index.mjs 11.13 KB
-ESM ⚡️ Build success in 20ms
+ESM ⚡️ Build success in 9ms
+CJS dist/index.js 12.03 KB
+CJS ⚡️ Build success in 9ms
 DTS Build start
-DTS ⚡️ Build success in 2299ms
+DTS ⚡️ Build success in 1912ms
 DTS dist/index.d.mts 1.75 KB
 DTS dist/index.d.ts  1.75 KB
