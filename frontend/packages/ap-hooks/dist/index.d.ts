@@ -40,4 +40,17 @@ interface OverwriteTokenDataReturn {
 }
 declare function useOverwriteTokenData({ press, data, prepareTxn, }: OverwriteTokenDataProps): OverwriteTokenDataReturn;
 
-export { useOverwriteTokenData, useSetup, useStoreTokenData };
+interface UpdatePressDataProps {
+    press: Hex;
+    data: Hash;
+    prepareTxn: boolean;
+}
+interface UpdatePressDataReturn {
+    updatePressDataConfig: PrepareWriteContractResult;
+    updatePressData: (() => void) | undefined;
+    updatePressDataLoading: boolean;
+    updatePressDataSuccess: boolean;
+}
+declare function useUpdatePressData({ press, data, prepareTxn, }: UpdatePressDataProps): UpdatePressDataReturn;
+
+export { useOverwriteTokenData, useSetup, useStoreTokenData, useUpdatePressData };

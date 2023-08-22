@@ -23,7 +23,7 @@ model RawTransaction {
   transactionHash String         @id
   eventType       String
   createdAt       BigInt
-  Press           Press[]
+  Press           Router[]
   tokenStorage    TokenStorage[]
 }
 
@@ -33,10 +33,11 @@ model Arweave {
   timestamp DateTime @default(now())
 }
 
-model Press {
+model Router {
   press          String @id
   sender         String
   factory        String
+  pointer        String?
   owner          String
   logic          String
   renderer       String

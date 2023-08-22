@@ -1,7 +1,7 @@
 import { prismaClient } from './prismaClient'
 
 export async function getLastBlockWithEvent() {
-  const lastBlockRouter = await prismaClient.press.findMany({
+  const lastBlockRouter = await prismaClient.router.findMany({
     orderBy: {
       createdAt: 'desc',
     },

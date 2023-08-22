@@ -28,7 +28,7 @@ export const storeTokenDataSnippets = {
         storeTokenDataSuccess,
       };
     }`,
-  solidity: ` function storeTokenData(address press, bytes memory data) nonReentrant external payable {
+  solidity: `function storeTokenData(address press, bytes memory data) nonReentrant external payable {
       if (!pressRegistry[press]) revert Invalid_Press();
       (uint256[] memory tokenIds, address[] memory pointers) = IPress(press).storeTokenData{value: msg.value}(msg.sender, data);
       emit TokenDataStored(msg.sender, press, tokenIds, pointers);

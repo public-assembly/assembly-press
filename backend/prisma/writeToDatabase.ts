@@ -7,7 +7,7 @@ export const writeToDatabase = async (decodedLogs: DecodedRouterEvent[]) => {
     try {
       switch (log.eventName) {
         case "PressRegistered": {
-          const dataPress: Prisma.PressCreateInput = {
+          const dataPress: Prisma.RouterCreateInput = {
             press: log.args.newPress,
             sender: log.args.sender,
             factory: log.args.factory,
@@ -30,9 +30,37 @@ export const writeToDatabase = async (decodedLogs: DecodedRouterEvent[]) => {
               },
             },
           };
-          await prismaClient.press.create({ data: dataPress });
+          await prismaClient.router.create({ data: dataPress });
           break;
         }
+        case "PressDataUpdated": {
+          const wherePressUpdated: Prisma.RouterWhereUniqueInput = {
+              press: log.args.press,
+          };
+      
+          const dataPressUpdated: Prisma.RouterUpdateInput = {
+              sender: log.args.sender,
+              pointer: log.args.pointer,
+              createdAt: log.blockNumber as bigint,
+              RawTransaction: {
+                  connectOrCreate: {
+                      where: { transactionHash: log.transactionHash as string },
+                      create: {
+                          transactionHash: log.transactionHash as string,
+                          createdAt: log.blockNumber as bigint,
+                          eventType: log.eventName,
+                      },
+                  },
+              },
+          };
+      
+          await prismaClient.router.update({
+              where: wherePressUpdated,
+              data: dataPressUpdated,
+          });
+          break;
+      }
+      
         case "TokenDataStored": {
           for (let i = 0; i < log.args.tokenIds.length; i++) {
             const dataDataStored: Prisma.TokenStorageCreateInput = {
@@ -89,7 +117,6 @@ export const writeToDatabase = async (decodedLogs: DecodedRouterEvent[]) => {
               data: dataDataOverwritten,
             });
           }
-
           break;
         }
         case "TokenDataRemoved": {

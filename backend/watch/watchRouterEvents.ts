@@ -13,6 +13,7 @@ export const watchRouterEvents = () => {
     events: parsedEvent,
     onLogs: async (logs) => {
       const processedLogs = await processLogs(decodeLogs(logs));
+      console.log(logs)
       writeToDatabase(processedLogs);
     },
   });

@@ -11,7 +11,7 @@ export const fetchLogs = async (
     routerEventsArray.map((event) =>
       viemClient.createContractEventFilter({
         abi: routerAbi,
-        address: process.env.DATABASE_CONTRACT as Hex,
+        address: process.env.ROUTER_ADDRESS as Hex,
         eventName: event,
         fromBlock: BigInt(fromBlock),
         toBlock: BigInt(toBlock),
