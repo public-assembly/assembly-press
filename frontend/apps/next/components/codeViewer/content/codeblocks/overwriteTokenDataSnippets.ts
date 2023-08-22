@@ -1,4 +1,4 @@
-export const overwriteSnippets = {
+export const overwriteTokenDataSnippets = {
   typescript: `
   
   export function useOverwriteTokenData({

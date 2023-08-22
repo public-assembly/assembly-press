@@ -1,4 +1,4 @@
-export const storeSnippets = {
+export const storeTokenDataSnippets = {
   typescript: `export function useStoreTokenData({
       press,
       data,

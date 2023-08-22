@@ -1,4 +1,4 @@
-export const setupAP721Snippets = {
+export const setupSnippets = {
   typescript: `export function useSetup({
       factory,
       factoryInit,

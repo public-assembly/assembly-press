@@ -1,4 +1,4 @@
-export const setLogicSnippets = {
+export const updatePressDataSnippets = {
   // rome-ignore lint:
   typescript: `TODO`,
   solidity: `  function updatePressData(address press, bytes memory data) nonReentrant external payable {

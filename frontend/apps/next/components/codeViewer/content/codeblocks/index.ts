@@ -1,4 +1,4 @@
 export * from './setupSnippets'
-export * from './updateSnippets'
-export * from './storeSnippets'
-export * from './overwriteSnippets'
+export * from './updatePressDataSnippets'
+export * from './storeTokenDataSnippets'
+export * from './overwriteTokenDataSnippets'
