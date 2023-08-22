@@ -7,7 +7,7 @@ import {
 import { useEffect, useState } from 'react';
 import { Caption, Flex, Grid, BodySmall, CaptionLarge } from './base';
 import { cn } from '@/utils/cn';
-import { camelToSpaced } from '@/utils/wordSpacer';
+import { camelToSpaced } from '@/utils/camelToSpaced';
 import { useIsMobile } from 'hooks';
 
 type RawTransactionFieldProps = {

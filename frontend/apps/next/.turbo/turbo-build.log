@@ -8,13 +8,13 @@
 - info Linting and checking validity of types...
 Failed to compile.
 
-./app/layout.tsx:3:10
+./app/layout.tsx:3:15
 Type error: Module '"next"' has no exported member 'Metadata'. Did you mean to use 'import Metadata from "next"' instead?
 
 [0m [90m 1 | [39m[36mimport[39m [32m'../styles/globals.css'[39m[33m;[39m[0m
 [0m [90m 2 | [39m[36mimport[39m { [33mProviders[39m } [36mfrom[39m [32m'./providers'[39m[33m;[39m[0m
-[0m[31m[1m>[22m[39m[90m 3 | [39m[36mimport[39m { [33mMetadata[39m } [36mfrom[39m [32m'next'[39m[33m;[39m[0m
-[0m [90m   | [39m         [31m[1m^[22m[39m[0m
+[0m[31m[1m>[22m[39m[90m 3 | [39m[36mimport[39m type { [33mMetadata[39m } [36mfrom[39m [32m'next'[39m[0m
+[0m [90m   | [39m              [31m[1m^[22m[39m[0m
 [0m [90m 4 | [39m[36mimport[39m { [33mSpace_Mono[39m } [36mfrom[39m [32m'next/font/google'[39m[33m;[39m[0m
 [0m [90m 5 | [39m[36mimport[39m localFont [36mfrom[39m [32m'next/font/local'[39m[33m;[39m[0m
 [0m [90m 6 | [39m[0m
