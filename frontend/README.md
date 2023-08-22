@@ -8,25 +8,19 @@ The hooks included in this directory are located within `packages/ap-hooks`.
 
 Each of these hooks is built identically using [wagmi prepare hooks](https://wagmi.sh/react/prepare-hooks). This means that every app consuming this package must also consume wagmi and viem.
 
-`useSetupAP721`
-Deploy and configure an ERC721 contract which represents a row in the database.
+`useSetup`
+Deploy and configure a Press contract.
 
-`useStore`
-Store generic data in the database and mint a storage receipt.
+`useStoreTokenData`
+Store generic data in a target Press contract and receive storage receipt(s).
 
-`useOverwrite`
+`useOverwriteTokenData`
 Overwrite data associated with an existing token.
 
-`useRemove`
-Remove data associated with an existing token.
+`useUpdatePressData`
+Store/overwrite/remove data associated with an existing Press.
 
-`useSetLogic`
-Update the logic contract associated with a given row.
-
-`useSetRenderer`
-Update the renderer contract associated with a given row.
-
-In addition to the hooks above, this package includes the ABI for `AP721DatabaseV1.sol` which is located within `src/contracts`.
+In addition to the hooks above, this package includes the ABI for `Router.sol` which is located within `src/contracts`.
 
 ---
 
