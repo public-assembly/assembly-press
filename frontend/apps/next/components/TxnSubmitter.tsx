@@ -51,25 +51,24 @@ export const TxnSubmitter = () => {
   /* setup Hook */
   const factoryInit: Hash = encodeAbiParameters(
     parseAbiParameters(
-      'string, address, address, address, bytes, address, bytes, (address, uint16, bool, bool)'
+      '(string, address, address, bytes, address, bytes, (address, uint16, bool, bool))'
     ),
     [
-      'Public Assembly', // pressName
-      address ? address : zeroAddress, // initialOwner
-      router, // router
-      logicImpl, // logic
-      emptyInit, // logicInit
-      rendererImpl, // renderer
-      emptyInit, // rendererInit
-      [zeroAddress, 0, false, false], // advancedSettings
+      [ // inner array necessary because we are encoding an Inputs struct that contains another struct (advancedSettings)
+        'Public Assembly', // pressName
+        address ? address : zeroAddress, // initialOwner
+        logicImpl, // logic
+        emptyInit, // logicInit
+        rendererImpl, // renderer
+        emptyInit, // rendererInit
+        [zeroAddress, 0, false, false], // advancedSettings
     ]
+  ]
   );
 
   const { setupConfig, setup, setupLoading, setupSuccess } = useSetup({
     factory: factoryImpl,
-    // factoryInit: factoryInit,
-    factoryInit:
-      '0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000001230000000000000000000000005f068686d7d00b299499af2ba05f921befafb205000000000000000000000000000000000000000000000000000000000000018000000000000000000000000063114ac2550eb8c4673e5fea4b1624989aa730fb00000000000000000000000000000000000000000000000000000000000001a00000000000000000000000000000000000000000000000000000000000000123000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b466972737420507265737300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+    factoryInit: factoryInit,
     prepareTxn: user,
   });
 
@@ -96,15 +95,22 @@ export const TxnSubmitter = () => {
   });
 
   /* overwriteTokenData Hook */
-  const encodedStringTwo: Hash = encodeAbiParameters(
+  const encodedOverwriteString: Hash = encodeAbiParameters(
     parseAbiParameters('string'),
     ['River']
   );
 
-  const encodedBytesArrayTwo: Hash = encodeAbiParameters(
+  const encodedOverwriteBytesArray: Hash = encodeAbiParameters(
     parseAbiParameters('bytes[]'),
-    [[encodedStringTwo]]
+    [[encodedOverwriteString]]
   );
+
+  const tokenIdArray: bigint[] = [BigInt(1)]
+
+  const encodedOverwriteData: Hash = encodeAbiParameters(
+    parseAbiParameters('uint256[], bytes[]'),
+    [tokenIdArray, [encodedOverwriteBytesArray]]
+  )
 
   const {
     overwriteTokenDataConfig,
@@ -113,7 +119,7 @@ export const TxnSubmitter = () => {
     overwriteTokenDataSuccess,
   } = useOverwriteTokenData({
     press: deployedPress,
-    data: encodedBytesArrayTwo,
+    data: encodedOverwriteData,
     prepareTxn: user,
   });
 
@@ -127,8 +133,6 @@ export const TxnSubmitter = () => {
     data: encodedBytesArray,
     prepareTxn: user,
   })
-
-  console.log(overwriteTokenDataConfig)
 
   const handleTxn = () => {
     if (!isConnected) {
