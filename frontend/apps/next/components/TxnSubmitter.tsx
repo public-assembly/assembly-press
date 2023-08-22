@@ -3,24 +3,22 @@
 import { useFunctionSelect } from 'context/FunctionSelectProvider';
 import { Flex, CaptionLarge, BodySmall, BodyExtraSmall } from './base';
 import {
-  useSetupAP721,
-  useSetLogic,
-  useSetRenderer,
-  useStore,
-  useOverwrite,
+  useSetup,
+  useStoreTokenData,
+  useOverwriteTokenData
 } from '@public-assembly/ap-hooks';
 import { useAccount } from 'wagmi';
-import { Hash, encodeAbiParameters, parseAbiParameters } from 'viem';
+import { Hash, encodeAbiParameters, parseAbiParameters, zeroAddress } from 'viem';
 import { Button } from './Button';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { shortenAddress } from '@/utils/shortenAddress';
 import {
-  databaseImpl,
+  routerImpl,
   logicImpl,
   rendererImpl,
   emptyInit,
   factoryImpl,
-  existingAP721,
+  deployedPress,
 } from 'app/constants';
 
 export const TxnSubmitter = () => {
@@ -40,52 +38,21 @@ export const TxnSubmitter = () => {
     }
   };
 
-  /* SetupAP721 Hook */
-  const databaseInitInput: Hash = encodeAbiParameters(
-    parseAbiParameters('address, address, bool, bytes, bytes'),
-    [logicImpl, rendererImpl, false, emptyInit, emptyInit]
-  );
+  /* setup Hook */
+  const factoryInit: Hash = encodeAbiParameters(
+    parseAbiParameters('string, address, address, bytes, address, bytes, (address, uint16, bool, bool)'),
+    ["PAPA", address ? address : zeroAddress, logicImpl, emptyInit, rendererImpl, emptyInit, [zeroAddress, 0, false, false]]
+  );  
 
-  const factoryInitInput: Hash = encodeAbiParameters(
-    parseAbiParameters('string, string'),
-    ['AssemblyPress', 'AP'] // name + symbol
-  );
 
-  const { setupAP721Config, setupAP721, setupAP721Loading, setupAP721Success } =
-    useSetupAP721({
-      database: databaseImpl,
-      databaseInit: databaseInitInput,
-      initialOwner: address,
+  const { setupConfig, setup, setupLoading, setupSuccess } =
+    useSetup({
       factory: factoryImpl,
-      factoryInit: factoryInitInput,
-      prepareTxn: user,
+      factoryInit: factoryInit,
+      prepareTxn: user
     });
 
-  /* SetLogic Hook */
-  const { setLogicConfig, setLogic, setLogicLoading, setLogicSuccess } =
-    useSetLogic({
-      database: databaseImpl,
-      target: existingAP721,
-      logic: logicImpl,
-      logicInit: emptyInit,
-      prepareTxn: user,
-    });
-
-  /* SetRenderer Hook */
-  const {
-    setRendererConfig,
-    setRenderer,
-    setRendererLoading,
-    setRendererSuccess,
-  } = useSetRenderer({
-    database: databaseImpl,
-    target: existingAP721,
-    renderer: rendererImpl,
-    rendererInit: emptyInit,
-    prepareTxn: user,
-  });
-
-  /* Store Hook */
+  /* StoreTokenData Hook */
   const encodedString: Hash = encodeAbiParameters(
     parseAbiParameters('string'),
     ['Lifeworld']
@@ -96,12 +63,10 @@ export const TxnSubmitter = () => {
     [[encodedString]]
   );
 
-  const { storeConfig, store, storeLoading, storeSuccess } = useStore({
-    database: databaseImpl,
-    target: existingAP721,
-    quantity: BigInt(1),
+  const { storeTokenDataConfig, storeTokenData, storeTokenDataLoading, storeTokenDataSuccess } = useStoreTokenData({
+    press: deployedPress,
     data: encodedBytesArray,
-    prepareTxn: user,
+    prepareTxn: user
   });
 
   /* Overwrite Hook */
@@ -110,48 +75,37 @@ export const TxnSubmitter = () => {
     ['River']
   );
 
-  const arrayOfBytes: Hash[] = [encodedString2];
-
-  const { overwriteConfig, overwrite, overwriteLoading, overwriteSuccess } =
-    useOverwrite({
-      database: databaseImpl,
-      target: existingAP721,
-      tokenIds: [BigInt(1)],
-      data: arrayOfBytes,
-      prepareTxn: user,
-    });
-
   const handleTxn = () => {
     switch (selector) {
       case 0:
-        console.log('running setupAP721');
-        setupAP721?.();
+        console.log('running setup');
+        setup?.();
         break;
       case 1:
-        console.log('running setLogic');
-        setLogic?.();
+        console.log('running storeTokenData');
+        storeTokenData?.();
         break;
-      case 2:
-        console.log('running setRenderer');
-        setRenderer?.();
-        break;
-      case 3:
-        console.log('running store');
-        store?.();
-        break;
-      case 4:
-        console.log('running overwrite');
-        overwrite?.();
-        break;
+      // case 2:
+      //   console.log('running setRenderer');
+      //   setRenderer?.();
+      //   break;
+      // case 3:
+      //   console.log('running store');
+      //   store?.();
+      //   break;
+      // case 4:
+      //   console.log('running overwrite');
+      //   overwrite?.();
+      //   break;
     }
   };
 
   const functionConfigMap = {
-    0: setupAP721Config,
-    1: setLogicConfig,
-    2: setRendererConfig,
-    3: storeConfig,
-    4: overwriteConfig,
+    0: setupConfig,
+    1: storeTokenDataConfig,
+    // 2: setRendererConfig,
+    // 3: storeConfig,
+    // 4: overwriteConfig,
   };
 
   // function for determing what message to show for `from`
@@ -198,12 +152,12 @@ export const TxnSubmitter = () => {
         </a>
         <ArrowRightIcon />
         <a
-          href={`https://goerli-optimism.etherscan.io/address/${databaseImpl}`}
+          href={`https://goerli-optimism.etherscan.io/address/${routerImpl}`}
         >
           <Flex className='hover:border-dark-gray  px-2 py-[2px] bg-dark-gunmetal rounded-[18px] border border-arsenic justify-center items-center w-fit'>
             {/* To:&nbsp; */}
             <BodySmall className='text-dark-gray'>
-              {shortenAddress(databaseImpl)}
+              {shortenAddress(routerImpl)}
             </BodySmall>
           </Flex>
         </a>
