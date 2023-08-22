@@ -7,7 +7,7 @@ export const writeToDatabase = async (decodedLogs: DecodedRouterEvent[]) => {
     try {
       switch (log.eventName) {
         case "PressRegistered": {
-          const dataPress: Prisma.PressCreateInput = {
+          const dataPress: Prisma.RouterCreateInput = {
             press: log.args.newPress,
             sender: log.args.sender,
             factory: log.args.factory,
@@ -30,7 +30,7 @@ export const writeToDatabase = async (decodedLogs: DecodedRouterEvent[]) => {
               },
             },
           };
-          await prismaClient.press.create({ data: dataPress });
+          await prismaClient.router.create({ data: dataPress });
           break;
         }
         case "TokenDataStored": {

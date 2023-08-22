@@ -3,7 +3,7 @@ import { prismaClient } from './prismaClient'
 export const getTableData = async () => {
   const rawTransactionData = await prismaClient.rawTransaction.findMany()
   const tokenStorageData = await prismaClient.tokenStorage.findMany()
-  const RouterData = await prismaClient.press.findMany()
+  const RouterData = await prismaClient.router.findMany()
 
   if (
    rawTransactionData.length === 0 &&

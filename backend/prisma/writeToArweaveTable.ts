@@ -32,13 +32,13 @@ export const writeToArweaveTable = async (
         await prismaClient.arweave.create({ data: dataTokenTransaction })
         break
       }
-      case 'press': {
-        const dataPressTransaction: Prisma.ArweaveCreateInput = {
+      case 'router': {
+        const dataRouterTransaction: Prisma.ArweaveCreateInput = {
           tableName: tableName,
           link: link,
         }
 
-        await prismaClient.arweave.create({ data: dataPressTransaction })
+        await prismaClient.arweave.create({ data: dataRouterTransaction })
         break
       }
       default:
