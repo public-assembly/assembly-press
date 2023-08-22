@@ -1,4 +1,4 @@
-export * from './setupAP721Snippets'
+export * from './setupSnippets'
 export * from './setLogicSnippets'
 export * from './setRendererSnippets'
 export * from './storeSnippets'
