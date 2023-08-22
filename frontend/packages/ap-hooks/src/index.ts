@@ -1,11 +1,13 @@
 import {
   useSetup,
   useStoreTokenData,
-  useOverwriteTokenData
+  useOverwriteTokenData,
+  useUpdatePressData
 } from './hooks'
 
 export {
   useSetup,
   useStoreTokenData,
-  useOverwriteTokenData
+  useOverwriteTokenData,
+  useUpdatePressData
 }

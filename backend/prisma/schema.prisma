@@ -37,6 +37,7 @@ model Router {
   press          String @id
   sender         String
   factory        String
+  pointer        String?
   owner          String
   logic          String
   renderer       String

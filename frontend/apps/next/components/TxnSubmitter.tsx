@@ -6,6 +6,7 @@ import {
   useSetup,
   useStoreTokenData,
   useOverwriteTokenData,
+  useUpdatePressData
 } from '@public-assembly/ap-hooks';
 import { useAccount } from 'wagmi';
 import {
@@ -116,6 +117,17 @@ export const TxnSubmitter = () => {
     prepareTxn: user,
   });
 
+  const {
+    updatePressDataConfig,
+    updatePressData,
+    updatePressDataLoading,
+    updatePressDataSuccess,
+  } = useUpdatePressData({
+    press: deployedPress,
+    data: encodedBytesArray,
+    prepareTxn: user,
+  })
+
   console.log(overwriteTokenDataConfig)
 
   const handleTxn = () => {
@@ -135,10 +147,10 @@ export const TxnSubmitter = () => {
         console.log('running overwriteTokenData');
         overwriteTokenData?.();
         break;
-      // case 3:
-      //   console.log('running updatePressData');
-      //   updatePressData?.();
-      //   break;
+      case 3:
+        console.log('running updatePressData');
+        updatePressData?.();
+        break;
     }
   };
 
@@ -146,7 +158,7 @@ export const TxnSubmitter = () => {
     0: setupConfig,
     1: storeTokenDataConfig,
     2: overwriteTokenDataConfig,
-    // 3: updatePressDataConfig,
+    3: updatePressDataConfig,
   };
 
   // function for determing what message to show for `from`

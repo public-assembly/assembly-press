@@ -23,7 +23,8 @@ var src_exports = {};
 __export(src_exports, {
   useOverwriteTokenData: () => useOverwriteTokenData,
   useSetup: () => useSetup,
-  useStoreTokenData: () => useStoreTokenData
+  useStoreTokenData: () => useStoreTokenData,
+  useUpdatePressData: () => useUpdatePressData
 });
 module.exports = __toCommonJS(src_exports);
 
@@ -377,7 +378,6 @@ function useSetup({
     abi: routerAbi,
     functionName: "setup",
     args: [factory, factoryInit],
-    // chainId: optimismGoerli.id,
     value: BigInt(0),
     enabled: prepareTxn
   });
@@ -405,7 +405,6 @@ function useStoreTokenData({
     abi: routerAbi,
     functionName: "storeTokenData",
     args: [press, data],
-    // chainId: optimismGoerli.id,
     value: BigInt(5e14),
     enabled: prepareTxn
   });
@@ -452,9 +451,37 @@ function useOverwriteTokenData({
     overwriteTokenDataSuccess
   };
 }
+
+// src/hooks/useUpdatePressData.ts
+var import_wagmi4 = require("wagmi");
+function useUpdatePressData({
+  press,
+  data,
+  prepareTxn
+}) {
+  const { config: updatePressDataConfig } = (0, import_wagmi4.usePrepareContractWrite)({
+    address: router,
+    abi: routerAbi,
+    functionName: "updatePressData",
+    args: [press, data],
+    value: BigInt(5e14),
+    enabled: prepareTxn
+  });
+  const { data: updatePressDataData, write: updatePressData } = (0, import_wagmi4.useContractWrite)(updatePressDataConfig);
+  const { isLoading: updatePressDataLoading, isSuccess: updatePressDataSuccess } = (0, import_wagmi4.useWaitForTransaction)({
+    hash: updatePressDataData == null ? void 0 : updatePressDataData.hash
+  });
+  return {
+    updatePressDataConfig,
+    updatePressData,
+    updatePressDataLoading,
+    updatePressDataSuccess
+  };
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   useOverwriteTokenData,
   useSetup,
-  useStoreTokenData
+  useStoreTokenData,
+  useUpdatePressData
 });

@@ -27,7 +27,7 @@ export const setupSnippets = {
         setupSuccess,
       };
     }`,
-  solidity: `    function setup(address factoryImpl, bytes memory factoryInit) nonReentrant external payable returns (address) {
+  solidity: `function setup(address factoryImpl, bytes memory factoryInit) nonReentrant external payable returns (address) {
       if (!factoryRegistry[factoryImpl]) revert Invalid_Factory();
       address press = IFactory(factoryImpl).createPress(msg.sender, factoryInit);
       pressRegistry[press] = true;

@@ -354,7 +354,6 @@ function useSetup({
     abi: routerAbi,
     functionName: "setup",
     args: [factory, factoryInit],
-    // chainId: optimismGoerli.id,
     value: BigInt(0),
     enabled: prepareTxn
   });
@@ -386,7 +385,6 @@ function useStoreTokenData({
     abi: routerAbi,
     functionName: "storeTokenData",
     args: [press, data],
-    // chainId: optimismGoerli.id,
     value: BigInt(5e14),
     enabled: prepareTxn
   });
@@ -437,8 +435,40 @@ function useOverwriteTokenData({
     overwriteTokenDataSuccess
   };
 }
+
+// src/hooks/useUpdatePressData.ts
+import {
+  usePrepareContractWrite as usePrepareContractWrite4,
+  useContractWrite as useContractWrite4,
+  useWaitForTransaction as useWaitForTransaction4
+} from "wagmi";
+function useUpdatePressData({
+  press,
+  data,
+  prepareTxn
+}) {
+  const { config: updatePressDataConfig } = usePrepareContractWrite4({
+    address: router,
+    abi: routerAbi,
+    functionName: "updatePressData",
+    args: [press, data],
+    value: BigInt(5e14),
+    enabled: prepareTxn
+  });
+  const { data: updatePressDataData, write: updatePressData } = useContractWrite4(updatePressDataConfig);
+  const { isLoading: updatePressDataLoading, isSuccess: updatePressDataSuccess } = useWaitForTransaction4({
+    hash: updatePressDataData == null ? void 0 : updatePressDataData.hash
+  });
+  return {
+    updatePressDataConfig,
+    updatePressData,
+    updatePressDataLoading,
+    updatePressDataSuccess
+  };
+}
 export {
   useOverwriteTokenData,
   useSetup,
-  useStoreTokenData
+  useStoreTokenData,
+  useUpdatePressData
 };
