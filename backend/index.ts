@@ -5,7 +5,7 @@ import cron from "node-cron";
 
 async function main() {
   await backfillPostgres()
-  // watchRouterEvents() 
+  watchRouterEvents() 
 }
 main()
 cron.schedule(

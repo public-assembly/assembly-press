@@ -12,7 +12,6 @@ export const watchRouterEvents = () => {
     address: process.env.ROUTER_ADDRESS as Hex,
     events: parsedEvent,
     onLogs: async (logs) => {
-      console.log(await processLogs(decodeLogs(logs)));
       const processedLogs = await processLogs(decodeLogs(logs));
       writeToDatabase(processedLogs);
     },
