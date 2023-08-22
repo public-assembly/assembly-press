@@ -36,12 +36,12 @@ type RawTransactionsTableProps = {
 const EventType = ({ rawTransactions, className }: EventTypeProps) => (
   <Flex
     className={cn(
-      rawTransactions === 'DataStored' ||
-        rawTransactions === 'DataRemoved' ||
-        rawTransactions === 'DataOverwritten'
+      rawTransactions === 'TokenDataStored' ||
+        rawTransactions === 'TokenDataRemoved' ||
+        rawTransactions === 'TokenDataOverwritten'
         ? 'border-heliotrope'
-        : rawTransactions === 'LogicUpdated' ||
-          rawTransactions === 'RendererUpdated'
+        : rawTransactions === 'PressRegistered' ||
+          rawTransactions === 'FactoryRegistered'
         ? 'border-malachite'
         : 'border-picton-blue',
       'uppercase border rounded-[2px] px-2 py-[2px] justify-center items-center w-fit'
