@@ -10,7 +10,7 @@ const pages = [
 
 export function Navigation() {
   return (
-    <div className='flex gap-x-4 items-center'>
+    <div className='flex gap-x-2 items-center'>
       {pages.map((page) => (
         <Link passHref href={page.slug} key={page.slug}>
           <BodySmall className='text-dark-gray'>{page.title}</BodySmall>
