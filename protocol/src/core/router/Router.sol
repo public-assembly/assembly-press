@@ -11,7 +11,7 @@ import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
 /*
     NOTE:
-    - This could be a hyperstructure if we remove the factory registry
+    - This could be an open protocol if we remove the factory registry
     - Applications can filter for events from presses created from their specific factory implemnetations
     - Factory implementations can be fully perimissioned without blocking anyone from
     writing their own factories to create the presses they want
@@ -39,7 +39,7 @@ contract Router is IRouter, Ownable, ReentrancyGuard {
     //////////////////////////////    
 
     function registerFactories(address[] memory factories, bool[] memory statuses) onlyOwner external {
-        if (factories.length != statuses.length) revert Input_Length_Mistmatch();
+        if (factories.length != statuses.length) revert Input_Length_Mismatch();
         for (uint256 i; i < factories.length; ++i) {
             factoryRegistry[factories[i]] = statuses[i];
         }        
@@ -47,7 +47,7 @@ contract Router is IRouter, Ownable, ReentrancyGuard {
     }
 
     //////////////////////////////
-    // Press CREATION
+    // PRESS CREATION
     //////////////////////////////      
 
     function setup(address factoryImpl, bytes memory factoryInit) nonReentrant external payable returns (address) {
@@ -59,7 +59,7 @@ contract Router is IRouter, Ownable, ReentrancyGuard {
     }
 
     function setupBatch(address[] memory factoryImpls, bytes[] memory factoryInits) nonReentrant external payable returns (address[] memory) {
-        if (factoryImpls.length != factoryInits.length) revert Input_Length_Mistmatch();   
+        if (factoryImpls.length != factoryInits.length) revert Input_Length_Mismatch();   
         address[] memory presses = new address[](factoryImpls.length);
         for (uint256 i; i < factoryImpls.length; ++i) {
             if (!factoryRegistry[factoryImpls[i]]) revert Invalid_Factory();
@@ -72,7 +72,7 @@ contract Router is IRouter, Ownable, ReentrancyGuard {
     }    
 
     //////////////////////////////
-    // SINGLE PRESSS INTERACTIONS
+    // SINGLE PRESS INTERACTIONS
     //////////////////////////////      
 
     /* ~~~ Press Data Interactions ~~~ */
@@ -107,12 +107,10 @@ contract Router is IRouter, Ownable, ReentrancyGuard {
     // MULTI PRESS INTERACTIONS
     //////////////////////////////    
 
-    // NOTE: These functions dont work now since arent passing value to the forwarding contracts
-
     /* ~~~ Press Data Interactions ~~~ */
 
     function updatePressDataMulti(address[] memory presses, bytes[] memory datas, uint256[] memory values) nonReentrant external payable {
-        if (presses.length != datas.length && presses.length != values.length) revert Input_Length_Mistmatch();
+        if (presses.length != datas.length && presses.length != values.length) revert Input_Length_Mismatch();
         for (uint256 i; i < presses.length; ++i) {
             if (!pressRegistry[presses[i]]) revert Invalid_Press();
             (address pointer) = IPress(presses[i]).updatePressData{value: values[i]}(msg.sender, datas[i]);
@@ -123,7 +121,7 @@ contract Router is IRouter, Ownable, ReentrancyGuard {
     /* ~~~ Token Data Interactions ~~~ */    
 
     function storeTokenDataMulti(address[] memory presses, bytes[] memory datas, uint256[] memory values) nonReentrant external payable {
-        if (presses.length != datas.length && presses.length != values.length) revert Input_Length_Mistmatch();
+        if (presses.length != datas.length && presses.length != values.length) revert Input_Length_Mismatch();
         for (uint256 i; i < presses.length; ++i) {
             if (!pressRegistry[presses[i]]) revert Invalid_Press();
             (uint256[] memory tokenIds, address[] memory pointers) = IPress(presses[i]).storeTokenData{value: values[i]}(msg.sender, datas[i]);
@@ -132,7 +130,7 @@ contract Router is IRouter, Ownable, ReentrancyGuard {
     }
 
     function overwriteTokenDataMulti(address[] memory presses, bytes[] memory datas, uint256[] memory values) nonReentrant external payable {
-        if (presses.length != datas.length && presses.length != values.length) revert Input_Length_Mistmatch();
+        if (presses.length != datas.length && presses.length != values.length) revert Input_Length_Mismatch();
         for (uint256 i; i < presses.length; ++i) {
             if (!pressRegistry[presses[i]]) revert Invalid_Press();
             (uint256[] memory tokenIds, address[] memory pointers) = IPress(presses[i]).overwriteTokenData{value: values[i]}(msg.sender, datas[i]);
@@ -141,7 +139,7 @@ contract Router is IRouter, Ownable, ReentrancyGuard {
     }    
 
     function removeTokenDataMulti(address[] memory presses, bytes[] memory datas, uint256[] memory values) nonReentrant external payable {
-        if (presses.length != datas.length && presses.length != values.length) revert Input_Length_Mistmatch();
+        if (presses.length != datas.length && presses.length != values.length) revert Input_Length_Mismatch();
         for (uint256 i; i < presses.length; ++i) {
             if (!pressRegistry[presses[i]]) revert Invalid_Press();
             (uint256[] memory tokenIds) = IPress(presses[i]).removeTokenData{value: values[i]}(msg.sender, datas[i]);

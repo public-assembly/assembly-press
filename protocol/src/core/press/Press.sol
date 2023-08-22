@@ -24,6 +24,9 @@ import "sstore2/SSTORE2.sol";
 // TODO: update the erc1155upgradeable version to the most recent OZ release. compiler there should be 0.8.20 if latest
 //      and then update how non-transferability functionality is being added
 
+// TODO: move the owner storage into settings of the Press. This will give us better awareness of what storage slot
+//        it takes in the long run, and also improve the return of settings
+
 /**
  * @title Press
  */
@@ -52,7 +55,7 @@ contract Press is
     function initialize(
         string memory pressName, 
         address initialOwner,
-        address routerImpl,
+        address routerAddr,
         address logic,
         bytes memory logicInit,
         address renderer,
@@ -72,7 +75,7 @@ contract Press is
         __UUPSUpgradeable_init();   
 
         // Set things
-        router = routerImpl;
+        router = routerAddr;
         name = pressName;
         // symbol = contractSymbol;
 
@@ -145,7 +148,7 @@ contract Press is
     function overwriteTokenData(address sender, bytes memory data) external payable returns (uint256[] memory, address[] memory) {
         if (msg.sender != router) revert Sender_Not_Router();
         (uint256[] memory tokenIds, bytes[] memory datas) = abi.decode(data, (uint256[], bytes[]));
-        if (tokenIds.length != datas.length) revert Input_Length_Mistmatch();
+        if (tokenIds.length != datas.length) revert Input_Length_Mismatch();
         // Initialize memory variables
         uint256 quantity = tokenIds.length;
         address[] memory pointers = new address[](quantity);        
@@ -209,7 +212,7 @@ contract Press is
         // Cache msg.sender
         address sender = msg.sender;        
         // Check for input length
-        if (tokenIds.length != quantities.length) revert Input_Length_Mistmatch();
+        if (tokenIds.length != quantities.length) revert Input_Length_Mismatch();
         // Process collect requests
         for (uint256 i; i < tokenIds.length; ++i) {
             // Get collect access and price from logic contract. Will revert if no access or msg.value is incorrect
@@ -276,15 +279,7 @@ contract Press is
     /**
      * @param newImplementation proposed new upgrade implementation
      */
-    function _authorizeUpgrade(address newImplementation) internal override {}    
-
-    // /**
-    //  * @notice Start tokenId for minting (1 => 100 vs 0 => 99)
-    //  * @return tokenId tokenId to start minting from
-    //  */
-    // function _startTokenId() internal pure override returns (uint256 tokenId) {
-    //     return 1;
-    // }    
+    function _authorizeUpgrade(address newImplementation) internal override {}      
 
     //////////////////////////////
     // HELPERS
@@ -319,14 +314,14 @@ contract Press is
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data); // call original implementation
     }
 
-/*
-    // @dev See {ERC1155Upgradeable-_update}
-    function _update(address from, address to, uint256[] memory ids, uint256[] memory values) internal override virtual {
-        // Revert if function call is not a mint or burn
-        if (!settings.advancedSettings.transferable) {
-            if (from != address(0) || to != address(0)) revert Non_Transferable_Token();   
-        }
-        super._update(from, to, ids, values); // Call the original implementation
-    }    
-*/    
+    /*
+        // @dev See {ERC1155Upgradeable-_update}
+        function _update(address from, address to, uint256[] memory ids, uint256[] memory values) internal override virtual {
+            // Revert if function call is not a mint or burn
+            if (!settings.advancedSettings.transferable) {
+                if (from != address(0) || to != address(0)) revert Non_Transferable_Token();   
+            }
+            super._update(from, to, ids, values); // Call the original implementation
+        }    
+    */    
 }

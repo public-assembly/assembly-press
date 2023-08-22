@@ -5,8 +5,9 @@ pragma solidity 0.8.19;
 
 import {IPressTypesV1} from "../types/IPressTypesV1.sol";
 
-// TODO: Check if missing UUPS storage gap?
-// TODO: Also just do more research + get feedback on storage layout in general
+// TODO: Research + get feedback on storage layout in general
+//      particularly storage struct buckets
+// TODO: missing UUPS storage gap
 
 contract PressStorageV1 {
 

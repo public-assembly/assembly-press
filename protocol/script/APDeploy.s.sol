@@ -57,5 +57,4 @@ contract DeployCore is Script {
 // forge script script/APDeploy.s.sol:DeployCore -vvvv --rpc-url $RPC_URL --broadcast --verify
 // forge script script/APDeploy.s.sol:DeployCore -vvvv --rpc-url $RPC_URL --broadcast --verify --verifier-url {block exploerer verifier url}
 
-
 // optimism goerli verifier url https://api-goerli-optimistic.etherscan.io/api
