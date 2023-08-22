@@ -32,7 +32,7 @@ export function useSetup({
     abi: routerAbi,
     functionName: "setup",
     args: [factory, factoryInit],
-    chainId: optimismGoerli.id,
+    // chainId: optimismGoerli.id,
     value: BigInt(0),
     enabled: prepareTxn,
   });

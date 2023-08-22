@@ -28,7 +28,7 @@ const GridItem = ({
         selector === selectorIndex
           ? 'text-platinum bg-arsenic rounded-full'
           : ' text-dark-gray',
-        'px-4 py-3 w-28',
+        'px-4 py-3 w-fit min-w-[140px]',
         className
       )}
     >
@@ -72,12 +72,12 @@ export const FunctionNav = () => {
           callback={decrement}
         />
         <GridItem
-          className='rounded-full bg-eerie-black w-28 text-platinum'
+          className='rounded-full bg-eerie-black w-fit min-w-[140px] text-platinum'
           functionName={functionNameMap[index]}
           selectorIndex={index}
         />
         <IconButton
-          className={cn(index === 4 ? 'text-arsenic' : ' text-dark-gray')}
+          className={cn(index === 3 ? 'text-arsenic' : ' text-dark-gray')}
           icon={<ArrowRightIcon />}
           callback={increment}
         />

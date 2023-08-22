@@ -6,10 +6,339 @@ import {
   useContractWrite,
   useWaitForTransaction
 } from "wagmi";
-import { optimismGoerli } from "wagmi/chains";
 
 // src/contracts/abi/routerAbi.ts
-var routerAbi = [{ "inputs": [], "name": "Input_Length_Mistmatch", "type": "error" }, { "inputs": [], "name": "Invalid_Factory", "type": "error" }, { "inputs": [], "name": "Invalid_Press", "type": "error" }, { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "address", "name": "sender", "type": "address" }, { "indexed": false, "internalType": "address[]", "name": "factories", "type": "address[]" }, { "indexed": false, "internalType": "bool[]", "name": "statuses", "type": "bool[]" }], "name": "FactoryRegistered", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "previousOwner", "type": "address" }, { "indexed": true, "internalType": "address", "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "address", "name": "sender", "type": "address" }, { "indexed": false, "internalType": "address", "name": "press", "type": "address" }, { "indexed": false, "internalType": "address", "name": "pointer", "type": "address" }], "name": "PressDataUpdated", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "address", "name": "sender", "type": "address" }, { "indexed": false, "internalType": "address", "name": "factory", "type": "address" }, { "indexed": false, "internalType": "address", "name": "newPress", "type": "address" }], "name": "PressRegistered", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "address", "name": "sender", "type": "address" }, { "indexed": false, "internalType": "address", "name": "press", "type": "address" }, { "indexed": false, "internalType": "uint256[]", "name": "tokenIds", "type": "uint256[]" }, { "indexed": false, "internalType": "address[]", "name": "pointers", "type": "address[]" }], "name": "TokenDataOverwritten", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "address", "name": "sender", "type": "address" }, { "indexed": false, "internalType": "address", "name": "press", "type": "address" }, { "indexed": false, "internalType": "uint256[]", "name": "tokenIds", "type": "uint256[]" }], "name": "TokenDataRemoved", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "address", "name": "sender", "type": "address" }, { "indexed": false, "internalType": "address", "name": "press", "type": "address" }, { "indexed": false, "internalType": "uint256[]", "name": "tokenIds", "type": "uint256[]" }, { "indexed": false, "internalType": "address[]", "name": "pointers", "type": "address[]" }], "name": "TokenDataStored", "type": "event" }, { "inputs": [{ "internalType": "address", "name": "", "type": "address" }], "name": "factoryRegistry", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "press", "type": "address" }, { "internalType": "bytes", "name": "data", "type": "bytes" }], "name": "overwriteTokenData", "outputs": [], "stateMutability": "payable", "type": "function" }, { "inputs": [{ "internalType": "address[]", "name": "presses", "type": "address[]" }, { "internalType": "bytes[]", "name": "datas", "type": "bytes[]" }], "name": "overwriteTokenDataMulti", "outputs": [], "stateMutability": "payable", "type": "function" }, { "inputs": [], "name": "owner", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "", "type": "address" }], "name": "pressRegistry", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address[]", "name": "factories", "type": "address[]" }, { "internalType": "bool[]", "name": "statuses", "type": "bool[]" }], "name": "registerFactories", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "press", "type": "address" }, { "internalType": "bytes", "name": "data", "type": "bytes" }], "name": "removeTokenData", "outputs": [], "stateMutability": "payable", "type": "function" }, { "inputs": [{ "internalType": "address[]", "name": "presses", "type": "address[]" }, { "internalType": "bytes[]", "name": "datas", "type": "bytes[]" }], "name": "removeTokenDataMulti", "outputs": [], "stateMutability": "payable", "type": "function" }, { "inputs": [], "name": "renounceOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "factoryImpl", "type": "address" }, { "internalType": "bytes", "name": "factoryInit", "type": "bytes" }], "name": "setup", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "payable", "type": "function" }, { "inputs": [{ "internalType": "address[]", "name": "factoryImpls", "type": "address[]" }, { "internalType": "bytes[]", "name": "factoryInits", "type": "bytes[]" }], "name": "setupBatch", "outputs": [{ "internalType": "address[]", "name": "", "type": "address[]" }], "stateMutability": "payable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "press", "type": "address" }, { "internalType": "bytes", "name": "data", "type": "bytes" }], "name": "storeTokenData", "outputs": [], "stateMutability": "payable", "type": "function" }, { "inputs": [{ "internalType": "address[]", "name": "presses", "type": "address[]" }, { "internalType": "bytes[]", "name": "datas", "type": "bytes[]" }], "name": "storeTokenDataMulti", "outputs": [], "stateMutability": "payable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "press", "type": "address" }, { "internalType": "bytes", "name": "data", "type": "bytes" }], "name": "updatePressData", "outputs": [], "stateMutability": "payable", "type": "function" }, { "inputs": [{ "internalType": "address[]", "name": "presses", "type": "address[]" }, { "internalType": "bytes[]", "name": "datas", "type": "bytes[]" }], "name": "updatePressDataMulti", "outputs": [], "stateMutability": "payable", "type": "function" }];
+var routerAbi = [
+  { inputs: [], name: "Input_Length_Mistmatch", type: "error" },
+  { inputs: [], name: "Invalid_Factory", type: "error" },
+  { inputs: [], name: "Invalid_Press", type: "error" },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sender",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "address[]",
+        name: "factories",
+        type: "address[]"
+      },
+      {
+        indexed: false,
+        internalType: "bool[]",
+        name: "statuses",
+        type: "bool[]"
+      }
+    ],
+    name: "FactoryRegistered",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "previousOwner",
+        type: "address"
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newOwner",
+        type: "address"
+      }
+    ],
+    name: "OwnershipTransferred",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sender",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "press",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "pointer",
+        type: "address"
+      }
+    ],
+    name: "PressDataUpdated",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sender",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "factory",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "newPress",
+        type: "address"
+      }
+    ],
+    name: "PressRegistered",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sender",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "press",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "uint256[]",
+        name: "tokenIds",
+        type: "uint256[]"
+      },
+      {
+        indexed: false,
+        internalType: "address[]",
+        name: "pointers",
+        type: "address[]"
+      }
+    ],
+    name: "TokenDataOverwritten",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sender",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "press",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "uint256[]",
+        name: "tokenIds",
+        type: "uint256[]"
+      }
+    ],
+    name: "TokenDataRemoved",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sender",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "press",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "uint256[]",
+        name: "tokenIds",
+        type: "uint256[]"
+      },
+      {
+        indexed: false,
+        internalType: "address[]",
+        name: "pointers",
+        type: "address[]"
+      }
+    ],
+    name: "TokenDataStored",
+    type: "event"
+  },
+  {
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    name: "factoryRegistry",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "press", type: "address" },
+      { internalType: "bytes", name: "data", type: "bytes" }
+    ],
+    name: "overwriteTokenData",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "address[]", name: "presses", type: "address[]" },
+      { internalType: "bytes[]", name: "datas", type: "bytes[]" }
+    ],
+    name: "overwriteTokenDataMulti",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "owner",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    name: "pressRegistry",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "address[]", name: "factories", type: "address[]" },
+      { internalType: "bool[]", name: "statuses", type: "bool[]" }
+    ],
+    name: "registerFactories",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "press", type: "address" },
+      { internalType: "bytes", name: "data", type: "bytes" }
+    ],
+    name: "removeTokenData",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "address[]", name: "presses", type: "address[]" },
+      { internalType: "bytes[]", name: "datas", type: "bytes[]" }
+    ],
+    name: "removeTokenDataMulti",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "renounceOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "factoryImpl", type: "address" },
+      { internalType: "bytes", name: "factoryInit", type: "bytes" }
+    ],
+    name: "setup",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "address[]", name: "factoryImpls", type: "address[]" },
+      { internalType: "bytes[]", name: "factoryInits", type: "bytes[]" }
+    ],
+    name: "setupBatch",
+    outputs: [{ internalType: "address[]", name: "", type: "address[]" }],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "press", type: "address" },
+      { internalType: "bytes", name: "data", type: "bytes" }
+    ],
+    name: "storeTokenData",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "address[]", name: "presses", type: "address[]" },
+      { internalType: "bytes[]", name: "datas", type: "bytes[]" }
+    ],
+    name: "storeTokenDataMulti",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "address", name: "newOwner", type: "address" }],
+    name: "transferOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "press", type: "address" },
+      { internalType: "bytes", name: "data", type: "bytes" }
+    ],
+    name: "updatePressData",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "address[]", name: "presses", type: "address[]" },
+      { internalType: "bytes[]", name: "datas", type: "bytes[]" }
+    ],
+    name: "updatePressDataMulti",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  }
+];
 
 // src/contracts/constants.ts
 var router = "0x7539973c756c45bf0ecc4167d6ce9750c60f903d";
@@ -25,7 +354,7 @@ function useSetup({
     abi: routerAbi,
     functionName: "setup",
     args: [factory, factoryInit],
-    chainId: optimismGoerli.id,
+    // chainId: optimismGoerli.id,
     value: BigInt(0),
     enabled: prepareTxn
   });
@@ -47,7 +376,6 @@ import {
   useContractWrite as useContractWrite2,
   useWaitForTransaction as useWaitForTransaction2
 } from "wagmi";
-import { optimismGoerli as optimismGoerli2 } from "wagmi/chains";
 function useStoreTokenData({
   press,
   data,
@@ -58,7 +386,7 @@ function useStoreTokenData({
     abi: routerAbi,
     functionName: "storeTokenData",
     args: [press, data],
-    chainId: optimismGoerli2.id,
+    // chainId: optimismGoerli.id,
     value: BigInt(5e14),
     enabled: prepareTxn
   });
@@ -80,7 +408,6 @@ import {
   useContractWrite as useContractWrite3,
   useWaitForTransaction as useWaitForTransaction3
 } from "wagmi";
-import { optimismGoerli as optimismGoerli3 } from "wagmi/chains";
 function useOverwriteTokenData({
   press,
   data,
@@ -91,13 +418,16 @@ function useOverwriteTokenData({
     abi: routerAbi,
     functionName: "overwriteTokenData",
     args: [press, data],
-    chainId: optimismGoerli3.id,
-    value: BigInt(0),
-    // maybe this 500000000000000
+    // chainId: optimismGoerli.id,
+    // BigInt(0)
+    value: BigInt(5e14),
     enabled: prepareTxn
   });
   const { data: overwriteTokenDataData, write: overwriteTokenData } = useContractWrite3(overwriteTokenDataConfig);
-  const { isLoading: overwriteTokenDataLoading, isSuccess: overwriteTokenDataSuccess } = useWaitForTransaction3({
+  const {
+    isLoading: overwriteTokenDataLoading,
+    isSuccess: overwriteTokenDataSuccess
+  } = useWaitForTransaction3({
     hash: overwriteTokenDataData == null ? void 0 : overwriteTokenDataData.hash
   });
   return {
