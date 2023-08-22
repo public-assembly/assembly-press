@@ -12,6 +12,7 @@ import { Hash, encodeAbiParameters, parseAbiParameters, zeroAddress } from 'viem
 import { Button } from './Button';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { shortenAddress } from '@/utils/shortenAddress';
+import { useModal } from 'connectkit';
 import {
   routerImpl,
   logicImpl,
@@ -25,9 +26,11 @@ export const TxnSubmitter = () => {
   // Get current selector from global context
   const { selector } = useFunctionSelect();
   // Get address of current authd user
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   // Get prepareTxn value for hooks
   const user = address ? true : false;
+  // Show/dismiss connectkit modal
+  const { setOpen } = useModal();
 
   // function for determining what message to show for `from`
   const fromText = () => {
@@ -76,6 +79,9 @@ export const TxnSubmitter = () => {
   );
 
   const handleTxn = () => {
+    if (!isConnected) {
+      setOpen(true);
+    }
     switch (selector) {
       case 0:
         console.log('running setup');

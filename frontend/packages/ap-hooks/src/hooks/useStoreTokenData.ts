@@ -32,7 +32,7 @@ import {
       abi: routerAbi,
       functionName: "storeTokenData",
       args: [press, data],
-      chainId: optimismGoerli.id,
+      // chainId: optimismGoerli.id,
       value: BigInt(500000000000000),
       enabled: prepareTxn
     });

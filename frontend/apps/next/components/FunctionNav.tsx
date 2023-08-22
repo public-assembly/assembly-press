@@ -43,15 +43,14 @@ export const FunctionNav = () => {
   const { selector, setSelector } = useFunctionSelect();
 
   const functionNameMap = {
-    0: 'setupAP721',
-    1: 'setLogic',
-    2: 'setRenderer',
-    3: 'store',
-    4: 'overwrite',
+    0: 'setup',
+    1: 'storeTokenData',
+    2: 'overwriteTokenData',
+    3: 'updatePressData',
   };
 
   const increment = () => {
-    if (index < 4) {
+    if (index < 3) {
       setIndex(index + 1);
       setSelector(index + 1);
     }
@@ -88,11 +87,10 @@ export const FunctionNav = () => {
 
   return (
     <Flex className='justify-between gap-x-2 rounded-full bg-eerie-black w-fit'>
-      <GridItem functionName={'setupAP721'} selectorIndex={0} />
-      <GridItem functionName={'setLogic'} selectorIndex={1} />
-      <GridItem functionName={'setRenderer'} selectorIndex={2} />
-      <GridItem functionName={'store'} selectorIndex={3} />
-      <GridItem functionName={'overwrite'} selectorIndex={4} />
+      <GridItem functionName={'setup'} selectorIndex={0} />
+      <GridItem functionName={'storeTokenData'} selectorIndex={1} />
+      <GridItem functionName={'overwriteTokenData'} selectorIndex={2} />
+      <GridItem functionName={'updatePressData'} selectorIndex={3} />
     </Flex>
   );
   // }
