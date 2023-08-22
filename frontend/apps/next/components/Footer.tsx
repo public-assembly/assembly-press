@@ -5,11 +5,9 @@ import { BodySmall } from '@/base/Typography';
 
 export function Footer() {
   return (
-    <footer className='flex items-center justify-between py-8 mt-auto sticky bottom-0 bg-raisin-black'>
+    <footer className='flex flex-wrap items-center justify-center md:justify-between py-8 gap-2'>
       {/* Built by Public Assembly */}
-      <BodySmall className='text-dark-gray'>
-        Built by Public Assembly
-      </BodySmall>
+      <BodySmall className='text-dark-gray'>Built by Public Assembly</BodySmall>
       {/* Right corner links */}
       <div className='flex gap-x-6'>
         {links.map((link) => (
