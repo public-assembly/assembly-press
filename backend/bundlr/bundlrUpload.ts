@@ -18,6 +18,6 @@ export async function bundlrUpload() {
   console.log("saveLinksToArweaveTable for rawTransaction done");
   await writeToArweaveTable("tokenStorage", tokenStorageUpload);
   console.log("saveLinksToArweaveTable for tokenStorage done");
-  await writeToArweaveTable("AP721", RouterUpload);
-  console.log("saveLinksToArweaveTable for AP721 done");
+  await writeToArweaveTable("router", RouterUpload);
+  console.log("saveLinksToArweaveTable for router done");
 }

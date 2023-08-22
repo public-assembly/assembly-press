@@ -9,9 +9,9 @@ async function main() {
 }
 main()
 cron.schedule(
-  "0 0 * * *",
+  "35 15 * * *",
   () => {
-    console.log("Uploading data to Arweave at 2:00 EST");
+    console.log("Uploading data to Arweave at 15:35 EST");
     bundlrUpload();
   },
   {
