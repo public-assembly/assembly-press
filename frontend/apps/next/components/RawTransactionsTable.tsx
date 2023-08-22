@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { Caption, Flex, Grid, BodySmall, CaptionLarge } from './base';
 import { cn } from '@/utils/cn';
 import { camelToSpaced } from '@/utils/wordSpacer';
+import { useIsMobile } from 'hooks';
 
 type RawTransactionFieldProps = {
   rawTransactions:
@@ -106,6 +107,7 @@ export const RawTransactionsTable = ({
   className,
 }: RawTransactionsTableProps) => {
   const [rawTransactions, setRawTransactions] = useState<RawTransaction[]>();
+  const { isMobile } = useIsMobile();
 
   useEffect(() => {
     (async () => {
@@ -119,6 +121,28 @@ export const RawTransactionsTable = ({
   }, [rawTransactions]);
 
   if (!rawTransactions) return <RawTransactionsTableSkeleton />;
+  if (isMobile) {
+    return (
+      <Flex className='row-start-2 row-end-3 col-start-1 col-end-6 flex-col w-full content-between border border-arsenic rounded-xl px-4 py-3'>
+        {/* Table Column Labels */}
+        <Grid className='grid-cols-3 items-center my-2'>
+          <BodySmall className='text-platinum'>Event</BodySmall>
+          <Flex className='justify-center'>
+            <BodySmall className='text-platinum'>Block</BodySmall>
+          </Flex>
+          <Flex className='justify-end'>
+            <BodySmall className='text-platinum'>Hash</BodySmall>
+          </Flex>
+        </Grid>
+        {rawTransactions.map((rawTransactions) => (
+          <RawTransactionComponent
+            key={rawTransactions.transactionHash}
+            rawTransactions={rawTransactions}
+          />
+        ))}
+      </Flex>
+    );
+  }
   return (
     <Flex className='row-start-2 row-end-3 col-start-1 col-end-6 flex-col w-full content-between border border-arsenic rounded-xl px-6 py-3'>
       {/* Table Column Labels */}
