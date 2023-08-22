@@ -1,7 +1,7 @@
 import { prismaClient } from './prismaClient'
 
 export async function getLastBlockWithEvent() {
-  const lastBlockAP721 = await prismaClient.aP721.findMany({
+  const lastBlockRouter = await prismaClient.press.findMany({
     orderBy: {
       createdAt: 'desc',
     },
@@ -17,17 +17,17 @@ export async function getLastBlockWithEvent() {
 
   let lastBlockWithEvent
 
-  if (lastBlockAP721.length === 0) {
+  if (lastBlockRouter.length === 0) {
     console.log('No events are stored in the database')
     return
-  } else if (lastBlockAP721.length > 0 && lastBlockTokenStorage.length > 0) {
+  } else if (lastBlockRouter.length > 0 && lastBlockTokenStorage.length > 0) {
     lastBlockWithEvent =
-      lastBlockTokenStorage[0].updatedAt > lastBlockAP721[0].createdAt
+      lastBlockTokenStorage[0].updatedAt > lastBlockRouter[0].createdAt
         ? lastBlockTokenStorage[0].updatedAt
-        : lastBlockAP721[0].createdAt
+        : lastBlockRouter[0].createdAt
     return lastBlockWithEvent
   } else {
-    lastBlockWithEvent = lastBlockAP721[0].createdAt
+    lastBlockWithEvent = lastBlockRouter[0].createdAt
     return lastBlockWithEvent
   }
 }

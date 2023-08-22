@@ -1,5 +1,12 @@
 import { type Hex, type Hash } from 'viem';
 
+type AdvancedSettings = {
+  fundsRecipient: Hex,
+  royaltyBPS: number,
+  transferable: boolean,
+  fungible: boolean,  
+}
+
 export interface FactoryRegistered {
   transactionHash: Hash | null;
   blockNumber: bigint | null;
@@ -13,6 +20,17 @@ export interface FactoryRegistered {
 export interface PressRegistered {
   transactionHash: Hash | null;
   blockNumber: bigint | null;
+  additionalData: readonly [
+    bigint, // counter
+    Hex, // logic
+    Hex, // renderer
+    {
+      fundsRecipient: Hex;
+      royaltyBPS: number;
+      transferable: boolean;
+      fungible: boolean;
+    }
+  ];
   args: {
     sender: Hex;
     factory: Hex;

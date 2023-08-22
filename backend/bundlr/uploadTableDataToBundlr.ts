@@ -71,32 +71,32 @@ export const uploadTableDataToBundlr = async () => {
   )
 
   /**
-   * Handle AP721 snapshot
-   * 1. Attach the `AP721` identifier to this group of logs
+   * Handle RouterV1 snapshot
+   * 1. Attach the `RouterV1` identifier to this group of logs
    * 2. Parse any JSON data including bigints
    * 3. Get the size of the upload
    * 4. Given the size, get the cost of the upload
    * 5. Fund the Bundlr node with the appropriate amount
    * 6. Upload the data to Arweave and return the transaction id
    **/
-  const AP721Tags = createBundlrTags('AP721')
+  const RouterV1Tags = createBundlrTags('RouterV1')
 
-  const AP721DataStr = JSON.stringify(tableData.AP721Data, replacer, 2)
+  const RouterDataStr = JSON.stringify(tableData.RouterData, replacer, 2)
 
-  const AP721DataSize = Buffer.byteLength(AP721DataStr, 'utf8')
+  const RouterDataSize = Buffer.byteLength(RouterDataStr, 'utf8')
 
-  const AP721Price = await bundlr.getPrice(AP721DataSize)
+  const RouterPrice = await bundlr.getPrice(RouterDataSize)
 
-  await bundlr.fund(AP721Price)
+  await bundlr.fund(RouterPrice)
 
-  const AP721Upload = await bundlr.upload(
-    JSON.stringify(tableData.AP721Data, replacer, 2),
-    { tags: AP721Tags },
+  const RouterUpload = await bundlr.upload(
+    JSON.stringify(tableData.RouterData, replacer, 2),
+    { tags: RouterV1Tags },
   )
 
   console.log(
-    `AP721 data --> Uploaded to https://arweave.net/${AP721Upload.id}`,
+    `RouterV1 data --> Uploaded to https://arweave.net/${RouterUpload.id}`,
   )
 
-  return { rawTransactionUpload, tokenStorageUpload, AP721Upload }
+  return { rawTransactionUpload, tokenStorageUpload, RouterUpload }
 }
