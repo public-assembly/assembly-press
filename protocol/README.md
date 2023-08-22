@@ -1,7 +1,7 @@
-## Protocol Developmenet Status
-ERC721 Architecture - First draft complete
+## Protocol Development Status
+Router Based Architecture - DRAFT
 
-Note: an older [branch](https://github.com/public-assembly/assembly-press/tree/0xTranqui/Full-Rewrite-230615) with a slightly different design was further along, and offers helpful insight into how we are thinking of `logic` + `renderer` contracts, as well as the role of `strategies`
+Note: an older [branch](https://github.com/public-assembly/assembly-press/tree/300f1ea78acf1e77823f476fdb2a7c519f5e8495/protocol/) with a slightly different design was further along, and offers helpful insight into how we are thinking of singleton database design, `logic` + `renderer` contracts, and `multiTarget` functions. Also included a much more robust test suite, which the newer design will replicate.
 
 ## Protocol Local Development
 
