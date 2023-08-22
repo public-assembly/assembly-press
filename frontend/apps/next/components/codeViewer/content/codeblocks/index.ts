@@ -1,5 +1,4 @@
 export * from './setupSnippets'
-export * from './setLogicSnippets'
-export * from './setRendererSnippets'
+export * from './updateSnippets'
 export * from './storeSnippets'
 export * from './overwriteSnippets'
