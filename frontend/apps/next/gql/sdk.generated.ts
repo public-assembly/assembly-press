@@ -19,25 +19,30 @@ export type Scalars = {
   timestamp: { input: any; output: any; }
 };
 
-/** columns and relationships of "AP721" */
-export type Ap721 = {
-  __typename?: 'AP721';
-  ap721: Scalars['String']['output'];
+/** columns and relationships of "Router" */
+export type router = {
+  __typename?: 'router';
+  press: Scalars['String']['output'];
   createdAt: Scalars['bigint']['output'];
   factory: Scalars['String']['output'];
+  pointer: Scalars['String']['output'];
   logic: Scalars['String']['output'];
+  fundsrecipient: Scalars['String'] ['output'];
+  royaltyBPS: Scalars['bigint'] ['output'];
+  transferable:  Scalars['Boolean'] ['output'];
+  fungible:  Scalars['Boolean'] ['output'];
   owner: Scalars['String']['output'];
   renderer: Scalars['String']['output'];
   sender: Scalars['String']['output'];
   transactionHash: Scalars['String']['output'];
 };
 
-/** Boolean expression to filter rows from the table "AP721". All fields are combined with a logical 'AND'. */
-export type Ap721_Bool_Exp = {
-  _and?: InputMaybe<Array<Ap721_Bool_Exp>>;
-  _not?: InputMaybe<Ap721_Bool_Exp>;
-  _or?: InputMaybe<Array<Ap721_Bool_Exp>>;
-  ap721?: InputMaybe<String_Comparison_Exp>;
+/** Boolean expression to filter rows from the table "Router". All fields are combined with a logical 'AND'. */
+export type Router = {
+  _and?: InputMaybe<Array<Router_Bool_Exp>>;
+  _not?: InputMaybe<Router_Bool_Exp>;
+  _or?: InputMaybe<Array<Router_Bool_Exp>>;
+  press?: InputMaybe<String_Comparison_Exp>;
   createdAt?: InputMaybe<Bigint_Comparison_Exp>;
   factory?: InputMaybe<String_Comparison_Exp>;
   logic?: InputMaybe<String_Comparison_Exp>;
@@ -47,9 +52,9 @@ export type Ap721_Bool_Exp = {
   transactionHash?: InputMaybe<String_Comparison_Exp>;
 };
 
-/** Ordering options when selecting data from "AP721". */
-export type Ap721_Order_By = {
-  ap721?: InputMaybe<Order_By>;
+/** Ordering options when selecting data from "Router". */
+export type Router_Order_By = {
+  Router?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   factory?: InputMaybe<Order_By>;
   logic?: InputMaybe<Order_By>;
@@ -59,10 +64,10 @@ export type Ap721_Order_By = {
   transactionHash?: InputMaybe<Order_By>;
 };
 
-/** select columns of table "AP721" */
-export enum Ap721_Select_Column {
+/** select columns of table "Router" */
+export enum Router_Select_Column {
   /** column name */
-  Ap721 = 'ap721',
+  Router = 'Router',
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -79,17 +84,17 @@ export enum Ap721_Select_Column {
   TransactionHash = 'transactionHash'
 }
 
-/** Streaming cursor of the table "AP721" */
-export type Ap721_Stream_Cursor_Input = {
+/** Streaming cursor of the table "Router" */
+export type Router_Stream_Cursor_Input = {
   /** Stream column input with initial value */
-  initial_value: Ap721_Stream_Cursor_Value_Input;
+  initial_value: Router_Stream_Cursor_Value_Input;
   /** cursor ordering */
   ordering?: InputMaybe<Cursor_Ordering>;
 };
 
 /** Initial value of the column from where the streaming should start */
-export type Ap721_Stream_Cursor_Value_Input = {
-  ap721?: InputMaybe<Scalars['String']['input']>;
+export type Router_Stream_Cursor_Value_Input = {
+  press?: InputMaybe<Scalars['String']['input']>;
   createdAt?: InputMaybe<Scalars['bigint']['input']>;
   factory?: InputMaybe<Scalars['String']['input']>;
   logic?: InputMaybe<Scalars['String']['input']>;
@@ -185,7 +190,7 @@ export type String_Comparison_Exp = {
 /** columns and relationships of "TokenStorage" */
 export type TokenStorage = {
   __typename?: 'TokenStorage';
-  ap721: Scalars['String']['output'];
+  Router: Scalars['String']['output'];
   pointer: Scalars['String']['output'];
   tokenId: Scalars['bigint']['output'];
   transactionHash: Scalars['String']['output'];
@@ -198,7 +203,7 @@ export type TokenStorage_Bool_Exp = {
   _and?: InputMaybe<Array<TokenStorage_Bool_Exp>>;
   _not?: InputMaybe<TokenStorage_Bool_Exp>;
   _or?: InputMaybe<Array<TokenStorage_Bool_Exp>>;
-  ap721?: InputMaybe<String_Comparison_Exp>;
+  Router?: InputMaybe<String_Comparison_Exp>;
   pointer?: InputMaybe<String_Comparison_Exp>;
   tokenId?: InputMaybe<Bigint_Comparison_Exp>;
   transactionHash?: InputMaybe<String_Comparison_Exp>;
@@ -208,7 +213,7 @@ export type TokenStorage_Bool_Exp = {
 
 /** Ordering options when selecting data from "TokenStorage". */
 export type TokenStorage_Order_By = {
-  ap721?: InputMaybe<Order_By>;
+  Router?: InputMaybe<Order_By>;
   pointer?: InputMaybe<Order_By>;
   tokenId?: InputMaybe<Order_By>;
   transactionHash?: InputMaybe<Order_By>;
@@ -219,7 +224,7 @@ export type TokenStorage_Order_By = {
 /** select columns of table "TokenStorage" */
 export enum TokenStorage_Select_Column {
   /** column name */
-  Ap721 = 'ap721',
+  Router = 'Router',
   /** column name */
   Pointer = 'pointer',
   /** column name */
@@ -242,7 +247,7 @@ export type TokenStorage_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type TokenStorage_Stream_Cursor_Value_Input = {
-  ap721?: InputMaybe<Scalars['String']['input']>;
+  Router?: InputMaybe<Scalars['String']['input']>;
   pointer?: InputMaybe<Scalars['String']['input']>;
   tokenId?: InputMaybe<Scalars['bigint']['input']>;
   transactionHash?: InputMaybe<Scalars['String']['input']>;
@@ -338,10 +343,10 @@ export enum Order_By {
 }
 export type Query_Root = {
   __typename?: 'query_root';
-  /** fetch data from the table: "AP721" */
-  AP721: Array<Ap721>;
-  /** fetch data from the table: "AP721" using primary key columns */
-  AP721_by_pk?: Maybe<Ap721>;
+  /** fetch data from the table: "Router" */
+  Router: Array<Router>;
+  /** fetch data from the table: "Router" using primary key columns */
+  Router_by_pk?: Maybe<Router>;
   /** fetch data from the table: "Arweave" */
   Arweave: Array<Arweave>;
   /** fetch data from the table: "Arweave" using primary key columns */
@@ -356,17 +361,17 @@ export type Query_Root = {
   RawTransaction_by_pk?: Maybe<RawTransaction>;
 };
 
-export type Query_RootAp721Args = {
-  distinct_on?: InputMaybe<Array<Ap721_Select_Column>>;
+export type Query_RootRouterArgs = {
+  distinct_on?: InputMaybe<Array<Router_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
-  order_by?: InputMaybe<Array<Ap721_Order_By>>;
-  where?: InputMaybe<Ap721_Bool_Exp>;
+  order_by?: InputMaybe<Array<Router_Order_By>>;
+  where?: InputMaybe<Router_Bool_Exp>;
 };
 
 
-export type Query_RootAp721_By_PkArgs = {
-  ap721: Scalars['String']['input'];
+export type Query_RootRouter_By_PkArgs = {
+  Router: Scalars['String']['input'];
 };
 
 
@@ -394,7 +399,7 @@ export type Query_RootTokenStorageArgs = {
 
 
 export type Query_RootTokenStorage_By_PkArgs = {
-  ap721: Scalars['String']['input'];
+  Router: Scalars['String']['input'];
   tokenId: Scalars['bigint']['input'];
 };
 
@@ -414,12 +419,12 @@ export type Query_RootRawTransaction_By_PkArgs = {
 
 export type Subscription_Root = {
   __typename?: 'subscription_root';
-  /** fetch data from the table: "AP721" */
-  AP721: Array<Ap721>;
-  /** fetch data from the table: "AP721" using primary key columns */
-  AP721_by_pk?: Maybe<Ap721>;
-  /** fetch data from the table in a streaming manner: "AP721" */
-  AP721_stream: Array<Ap721>;
+  /** fetch data from the table: "Router" */
+  Router: Array<Router>;
+  /** fetch data from the table: "Router" using primary key columns */
+  Router_by_pk?: Maybe<Router>;
+  /** fetch data from the table in a streaming manner: "Router" */
+  Router_stream: Array<Router>;
   /** fetch data from the table: "Arweave" */
   Arweave: Array<Arweave>;
   /** fetch data from the table: "Arweave" using primary key columns */
@@ -441,24 +446,24 @@ export type Subscription_Root = {
 };
 
 
-export type Subscription_RootAp721Args = {
-  distinct_on?: InputMaybe<Array<Ap721_Select_Column>>;
+export type Subscription_RootRouterArgs = {
+  distinct_on?: InputMaybe<Array<Router_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
-  order_by?: InputMaybe<Array<Ap721_Order_By>>;
-  where?: InputMaybe<Ap721_Bool_Exp>;
+  order_by?: InputMaybe<Array<Router_Order_By>>;
+  where?: InputMaybe<Router_Bool_Exp>;
 };
 
 
-export type Subscription_RootAp721_By_PkArgs = {
-  ap721: Scalars['String']['input'];
+export type Subscription_RootRouter_By_PkArgs = {
+  Router: Scalars['String']['input'];
 };
 
 
-export type Subscription_RootAp721_StreamArgs = {
+export type Subscription_RootRouter_StreamArgs = {
   batch_size: Scalars['Int']['input'];
-  cursor: Array<InputMaybe<Ap721_Stream_Cursor_Input>>;
-  where?: InputMaybe<Ap721_Bool_Exp>;
+  cursor: Array<InputMaybe<Router_Stream_Cursor_Input>>;
+  where?: InputMaybe<Router_Bool_Exp>;
 };
 
 
@@ -493,7 +498,7 @@ export type Subscription_RootTokenStorageArgs = {
 
 
 export type Subscription_RootTokenStorage_By_PkArgs = {
-  ap721: Scalars['String']['input'];
+  Router: Scalars['String']['input'];
   tokenId: Scalars['bigint']['input'];
 };
 
