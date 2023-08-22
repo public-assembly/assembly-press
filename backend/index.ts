@@ -4,8 +4,8 @@ import {bundlrUpload} from './bundlr/bundlrUpload'
 import cron from "node-cron";
 
 async function main() {
-  // await backfillPostgres()
-  watchRouterEvents() 
+  await backfillPostgres()
+  // watchRouterEvents() 
 }
 main()
 cron.schedule(

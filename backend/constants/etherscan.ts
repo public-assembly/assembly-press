@@ -1,1 +1,1 @@
-export const etherscanApiUrl = `${process.env.ETHERSCAN_ENDPOINT}/api?module=contract&action=getcontractcreation&contractaddresses=${process.env.DATABASE_ADDRESS}&apikey=${process.env.ETHERSCAN_API_KEY}`
+export const etherscanApiUrl = `${process.env.ETHERSCAN_ENDPOINT}/api?module=contract&action=getcontractcreation&contractaddresses=${process.env.ROUTER_ADDRESS}&apikey=${process.env.ETHERSCAN_API_KEY}`

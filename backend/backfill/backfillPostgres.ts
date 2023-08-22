@@ -20,16 +20,19 @@ export const backfillPostgres = async () => {
     const decodedLogs = decodeLogs(sortedLogs)
 
     writeToDatabase(decodedLogs)
+
   } else {
+    console.log('This is what we are running')
     const contractCreationBlock = await getContractCreationBlock()
+    console.log('Creation block', contractCreationBlock)
 
-    const sortedLogs = await fetchLogs(
-      contractCreationBlock as BlockNumber,
-      currentBlock,
-    )
+    // const sortedLogs = await fetchLogs(
+    //   contractCreationBlock as BlockNumber,
+    //   currentBlock,
+    // )
 
-    const decodedLogs = decodeLogs(sortedLogs)
+    // const decodedLogs = decodeLogs(sortedLogs)
 
-    writeToDatabase(decodedLogs)
+    // writeToDatabase(decodedLogs)
   }
 }
