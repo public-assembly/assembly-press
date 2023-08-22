@@ -14,6 +14,12 @@ import {IPressTypesV1} from "../src/core/press/types/IPressTypesV1.sol";
 import {MockLogic} from "./mocks/logic/MockLogic.sol";
 import {MockRenderer} from "./mocks/renderer/MockRenderer.sol";
 
+/*
+    NOTE:
+    See this link for a more robust test suite for previous iteration of the protocol:
+    https://github.com/public-assembly/assembly-press/tree/300f1ea78acf1e77823f476fdb2a7c519f5e8495/protocol/test
+*/
+
 contract RouterTest is Test {
 
     // TYPES
