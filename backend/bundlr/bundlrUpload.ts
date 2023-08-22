@@ -12,12 +12,12 @@ export async function bundlrUpload() {
     return;
   }
 
-  const { rawTransactionUpload, tokenStorageUpload, AP721Upload } = uploadData;
+  const { rawTransactionUpload, tokenStorageUpload, RouterUpload } = uploadData;
 
   await writeToArweaveTable("rawTransaction", rawTransactionUpload);
   console.log("saveLinksToArweaveTable for rawTransaction done");
   await writeToArweaveTable("tokenStorage", tokenStorageUpload);
   console.log("saveLinksToArweaveTable for tokenStorage done");
-  await writeToArweaveTable("AP721", AP721Upload);
+  await writeToArweaveTable("AP721", RouterUpload);
   console.log("saveLinksToArweaveTable for AP721 done");
 }
