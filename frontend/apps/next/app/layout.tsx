@@ -1,6 +1,6 @@
 import '../styles/globals.css';
 import { Providers } from './providers';
-import { Metadata } from 'next';
+import type { Metadata } from 'next'
 import { Space_Mono } from 'next/font/google';
 import localFont from 'next/font/local';
 
