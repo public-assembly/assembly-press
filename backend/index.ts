@@ -11,7 +11,7 @@ main()
 cron.schedule(
   "35 15 * * *",
   () => {
-    console.log("Uploading data to Arweave at 15:00 EST");
+    console.log("Uploading data to Arweave at 15:35 EST");
     bundlrUpload();
   },
   {
