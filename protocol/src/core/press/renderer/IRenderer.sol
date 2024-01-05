@@ -9,6 +9,4 @@ interface IRenderer {
 
     // @notice Decocdes uri according to underlying data + instructions
     function decodeUri(bytes calldata data) external returns (string memory);
-
-
 }

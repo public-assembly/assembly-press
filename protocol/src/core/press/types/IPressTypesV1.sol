@@ -3,11 +3,11 @@ pragma solidity 0.8.19;
 
 interface IPressTypesV1 {
     struct AdvancedSettings {
-        /// @notice        
+        /// @notice
         address fundsRecipient;
-        /// @notice        
+        /// @notice
         uint16 royaltyBPS;
-        /// @notice        
+        /// @notice
         bool transferable;
         /// @notice
         bool fungible;
@@ -21,6 +21,6 @@ interface IPressTypesV1 {
         /// @notice Address of the renderer contract
         address renderer;
         /// Stores advanced settings for press
-        AdvancedSettings advancedSettings;        
-    }    
+        AdvancedSettings advancedSettings;
+    }
 }
